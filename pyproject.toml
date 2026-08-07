@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sci-etl-core"
+version = "0.1.0"
+description = "Reusable, domain-agnostic ETL core for scientific text mining."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pydantic>=2",
+    "pyyaml",
+    "python-dotenv",
+    "beautifulsoup4",
+    "lxml",
+    "pandas",
+]
+
+[project.optional-dependencies]
+async = ["httpx", "aiofiles", "aiolimiter"]
+llm = ["openai", "tiktoken"]
+pdf = ["pdfplumber"]
+sql = ["sqlalchemy>=2", "aiosqlite"]
+viz = ["plotly", "aiofiles"]
+cluster = ["scikit-learn", "numpy"]
+embeddings = ["numpy", "openai"]
+embeddings-local = ["numpy", "sentence-transformers"]
+dev = ["pytest", "pytest-asyncio", "pytest-mock", "pytest-cov", "hypothesis"]
+full = [
+    "httpx", "aiofiles", "aiolimiter",
+    "openai", "tiktoken",
+    "pdfplumber",
+    "sqlalchemy>=2", "aiosqlite",
+    "plotly",
+    "scikit-learn", "numpy",
+    "requests",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+sci_etl_core = ["py.typed"]
+
+[tool.coverage.report]
+fail_under = 100
+show_missing = true
+exclude_also = ["if TYPE_CHECKING:"]
