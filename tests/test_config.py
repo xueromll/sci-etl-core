@@ -37,7 +37,7 @@ class TestLoadConfig:
         cfg = load_config(BaseAppConfig, Path("missing.yaml"))
         assert cfg.pipeline.max_records == 100
         assert cfg.llm.model == "gpt-4o-mini"
-        assert cfg.llm.api_key == ""
+        assert cfg.llm.api_key.get_secret_value() == ""
         config_module.load_dotenv.assert_called_once_with()
 
     def test_env_path_is_forwarded_to_dotenv(self, mocker):
@@ -47,14 +47,21 @@ class TestLoadConfig:
         env = Path(".env")
         cfg = load_config(BaseAppConfig, Path("c.yaml"), env_path=env)
         config_module.load_dotenv.assert_called_once_with(env)
-        assert cfg.llm.api_key == "secret"
+        assert cfg.llm.api_key.get_secret_value() == "secret"
 
     def test_yaml_api_key_takes_precedence_over_env(self, mocker):
         mocker.patch.object(config_module, "load_dotenv")
         mocker.patch.object(config_module, "load_yaml", return_value={"llm": {"api_key": "from-yaml"}})
         mocker.patch.object(config_module.os, "getenv", return_value="from-env")
         cfg = load_config(BaseAppConfig, Path("c.yaml"))
-        assert cfg.llm.api_key == "from-yaml"
+        assert cfg.llm.api_key.get_secret_value() == "from-yaml"
+
+    def test_secret_is_hidden_in_repr(self, mocker):
+        mocker.patch.object(config_module, "load_dotenv")
+        mocker.patch.object(config_module, "load_yaml", return_value={"llm": {"api_key": "top-secret"}})
+        mocker.patch.object(config_module.os, "getenv", return_value="")
+        cfg = load_config(BaseAppConfig, Path("c.yaml"))
+        assert "top-secret" not in repr(cfg.llm)
 
     def test_invalid_configuration_raises(self, mocker):
         mocker.patch.object(config_module, "load_dotenv")

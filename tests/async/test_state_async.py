@@ -30,17 +30,25 @@ class TestAsyncFileStateManager:
         assert await manager.load_processed_ids() == set()
 
     @pytest.mark.parametrize(
-        "stored, expected",
+        "stored",
         [
-            ("http://arxiv.org/abs/2401.00001", "2401.00001"),
-            ("http://arxiv.org/pdf/2401.00002.pdf", "2401.00002"),
-            ("2401.00003", "2401.00003"),
+            "http://arxiv.org/abs/2401.00001",
+            "http://arxiv.org/pdf/2401.00002.pdf",
+            "2401.00003",
         ],
     )
     @pytest.mark.asyncio
-    async def test_ids_cleaned_on_load(self, manager, stored, expected):
+    async def test_ids_loaded_verbatim(self, manager, stored):
         manager._processed_ids_file.write_text(stored + "\n", encoding="utf-8")
-        assert expected in await manager.load_processed_ids()
+        assert stored in await manager.load_processed_ids()
+
+    @pytest.mark.asyncio
+    async def test_load_processed_ids_returns_empty_on_os_error(self, manager, mocker):
+        manager._processed_ids_file.write_text("2401.1\n", encoding="utf-8")
+        mocker.patch(
+            "sci_etl_core.state.async_file_state.aiofiles.open", side_effect=OSError("io")
+        )
+        assert await manager.load_processed_ids() == set()
 
     @pytest.mark.asyncio
     async def test_metadata_defaults_when_absent(self, manager):

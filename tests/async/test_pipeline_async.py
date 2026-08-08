@@ -89,6 +89,12 @@ class TestAsyncPipelineHappyPath:
         await pipeline.run(query="q", max_records=2, sleep_between=0)
         assert state.save_metadata.await_count >= 1
 
+    @pytest.mark.asyncio
+    async def test_record_without_id_is_not_marked(self, mocker):
+        pipeline, _, _, _, _, state = _build(mocker, [RawRecord(record_id="", title="t", abstract="a")])
+        assert await pipeline.run(query="q", max_records=1, sleep_between=0) == 1
+        state.mark_processed.assert_not_awaited()
+
 
 class TestAsyncPipelineResilience:
     @pytest.mark.asyncio

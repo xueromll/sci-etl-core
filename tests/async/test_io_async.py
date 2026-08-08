@@ -31,7 +31,7 @@ class TestAsyncConfig:
         path = tmp_path / "c.yaml"
         path.write_text("", encoding="utf-8")
         cfg = await ca.load_config_async(BaseAppConfig, path)
-        assert cfg.llm.api_key == "secret"
+        assert cfg.llm.api_key.get_secret_value() == "secret"
 
     @pytest.mark.asyncio
     async def test_missing_file_raises(self, mocker, tmp_path):

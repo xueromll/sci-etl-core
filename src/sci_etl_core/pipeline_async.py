@@ -71,7 +71,7 @@ class AsyncETLPipeline:
                 elif result:
                     total_processed += 1
 
-            start_index += max_records
+            start_index += total_in_listing
             metadata.last_start_index = start_index
             await self._state_manager.save_metadata(metadata)
             await self._sleep(sleep_between)

@@ -17,7 +17,7 @@ class FileStateManager(StateManager):
             return set()
         try:
             with self._processed_ids_file.open("r", encoding="utf-8") as handle:
-                return {self._clean(line.strip()) for line in handle if line.strip()}
+                return {line.strip() for line in handle if line.strip()}
         except OSError:
             return set()
 
@@ -44,11 +44,3 @@ class FileStateManager(StateManager):
         payload = {"last_run_date": metadata.last_run_at, "last_start_index": metadata.last_start_index}
         with self._metadata_file.open("w", encoding="utf-8") as handle:
             json.dump(payload, handle, indent=4)
-
-    @staticmethod
-    def _clean(raw_line: str) -> str:
-        if "/abs/" in raw_line:
-            return raw_line.split("/abs/")[-1]
-        if "/pdf/" in raw_line:
-            return raw_line.split("/pdf/")[-1].replace(".pdf", "")
-        return raw_line

@@ -74,7 +74,7 @@ class AsyncArxivExtractor(AsyncExtractor):
         records: list[RawRecord] = []
         for entry in entries:
             raw_id = entry.id.get_text(strip=True) if entry.id else ""
-            record_id = raw_id.split("/abs/")[-1] if "/abs/" in raw_id else raw_id
+            record_id = self._normalize_id(raw_id)
             if record_id in seen_ids:
                 continue
             html_link = next(
@@ -90,6 +90,14 @@ class AsyncArxivExtractor(AsyncExtractor):
                 )
             )
         return records, len(entries)
+
+    def _normalize_id(self, raw_id: str) -> str:
+        """Strip arXiv ``/abs/`` and ``/pdf/`` URL prefixes from a raw record id."""
+        if "/abs/" in raw_id:
+            return raw_id.split("/abs/")[-1]
+        if "/pdf/" in raw_id:
+            return raw_id.split("/pdf/")[-1].replace(".pdf", "")
+        return raw_id
 
     async def fetch_full_text(self, record: RawRecord) -> str:
         if not record.record_id:

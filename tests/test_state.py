@@ -27,16 +27,16 @@ class TestFileStateManager:
         assert manager.load_processed_ids() == set()
 
     @pytest.mark.parametrize(
-        "stored, expected",
+        "stored",
         [
-            ("http://arxiv.org/abs/2401.00001", "2401.00001"),
-            ("http://arxiv.org/pdf/2401.00002.pdf", "2401.00002"),
-            ("2401.00003", "2401.00003"),
+            "http://arxiv.org/abs/2401.00001",
+            "http://arxiv.org/pdf/2401.00002.pdf",
+            "2401.00003",
         ],
     )
-    def test_ids_are_cleaned_on_load(self, manager, stored, expected):
+    def test_ids_loaded_verbatim(self, manager, stored):
         manager._processed_ids_file.write_text(stored + "\n", encoding="utf-8")
-        assert expected in manager.load_processed_ids()
+        assert stored in manager.load_processed_ids()
 
     def test_metadata_defaults_when_absent(self, manager):
         meta = manager.load_metadata()

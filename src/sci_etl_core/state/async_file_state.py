@@ -22,7 +22,7 @@ class AsyncFileStateManager(AsyncStateManager):
                 content = await handle.read()
         except OSError:
             return set()
-        return {self._clean(line.strip()) for line in content.splitlines() if line.strip()}
+        return {line.strip() for line in content.splitlines() if line.strip()}
 
     async def mark_processed(self, record_id: str) -> None:
         if not record_id:
@@ -47,11 +47,3 @@ class AsyncFileStateManager(AsyncStateManager):
         payload = {"last_run_date": metadata.last_run_at, "last_start_index": metadata.last_start_index}
         async with aiofiles.open(self._metadata_file, "w", encoding="utf-8") as handle:
             await handle.write(json.dumps(payload, indent=4))
-
-    @staticmethod
-    def _clean(raw_line: str) -> str:
-        if "/abs/" in raw_line:
-            return raw_line.split("/abs/")[-1]
-        if "/pdf/" in raw_line:
-            return raw_line.split("/pdf/")[-1].replace(".pdf", "")
-        return raw_line

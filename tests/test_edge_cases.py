@@ -18,24 +18,24 @@ from sci_etl_core.state.base import StateManager
 from sci_etl_core.state.file_state import FileStateManager
 
 
-@pytest.fixture(autouse=True)
-def no_sleep(mocker):
-    mocker.patch("sci_etl_core.pipeline.time.sleep")
-
-
 def _pipeline(mocker, records, *, max_workers=4):
     extractor = mocker.Mock(spec=Extractor)
-    extractor.search.return_value = b"<feed/>"
-    extractor.parse_listing.side_effect = [(records, len(records))] + [([], 0)] * 5
-    extractor.fetch_full_text.side_effect = lambda r: f"text-{r.record_id}"
+    extractor.search = mocker.AsyncMock(return_value=b"<feed/>")
+    extractor.parse_listing = mocker.Mock(side_effect=[(records, len(records))] + [([], 0)] * 5)
+    extractor.fetch_full_text = mocker.AsyncMock(side_effect=lambda r: f"text-{r.record_id}")
+
     relevance = mocker.Mock(spec=RelevanceFilter)
-    relevance.is_relevant.return_value = True
+    relevance.is_relevant = mocker.AsyncMock(return_value=True)
+
     entity = mocker.Mock(spec=EntityExtractor)
-    entity.extract.return_value = [{"name": "X"}]
+    entity.extract = mocker.AsyncMock(return_value=[{"name": "X"}])
+
     exporter = mocker.Mock(spec=Exporter)
+
     state = mocker.Mock(spec=StateManager)
     state.load_processed_ids.return_value = set()
     state.load_metadata.return_value = PipelineMetadata(last_start_index=0)
+
     pipeline = ETLPipeline(
         extractor=extractor,
         relevance_filter=relevance,
@@ -43,15 +43,17 @@ def _pipeline(mocker, records, *, max_workers=4):
         exporter=exporter,
         state_manager=state,
         destination="out.csv",
-        max_workers=max_workers,
+        max_concurrency=max_workers,
+        sleep=mocker.AsyncMock(),
     )
     return pipeline, state
 
 
 class TestPipelineEmptyRecordId:
-    def test_record_without_id_is_processed_but_not_marked(self, mocker):
+    @pytest.mark.asyncio
+    async def test_record_without_id_is_processed_but_not_marked(self, mocker):
         pipeline, state = _pipeline(mocker, [RawRecord(record_id="", title="t", abstract="a")])
-        assert pipeline.run(query="q", max_records=1, sleep_between=0) == 1
+        assert await pipeline.run(query="q", max_records=1, sleep_between=0) == 1
         state.mark_processed.assert_not_called()
 
 
@@ -66,9 +68,12 @@ def _message(mocker, content):
 class TestOpenAIRetryPaths:
     @pytest.fixture
     def patched_openai(self, mocker):
-        return mocker.patch("sci_etl_core.llm.openai_compatible.OpenAI").return_value
+        instance = mocker.patch("sci_etl_core.llm.openai_compatible.AsyncOpenAI").return_value
+        instance.chat.completions.create = mocker.AsyncMock()
+        return instance
 
-    def test_retryable_error_exhausts_and_raises(self, patched_openai, mocker):
+    @pytest.mark.asyncio
+    async def test_retryable_error_exhausts_and_raises(self, patched_openai, mocker):
         from openai import RateLimitError
 
         class FakeRateLimit(RateLimitError):
@@ -76,14 +81,15 @@ class TestOpenAIRetryPaths:
                 Exception.__init__(self, "rate limited")
 
         patched_openai.chat.completions.create.side_effect = FakeRateLimit()
-        sleep = mocker.patch("sci_etl_core.llm.openai_compatible.time.sleep")
-        client = OpenAICompatibleClient(api_key="k", base_url="u", model="m", max_retries=3)
+        sleep = mocker.AsyncMock()
+        client = OpenAICompatibleClient(api_key="k", base_url="u", model="m", max_retries=3, sleep=sleep)
         with pytest.raises(LLMError, match="after 3 attempts"):
-            client.complete_json("s", "u")
-        assert patched_openai.chat.completions.create.call_count == 3
-        assert sleep.call_count == 2
+            await client.complete_json("s", "u")
+        assert patched_openai.chat.completions.create.await_count == 3
+        assert sleep.await_count == 2
 
-    def test_retryable_error_then_success(self, patched_openai, mocker):
+    @pytest.mark.asyncio
+    async def test_retryable_error_then_success(self, patched_openai, mocker):
         from openai import APITimeoutError
 
         class FakeTimeout(APITimeoutError):
@@ -91,17 +97,17 @@ class TestOpenAIRetryPaths:
                 Exception.__init__(self, "timeout")
 
         patched_openai.chat.completions.create.side_effect = [FakeTimeout(), _message(mocker, '{"ok": 1}')]
-        mocker.patch("sci_etl_core.llm.openai_compatible.time.sleep")
-        client = OpenAICompatibleClient(api_key="k", base_url="u", model="m", max_retries=3)
-        assert client.complete_json("s", "u") == {"ok": 1}
+        client = OpenAICompatibleClient(api_key="k", base_url="u", model="m", max_retries=3, sleep=mocker.AsyncMock())
+        assert await client.complete_json("s", "u") == {"ok": 1}
 
-    def test_empty_choices_raises(self, patched_openai, mocker):
+    @pytest.mark.asyncio
+    async def test_empty_choices_raises(self, patched_openai, mocker):
         response = mocker.Mock()
         response.choices = []
         patched_openai.chat.completions.create.return_value = response
-        client = OpenAICompatibleClient(api_key="k", base_url="u", model="m")
+        client = OpenAICompatibleClient(api_key="k", base_url="u", model="m", sleep=mocker.AsyncMock())
         with pytest.raises(LLMError, match="no choices"):
-            client.complete_json("s", "u")
+            await client.complete_json("s", "u")
 
 
 class TestDedupRepeatDrop:

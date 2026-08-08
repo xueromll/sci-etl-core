@@ -30,12 +30,12 @@ class TestAsyncOpenAICompatibleClient:
         instance.chat.completions.create = mocker.AsyncMock()
         return instance
 
-    def _make(self, mocker):
+    def _make(self, mocker, **kwargs):
         from sci_etl_core.llm.openai_compatible_async import AsyncOpenAICompatibleClient
 
-        return AsyncOpenAICompatibleClient(
-            api_key="k", base_url="u", model="m", default_timeout=99, sleep=mocker.AsyncMock()
-        )
+        kwargs.setdefault("default_timeout", 99)
+        kwargs.setdefault("sleep", mocker.AsyncMock())
+        return AsyncOpenAICompatibleClient(api_key="k", base_url="u", model="m", **kwargs)
 
     @pytest.mark.asyncio
     async def test_parses_valid_json_response(self, patched, mocker):
@@ -72,6 +72,33 @@ class TestAsyncOpenAICompatibleClient:
         patched.chat.completions.create.return_value = response
         with pytest.raises(LLMError, match="no choices"):
             await self._make(mocker).complete_json("s", "u")
+
+    @pytest.mark.asyncio
+    async def test_retryable_error_then_success(self, patched, mocker):
+        from openai import APITimeoutError
+
+        class FakeTimeout(APITimeoutError):
+            def __init__(self):
+                Exception.__init__(self, "timeout")
+
+        patched.chat.completions.create.side_effect = [FakeTimeout(), _message(mocker, '{"ok": 1}')]
+        assert await self._make(mocker, max_retries=3).complete_json("s", "u") == {"ok": 1}
+
+    @pytest.mark.asyncio
+    async def test_retryable_error_exhausts_and_raises(self, patched, mocker):
+        from openai import RateLimitError
+
+        class FakeRateLimit(RateLimitError):
+            def __init__(self):
+                Exception.__init__(self, "rate limited")
+
+        patched.chat.completions.create.side_effect = FakeRateLimit()
+        sleep = mocker.AsyncMock()
+        client = self._make(mocker, max_retries=3, sleep=sleep)
+        with pytest.raises(LLMError, match="after 3 attempts"):
+            await client.complete_json("s", "u")
+        assert patched.chat.completions.create.await_count == 3
+        assert sleep.await_count == 2
 
 
 class TestAsyncLLMRelevanceFilter:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+import types
 from pathlib import Path
 
 import pandas as pd
@@ -9,6 +10,30 @@ import pytest
 SRC = Path(__file__).resolve().parents[1] / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
+
+
+def _install_sqlalchemy_stub() -> None:
+    """Register lightweight stub modules so the SQL exporters import offline.
+
+    Keeps the test suite offline-first while still exercising every line of the
+    SQL exporters. When the real package is installed the stub is not used.
+    """
+    try:
+        import sqlalchemy  # noqa: F401
+    except ModuleNotFoundError:
+        base = types.ModuleType("sqlalchemy")
+        base.create_engine = lambda *args, **kwargs: None
+        ext = types.ModuleType("sqlalchemy.ext")
+        asyncio_mod = types.ModuleType("sqlalchemy.ext.asyncio")
+        asyncio_mod.create_async_engine = lambda *args, **kwargs: None
+        base.ext = ext
+        ext.asyncio = asyncio_mod
+        sys.modules["sqlalchemy"] = base
+        sys.modules["sqlalchemy.ext"] = ext
+        sys.modules["sqlalchemy.ext.asyncio"] = asyncio_mod
+
+
+_install_sqlalchemy_stub()
 
 from sci_etl_core.models import RawRecord
 

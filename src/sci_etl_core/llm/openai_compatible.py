@@ -6,6 +6,7 @@ from typing import Any
 
 from openai import AsyncOpenAI
 from openai import APIConnectionError, APITimeoutError, InternalServerError, RateLimitError
+from pydantic import SecretStr
 
 from sci_etl_core.exceptions import LLMError
 from sci_etl_core.llm.base import LLMClient
@@ -13,10 +14,14 @@ from sci_etl_core.llm.base import LLMClient
 _RETRYABLE = (APITimeoutError, APIConnectionError, RateLimitError, InternalServerError)
 
 
+def _reveal(api_key: str | SecretStr) -> str:
+    return api_key.get_secret_value() if isinstance(api_key, SecretStr) else api_key
+
+
 class OpenAICompatibleClient(LLMClient):
     def __init__(
         self,
-        api_key: str,
+        api_key: str | SecretStr,
         base_url: str,
         model: str,
         default_timeout: int = 120,
@@ -25,7 +30,7 @@ class OpenAICompatibleClient(LLMClient):
         backoff_factor: float = 2.0,
         sleep: Any = asyncio.sleep,
     ) -> None:
-        self._client = AsyncOpenAI(api_key=api_key, base_url=base_url)
+        self._client = AsyncOpenAI(api_key=_reveal(api_key), base_url=base_url)
         self._model = model
         self._default_timeout = default_timeout
         self._temperature = temperature

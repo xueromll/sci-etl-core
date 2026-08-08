@@ -6,7 +6,7 @@ from typing import Any, TypeVar
 
 import yaml
 from dotenv import load_dotenv
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, SecretStr
 
 from sci_etl_core.exceptions import ConfigurationError
 
@@ -14,7 +14,7 @@ T = TypeVar("T", bound="BaseAppConfig")
 
 
 class LLMConfig(BaseModel):
-    api_key: str = ""
+    api_key: SecretStr = SecretStr("")
     base_url: str = "https://api.openai.com/v1"
     model: str = "gpt-4o-mini"
     timeout: int = 120
