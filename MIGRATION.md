@@ -1,285 +1,190 @@
-# Migrating `udg-catalogue` to `sci-etl-core`
+# Migration Guide
 
-This shows the concrete adaptation. `sci-etl-core` owns the reusable
-mechanics (retry/backoff HTTP, parsing, LLM calls, dedup/cluster/quality
-math, CSV upsert, incremental state). `udg-catalogue` keeps everything that
-is actually about ultra-diffuse galaxies: sky-coordinate matching,
-Dragonfly/VCC name conventions, forbidden-keyword lists, prompt text, and
-the Streamlit dashboard.
+This guide helps you migrate a project onto `sci-etl-core`. It uses
+`udg-catalogue` — the astronomy pipeline the library was extracted from — as the
+worked example, but every step is domain-agnostic.
 
-## 1. Install
+## Why Migrate
+
+`sci-etl-core` extracts the reusable ETL machinery out of individual research
+projects so you no longer maintain a bespoke pipeline per corpus. Migrating buys
+you:
+
+- **One async core, two calling styles.** Implementations are written once as
+  `async` and exposed through a generated sync facade — no more parallel,
+  drifting sync/async copies.
+- **Injectable components.** Sources, models, and destinations are constructor
+  arguments, not hard-coded module globals.
+- **Typed config and secrets.** YAML + `.env` validated by Pydantic, with API
+  keys held as `SecretStr`.
+- **Shared, tested primitives.** Rate limiting, retrying HTTP, reference
+  trimming, dedup, and state tracking are maintained and covered once.
+
+## Breaking Changes
+
+Moving from an in-repo pipeline (e.g. `udg-catalogue`) to `sci-etl-core`:
+
+| Area | Before (`udg-catalogue`) | After (`sci-etl-core`) |
+|------|--------------------------|------------------------|
+| Package layout | flat modules in the project | `sci_etl_core.*` namespaced imports |
+| Sync vs async | hand-maintained duplicate modules | async core + generated sync facade |
+| Sources | arXiv logic hard-coded in the pipeline | inject an `Extractor` / `AsyncExtractor` |
+| LLM calls | inline OpenAI calls | inject an `LLMClient` implementation |
+| Secrets | plain strings / raw env reads | Pydantic `SecretStr` via `load_config` |
+| Config | ad-hoc parsing | `BaseAppConfig` + `load_config[_async]` |
+| Logging | per-module setup | `configure_logging(name, log_file)` |
+| Record shape | project-specific dict/objects | `RawRecord` dataclass |
+| Rate limiting | manual `asyncio.Semaphore` | `build_rate_limiter(...)` abstraction |
+| State | bespoke JSON/txt handling | `FileStateManager` / `AsyncFileStateManager` |
+
+**Behavioral notes**
+
+- The sync facade runs the async core on a private background event loop. Do not
+  call sync classes from inside a running `asyncio` loop; use the `Async*`
+  classes there instead.
+- `ETLPipeline.run(...)` accepts `total_limit` / `page_size`; the legacy single
+  `max_records` value is still honored as a backward-compatible alias that seeds
+  both.
+- `RawRecord` requires `record_id`, `title`, and `abstract`; map your prior
+  fields onto these plus the free-form `metadata` dict.
+
+## Step-by-Step Migration
+
+### 1. Install
 
 ```bash
-pip install -e ../sci-etl-core          # local dev
-# or, once published:
-pip install sci-etl-core
+pip install "sci-etl-core[async,llm,viz]"
 ```
 
-`udg-catalogue/requirements.txt` drops `requests`, `pandas`, `numpy`,
-`scikit-learn`, `openai`, `beautifulsoup4`, `pdfplumber`, `plotly`,
-`pydantic`, `python-dotenv`, `PyYAML` as direct pins (they come in
-transitively via `sci-etl-core`) and keeps `astropy`, `streamlit`,
-`seaborn`, `matplotlib` — the astronomy- and dashboard-specific pieces
-that don't belong in the core.
+### 2. Replace hard-coded source logic with an injected extractor
 
-## 2. Module mapping
-
-| Old file (udg-catalogue)          | New home                                                                 |
-|------------------------------------|---------------------------------------------------------------------------|
-| `logger.py`                        | `sci_etl_core.configure_logging`                                          |
-| `config.py` (loader plumbing)      | `sci_etl_core.config.load_config` + a project-local `UdgConfig` subclass  |
-| `arxiv_client.py` (HTTP/retry/parse)| `sci_etl_core.extractors.ArxivExtractor` + `parsers.PdfPlumberParser`/`LatexTarballParser` |
-| `arxiv_client.py` (LLM relevance & extraction) | `sci_etl_core.llm.LLMRelevanceFilter` / `LLMEntityExtractor` + local prompts |
-| `data_processor.py` (name normalization) | `sci_etl_core.processors.KeyNormalizer` subclass (local)             |
-| `data_processor.py` (forbidden keywords, ra/dec bounds) | `sci_etl_core.processors.KeywordExclusionValidator` + `NumericRangeValidator` |
-| `data_processor.py` (dedup by sky separation) | `sci_etl_core.processors.DeduplicationStep` + local `NeighborMatcher` (astropy) |
-| `data_processor.py` (DBSCAN clustering) | `sci_etl_core.processors.ClusteringStep` + local `FeatureExtractor` (ra/dec/dist → xyz) |
-| `data_processor.py` (completeness/quality) | `sci_etl_core.processors.CompletenessStep` / `QualityFlagStep`       |
-| `data_processor.py` (CSV upsert)   | `sci_etl_core.exporters.CsvUpsertExporter`                                |
-| `incremental.py`                   | `sci_etl_core.state.FileStateManager`                                     |
-| `main.py` (crawl loop)             | `sci_etl_core.pipeline.ETLPipeline`                                       |
-| `visualization.py`, `analytics.py`, `cross_match.py`, `app.py`, `prompts.py` | stay in `udg-catalogue`, domain-specific |
-
-## 3. Config
+Before — arXiv querying lived inside the pipeline:
 
 ```python
-# udg_catalogue/config.py
-from pathlib import Path
-from pydantic import Field
-from sci_etl_core import BaseAppConfig, load_config
-
-
-class UdgConfig(BaseAppConfig):
-    csv_file: str = "udg_catalogue.csv"
-    processed_ids_file: str = "state/processed_ids.txt"
-    metadata_file: str = "state/metadata.json"
-    log_file: str = "logs/udg_catalogue.log"
-    max_dist_mpc: float = 5.0
-    dbscan_eps_mpc: float = 0.3
-    dbscan_min_samples: int = 2
-    forbidden_keywords: list[str] = Field(default_factory=lambda: ["simulation", "mock", "synthetic"])
-
-
-def load_udg_config() -> UdgConfig:
-    return load_config(
-        UdgConfig,
-        yaml_path=Path("config.yaml"),
-        env_path=Path(".env"),
-        api_key_env_var="DEEPSEEK_API_KEY",
-    )
+# udg-catalogue/pipeline.py (old)
+def search_arxiv(query, start):
+    resp = requests.get(ARXIV_URL, params={...})
+    return parse_feed(resp.content)
 ```
 
-Nothing astronomy-specific leaks into `sci-etl-core` — `UdgConfig` just
-extends `BaseAppConfig` with the extra fields this project needs.
-
-## 4. Domain adapters (new, small, local files)
+After — inject a concrete `Extractor`; the pipeline never knows it's arXiv:
 
 ```python
-# udg_catalogue/normalizers.py
-import re
-from sci_etl_core.processors import KeyNormalizer
-
-DESIGNATION_ALIASES = {"dragonfly": "df", "virgo cluster catalog": "vcc"}
-
-
-class GalaxyKeyNormalizer(KeyNormalizer):
-    def normalize(self, raw_value: str) -> str:
-        if not raw_value:
-            return ""
-        value = str(raw_value).strip().lower()
-        for full, short in DESIGNATION_ALIASES.items():
-            value = value.replace(full, short)
-        return re.sub(r"[^a-z0-9]", "", value)
-```
-
-```python
-# udg_catalogue/matching.py
-import numpy as np
-import pandas as pd
-from astropy.coordinates import SkyCoord
-import astropy.units as u
-from sci_etl_core.processors import NeighborMatcher, FeatureExtractor
-
-
-class SkyCoordNeighborMatcher(NeighborMatcher):
-    def find_matches(self, frame: pd.DataFrame, threshold: float) -> list[tuple[int, int]]:
-        coords = SkyCoord(ra=frame["ra"].to_numpy() * u.deg, dec=frame["dec"].to_numpy() * u.deg)
-        matches: list[tuple[int, int]] = []
-        seen: set[int] = set()
-        for i in frame.index:
-            if i in seen:
-                continue
-            separations = coords[i].separation(coords).arcsec
-            close = frame.index[(separations < threshold) & (frame.index != i)]
-            for j in close:
-                if j not in seen:
-                    matches.append((i, j))
-                    seen.add(j)
-        return matches
-
-
-class RaDecDistanceFeatureExtractor(FeatureExtractor):
-    def extract(self, frame: pd.DataFrame):
-        valid = frame.dropna(subset=["ra", "dec", "distance_mpc"])
-        ra, dec, dist = np.radians(valid["ra"]), np.radians(valid["dec"]), valid["distance_mpc"]
-        x = dist * np.cos(dec) * np.cos(ra)
-        y = dist * np.cos(dec) * np.sin(ra)
-        z = dist * np.sin(dec)
-        return np.column_stack([x, y, z]), valid.index
-```
-
-## 5. `arxiv_client.py` becomes wiring, not logic
-
-```python
-# udg_catalogue/arxiv_client.py
-from sci_etl_core.extractors import ArxivExtractor
+from sci_etl_core import AsyncArxivExtractor
+from sci_etl_core.http_async import build_async_client
 from sci_etl_core.parsers import PdfPlumberParser, LatexTarballParser
-from sci_etl_core.llm import OpenAICompatibleClient, LLMRelevanceFilter, LLMEntityExtractor
-from udg_catalogue.prompts import RELEVANCE_PROMPT, EXTRACTION_PROMPT
 
-
-def build_extractor(config, logger) -> ArxivExtractor:
-    return ArxivExtractor(
-        user_agent="udg-catalogue/2.0 (mailto:you@example.com)",
-        pdf_parser=PdfPlumberParser(),
-        latex_parser=LatexTarballParser(),
-        max_retries=config.http.max_retries,
-        logger=logger.warning,
-    )
-
-
-def build_llm_client(config) -> OpenAICompatibleClient:
-    return OpenAICompatibleClient(
-        api_key=config.llm.api_key, base_url=config.llm.base_url, model=config.llm.model
-    )
-
-
-def build_relevance_filter(llm_client) -> LLMRelevanceFilter:
-    return LLMRelevanceFilter(llm_client, system_prompt=RELEVANCE_PROMPT)
-
-
-def build_entity_extractor(llm_client) -> LLMEntityExtractor:
-    return LLMEntityExtractor(llm_client, system_prompt=EXTRACTION_PROMPT, result_key="galaxies")
-```
-
-## 6. `data_processor.py` becomes a `ProcessorChain`
-
-```python
-# udg_catalogue/data_processor.py
-from sci_etl_core.processors import (
-    ProcessorChain, NormalizationStep, DeduplicationStep,
-    ClusteringStep, CompletenessStep, QualityFlagStep,
+extractor = AsyncArxivExtractor(
+    client=build_async_client(),
+    pdf_parser=PdfPlumberParser(),
+    latex_parser=LatexTarballParser(),
 )
-from udg_catalogue.normalizers import GalaxyKeyNormalizer
-from udg_catalogue.matching import SkyCoordNeighborMatcher, RaDecDistanceFeatureExtractor
-
-TRACKED_FIELDS = ["name", "ra", "dec", "distance_mpc", "effective_radius_arcsec", "surface_brightness"]
-
-
-def build_pipeline(config) -> ProcessorChain:
-    return ProcessorChain([
-        NormalizationStep(key_column="name", normalizer=GalaxyKeyNormalizer()),
-        DeduplicationStep(
-            norm_key_column="_norm_key",
-            matcher=SkyCoordNeighborMatcher(),
-            match_threshold=5.0,
-        ),
-        ClusteringStep(
-            feature_extractor=RaDecDistanceFeatureExtractor(),
-            eps=config.dbscan_eps_mpc,
-            min_samples=config.dbscan_min_samples,
-        ),
-        CompletenessStep(tracked_fields=TRACKED_FIELDS),
-        QualityFlagStep(),
-    ])
 ```
 
-The keyword/coordinate-range validation used to gate LLM output before it
-ever hits the dataframe:
+### 3. Move configuration to YAML + `.env`
+
+```yaml
+# config.yaml
+llm:
+  base_url: https://api.openai.com/v1
+  model: gpt-4o-mini
+pipeline:
+  search_query: "all:galaxy"
+  max_records: 200
+full_text:
+  max_concurrency: 4
+```
+
+```bash
+# .env  (never commit this)
+LLM_API_KEY=sk-...
+```
 
 ```python
-from sci_etl_core.processors import CompositeValidator, KeywordExclusionValidator, NumericRangeValidator
+from pathlib import Path
+from sci_etl_core.config import BaseAppConfig, load_config
 
-def build_record_validator(config) -> CompositeValidator:
-    return CompositeValidator([
-        KeywordExclusionValidator(key_field="name", forbidden_keywords=config.forbidden_keywords),
-        NumericRangeValidator({"ra": (0.0, 360.0), "dec": (-90.0, 90.0)}),
-    ])
+config = load_config(BaseAppConfig, Path("config.yaml"), Path(".env"))
 ```
 
-## 7. `main.py` shrinks to orchestration
+Need project-specific settings? `BaseAppConfig` allows extra fields, or subclass
+it:
 
 ```python
-# udg_catalogue/main.py
-from sci_etl_core import ETLPipeline, configure_logging
-from sci_etl_core.exporters import CsvUpsertExporter
-from sci_etl_core.state import FileStateManager
-from udg_catalogue.config import load_udg_config
-from udg_catalogue.normalizers import GalaxyKeyNormalizer
-from udg_catalogue.arxiv_client import build_extractor, build_llm_client, build_relevance_filter, build_entity_extractor
+from sci_etl_core.config import BaseAppConfig
 
-VALUE_COLUMNS = ["ra", "dec", "distance_mpc", "effective_radius_arcsec", "surface_brightness"]
-
-
-def main() -> None:
-    config = load_udg_config()
-    logger = configure_logging("udg_catalogue", config.log_file)
-
-    llm_client = build_llm_client(config)
-    pipeline = ETLPipeline(
-        extractor=build_extractor(config, logger),
-        relevance_filter=build_relevance_filter(llm_client),
-        entity_extractor=build_entity_extractor(llm_client),
-        exporter=CsvUpsertExporter(
-            key_column="name", value_columns=VALUE_COLUMNS, normalizer=GalaxyKeyNormalizer()
-        ),
-        state_manager=FileStateManager(config.processed_ids_file, config.metadata_file),
-        destination=config.csv_file,
-        max_workers=config.pipeline.max_workers,
-        logger=logger.info,
-    )
-
-    processed = pipeline.run(
-        query=config.pipeline.search_query,
-        max_records=config.pipeline.max_records,
-        sleep_between=config.pipeline.sleep_between,
-    )
-    logger.info(f"Processed {processed} new records this run.")
-
-
-if __name__ == "__main__":
-    main()
+class CatalogueConfig(BaseAppConfig):
+    magnitude_limit: float = 24.0
 ```
 
-Then run the clustering/dedup/quality pass over the accumulated CSV as a
-separate maintenance step whenever you like:
+### 4. Wrap the LLM steps
 
 ```python
-import pandas as pd
-from udg_catalogue.data_processor import build_pipeline
+from sci_etl_core import (
+    AsyncOpenAICompatibleClient,
+    AsyncLLMRelevanceFilter,
+    AsyncLLMEntityExtractor,
+)
 
-frame = pd.read_csv(config.csv_file)
-frame = build_pipeline(config).process(frame)
-frame.to_csv(config.csv_file, index=False)
+llm = AsyncOpenAICompatibleClient(
+    api_key=config.llm.api_key,          # SecretStr is accepted directly
+    base_url=config.llm.base_url,
+    model=config.llm.model,
+)
+relevance = AsyncLLMRelevanceFilter(llm_client=llm, system_prompt=RELEVANCE_PROMPT)
+entities = AsyncLLMEntityExtractor(llm_client=llm, system_prompt=EXTRACTION_PROMPT)
 ```
 
-## 8. What stays untouched
+### 5. Assemble the pipeline
 
-- `visualization.py` — keep it, but its base 3D scatter can delegate to
-  `sci_etl_core.exporters.Plotly3DExporter(ScatterPlotConfig(...))` for
-  the generic figure, then layer your custom hover template and unit
-  formatting on top of the returned `Figure` before `write_html`.
-- `analytics.py`, `cross_match.py`, `app.py`, `prompts.py` — fully
-  domain-specific, no generalizable mechanics to extract.
+```python
+from sci_etl_core import (
+    AsyncCsvUpsertExporter,
+    AsyncFileStateManager,
+    AsyncETLPipeline,
+)
+from sci_etl_core.processors import DefaultKeyNormalizer
 
-## 9. Tests
+pipeline = AsyncETLPipeline(
+    extractor=extractor,
+    relevance_filter=relevance,
+    entity_extractor=entities,
+    exporter=AsyncCsvUpsertExporter(
+        key_column="record_id",
+        value_columns=["magnitude", "redshift"],
+        normalizer=DefaultKeyNormalizer(),
+    ),
+    state_manager=AsyncFileStateManager("processed.txt", "state.json"),
+    destination="catalogue.csv",
+    max_concurrency=config.full_text.max_concurrency,
+)
 
-Existing tests that mocked internal functions (`clean_duplicates`,
-`upsert_to_csv`, `search_arxiv`, ...) now mock `sci_etl_core` classes
-instead — inject a `mocker.MagicMock(spec=Extractor)` /
-`spec=LLMClient` wherever `udg-catalogue` composes a pipeline. Tests for
-`GalaxyKeyNormalizer`, `SkyCoordNeighborMatcher`, and
-`RaDecDistanceFeatureExtractor` stay in `udg-catalogue`, since that's
-where the astronomy math lives. `sci-etl-core` ships its own offline,
-mock-based test suite (`tests/`) so the generic mechanics are verified
-independently of any downstream project.
+async with pipeline:
+    await pipeline.run(query=config.pipeline.search_query,
+                       total_limit=config.pipeline.max_records)
+```
+
+### 6. Point post-processing at the shared processors
+
+```python
+from sci_etl_core.processors import ProcessorChain, NormalizationStep, DeduplicationStep
+
+chain = ProcessorChain([NormalizationStep(...), DeduplicationStep(...)])
+clean = chain.process(dataframe)
+```
+
+### 7. Delete the old duplicated code
+
+Once the injected components produce identical output, remove the project's
+bespoke HTTP session, retry logic, semaphore juggling, and sync/async copies.
+
+## Verifying the Migration
+
+- Run against a small `total_limit` and diff the output CSV against a
+  pre-migration run.
+- Keep your prompts and normalizer identical first; change behavior only after
+  parity is confirmed.
+- Run `pytest` — the offline suite catches interface mismatches early.
+
+Questions or a rough edge in your migration? Open a
+[discussion or issue](.github/ISSUE_TEMPLATE/bug_report.md) — we're happy to help.

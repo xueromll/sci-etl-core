@@ -46,14 +46,22 @@ class AsyncETLPipeline:
                 await aclose()
         return False
 
-    async def run(self, query: str, max_records: int, sleep_between: float) -> int:
+    async def run(
+        self,
+        query: str,
+        page_size: int | None = None,
+        sleep_between: float = 0.0,
+        total_limit: int | None = None,
+        max_records: int | None = None,
+    ) -> int:
+        page_size, total_limit = self._resolve_limits(page_size, total_limit, max_records)
         processed_ids = await self._state_manager.load_processed_ids()
         metadata = await self._state_manager.load_metadata()
         start_index = metadata.last_start_index
         total_processed = 0
 
-        while total_processed < max_records:
-            raw_listing = await self._extractor.search(query, max_records, start_index)
+        while total_processed < total_limit:
+            raw_listing = await self._extractor.search(query, page_size, start_index)
             if not raw_listing:
                 break
 
@@ -67,7 +75,7 @@ class AsyncETLPipeline:
             )
             for result in results:
                 if isinstance(result, Exception):
-                    self._log(f"Record processing failed: {result}")
+                    self._log(f"Record processing failed: {result!r}")
                 elif result:
                     total_processed += 1
 
@@ -77,6 +85,22 @@ class AsyncETLPipeline:
             await self._sleep(sleep_between)
 
         return total_processed
+
+    @staticmethod
+    def _resolve_limits(
+        page_size: int | None, total_limit: int | None, max_records: int | None
+    ) -> tuple[int, int]:
+        """Resolve the per-request page size and the overall processing ceiling.
+
+        ``max_records`` is a backward-compatible alias: when supplied it seeds
+        both the page size and the total limit, matching the historic behavior
+        where a single value served both roles.
+        """
+        if page_size is None:
+            page_size = max_records if max_records is not None else 100
+        if total_limit is None:
+            total_limit = max_records if max_records is not None else page_size
+        return page_size, total_limit
 
     async def _process_record(self, record: RawRecord, processed_ids: set[str]) -> bool:
         async with self._semaphore:

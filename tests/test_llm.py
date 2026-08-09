@@ -153,3 +153,21 @@ class TestLLMEntityExtractor:
         client = self._client(mocker, {"items": [{"ok": 1}]})
         extractor = LLMEntityExtractor(client, "prompt", result_key="items")
         assert await extractor.extract(b"plain bytes body") == [{"ok": 1}]
+
+
+class TestLLMEntityExtractorTokenTruncation:
+    def _client(self, mocker, result=None):
+        client = mocker.Mock(spec=LLMClient)
+        client.complete_json = mocker.AsyncMock(return_value=result)
+        return client
+
+    @pytest.mark.asyncio
+    async def test_token_truncation_used_when_available(self, mocker):
+        mocker.patch(
+            "sci_etl_core.llm.extraction.truncate_to_tokens",
+            return_value="token-truncated",
+        )
+        client = self._client(mocker, {"items": []})
+        extractor = LLMEntityExtractor(client, "prompt", result_key="items", max_tokens=32)
+        await extractor.extract("some long body text")
+        assert client.complete_json.call_args[0][1] == "token-truncated"

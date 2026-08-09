@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+
 import pytest
 
 from sci_etl_core.exceptions import LLMError
@@ -171,3 +173,30 @@ class TestAsyncLLMEntityExtractor:
     async def test_bytes_input_is_decoded(self, mocker):
         ex = AsyncLLMEntityExtractor(_async_llm(mocker, {"items": [{"ok": 1}]}), "p", result_key="items")
         assert await ex.extract(b"plain bytes body") == [{"ok": 1}]
+
+
+class TestAsyncLLMEntityExtractorTokenTruncation:
+    @pytest.mark.asyncio
+    async def test_token_truncation_used_when_available(self, mocker):
+        mocker.patch(
+            "sci_etl_core.llm.extraction_async.truncate_to_tokens",
+            return_value="token-truncated",
+        )
+        client = _async_llm(mocker, {"items": []})
+        ex = AsyncLLMEntityExtractor(client, "p", result_key="items", max_tokens=32)
+        await ex.extract("some long body text")
+        assert client.complete_json.call_args[0][1] == "token-truncated"
+
+
+class TestAsyncCancellationPropagation:
+    @pytest.mark.asyncio
+    async def test_entity_extractor_reraises_cancelled_error(self, mocker):
+        ex = AsyncLLMEntityExtractor(_async_llm(mocker, exc=asyncio.CancelledError()), "p")
+        with pytest.raises(asyncio.CancelledError):
+            await ex.extract("body text")
+
+    @pytest.mark.asyncio
+    async def test_relevance_filter_reraises_cancelled_error(self, mocker):
+        f = AsyncLLMRelevanceFilter(_async_llm(mocker, exc=asyncio.CancelledError()), "p")
+        with pytest.raises(asyncio.CancelledError):
+            await f.is_relevant(RawRecord("1", "t", "abstract"))

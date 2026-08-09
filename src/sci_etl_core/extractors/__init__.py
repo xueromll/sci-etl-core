@@ -1,4 +1,8 @@
+from __future__ import annotations
+
 from sci_etl_core.extractors.arxiv import ArxivExtractor
+from sci_etl_core.extractors.arxiv_async import AsyncArxivExtractor
+from sci_etl_core.extractors.async_base import AsyncExtractor
 from sci_etl_core.extractors.base import Extractor
 
-__all__ = ["ArxivExtractor", "Extractor"]
+__all__ = ["Extractor", "ArxivExtractor", "AsyncExtractor", "AsyncArxivExtractor"]

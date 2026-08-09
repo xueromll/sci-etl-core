@@ -1,13 +1,25 @@
 from __future__ import annotations
 
 import asyncio
+from dataclasses import dataclass
 
 import aiofiles
 import pandas as pd
 import plotly.express as px
 
 from sci_etl_core.exporters.async_base import AsyncExporter
-from sci_etl_core.exporters.plotly_exporter import ScatterPlotConfig
+
+
+@dataclass(slots=True)
+class ScatterPlotConfig:
+    x_column: str
+    y_column: str
+    z_column: str
+    color_column: str
+    size_column: str | None = None
+    hover_name_column: str | None = None
+    title: str = "3D Scatter"
+    template: str = "plotly_dark"
 
 
 class AsyncPlotly3DExporter(AsyncExporter):
@@ -25,7 +37,6 @@ class AsyncPlotly3DExporter(AsyncExporter):
         frame = data.dropna(subset=[self._config.x_column, self._config.y_column, self._config.z_column])
         if frame.empty:
             return None
-
         fig = px.scatter_3d(
             frame,
             x=self._config.x_column,

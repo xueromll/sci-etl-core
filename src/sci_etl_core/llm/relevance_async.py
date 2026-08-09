@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import asyncio
 from abc import ABC, abstractmethod
 
+from sci_etl_core.exceptions import LLMError
 from sci_etl_core.llm.async_base import AsyncLLMClient
 from sci_etl_core.models import RawRecord
 
@@ -34,5 +36,7 @@ class AsyncLLMRelevanceFilter(AsyncRelevanceFilter):
             content = f"Title: {record.title}\nAbstract: {record.abstract}"
             result = await self._llm_client.complete_json(self._system_prompt, content, self._timeout)
             return bool(result.get("relevant", False))
-        except Exception:
+        except asyncio.CancelledError:
+            raise
+        except LLMError:
             return self._default_on_error

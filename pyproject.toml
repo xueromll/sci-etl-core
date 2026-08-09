@@ -1,35 +1,42 @@
 [build-system]
 requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.build_meta"
+build-backend = "_build_backend"
+backend-path = ["tools"]
 
 [project]
 name = "sci-etl-core"
 version = "0.1.0"
-description = "Reusable, domain-agnostic core for scientific text-mining ETL pipelines."
+description = "Reusable, domain-agnostic ETL core for scientific text mining."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "pandas",
-    "numpy",
-    "requests",
-    "urllib3",
-    "beautifulsoup4",
-    "lxml",
-    "pypdf",
-    "pdfplumber",
+    "pydantic>=2",
     "pyyaml",
     "python-dotenv",
-    "pydantic>=2",
-    "httpx",
-    "aiofiles",
-    "openai",
+    "beautifulsoup4",
+    "lxml",
+    "pandas",
 ]
 
 [project.optional-dependencies]
-async = ["httpx", "tenacity"]
-sql = ["sqlalchemy"]
-viz = ["plotly", "matplotlib", "seaborn"]
-llm = ["openai", "anthropic"]
+async = ["httpx", "aiofiles", "aiolimiter"]
+llm = ["openai", "tiktoken"]
+sql = ["sqlalchemy>=2"]
+viz = ["plotly"]
+full = [
+    "httpx", "aiofiles", "aiolimiter",
+    "openai", "tiktoken",
+    "sqlalchemy>=2",
+    "plotly",
+    "pdfplumber", "scikit-learn", "numpy", "requests",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.sync-facade]
+src = "src"
+generator = "tools/generate_sync.py"

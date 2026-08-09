@@ -155,3 +155,48 @@ class TestAsyncArxivFetchFullText:
         extractor = _build(client, mocker, logger=logged.append)
         record = RawRecord(record_id="2401.4", title="t", abstract="safe fallback")
         assert await extractor.fetch_full_text(record) == "safe fallback"
+
+
+class TestAsyncArxivNormalizeId:
+    def test_strips_abs_prefix(self, mocker):
+        extractor = _build(_client(mocker), mocker)
+        assert extractor._normalize_id("http://arxiv.org/abs/2401.00001v1") == "2401.00001v1"
+
+    def test_strips_pdf_prefix_and_suffix(self, mocker):
+        extractor = _build(_client(mocker), mocker)
+        assert extractor._normalize_id("http://arxiv.org/pdf/2401.00002.pdf") == "2401.00002"
+
+    def test_returns_bare_id_unchanged(self, mocker):
+        extractor = _build(_client(mocker), mocker)
+        assert extractor._normalize_id("2401.00003") == "2401.00003"
+
+    def test_pdf_ids_flow_through_parse_listing(self, mocker):
+        feed = (
+            "<?xml version='1.0'?>"
+            "<feed xmlns='http://www.w3.org/2005/Atom'>"
+            "<entry><id>http://arxiv.org/pdf/2401.00009.pdf</id>"
+            "<title>P</title><summary>s</summary></entry>"
+            "<entry><id>2401.00010</id><title>Q</title><summary>s</summary></entry>"
+            "</feed>"
+        )
+        extractor = _build(_client(mocker), mocker)
+        records, total = extractor.parse_listing(feed.encode(), seen_ids=set())
+        assert total == 2
+        assert [r.record_id for r in records] == ["2401.00009", "2401.00010"]
+
+
+class TestAsyncArxivParseListingDeduplication:
+    def test_skips_duplicate_base_id_within_same_listing(self, mocker):
+        feed = (
+            "<?xml version='1.0'?>"
+            "<feed xmlns='http://www.w3.org/2005/Atom'>"
+            "<entry><id>http://arxiv.org/abs/2401.00050v2</id>"
+            "<title>Newer</title><summary>s</summary></entry>"
+            "<entry><id>http://arxiv.org/abs/2401.00050v1</id>"
+            "<title>Older</title><summary>s</summary></entry>"
+            "</feed>"
+        )
+        extractor = _build(_client(mocker), mocker)
+        records, total = extractor.parse_listing(feed.encode(), seen_ids=set())
+        assert total == 2
+        assert [r.record_id for r in records] == ["2401.00050v2"]

@@ -50,38 +50,33 @@ def _build(client, mocker, **kwargs):
 
 
 class TestArxivSearch:
-    @pytest.mark.asyncio
-    async def test_returns_content_on_success(self, mocker):
+    def test_returns_content_on_success(self, mocker):
         extractor = _build(_client(mocker, resp=_response(mocker, 200, b"<feed/>")), mocker)
-        assert await extractor.search("q", 10, 0) == b"<feed/>"
+        assert extractor.search("q", 10, 0) == b"<feed/>"
 
-    @pytest.mark.asyncio
-    async def test_retries_then_succeeds_after_transient_error(self, mocker):
+    def test_retries_then_succeeds_after_transient_error(self, mocker):
         client = _client(mocker, side_effect=[httpx.ConnectError("boom"), _response(mocker, 200, b"ok")])
         extractor = _build(client, mocker, max_retries=3)
-        assert await extractor.search("q", 10, 0) == b"ok"
+        assert extractor.search("q", 10, 0) == b"ok"
         assert client.get.await_count == 2
 
-    @pytest.mark.asyncio
-    async def test_handles_429_by_retrying(self, mocker):
+    def test_handles_429_by_retrying(self, mocker):
         client = _client(mocker, side_effect=[_response(mocker, 429), _response(mocker, 200, b"ok")])
         extractor = _build(client, mocker, max_retries=3)
-        assert await extractor.search("q", 10, 0) == b"ok"
+        assert extractor.search("q", 10, 0) == b"ok"
         assert client.get.await_count == 2
 
-    @pytest.mark.asyncio
-    async def test_returns_none_after_exhausting_retries(self, mocker):
+    def test_returns_none_after_exhausting_retries(self, mocker):
         logged: list[str] = []
         client = _client(mocker, side_effect=httpx.TimeoutException("timeout"))
         extractor = _build(client, mocker, max_retries=3, logger=logged.append)
-        assert await extractor.search("q", 10, 0) is None
+        assert extractor.search("q", 10, 0) is None
         assert client.get.await_count == 3
         assert any("failed" in msg.lower() for msg in logged)
 
-    @pytest.mark.asyncio
-    async def test_raises_nothing_on_500_but_returns_none(self, mocker):
+    def test_raises_nothing_on_500_but_returns_none(self, mocker):
         extractor = _build(_client(mocker, resp=_response(mocker, 500)), mocker, max_retries=2)
-        assert await extractor.search("q", 10, 0) is None
+        assert extractor.search("q", 10, 0) is None
 
 
 class TestArxivParseListing:
@@ -106,8 +101,7 @@ class TestArxivParseListing:
 
 
 class TestArxivFetchFullText:
-    @pytest.mark.asyncio
-    async def test_prefers_latex_source(self, mocker):
+    def test_prefers_latex_source(self, mocker):
         latex_parser = mocker.Mock(spec=LatexTarballParser)
         latex_parser.extract_text.return_value = "Full LaTeX body without references."
         extractor = ArxivExtractor(
@@ -117,10 +111,9 @@ class TestArxivFetchFullText:
             sleep=mocker.AsyncMock(),
         )
         record = RawRecord(record_id="2401.1", title="t", abstract="fallback")
-        assert "LaTeX body" in await extractor.fetch_full_text(record)
+        assert "LaTeX body" in extractor.fetch_full_text(record)
 
-    @pytest.mark.asyncio
-    async def test_falls_back_to_pdf_when_latex_empty(self, mocker):
+    def test_falls_back_to_pdf_when_latex_empty(self, mocker):
         latex_parser = mocker.Mock(spec=LatexTarballParser)
         latex_parser.extract_text.return_value = ""
         pdf_parser = mocker.Mock(spec=PdfPlumberParser)
@@ -132,26 +125,68 @@ class TestArxivFetchFullText:
             sleep=mocker.AsyncMock(),
         )
         record = RawRecord(record_id="2401.2", title="t", abstract="fallback")
-        assert "PDF extracted" in await extractor.fetch_full_text(record)
+        assert "PDF extracted" in extractor.fetch_full_text(record)
 
-    @pytest.mark.asyncio
-    async def test_falls_back_to_abstract_when_all_fetches_fail(self, mocker):
+    def test_falls_back_to_abstract_when_all_fetches_fail(self, mocker):
         extractor = _build(_client(mocker, resp=_response(mocker, 404)), mocker)
         record = RawRecord(record_id="2401.3", title="t", abstract="the abstract")
-        assert await extractor.fetch_full_text(record) == "the abstract"
+        assert extractor.fetch_full_text(record) == "the abstract"
 
-    @pytest.mark.asyncio
-    async def test_empty_record_id_returns_abstract_immediately(self, mocker):
+    def test_empty_record_id_returns_abstract_immediately(self, mocker):
         client = _client(mocker)
         extractor = _build(client, mocker)
         record = RawRecord(record_id="", title="t", abstract="just the abstract")
-        assert await extractor.fetch_full_text(record) == "just the abstract"
+        assert extractor.fetch_full_text(record) == "just the abstract"
         assert client.get.await_count == 0
 
-    @pytest.mark.asyncio
-    async def test_network_exception_during_fetch_is_swallowed(self, mocker):
+    def test_network_exception_during_fetch_is_swallowed(self, mocker):
         logged: list[str] = []
         client = _client(mocker, side_effect=httpx.ConnectError("down"))
         extractor = _build(client, mocker, logger=logged.append)
         record = RawRecord(record_id="2401.4", title="t", abstract="safe fallback")
-        assert await extractor.fetch_full_text(record) == "safe fallback"
+        assert extractor.fetch_full_text(record) == "safe fallback"
+
+
+class TestArxivNormalizeId:
+    def test_strips_abs_prefix(self, mocker):
+        extractor = _build(_client(mocker), mocker)
+        assert extractor._normalize_id("http://arxiv.org/abs/2401.00001v1") == "2401.00001v1"
+
+    def test_strips_pdf_prefix_and_suffix(self, mocker):
+        extractor = _build(_client(mocker), mocker)
+        assert extractor._normalize_id("http://arxiv.org/pdf/2401.00002.pdf") == "2401.00002"
+
+    def test_returns_bare_id_unchanged(self, mocker):
+        extractor = _build(_client(mocker), mocker)
+        assert extractor._normalize_id("2401.00003") == "2401.00003"
+
+    def test_pdf_ids_flow_through_parse_listing(self, mocker):
+        feed = (
+            "<?xml version='1.0'?>"
+            "<feed xmlns='http://www.w3.org/2005/Atom'>"
+            "<entry><id>http://arxiv.org/pdf/2401.00009.pdf</id>"
+            "<title>P</title><summary>s</summary></entry>"
+            "<entry><id>2401.00010</id><title>Q</title><summary>s</summary></entry>"
+            "</feed>"
+        )
+        extractor = _build(_client(mocker), mocker)
+        records, total = extractor.parse_listing(feed.encode(), seen_ids=set())
+        assert total == 2
+        assert [r.record_id for r in records] == ["2401.00009", "2401.00010"]
+
+
+class TestArxivParseListingDeduplication:
+    def test_skips_duplicate_base_id_within_same_listing(self, mocker):
+        feed = (
+            "<?xml version='1.0'?>"
+            "<feed xmlns='http://www.w3.org/2005/Atom'>"
+            "<entry><id>http://arxiv.org/abs/2401.00050v2</id>"
+            "<title>Newer</title><summary>s</summary></entry>"
+            "<entry><id>http://arxiv.org/abs/2401.00050v1</id>"
+            "<title>Older</title><summary>s</summary></entry>"
+            "</feed>"
+        )
+        extractor = _build(_client(mocker), mocker)
+        records, total = extractor.parse_listing(feed.encode(), seen_ids=set())
+        assert total == 2
+        assert [r.record_id for r in records] == ["2401.00050v2"]

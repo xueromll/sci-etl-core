@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging as std_logging
 
-from sci_etl_core import logging as log_module
+from sci_etl_core import log_utils as log_module
 
 
 def _patch_file_handler(mocker):

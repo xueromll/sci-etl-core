@@ -27,6 +27,12 @@ class HttpConfig(BaseModel):
     timeout: int = 25
 
 
+class RateLimitConfig(BaseModel):
+    max_concurrency: int = 4
+    max_rate: float | None = None
+    time_period: float = 1.0
+
+
 class PipelineConfig(BaseModel):
     search_query: str = ""
     max_records: int = 100
@@ -39,6 +45,7 @@ class BaseAppConfig(BaseModel):
 
     llm: LLMConfig = Field(default_factory=LLMConfig)
     http: HttpConfig = Field(default_factory=HttpConfig)
+    full_text: RateLimitConfig = Field(default_factory=RateLimitConfig)
     pipeline: PipelineConfig = Field(default_factory=PipelineConfig)
 
 
