@@ -14,6 +14,7 @@ from sci_etl_core.parsers.base import Parser
 from sci_etl_core.parsers.reference_trimmer import trim_after_references
 
 _RETRYABLE_STATUS = frozenset({429, 500, 502, 503, 504})
+_SERVER_ERROR_FLOOR = 500
 _VERSION_SUFFIX = re.compile(r"v\d+$")
 _FEED_ROOT = "feed"
 
@@ -61,7 +62,7 @@ class AsyncArxivExtractor(AsyncExtractor):
         for attempt in range(self._max_retries):
             try:
                 response = await self._client.get(self.API_URL, params=params)
-                if response.status_code in _RETRYABLE_STATUS:
+                if self._is_retryable(response.status_code):
                     last_error = ExtractionError(f"arXiv returned status {response.status_code}")
                     await self._sleep(self._backoff_factor**attempt)
                     continue
@@ -113,6 +114,15 @@ class AsyncArxivExtractor(AsyncExtractor):
         return records, len(entries)
 
     @staticmethod
+    def _is_retryable(status_code: int) -> bool:
+        """Whether a status code warrants another attempt.
+
+        Throttling and server-side faults are transient; every other 4xx is a
+        permanent verdict about this URL and must not be retried.
+        """
+        return status_code in _RETRYABLE_STATUS or status_code >= _SERVER_ERROR_FLOOR
+
+    @staticmethod
     def _parse_feed(raw_listing: bytes) -> BeautifulSoup:
         if not raw_listing or not raw_listing.strip():
             raise MalformedResponseError("arXiv listing payload was empty")
@@ -138,17 +148,32 @@ class AsyncArxivExtractor(AsyncExtractor):
         return _VERSION_SUFFIX.sub("", record_id)
 
     async def fetch_full_text(self, record: RawRecord) -> str:
+        """Return the best-available full text, falling back to the abstract.
+
+        The abstract is used only when every source answered that the artifact
+        is permanently unavailable. A transport failure is raised instead, so
+        the record stays unmarked and is retried on the next run.
+
+        Raises:
+            UpstreamError: At least one source failed transiently and no source
+                yielded usable text.
+        """
         if not record.record_id:
             return record.abstract
 
-        text = await self._fetch_latex_source(record.record_id)
-        if text:
-            return trim_after_references(text) or text
+        failures: list[Exception] = []
+        for fetch in (self._fetch_latex_source, self._fetch_pdf_text):
+            try:
+                text = await fetch(record.record_id)
+            except UpstreamError as exc:
+                failures.append(exc)
+                continue
+            if text:
+                return trim_after_references(text) or text
 
-        text = await self._fetch_pdf_text(record.record_id)
-        if text:
-            return trim_after_references(text) or text
-
+        if failures:
+            message = f"Full-text retrieval failed for {record.record_id!r}"
+            raise UpstreamError(message) from failures[-1]
         return record.abstract
 
     async def _fetch_latex_source(self, arxiv_id: str) -> str | None:
@@ -168,11 +193,35 @@ class AsyncArxivExtractor(AsyncExtractor):
         return (await asyncio.to_thread(self._pdf_parser.extract_text, content)) or None
 
     async def _get_bytes(self, url: str, label: str, record_id: str) -> bytes | None:
-        try:
-            response = await self._client.get(url)
-            if response.status_code != 200:
-                return None
-            return response.content
-        except (httpx.TimeoutException, httpx.TransportError) as exc:
-            self._log(f"{label} fetch failed for {record_id}: {exc!r}")
-            return None
+        """Fetch a binary artifact, retrying only transient faults.
+
+        Returns:
+            The payload, or ``None`` when the source gave a fatal verdict such
+            as ``404``, meaning the artifact will never exist at this URL.
+
+        Raises:
+            UpstreamError: Every retryable attempt was exhausted.
+        """
+        last_error: Exception | None = None
+        for attempt in range(self._max_retries):
+            try:
+                response = await self._client.get(url)
+            except (httpx.TimeoutException, httpx.TransportError) as exc:
+                last_error = exc
+            else:
+                if response.status_code == httpx.codes.OK:
+                    return response.content
+                if not self._is_retryable(response.status_code):
+                    self._log(
+                        f"{label} unavailable for {record_id!r}: status {response.status_code}"
+                    )
+                    return None
+                last_error = UpstreamError(
+                    f"{label} fetch returned status {response.status_code}"
+                )
+            if attempt < self._max_retries - 1:
+                await self._sleep(self._backoff_factor**attempt)
+
+        message = f"{label} fetch failed for {record_id!r} after {self._max_retries} attempts"
+        self._log(f"{message}: {last_error!r}")
+        raise UpstreamError(message) from last_error

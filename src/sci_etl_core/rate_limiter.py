@@ -38,15 +38,30 @@ class NullRateLimiter(AsyncRateLimiter):
 
 
 class SemaphoreRateLimiter(AsyncRateLimiter):
-    """Bound concurrency to a fixed number of simultaneous slots."""
+    """Bound concurrency to a fixed number of simultaneous slots.
+
+    The slot is released from a ``finally`` block so bookkeeping failures or a
+    cancellation delivered during exit can never permanently consume a slot.
+    """
 
     def __init__(self, max_concurrency: int = 4) -> None:
         if max_concurrency < 1:
             raise ValueError("max_concurrency must be a positive integer")
         self._semaphore = asyncio.Semaphore(max_concurrency)
+        self._held = 0
+
+    @property
+    def held(self) -> int:
+        """Number of slots currently checked out."""
+        return self._held
 
     async def __aenter__(self) -> "SemaphoreRateLimiter":
         await self._semaphore.acquire()
+        try:
+            self._held += 1
+        except BaseException:
+            self._semaphore.release()
+            raise
         return self
 
     async def __aexit__(
@@ -55,7 +70,10 @@ class SemaphoreRateLimiter(AsyncRateLimiter):
         exc: BaseException | None,
         tb: TracebackType | None,
     ) -> None:
-        self._semaphore.release()
+        try:
+            self._held -= 1
+        finally:
+            self._semaphore.release()
 
 
 class AioLimiterRateLimiter(AsyncRateLimiter):

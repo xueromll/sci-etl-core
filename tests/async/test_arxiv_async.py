@@ -176,12 +176,14 @@ class TestAsyncArxivFetchFullText:
         assert client.get.await_count == 0
 
     @pytest.mark.asyncio
-    async def test_network_exception_during_fetch_is_swallowed(self, mocker):
+    async def test_network_failure_raises_instead_of_falling_back(self, mocker):
         logged: list[str] = []
         client = _client(mocker, side_effect=httpx.ConnectError("down"))
         extractor = _build(client, mocker, logger=logged.append)
         record = RawRecord(record_id="2401.4", title="t", abstract="safe fallback")
-        assert await extractor.fetch_full_text(record) == "safe fallback"
+        with pytest.raises(UpstreamError, match="2401.4"):
+            await extractor.fetch_full_text(record)
+        assert any("failed" in message for message in logged)
 
 
 class TestAsyncArxivNormalizeId:
@@ -218,7 +220,24 @@ class TestAsyncArxivInternals:
         assert await extractor._fetch_latex_source("2401.1") is None
 
     @pytest.mark.asyncio
-    async def test_get_bytes_returns_none_on_network_error(self, mocker):
+    async def test_get_bytes_raises_after_exhausting_network_retries(self, mocker):
         client = _client(mocker, side_effect=httpx.ConnectError("down"))
         extractor = _build(client, mocker)
+        with pytest.raises(UpstreamError, match="after 3 attempts"):
+            await extractor._get_bytes("http://x", "X", "id")
+        assert client.get.await_count == 3
+
+    @pytest.mark.asyncio
+    async def test_get_bytes_returns_none_on_fatal_status(self, mocker):
+        client = _client(mocker, resp=_resp(mocker, 404))
+        extractor = _build(client, mocker)
         assert await extractor._get_bytes("http://x", "X", "id") is None
+        assert client.get.await_count == 1
+
+    @pytest.mark.asyncio
+    async def test_get_bytes_retries_retryable_status_then_succeeds(self, mocker):
+        client = _client(mocker, side_effect=[_resp(mocker, 503), _resp(mocker, 200, b"payload")])
+        extractor = _build(client, mocker)
+        assert await extractor._get_bytes("http://x", "X", "id") == b"payload"
+        assert client.get.await_count == 2
+

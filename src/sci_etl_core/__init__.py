@@ -27,14 +27,26 @@ from sci_etl_core.log_utils import configure_logging
 from sci_etl_core.models import PipelineMetadata, RawRecord
 from sci_etl_core.parsers.base import Parser, TableParser
 from sci_etl_core.pipeline import ETLPipeline
+from sci_etl_core.pipeline_async import AsyncETLPipeline
 from sci_etl_core.processors.base import Processor, ProcessorChain
+from sci_etl_core.rate_limiter import (
+    AioLimiterRateLimiter,
+    AsyncRateLimiter,
+    NullRateLimiter,
+    SemaphoreRateLimiter,
+    build_rate_limiter,
+)
+from sci_etl_core.signals import ShutdownSignal
 from sci_etl_core.state.async_base import AsyncStateManager
 from sci_etl_core.state.async_file_state import AsyncFileStateManager
 from sci_etl_core.state.base import StateManager
+from sci_etl_core.state.sqlite_async import AsyncSqliteStateManager
 
 __all__ = [
+    "AioLimiterRateLimiter",
     "AsyncArxivExtractor",
     "AsyncCsvUpsertExporter",
+    "AsyncETLPipeline",
     "AsyncEntityExtractor",
     "AsyncExporter",
     "AsyncExtractor",
@@ -44,8 +56,10 @@ __all__ = [
     "AsyncLLMRelevanceFilter",
     "AsyncOpenAICompatibleClient",
     "AsyncPlotly3DExporter",
+    "AsyncRateLimiter",
     "AsyncRelevanceFilter",
     "AsyncSqlTableExporter",
+    "AsyncSqliteStateManager",
     "AsyncStateManager",
     "BaseAppConfig",
     "ConfigurationError",
@@ -57,6 +71,7 @@ __all__ = [
     "LLMConfig",
     "LLMError",
     "MalformedResponseError",
+    "NullRateLimiter",
     "Parser",
     "ParsingError",
     "PipelineAborted",
@@ -67,9 +82,12 @@ __all__ = [
     "RawRecord",
     "ScatterPlotConfig",
     "SciEtlError",
+    "SemaphoreRateLimiter",
+    "ShutdownSignal",
     "StateManager",
     "TableParser",
     "UpstreamError",
+    "build_rate_limiter",
     "configure_logging",
     "load_config",
     "load_config_async",

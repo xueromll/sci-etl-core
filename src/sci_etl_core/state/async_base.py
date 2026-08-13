@@ -21,3 +21,11 @@ class AsyncStateManager(ABC):
     @abstractmethod
     async def save_metadata(self, metadata: PipelineMetadata) -> None:
         """Persist pipeline metadata, stamping the current run time."""
+
+    async def flush(self) -> None:
+        """Force buffered state to durable storage before termination.
+
+        Backends that commit on every mutation need no action, so the default
+        is a no-op.
+        """
+        return None

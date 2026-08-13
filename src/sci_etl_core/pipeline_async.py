@@ -8,7 +8,8 @@ from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.extractors.async_base import AsyncExtractor
 from sci_etl_core.llm.extraction_async import AsyncEntityExtractor
 from sci_etl_core.llm.relevance_async import AsyncRelevanceFilter
-from sci_etl_core.models import RawRecord
+from sci_etl_core.models import PipelineMetadata, RawRecord
+from sci_etl_core.signals import ShutdownSignal
 from sci_etl_core.state.async_base import AsyncStateManager
 
 
@@ -25,6 +26,7 @@ class AsyncETLPipeline:
         logger: Callable[[str], None] | None = None,
         sleep: Any = asyncio.sleep,
         closeables: Iterable[Any] | None = None,
+        shutdown: ShutdownSignal | None = None,
     ) -> None:
         self._extractor = extractor
         self._relevance_filter = relevance_filter
@@ -36,6 +38,22 @@ class AsyncETLPipeline:
         self._log = logger or (lambda _msg: None)
         self._sleep = sleep
         self._closeables = list(closeables or [])
+        self._shutdown = shutdown or ShutdownSignal(logger=self._log)
+
+    @property
+    def log(self) -> Callable[[str], None]:
+        """Logging sink shared with the synchronous facade."""
+        return self._log
+
+    @property
+    def closeables(self) -> list[Any]:
+        """Resources disposed when the pipeline context exits."""
+        return self._closeables
+
+    @property
+    def shutdown_requested(self) -> bool:
+        """Whether the run ended early because a termination signal arrived."""
+        return self._shutdown.triggered
 
     async def __aenter__(self) -> "AsyncETLPipeline":
         return self
@@ -57,30 +75,53 @@ class AsyncETLPipeline:
     ) -> int:
         """Process listings until the ceiling is reached or the source is exhausted.
 
-        The only clean exit is an empty listing. Any other interruption raises
-        :class:`PipelineAborted` carrying the count processed so far, so a
-        transport fault can never be mistaken for end-of-data.
+        ``SIGINT``/``SIGTERM`` request a cooperative stop: in-flight records are
+        allowed to settle, state is flushed, and the partial count is returned.
+        Any other interruption raises :class:`PipelineAborted` carrying the count
+        processed so far, so a transport fault can never be mistaken for
+        end-of-data.
         """
+        with self._shutdown.guard():
+            return await self._run(query, page_size, sleep_between, total_limit, max_records)
+
+    async def _run(
+        self,
+        query: str,
+        page_size: int | None,
+        sleep_between: float,
+        total_limit: int | None,
+        max_records: int | None,
+    ) -> int:
         page_size, total_limit = self._resolve_limits(page_size, total_limit, max_records)
         processed_ids = await self._state_manager.load_processed_ids()
         metadata = await self._state_manager.load_metadata()
         start_index = metadata.last_start_index
         total_processed = 0
 
-        while total_processed < total_limit:
+        while total_processed < total_limit and not self._shutdown.triggered:
             raw_listing = await self._fetch_listing(query, page_size, start_index, total_processed)
             records, total_in_listing = self._parse_listing(raw_listing, processed_ids, total_processed)
             if total_in_listing == 0 or not records:
                 break
 
             total_processed += await self._process_page(records, processed_ids)
+            if self._shutdown.triggered:
+                break
 
             start_index += total_in_listing
             metadata.last_start_index = start_index
             await self._state_manager.save_metadata(metadata)
             await self._sleep(sleep_between)
 
+        if self._shutdown.triggered:
+            await self._flush(metadata, total_processed)
         return total_processed
+
+    async def _flush(self, metadata: PipelineMetadata, total_processed: int) -> None:
+        """Persist progress without advancing past a partially processed page."""
+        await self._state_manager.save_metadata(metadata)
+        await self._state_manager.flush()
+        self._log(f"Shutdown requested; flushed state after {total_processed} records")
 
     async def _fetch_listing(
         self, query: str, page_size: int, start_index: int, partial_count: int
@@ -131,7 +172,12 @@ class AsyncETLPipeline:
         return page_size, total_limit
 
     async def _process_record(self, record: RawRecord, processed_ids: set[str]) -> bool:
+        if self._shutdown.triggered:
+            return False
         async with self._semaphore:
+            if self._shutdown.triggered:
+                return False
+
             if not await self._relevance_filter.is_relevant(record):
                 await self._mark_done(record, processed_ids)
                 return False

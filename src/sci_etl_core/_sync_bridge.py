@@ -2,13 +2,16 @@ from __future__ import annotations
 
 import asyncio
 import atexit
+import math
 import threading
+from concurrent.futures import TimeoutError as FutureTimeoutError
 from typing import Any, Awaitable, Callable, Coroutine, TypeVar
 
 T = TypeVar("T")
 
 _THREAD_NAME = "sci-etl-sync-bridge"
 _SHUTDOWN_TIMEOUT = 5.0
+_DEFAULT_CALL_TIMEOUT: float | None = 300.0
 
 
 class _BridgeLoop:
@@ -53,11 +56,33 @@ class _BridgeLoop:
 
 
 _BRIDGE = _BridgeLoop()
+_default_timeout: float | None = _DEFAULT_CALL_TIMEOUT
 
 
-def run_sync(coro: Coroutine[Any, Any, T]) -> T:
-    """Run a coroutine on the shared bridge loop and block until it resolves."""
-    return asyncio.run_coroutine_threadsafe(coro, _BRIDGE.loop()).result()
+def set_default_timeout(timeout: float | None) -> None:
+    """Set the ceiling applied by :func:`run_sync` when no timeout is passed."""
+    global _default_timeout
+    _default_timeout = timeout
+
+
+def run_sync(coro: Coroutine[Any, Any, T], timeout: float | None = None) -> T:
+    """Run a coroutine on the shared bridge loop and block until it resolves.
+
+    ``timeout`` falls back to the module default when omitted; pass ``math.inf``
+    to wait indefinitely.
+
+    Raises:
+        TimeoutError: The coroutine did not settle within the ceiling. The
+            underlying task is cancelled before the error propagates, so a
+            wedged call can never pin the caller forever.
+    """
+    limit = _default_timeout if timeout is None else timeout
+    future = asyncio.run_coroutine_threadsafe(coro, _BRIDGE.loop())
+    try:
+        return future.result(None if limit is None or math.isinf(limit) else limit)
+    except FutureTimeoutError as exc:
+        future.cancel()
+        raise TimeoutError(f"Bridge call did not complete within {limit} seconds") from exc
 
 
 def to_async(func: Callable[..., T]) -> Callable[..., Awaitable[T]]:

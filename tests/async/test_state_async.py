@@ -46,7 +46,7 @@ class TestAsyncFileStateManager:
     async def test_load_processed_ids_returns_empty_on_os_error(self, manager, mocker):
         manager._processed_ids_file.write_text("2401.1\n", encoding="utf-8")
         mocker.patch(
-            "sci_etl_core.state.async_file_state.aiofiles.open", side_effect=OSError("io")
+            "sci_etl_core.state.async_file_state.Path.open", side_effect=OSError("io")
         )
         assert await manager.load_processed_ids() == set()
 
@@ -76,3 +76,4 @@ class TestAsyncFileStateManager:
         payload = json.loads(manager._metadata_file.read_text(encoding="utf-8"))
         assert payload["last_start_index"] == 7
         assert "last_run_date" in payload
+

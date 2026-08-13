@@ -8,18 +8,19 @@ from typing import Any
 import aiofiles
 import pandas as pd
 
+from sci_etl_core._atomic_io import atomic_write_text
 from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.processors.normalization import KeyNormalizer
 
 
 class AsyncCsvUpsertExporter(AsyncExporter):
-    """Concurrency-safe CSV upsert exporter.
+    """Concurrency-safe, crash-safe CSV upsert exporter.
 
     All read-modify-write cycles are serialized through a single
     :class:`asyncio.Lock`, so concurrent ``export`` calls can never overwrite
-    one another. Incoming records are merged into an in-memory buffer that is
-    loaded from disk only once, and each call writes the full merged snapshot
-    in a single write.
+    one another. Each call renders the full merged snapshot and publishes it
+    with an atomic rename, and the in-memory buffer is only advanced once the
+    rename succeeds, keeping memory and disk consistent after a failure.
     """
 
     def __init__(
@@ -42,9 +43,9 @@ class AsyncCsvUpsertExporter(AsyncExporter):
             return
         async with self._get_lock():
             await self._ensure_loaded(destination)
-            output_text = await asyncio.to_thread(self._apply, data)
-            async with aiofiles.open(destination, "w", encoding="utf-8") as handle:
-                await handle.write(output_text)
+            merged, output_text = await asyncio.to_thread(self._apply, data)
+            await asyncio.to_thread(atomic_write_text, destination, output_text)
+            self._frame = merged
 
     def _get_lock(self) -> asyncio.Lock:
         if self._lock is None:
@@ -68,7 +69,7 @@ class AsyncCsvUpsertExporter(AsyncExporter):
                 frame[column] = None
         return frame
 
-    def _apply(self, data: list[dict[str, Any]]) -> str:
+    def _apply(self, data: list[dict[str, Any]]) -> tuple[pd.DataFrame, str]:
         frame = self._frame.reset_index(drop=True)
         frame["_norm_key"] = frame[self._key_column].apply(self._normalizer.normalize)
         new_rows: list[dict[str, Any]] = []
@@ -88,8 +89,7 @@ class AsyncCsvUpsertExporter(AsyncExporter):
         if new_rows:
             frame = pd.concat([frame, pd.DataFrame(new_rows)], ignore_index=True)
 
-        self._frame = frame
-        return frame.drop(columns=["_norm_key"]).to_csv(index=False)
+        return frame, frame.drop(columns=["_norm_key"]).to_csv(index=False)
 
     def _fill_missing(self, frame: pd.DataFrame, index: int, record: dict[str, Any]) -> None:
         for column in self._value_columns:
