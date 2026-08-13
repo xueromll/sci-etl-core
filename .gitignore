@@ -4,16 +4,5 @@ build/
 dist/
 *.egg-info/
 
-# Generated synchronous facades (single source of truth lives in *_async.py).
-# Regenerated at build time by tools/generate_sync.py.
-/src/sci_etl_core/extractors/arxiv.py
-/src/sci_etl_core/llm/openai_compatible.py
-/src/sci_etl_core/llm/extraction.py
-/src/sci_etl_core/llm/relevance.py
-/src/sci_etl_core/pipeline.py
-/src/sci_etl_core/exporters/csv_exporter.py
-/src/sci_etl_core/exporters/plotly_exporter.py
-/src/sci_etl_core/exporters/sql_exporter.py
-/src/sci_etl_core/state/file_state.py
-
 code.txt
+.coverage

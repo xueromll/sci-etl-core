@@ -9,11 +9,11 @@ pytest.importorskip("hypothesis")
 from hypothesis import given
 from hypothesis import strategies as st
 
-from sci_etl_core.extractors.arxiv import ArxivExtractor
+from sci_etl_core.extractors.arxiv_async import AsyncArxivExtractor
 from sci_etl_core.parsers.reference_trimmer import trim_after_references
 from sci_etl_core.processors.normalization import DefaultKeyNormalizer
 
-_EXTRACTOR = ArxivExtractor(client=None, pdf_parser=None, latex_parser=None)
+_EXTRACTOR = AsyncArxivExtractor(client=None, pdf_parser=None, latex_parser=None)
 _NORMALIZER = DefaultKeyNormalizer()
 
 _ARXIV_ID = st.from_regex(r"[0-9]{4}\.[0-9]{4,5}(v[0-9]+)?", fullmatch=True)

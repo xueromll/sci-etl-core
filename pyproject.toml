@@ -1,7 +1,6 @@
 [build-system]
 requires = ["setuptools>=68", "wheel"]
-build-backend = "_build_backend"
-backend-path = ["tools"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "sci-etl-core"
@@ -36,7 +35,3 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
-
-[tool.sync-facade]
-src = "src"
-generator = "tools/generate_sync.py"

@@ -6,7 +6,7 @@ import pytest
 
 from sci_etl_core.config import BaseAppConfig
 from sci_etl_core.exceptions import ConfigurationError
-from sci_etl_core.exporters.plotly_exporter import ScatterPlotConfig
+from sci_etl_core.exporters.plotly_async import ScatterPlotConfig
 
 
 class TestAsyncConfig:

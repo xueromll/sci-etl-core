@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from sci_etl_core.exceptions import MalformedResponseError, PipelineAborted, UpstreamError
 from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.extractors.async_base import AsyncExtractor
 from sci_etl_core.llm.extraction_async import AsyncEntityExtractor
@@ -78,12 +79,6 @@ class TestAsyncPipelineHappyPath:
         assert extractor.parse_listing.call_count >= 2
 
     @pytest.mark.asyncio
-    async def test_stops_when_search_returns_none(self, mocker):
-        pipeline, extractor, *_ = _build(mocker, _records(1))
-        extractor.search = mocker.AsyncMock(return_value=None)
-        assert await pipeline.run(query="q", max_records=10, sleep_between=0) == 0
-
-    @pytest.mark.asyncio
     async def test_persists_metadata_each_page(self, mocker):
         pipeline, _, _, _, _, state = _build(mocker, _records(2))
         await pipeline.run(query="q", max_records=2, sleep_between=0)
@@ -94,6 +89,42 @@ class TestAsyncPipelineHappyPath:
         pipeline, _, _, _, _, state = _build(mocker, [RawRecord(record_id="", title="t", abstract="a")])
         assert await pipeline.run(query="q", max_records=1, sleep_between=0) == 1
         state.mark_processed.assert_not_awaited()
+
+
+class TestAsyncPipelineFailureSignaling:
+    @pytest.mark.asyncio
+    async def test_aborts_when_search_returns_no_payload(self, mocker):
+        pipeline, extractor, *_ = _build(mocker, _records(1))
+        extractor.search = mocker.AsyncMock(return_value=None)
+        with pytest.raises(PipelineAborted, match="no payload") as excinfo:
+            await pipeline.run(query="q", max_records=10, sleep_between=0)
+        assert excinfo.value.partial_count == 0
+
+    @pytest.mark.asyncio
+    async def test_aborts_when_search_raises_upstream_and_keeps_partial_count(self, mocker):
+        pipeline, extractor, *_ = _build(mocker, _records(3))
+        extractor.search = mocker.AsyncMock(side_effect=[b"<feed/>", UpstreamError("gateway down")])
+        with pytest.raises(PipelineAborted) as excinfo:
+            await pipeline.run(query="q", max_records=10, sleep_between=0)
+        assert excinfo.value.partial_count == 3
+        assert isinstance(excinfo.value.__cause__, UpstreamError)
+
+    @pytest.mark.asyncio
+    async def test_aborts_when_parse_listing_reports_malformed(self, mocker):
+        pipeline, extractor, *_ = _build(mocker, _records(2))
+        extractor.parse_listing = mocker.Mock(
+            side_effect=[(_records(2), 2), MalformedResponseError("bad xml")]
+        )
+        with pytest.raises(PipelineAborted, match="malformed") as excinfo:
+            await pipeline.run(query="q", max_records=10, sleep_between=0)
+        assert excinfo.value.partial_count == 2
+        assert isinstance(excinfo.value.__cause__, MalformedResponseError)
+
+    @pytest.mark.asyncio
+    async def test_empty_listing_is_the_only_clean_termination(self, mocker):
+        pipeline, extractor, *_ = _build(mocker, _records(1))
+        assert await pipeline.run(query="q", max_records=100, sleep_between=0) == 1
+        assert extractor.search.await_count == 2
 
 
 class TestAsyncPipelineResilience:
