@@ -5,6 +5,7 @@ from sci_etl_core.llm.base import LLMClient
 from sci_etl_core.llm.extraction_async import AsyncEntityExtractor, AsyncLLMEntityExtractor
 from sci_etl_core.llm.openai_compatible_async import AsyncOpenAICompatibleClient
 from sci_etl_core.llm.relevance_async import AsyncLLMRelevanceFilter, AsyncRelevanceFilter
+from sci_etl_core.llm.relevance_embedding_async import AsyncEmbeddingRelevanceFilter
 
 __all__ = [
     "LLMClient",
@@ -14,4 +15,5 @@ __all__ = [
     "AsyncLLMEntityExtractor",
     "AsyncRelevanceFilter",
     "AsyncLLMRelevanceFilter",
+    "AsyncEmbeddingRelevanceFilter",
 ]

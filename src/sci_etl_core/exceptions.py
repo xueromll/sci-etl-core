@@ -33,6 +33,22 @@ class LLMError(SciEtlError):
     """Raised when an LLM client call fails irrecoverably."""
 
 
+class EmbeddingError(SciEtlError):
+    """Raised when an embedding backend fails to vectorize text.
+
+    Kept distinct from :class:`LLMError` so a semantic-similarity failure is
+    never silently confused with a chat-completion failure.
+    """
+
+
+class EmbeddingStoreError(SciEtlError):
+    """Raised when the vector memory cannot be written to or read from.
+
+    Kept distinct from :class:`EmbeddingError` so a storage fault is never
+    mistaken for a failure to produce the embedding itself.
+    """
+
+
 class ConfigurationError(SciEtlError):
     """Raised when configuration loading or validation fails."""
 

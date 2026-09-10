@@ -1,7 +1,18 @@
 from sci_etl_core.config import BaseAppConfig, HttpConfig, LLMConfig, PipelineConfig, load_config
 from sci_etl_core.config_async import load_config_async
+from sci_etl_core.embeddings.async_base import AsyncEmbedder
+from sci_etl_core.embeddings.chunking import SlidingWindowChunker, TextChunker
+from sci_etl_core.embeddings.finder_async import AsyncSimilarArticleFinder
+from sci_etl_core.embeddings.ingest_async import AsyncChunkIngestor
+from sci_etl_core.embeddings.openai_compatible_async import AsyncOpenAIEmbedder
+from sci_etl_core.embeddings.sentence_transformer_async import AsyncSentenceTransformerEmbedder
+from sci_etl_core.embeddings.store_base import AsyncEmbeddingStore, EmbeddingChunk, SearchHit
+from sci_etl_core.embeddings.store_memory import InMemoryEmbeddingStore
+from sci_etl_core.embeddings.store_sqlite_async import AsyncSqliteEmbeddingStore
 from sci_etl_core.exceptions import (
     ConfigurationError,
+    EmbeddingError,
+    EmbeddingStoreError,
     ExtractionError,
     LLMError,
     MalformedResponseError,
@@ -23,30 +34,23 @@ from sci_etl_core.llm.base import LLMClient
 from sci_etl_core.llm.extraction_async import AsyncEntityExtractor, AsyncLLMEntityExtractor
 from sci_etl_core.llm.openai_compatible_async import AsyncOpenAICompatibleClient
 from sci_etl_core.llm.relevance_async import AsyncLLMRelevanceFilter, AsyncRelevanceFilter
+from sci_etl_core.llm.relevance_embedding_async import AsyncEmbeddingRelevanceFilter
 from sci_etl_core.log_utils import configure_logging
 from sci_etl_core.models import PipelineMetadata, RawRecord
 from sci_etl_core.parsers.base import Parser, TableParser
 from sci_etl_core.pipeline import ETLPipeline
-from sci_etl_core.pipeline_async import AsyncETLPipeline
 from sci_etl_core.processors.base import Processor, ProcessorChain
-from sci_etl_core.rate_limiter import (
-    AioLimiterRateLimiter,
-    AsyncRateLimiter,
-    NullRateLimiter,
-    SemaphoreRateLimiter,
-    build_rate_limiter,
-)
-from sci_etl_core.signals import ShutdownSignal
 from sci_etl_core.state.async_base import AsyncStateManager
 from sci_etl_core.state.async_file_state import AsyncFileStateManager
 from sci_etl_core.state.base import StateManager
-from sci_etl_core.state.sqlite_async import AsyncSqliteStateManager
 
 __all__ = [
-    "AioLimiterRateLimiter",
     "AsyncArxivExtractor",
+    "AsyncChunkIngestor",
     "AsyncCsvUpsertExporter",
-    "AsyncETLPipeline",
+    "AsyncEmbedder",
+    "AsyncEmbeddingRelevanceFilter",
+    "AsyncEmbeddingStore",
     "AsyncEntityExtractor",
     "AsyncExporter",
     "AsyncExtractor",
@@ -55,23 +59,28 @@ __all__ = [
     "AsyncLLMEntityExtractor",
     "AsyncLLMRelevanceFilter",
     "AsyncOpenAICompatibleClient",
+    "AsyncOpenAIEmbedder",
     "AsyncPlotly3DExporter",
-    "AsyncRateLimiter",
     "AsyncRelevanceFilter",
+    "AsyncSentenceTransformerEmbedder",
+    "AsyncSimilarArticleFinder",
     "AsyncSqlTableExporter",
-    "AsyncSqliteStateManager",
+    "AsyncSqliteEmbeddingStore",
     "AsyncStateManager",
     "BaseAppConfig",
     "ConfigurationError",
     "ETLPipeline",
+    "EmbeddingChunk",
+    "EmbeddingError",
+    "EmbeddingStoreError",
     "ExtractionError",
     "Extractor",
     "HttpConfig",
+    "InMemoryEmbeddingStore",
     "LLMClient",
     "LLMConfig",
     "LLMError",
     "MalformedResponseError",
-    "NullRateLimiter",
     "Parser",
     "ParsingError",
     "PipelineAborted",
@@ -82,12 +91,12 @@ __all__ = [
     "RawRecord",
     "ScatterPlotConfig",
     "SciEtlError",
-    "SemaphoreRateLimiter",
-    "ShutdownSignal",
+    "SearchHit",
+    "SlidingWindowChunker",
     "StateManager",
     "TableParser",
+    "TextChunker",
     "UpstreamError",
-    "build_rate_limiter",
     "configure_logging",
     "load_config",
     "load_config_async",
