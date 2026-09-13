@@ -1,15 +1,20 @@
 from __future__ import annotations
 
+import os
 import sys
 import types
 from pathlib import Path
 
 import pandas as pd
 import pytest
+from hypothesis import settings
 
 SRC = Path(__file__).resolve().parents[1] / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
+
+settings.register_profile("ci", deadline=None, print_blob=True)
+settings.load_profile(os.environ.get("HYPOTHESIS_PROFILE", "default"))
 
 
 def _install_sqlalchemy_stub() -> None:

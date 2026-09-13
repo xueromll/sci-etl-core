@@ -1,5 +1,7 @@
 # sci-etl-core
 
+[![CI](https://github.com/xueromll/sci-etl-core/actions/workflows/ci.yml/badge.svg)](https://github.com/xueromll/sci-etl-core/actions/workflows/ci.yml)
+
 A reusable, **domain-agnostic** Python library for scientific text mining and
 ETL. `sci-etl-core` gives you composable building blocks — extractors, parsers,
 LLM clients, embedding memory, processors, exporters, and state managers —

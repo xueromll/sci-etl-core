@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  HYPOTHESIS_PROFILE: ci
+
+jobs:
+  tests:
+    name: Tests (Python ${{ matrix.python-version }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install the package with every extra
+        run: python -m pip install -e ".[full,dev]"
+
+      - name: Record resolved dependency versions
+        run: python -m pip freeze
+
+      - name: Run the test suite with coverage
+        run: python -m pytest --cov=sci_etl_core --cov-report=term-missing
+
+  package:
+    name: Build and verify the distribution
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install build tooling
+        run: python -m pip install build twine
+
+      - name: Build the sdist and wheel
+        run: python -m build
+
+      - name: Check the distribution metadata
+        run: python -m twine check --strict dist/*
+
+      - name: Verify the wheel contents
+        shell: python
+        run: |
+          import zipfile
+          from pathlib import Path
+
+          wheel = next(Path("dist").glob("*.whl"))
+          names = set(zipfile.ZipFile(wheel).namelist())
+          assert "sci_etl_core/py.typed" in names, "py.typed is missing from the wheel"
+          assert not any(name.startswith("tests/") for name in names), "tests leaked into the wheel"
+          print(f"{wheel.name}: {len(names)} files, py.typed present")
+
+      - name: Import the wheel in a clean environment
+        run: |
+          python -m venv "$RUNNER_TEMP/wheel-env"
+          "$RUNNER_TEMP/wheel-env/bin/python" -m pip install dist/*.whl
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/wheel-env/bin/python" -c "from sci_etl_core import AsyncETLPipeline, AsyncFileStateManager, ETLPipeline; print('wheel imports cleanly')"
