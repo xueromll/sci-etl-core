@@ -70,6 +70,13 @@ for newcomers.
 - **Pipeline observability.** Structured, per-record progress events and simple
   run metrics (counts, durations, failures), beyond the current `logger`
   callback.
+- **Record validation in the pipeline.** Accept a `RecordValidator` on
+  `AsyncLLMEntityExtractor`, so projects no longer need a wrapper extractor to
+  drop invalid entities before export. Found while migrating udg-catalogue
+  (see [MIGRATION.md](MIGRATION.md)).
+- **Richer 3D plots.** Let `ScatterPlotConfig` take hover data, a color scale,
+  and a color range, so `AsyncPlotly3DExporter` can replace project-specific
+  Plotly figures.
 
 ## Later — v0.3+
 
