@@ -806,7 +806,7 @@ coverage drops below 100%.
 Contributions are welcome — new extractors, parsers, exporters, and embedding
 backends especially. See [CONTRIBUTING.md](CONTRIBUTING.md) to get set up, and
 browse [good first issues](.github/ISSUE_TEMPLATE/good_first_issue.md) if
-you're new. Upgrading from an older build? See [MIGRATION.md](MIGRATION.md).
+you're new. Moving an existing pipeline onto the library? See [MIGRATION.md](MIGRATION.md).
 All participation is governed by our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Security

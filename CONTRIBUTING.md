@@ -138,8 +138,11 @@ body (`Closes #123`).
 4. **Run** the test suite locally (plus lint and type checks if you use them).
 5. **Update the docs** for user-facing changes:
    - `README.md` for usage
-   - `MIGRATION.md` for breaking changes
+   - `MIGRATION.md` when the change affects moving an existing pipeline onto
+     the library
    - `ROADMAP.md` when you ship a listed item
+   - the pull request description for any breaking change, with what users
+     need to update
 6. **Fill in** the [pull request template](.github/PULL_REQUEST_TEMPLATE.md).
 7. **Keep PRs focused** — one logical change per PR is easiest to review.
 

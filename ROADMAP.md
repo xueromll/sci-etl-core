@@ -13,7 +13,7 @@ for newcomers.
 
 - **Async-first core.** Every component is an async implementation;
   `ETLPipeline` is a single blocking entrypoint running on a background event
-  loop. The generated sync facade has been removed.
+  loop.
 - **Pluggable ABCs** for extraction, parsing, LLM relevance filtering and
   entity extraction, export, state, embeddings, chunking, vector storage, and
   dataframe processing.

@@ -1,174 +1,13 @@
-# Migration Guide
+# Migrating a Project to sci-etl-core
 
-This guide has two parts:
-
-- **[Part 1 — Upgrading from the generated sync facade](#part-1--upgrading-from-the-generated-sync-facade).**
-  Read this if your code uses `ArxivExtractor`, `FileStateManager`, or other
-  classes without the `Async` prefix, or if it runs `tools/generate_sync.py`.
-- **[Part 2 — Moving a project onto sci-etl-core](#part-2--moving-a-project-onto-sci-etl-core).**
-  Read this if you are replacing an in-repo pipeline. It uses `udg-catalogue`,
-  the astronomy pipeline the library was extracted from, as the worked example,
-  but every step is domain-agnostic.
+This guide walks through replacing a pipeline that lives inside a research
+project with `sci-etl-core` components. It uses `udg-catalogue`, the astronomy
+pipeline the library was extracted from, as the worked example, but every step
+is domain-agnostic.
 
 ---
 
-## Part 1 — Upgrading from the generated sync facade
-
-Earlier builds generated a blocking twin of every async class. The core
-refactor (`3f45513`, `refactor(core)!`) removed them. Now the async classes are
-the only implementations, and `ETLPipeline` is the single blocking entrypoint.
-Later changes made failures raise instead of ending runs quietly, and added
-SQLite state and embeddings.
-
-### Removed and renamed APIs
-
-| Removed | Use instead |
-|---------|-------------|
-| `ArxivExtractor` | `AsyncArxivExtractor` |
-| `OpenAICompatibleClient` | `AsyncOpenAICompatibleClient` |
-| `LLMRelevanceFilter` | `AsyncLLMRelevanceFilter` |
-| `LLMEntityExtractor` | `AsyncLLMEntityExtractor` |
-| `CsvUpsertExporter` | `AsyncCsvUpsertExporter` |
-| `SqlTableExporter` | `AsyncSqlTableExporter` |
-| `Plotly3DExporter` | `AsyncPlotly3DExporter` |
-| `FileStateManager` | `AsyncFileStateManager`, or the new `AsyncSqliteStateManager` |
-| `sci_etl_core.logging.configure_logging` | `sci_etl_core.log_utils.configure_logging` (also `from sci_etl_core import configure_logging`) |
-| `sci_etl_core.__version__` | `importlib.metadata.version("sci-etl-core")` |
-| `AsyncArxivExtractor(rate_limiter=...)` | wrap the extractor — see [Rate Limiting](README.md#rate-limiting) |
-| `tools/generate_sync.py` | nothing; the library contains no generated code anymore |
-
-Your own subclasses of the synchronous interfaces — `Extractor`,
-`RelevanceFilter`, `EntityExtractor`, `LLMClient`, `Exporter`, and
-`StateManager` — keep working: wrap each in its `Sync*Adapter` to pass it to
-a pipeline (see [Synchronous Components](README.md#synchronous-components)).
-
-### Calling components from blocking code
-
-Before, each component had a blocking method:
-
-```python
-# old
-extractor = ArxivExtractor(client=build_async_client(), pdf_parser=..., latex_parser=...)
-listing = extractor.search("all:galaxy", max_results=25, start_index=0)
-records, total = extractor.parse_listing(listing, seen_ids=set())
-text = extractor.fetch_full_text(records[0])
-```
-
-Now, run a whole pipeline with `ETLPipeline` (see
-[Blocking usage](README.md#blocking-usage)). For one-off calls, wrap the async
-calls in a coroutine and run it:
-
-```python
-import asyncio
-
-from sci_etl_core import AsyncArxivExtractor
-from sci_etl_core.http_async import build_async_client
-from sci_etl_core.parsers import LatexTarballParser, PdfPlumberParser
-
-
-async def first_full_text() -> str:
-    async with build_async_client() as client:
-        extractor = AsyncArxivExtractor(
-            client=client,
-            pdf_parser=PdfPlumberParser(),
-            latex_parser=LatexTarballParser(),
-        )
-        listing = await extractor.search("all:galaxy", max_results=25, start_index=0)
-        records, _ = extractor.parse_listing(listing, seen_ids=set())  # still synchronous
-        return await extractor.fetch_full_text(records[0])
-
-
-text = asyncio.run(first_full_text())
-```
-
-`ETLPipeline` itself also changed:
-
-- **Collaborators:** it takes async collaborators only.
-- **New `run_timeout=` argument:** unlimited by default; raises `TimeoutError`
-  when it expires.
-- **Context manager:** `with` blocks close `closeables` on exit.
-- **No attribute forwarding:** it no longer passes attribute access through to
-  the underlying `AsyncETLPipeline`.
-
-### Behavior changes to review
-
-1. **Failures raise instead of ending the run quietly.**
-   - **Before:** after exhausting retries, `AsyncArxivExtractor.search`
-     returned `None`. The pipeline treated that as the end of the data and
-     returned the partial count as if the run had finished.
-   - **Now:** `search` raises `UpstreamError`, and an unparseable listing
-     raises `MalformedResponseError`. `run()` wraps both in `PipelineAborted`,
-     which carries `partial_count`.
-   - **What to change:** catch `PipelineAborted` wherever you relied on the
-     return value. Custom extractors should follow the same contract — raise
-     on transport failures instead of returning `None` or an empty listing.
-2. **Full-text fetching is stricter.**
-   - **Before:** the LaTeX and PDF downloads were each tried once, and any
-     failure fell back to the abstract.
-   - **Now:** both downloads are retried with backoff. Only a definitive "not
-     available" answer (such as 404) falls back to the abstract.
-   - **Effect:** timeouts and repeated 429/5xx responses raise `UpstreamError`.
-     The record is logged, left unmarked, and retried on the next run, instead
-     of being processed permanently from its abstract.
-3. **`AsyncFileStateManager.mark_processed` validates ids.** It strips
-   surrounding whitespace and raises `ValueError` for ids containing line
-   breaks.
-4. **`AsyncCsvUpsertExporter` reads existing keys back as text.** Keys like
-   `007` or `NaN` survive a reload. Duplicate keys within a single batch are
-   merged into one row. If an existing CSV already has duplicate rows from an
-   older build, deduplicate it once with `NormalizationStep` +
-   `DeduplicationStep`; new exports won't add more.
-5. **Writes are crash-safe.** CSV and metadata files are replaced atomically,
-   and file state holds OS-level locks. No API change.
-6. **New optional hooks.**
-   - `AsyncStateManager.flush()` defaults to a no-op, so existing custom state
-     managers keep working.
-   - `AsyncETLPipeline(memory_ingestor=...)` adds [semantic memory](README.md#semantic-memory-optional).
-7. **Paging continues past already-processed pages.** A listing page whose
-   records had all been processed used to end the run silently; now paging
-   moves on to the next page. `run(start_index=...)` overrides the saved
-   offset — pass `0` to rescan a newest-first listing for new submissions.
-8. **Entity-extraction failures are retried.** `AsyncLLMEntityExtractor.extract`
-   used to return `[]` when the LLM call failed, so the record was marked
-   processed with nothing exported. It now raises `LLMError`; the pipeline logs
-   it and retries the record on the next run. Catch `LLMError` if you call
-   `extract()` directly.
-9. **Formula-like CSV keys are escaped.** `AsyncCsvUpsertExporter` now writes
-   keys starting with `=`, `+`, `-`, `@`, a tab, or a carriage return (and keys
-   starting with an apostrophe) with a leading apostrophe, and strips it on
-   reload. Existing files are read as before, except that a key which already
-   starts with an apostrophe loses it. Scripts that read the CSV directly will
-   see the prefix; pass `escape_formulas=False` to keep the old output.
-10. **Close the LLM client.** `AsyncOpenAICompatibleClient` now has `aclose()`;
-    add it to `closeables` so its connections are released.
-11. **The environment overrides a YAML API key.** `load_config` and
-    `load_config_async` used to prefer `llm.api_key` from the YAML file over
-    `LLM_API_KEY`. The environment variable now wins; the YAML value is used
-    only when the variable is unset or empty.
-12. **Optional dependencies load on first use.** `import sci_etl_core` no
-    longer needs every extra. Install the extras for the components you use;
-    importing a component whose extra is missing raises `ModuleNotFoundError`.
-
-### Upgrade checklist
-
-- [ ] Replace imports using the table above.
-- [ ] Replace blocking component calls with `ETLPipeline`, or with async calls
-      inside `asyncio.run`.
-- [ ] Remove `rate_limiter=` arguments; wrap components if you need limits.
-- [ ] Wrap your own synchronous component subclasses in `Sync*Adapter`s.
-- [ ] Catch `PipelineAborted` around `run()`.
-- [ ] Delete regenerated sync modules and any `tools/generate_sync.py` step in
-      scripts or CI.
-- [ ] Run once with a small `total_limit` against a copy of your state files
-      and compare the output with a run from before the upgrade. The
-      processed-ids and metadata file formats are unchanged, so existing state
-      carries over.
-
----
-
-## Part 2 — Moving a project onto sci-etl-core
-
-### Why migrate
+## Why migrate
 
 `sci-etl-core` moves the reusable ETL machinery out of individual research
 projects, so you no longer maintain a bespoke pipeline for each corpus:
@@ -183,7 +22,7 @@ projects, so you no longer maintain a bespoke pipeline for each corpus:
   crash-safe CSV upserts, resumable state, deduplication, and optional semantic
   memory are maintained and tested in one place.
 
-### What changes
+## What changes
 
 | Area | Before (`udg-catalogue`) | After (`sci-etl-core`) |
 |------|--------------------------|------------------------|
@@ -198,6 +37,8 @@ projects, so you no longer maintain a bespoke pipeline for each corpus:
 | Concurrency | manual `asyncio.Semaphore` | `AsyncETLPipeline(max_concurrency=...)`; extra limits via `sci_etl_core.rate_limiter` |
 | State | bespoke JSON/txt handling | `AsyncFileStateManager` or `AsyncSqliteStateManager` |
 | Failures | silent stops / bare exceptions | `PipelineAborted` and the `SciEtlError` hierarchy |
+
+## Steps
 
 ### 1. Install
 
@@ -235,6 +76,9 @@ extractor = AsyncArxivExtractor(
     latex_parser=LatexTarballParser(),
 )
 ```
+
+For a source other than arXiv, implement the `AsyncExtractor` contract
+described in [Supported Sources](README.md#supported-sources).
 
 ### 3. Move configuration to YAML + `.env`
 
@@ -304,14 +148,20 @@ entities = AsyncLLMEntityExtractor(llm_client=llm, system_prompt=EXTRACTION_PROM
 ```
 
 Keep your existing prompts, but make sure each one mentions **JSON** (JSON mode
-requires it) and describes these response shapes:
+requires it) and asks for these response shapes:
 
-- relevance: `{"relevant": bool}`
-- extraction: `{"items": [...]}`, where each item includes the field you'll use
-  as the CSV key
+- relevance: `{"relevant": true}` or `{"relevant": false}`
+- extraction: `{"items": [{...}, ...]}`, where each item is an object that
+  includes the field you'll use as the CSV key
 
-Both filters let records through when the LLM fails; pass
-`default_on_error=False` to change that.
+The two steps handle failure differently:
+
+- **Relevance.** When the LLM call fails, or the reply has no clear verdict,
+  `AsyncLLMRelevanceFilter` lets the record through. Pass
+  `default_on_error=False` to drop such records instead.
+- **Extraction.** When the LLM call fails, or the reply isn't a list of
+  objects, `AsyncLLMEntityExtractor` raises `LLMError`. The pipeline logs it,
+  leaves the record unmarked, and retries it on the next run.
 
 ### 5. Choose a state backend and bring over existing progress
 
@@ -335,6 +185,12 @@ async def import_legacy_state(ids: list[str], last_start_index: int) -> None:
     await state.save_metadata(PipelineMetadata(last_start_index=last_start_index))
     await state.aclose()
 ```
+
+**Imported ids must match the ids your extractor produces**, or every record
+is processed again. `AsyncArxivExtractor` uses the bare arXiv id with its
+version suffix, such as `2401.00001v1`: convert ids your old pipeline stored as
+URLs (`http://arxiv.org/abs/2401.00001v1`) or without the version before
+importing them. A new version of a paper (`v2`) counts as a new record.
 
 ### 6. Assemble and run the pipeline
 
@@ -407,8 +263,9 @@ chain = ProcessorChain(
 clean = chain.process(frame)
 ```
 
-For fuzzy duplicate matching (for example by sky position), pass your own
-`NeighborMatcher` to `DeduplicationStep(matcher=..., match_threshold=...)`.
+Rows whose name normalizes to an empty key are kept as separate rows rather
+than merged. For fuzzy duplicate matching (for example by sky position), pass
+your own `NeighborMatcher` to `DeduplicationStep(matcher=..., match_threshold=...)`.
 
 ### 8. Opt in to the extras you need
 
@@ -430,9 +287,14 @@ and sync/async copies.
   pre-migration run. Remember that `total_limit` counts relevant records only.
 - Keep your prompts and normalizer identical at first; change behavior only
   after the outputs match.
-- Search the log for `Record processing failed`; those records weren't marked
-  processed and will be retried on the next run.
-- Run `pytest`; the offline suite catches interface mismatches early.
+- Search the log for `Record processing failed`. Those records weren't marked
+  processed, and the saved offset stays at their page, so the next run retries
+  them.
+- If `run()` raises `PipelineAborted` because no record on a page could be
+  processed, the cause is usually configuration, such as a rejected API key or
+  an output CSV that can't be read; the exception's `__cause__` has the detail.
+- If you wrote your own components, check them against the contracts in
+  [Adding a New Component](CONTRIBUTING.md#adding-a-new-component).
 
 Questions or a rough edge in your migration? Open an
 [issue](.github/ISSUE_TEMPLATE/bug_report.md) — we're happy to help.
