@@ -7,9 +7,8 @@ from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.exporters.base import Exporter
 from sci_etl_core.extractors.async_base import AsyncExtractor
 from sci_etl_core.extractors.base import Extractor
-from sci_etl_core.llm.extraction import EntityExtractor
+from sci_etl_core.llm.base import EntityExtractor, RelevanceFilter
 from sci_etl_core.llm.extraction_async import AsyncEntityExtractor
-from sci_etl_core.llm.relevance import RelevanceFilter
 from sci_etl_core.llm.relevance_async import AsyncRelevanceFilter
 from sci_etl_core.models import PipelineMetadata, RawRecord
 from sci_etl_core.state.async_base import AsyncStateManager

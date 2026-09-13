@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from sci_etl_core.exceptions import MalformedResponseError, PipelineAborted, UpstreamError
+from sci_etl_core.exceptions import LLMError, MalformedResponseError, PipelineAborted, UpstreamError
 from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.extractors.async_base import AsyncExtractor
 from sci_etl_core.llm.extraction_async import AsyncEntityExtractor
@@ -145,6 +145,17 @@ class TestAsyncPipelineResilience:
         assert await pipeline.run(query="q", max_records=3, sleep_between=0) >= 2
         assert any("failed" in m.lower() for m in logged)
 
+    @pytest.mark.asyncio
+    async def test_extraction_llm_failure_leaves_record_for_retry(self, mocker):
+        pipeline, _, _, entity, exporter, state = _build(mocker, _records(1))
+        entity.extract = mocker.AsyncMock(side_effect=LLMError("outage"))
+        logged: list[str] = []
+        pipeline._log = logged.append
+        assert await pipeline.run(query="q", max_records=1, sleep_between=0) == 0
+        state.mark_processed.assert_not_awaited()
+        exporter.export.assert_not_called()
+        assert any("LLMError" in message for message in logged)
+
 
 class TestAsyncPipelineConcurrency:
     @pytest.mark.asyncio
@@ -173,3 +184,42 @@ class TestAsyncPipelineContextManager:
         async with pipeline as entered:
             assert entered is pipeline
         closeable.aclose.assert_awaited_once()
+
+    def test_log_forwards_to_the_injected_logger(self, mocker):
+        pipeline, *_ = _build(mocker, _records(0))
+        logged: list[str] = []
+        pipeline._log = logged.append
+        pipeline.log("hello")
+        assert logged == ["hello"]
+
+
+class TestAsyncPipelineResume:
+    @pytest.mark.asyncio
+    async def test_page_of_processed_records_does_not_end_the_run(self, mocker):
+        pipeline, extractor, _, _, _, state = _build(mocker, [])
+        fresh = _records(3)[2:]
+        extractor.parse_listing = mocker.Mock(side_effect=[([], 2), (fresh, 1), ([], 0)])
+        assert await pipeline.run(query="q", page_size=2, total_limit=10) == 1
+        assert [call.args[2] for call in extractor.search.await_args_list] == [0, 2, 3]
+        assert state.save_metadata.await_args.args[0].last_start_index == 3
+
+    @pytest.mark.asyncio
+    async def test_saved_offset_is_used_by_default(self, mocker):
+        pipeline, extractor, _, _, _, state = _build(mocker, _records(1))
+        state.load_metadata = mocker.AsyncMock(return_value=PipelineMetadata(last_start_index=40))
+        await pipeline.run(query="q", page_size=5, total_limit=5)
+        assert extractor.search.await_args_list[0].args[2] == 40
+
+    @pytest.mark.asyncio
+    async def test_start_index_overrides_saved_offset(self, mocker):
+        pipeline, extractor, _, _, _, state = _build(mocker, _records(1))
+        state.load_metadata = mocker.AsyncMock(return_value=PipelineMetadata(last_start_index=40))
+        await pipeline.run(query="q", page_size=5, total_limit=5, start_index=0)
+        assert extractor.search.await_args_list[0].args[2] == 0
+
+    @pytest.mark.asyncio
+    async def test_negative_start_index_is_rejected(self, mocker):
+        pipeline, extractor, *_ = _build(mocker, _records(1))
+        with pytest.raises(ValueError, match="start_index"):
+            await pipeline.run(query="q", start_index=-1)
+        extractor.search.assert_not_awaited()

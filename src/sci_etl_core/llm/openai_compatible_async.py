@@ -62,6 +62,10 @@ class AsyncOpenAICompatibleClient(AsyncLLMClient):
                 raise LLMError(f"LLM completion failed: {exc}") from exc
         raise LLMError(f"LLM completion failed after {self._max_retries} attempts: {last_error}")
 
+    async def aclose(self) -> None:
+        """Close the underlying HTTP connection pool."""
+        await self._client.close()
+
     @staticmethod
     def _parse(response: Any) -> dict[str, Any]:
         if not response.choices:

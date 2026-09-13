@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-import asyncio
 from abc import ABC, abstractmethod
 from typing import Any
 
-from sci_etl_core.exceptions import LLMError
 from sci_etl_core.llm._chunking import truncate_to_tokens
 from sci_etl_core.llm.async_base import AsyncLLMClient
 from sci_etl_core.parsers.base import Parser
@@ -39,17 +37,20 @@ class AsyncLLMEntityExtractor(AsyncEntityExtractor):
         self._encoding_name = encoding_name
 
     async def extract(self, text: str | bytes) -> list[dict[str, Any]]:
+        """Extract entities from ``text`` with a single LLM call.
+
+        Raises:
+            LLMError: The completion failed. The error propagates instead of
+                reading as "no entities", so the pipeline leaves the record
+                unmarked and retries it on the next run rather than recording
+                it as processed with nothing exported.
+        """
         cleaned = text.decode("utf-8", errors="ignore") if isinstance(text, bytes) else text
         if cleaned[:200].lstrip().startswith("<"):
             cleaned = self._html_parser.extract_text(cleaned.encode("utf-8"))
         cleaned = self._truncate(cleaned)
 
-        try:
-            result = await self._llm_client.complete_json(self._system_prompt, cleaned, self._timeout)
-        except asyncio.CancelledError:
-            raise
-        except LLMError:
-            return []
+        result = await self._llm_client.complete_json(self._system_prompt, cleaned, self._timeout)
 
         if self._result_key in result:
             return list(result[self._result_key])

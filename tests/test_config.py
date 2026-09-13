@@ -49,12 +49,33 @@ class TestLoadConfig:
         config_module.load_dotenv.assert_called_once_with(env)
         assert cfg.llm.api_key.get_secret_value() == "secret"
 
-    def test_yaml_api_key_takes_precedence_over_env(self, mocker):
+    def test_env_api_key_takes_precedence_over_yaml(self, mocker):
         mocker.patch.object(config_module, "load_dotenv")
         mocker.patch.object(config_module, "load_yaml", return_value={"llm": {"api_key": "from-yaml"}})
         mocker.patch.object(config_module.os, "getenv", return_value="from-env")
         cfg = load_config(BaseAppConfig, Path("c.yaml"))
+        assert cfg.llm.api_key.get_secret_value() == "from-env"
+
+    def test_yaml_api_key_is_a_fallback_when_env_is_unset(self, mocker):
+        mocker.patch.object(config_module, "load_dotenv")
+        mocker.patch.object(config_module, "load_yaml", return_value={"llm": {"api_key": "from-yaml"}})
+        mocker.patch.object(config_module.os, "getenv", return_value="")
+        cfg = load_config(BaseAppConfig, Path("c.yaml"))
         assert cfg.llm.api_key.get_secret_value() == "from-yaml"
+
+    def test_null_llm_section_still_receives_the_env_key(self, mocker):
+        mocker.patch.object(config_module, "load_dotenv")
+        mocker.patch.object(config_module, "load_yaml", return_value={"llm": None})
+        mocker.patch.object(config_module.os, "getenv", return_value="from-env")
+        cfg = load_config(BaseAppConfig, Path("c.yaml"))
+        assert cfg.llm.api_key.get_secret_value() == "from-env"
+
+    def test_non_mapping_llm_section_is_rejected(self, mocker):
+        mocker.patch.object(config_module, "load_dotenv")
+        mocker.patch.object(config_module, "load_yaml", return_value={"llm": "oops"})
+        mocker.patch.object(config_module.os, "getenv", return_value="from-env")
+        with pytest.raises(ConfigurationError, match="Invalid configuration"):
+            load_config(BaseAppConfig, Path("c.yaml"))
 
     def test_secret_is_hidden_in_repr(self, mocker):
         mocker.patch.object(config_module, "load_dotenv")

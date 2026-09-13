@@ -15,13 +15,12 @@ Closes #
 ## Checklist
 
 - [ ] Tests added or updated for the change
-- [ ] Coverage remains at 100% (`pytest --cov=sci_etl_core`)
-- [ ] Test layer matches implementation layer (async tests for async code,
-      sync tests for the generated facade)
-- [ ] Sync facade regenerated if async source changed
-      (`python tools/generate_sync.py`) and committed
-- [ ] Type hints on all public signatures; `mypy` passes
-- [ ] Lint/format clean (`ruff check .` / `ruff format .`)
+- [ ] Coverage stays at 100% (`pytest --cov=sci_etl_core` fails otherwise)
+- [ ] Async conventions followed (no sync twins, blocking work off the event
+      loop, `CancelledError` re-raised, failures signaled with library
+      exceptions)
+- [ ] New ABC implementations added to `tests/contract/`
+- [ ] Type hints on all public signatures (`mypy` / `ruff` clean if you use them)
 - [ ] PEP 8 naming; American English identifiers and docstrings
 - [ ] No domain-specific constants added to the core
 - [ ] Public API changes reflected in the relevant `__init__.py` and `__all__`

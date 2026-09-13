@@ -15,7 +15,7 @@ class TestAsyncConfig:
         from sci_etl_core import config_async as ca
 
         mocker.patch.object(ca, "load_dotenv")
-        mocker.patch.object(ca.os, "getenv", return_value="")
+        mocker.patch.dict("os.environ", {"LLM_API_KEY": ""})
         path = tmp_path / "c.yaml"
         path.write_text("pipeline:\n  max_records: 5\n", encoding="utf-8")
         cfg = await ca.load_config_async(BaseAppConfig, path)
@@ -27,9 +27,9 @@ class TestAsyncConfig:
         from sci_etl_core import config_async as ca
 
         mocker.patch.object(ca, "load_dotenv")
-        mocker.patch.object(ca.os, "getenv", return_value="secret")
+        mocker.patch.dict("os.environ", {"LLM_API_KEY": "secret"})
         path = tmp_path / "c.yaml"
-        path.write_text("", encoding="utf-8")
+        path.write_text("llm:\n  api_key: from-yaml\n", encoding="utf-8")
         cfg = await ca.load_config_async(BaseAppConfig, path)
         assert cfg.llm.api_key.get_secret_value() == "secret"
 
@@ -46,7 +46,7 @@ class TestAsyncConfig:
         from sci_etl_core import config_async as ca
 
         mocker.patch.object(ca, "load_dotenv")
-        mocker.patch.object(ca.os, "getenv", return_value="")
+        mocker.patch.dict("os.environ", {"LLM_API_KEY": ""})
         path = tmp_path / "c.yaml"
         path.write_text("pipeline:\n  max_records: not-an-int\n", encoding="utf-8")
         with pytest.raises(ConfigurationError, match="Invalid configuration"):

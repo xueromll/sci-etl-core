@@ -6,3 +6,9 @@ dist/
 
 code.txt
 .coverage
+
+.env
+.env.*
+!.env.example
+.venv/
+.pytest_cache/

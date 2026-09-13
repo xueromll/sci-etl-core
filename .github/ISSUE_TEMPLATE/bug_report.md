@@ -38,8 +38,8 @@ What actually happened. Include the full traceback if there is one.
 - `sci-etl-core` version:
 - Python version:
 - OS:
-- Sync or async path:
-- Relevant extras installed (async / llm / sql / viz):
+- Entry point (`AsyncETLPipeline`, `ETLPipeline`, or components called directly):
+- Extras / optional packages installed (e.g. `full`, `sentence-transformers`, SQL driver):
 
 ## Additional Context
 

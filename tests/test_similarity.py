@@ -32,6 +32,28 @@ class TestL2Normalize:
         assert normalized[0].tolist() == pytest.approx([0.6, 0.8])
         assert normalized[1].tolist() == [0.0, 0.0]
 
+    @pytest.mark.parametrize(
+        "row",
+        [
+            [1.1514339432346129e-161],
+            [3e-200, 4e-200, 0.0],
+            [5e-324, 1e-323],
+            [1e200, 1e200],
+        ],
+        ids=["tiny", "tiny-with-zero", "subnormal", "overflowing-square"],
+    )
+    def test_rows_at_extreme_magnitudes_reach_unit_length(self, row):
+        # A plain norm squares first: tiny components round in the subnormal
+        # range and huge ones overflow, so none of these came out unit length.
+        normalized = l2_normalize(to_matrix([row]))
+        assert np.linalg.norm(normalized[0]) == pytest.approx(1.0, abs=1e-12)
+
+    def test_non_finite_rows_are_passed_through(self):
+        matrix = np.array([[np.inf, 1.0], [np.nan, 1.0]])
+        normalized = l2_normalize(matrix)
+        assert normalized[0].tolist() == [np.inf, 1.0]
+        assert np.isnan(normalized[1][0]) and normalized[1][1] == 1.0
+
 
 class TestUnitVector:
     def test_empty_vector_is_returned_unchanged(self):
@@ -53,6 +75,13 @@ class TestTopSimilarity:
 
     def test_zero_norm_query_scores_lowest(self):
         assert top_similarity([0.0, 0.0], np.array([[1.0, 0.0]])) == -1.0
+
+    @pytest.mark.parametrize(
+        "query", [[1.1514339432346129e-161], [5e-324, 1e-323]], ids=["tiny", "subnormal"]
+    )
+    def test_tiny_query_matching_a_reference_scores_one(self, query):
+        references = l2_normalize(to_matrix([query]))
+        assert top_similarity(query, references) == pytest.approx(1.0, abs=1e-12)
 
     def test_returns_nearest_reference_similarity(self):
         references = l2_normalize(np.array([[1.0, 0.0], [0.0, 1.0]]))

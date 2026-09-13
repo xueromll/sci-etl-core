@@ -56,6 +56,27 @@ def load_yaml(path: Path) -> dict[str, Any]:
         return yaml.safe_load(handle) or {}
 
 
+def apply_api_key(raw: dict[str, Any], api_key_env_var: str) -> dict[str, Any]:
+    """Resolve the LLM API key, letting the environment override the YAML file.
+
+    A key supplied at runtime through ``api_key_env_var`` always wins, so a
+    stale or leaked key written into a config file can never silently replace
+    it. The YAML value is only a fallback for when the variable is unset or
+    empty. A non-mapping ``llm`` section is left for validation to reject.
+    """
+    llm = raw.get("llm")
+    if llm is None:
+        llm = raw["llm"] = {}
+    if not isinstance(llm, dict):
+        return raw
+    env_key = os.getenv(api_key_env_var, "")
+    if env_key:
+        llm["api_key"] = env_key
+    else:
+        llm.setdefault("api_key", "")
+    return raw
+
+
 def load_config(
     config_cls: type[T],
     yaml_path: Path,
@@ -63,9 +84,7 @@ def load_config(
     api_key_env_var: str = "LLM_API_KEY",
 ) -> T:
     load_dotenv(env_path) if env_path else load_dotenv()
-    raw = load_yaml(yaml_path)
-    raw.setdefault("llm", {})
-    raw["llm"].setdefault("api_key", os.getenv(api_key_env_var, ""))
+    raw = apply_api_key(load_yaml(yaml_path), api_key_env_var)
     try:
         return config_cls.model_validate(raw)
     except Exception as exc:

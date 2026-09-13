@@ -20,14 +20,21 @@ dependencies = [
 [project.optional-dependencies]
 async = ["httpx", "aiofiles", "aiolimiter"]
 llm = ["openai", "tiktoken"]
-sql = ["sqlalchemy>=2"]
-viz = ["plotly"]
+pdf = ["pdfplumber"]
+sql = ["sqlalchemy>=2", "aiosqlite"]
+viz = ["plotly", "aiofiles"]
+cluster = ["scikit-learn", "numpy"]
+embeddings = ["numpy", "openai"]
+embeddings-local = ["numpy", "sentence-transformers"]
+dev = ["pytest", "pytest-asyncio", "pytest-mock", "pytest-cov", "hypothesis"]
 full = [
     "httpx", "aiofiles", "aiolimiter",
     "openai", "tiktoken",
-    "sqlalchemy>=2",
+    "pdfplumber",
+    "sqlalchemy>=2", "aiosqlite",
     "plotly",
-    "pdfplumber", "scikit-learn", "numpy", "requests",
+    "scikit-learn", "numpy",
+    "requests",
 ]
 
 [tool.setuptools]
@@ -35,3 +42,8 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.coverage.report]
+fail_under = 100
+show_missing = true
+exclude_also = ["if TYPE_CHECKING:"]

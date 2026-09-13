@@ -102,6 +102,12 @@ class TestAsyncOpenAICompatibleClient:
         assert patched.chat.completions.create.await_count == 3
         assert sleep.await_count == 2
 
+    @pytest.mark.asyncio
+    async def test_aclose_closes_the_underlying_client(self, patched, mocker):
+        patched.close = mocker.AsyncMock()
+        await self._make(mocker).aclose()
+        patched.close.assert_awaited_once()
+
 
 class TestAsyncLLMRelevanceFilter:
     @pytest.mark.asyncio
@@ -149,9 +155,10 @@ class TestAsyncLLMEntityExtractor:
         assert await ex.extract("text") == []
 
     @pytest.mark.asyncio
-    async def test_error_returns_empty(self, mocker):
+    async def test_error_propagates_instead_of_reading_as_no_entities(self, mocker):
         ex = AsyncLLMEntityExtractor(_async_llm(mocker, exc=LLMError("x")), "p")
-        assert await ex.extract("text") == []
+        with pytest.raises(LLMError):
+            await ex.extract("text")
 
     @pytest.mark.asyncio
     async def test_html_input_is_converted(self, mocker):

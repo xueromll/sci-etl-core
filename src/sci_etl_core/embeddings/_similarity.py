@@ -17,18 +17,36 @@ def to_matrix(vectors: list[list[float]]) -> np.ndarray:
     return np.asarray(vectors, dtype=np.float64)
 
 
+def _to_unit_rows(array: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Scale each row along the last axis to unit length at any magnitude.
+
+    Returns the scaled array and a mask of degenerate rows — all zero, or
+    holding a non-finite value — which are returned unchanged. A plain norm
+    squares every component first, so a component near ``1e-161`` rounds in
+    the subnormal range (skewing the norm by a few tenths of a percent) and
+    one near ``1e155`` overflows. Each row is therefore divided by its largest
+    magnitude before the norm is taken, and the absolute norm is never rebuilt,
+    since multiplying back would round again for subnormal components.
+    """
+    scale = np.max(np.abs(array), axis=-1, keepdims=True)
+    degenerate = (scale == 0.0) | ~np.isfinite(scale)
+    scaled = array / np.where(degenerate, 1.0, scale)
+    norms = np.linalg.norm(scaled, axis=-1, keepdims=True)
+    unit = scaled / np.where(degenerate, 1.0, norms)
+    return np.where(degenerate, array, unit), degenerate
+
+
 def l2_normalize(matrix: np.ndarray) -> np.ndarray:
     """Scale each row to unit length, leaving degenerate rows untouched.
 
-    A row whose norm is zero or non-finite is passed through unchanged: there
-    is no meaningful direction to scale it to, and dividing would replace the
-    row with zeros or NaNs that would later read as a spurious score.
+    A row that is all zero or holds a non-finite value is passed through
+    unchanged: there is no meaningful direction to scale it to, and dividing
+    would replace the row with zeros or NaNs that would later read as a
+    spurious score.
     """
     if matrix.size == 0:
         return matrix
-    norms = np.linalg.norm(matrix, axis=1, keepdims=True)
-    norms[(norms == 0.0) | ~np.isfinite(norms)] = 1.0
-    return matrix / norms
+    return _to_unit_rows(matrix)[0]
 
 
 def unit_vector(vector: Sequence[float], dtype: Any = np.float32) -> np.ndarray:
@@ -59,10 +77,9 @@ def top_similarity(query: list[float], normalized_references: np.ndarray) -> flo
     """
     if normalized_references.size == 0 or not query:
         return -1.0
-    vector = np.asarray(query, dtype=np.float64)
-    norm = float(np.linalg.norm(vector))
-    if norm == 0.0 or not np.isfinite(norm):
+    unit, degenerate = _to_unit_rows(np.asarray(query, dtype=np.float64))
+    if degenerate.any():
         return -1.0
-    similarities = normalized_references @ (vector / norm)
+    similarities = normalized_references @ unit
     best = float(similarities.max())
     return best if np.isfinite(best) else -1.0

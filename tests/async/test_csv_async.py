@@ -72,3 +72,48 @@ class TestAsyncCsvUpsertExporter:
         pd.DataFrame({"name": ["Alpha"], "ra": [1.0]}).to_csv(dest, index=False)
         await exporter.export([{"name": "Beta", "ra": 2.0, "dec": 3.0}], str(dest))
         assert "dec" in pd.read_csv(dest).columns
+
+
+class TestCsvFormulaEscaping:
+    @pytest.mark.asyncio
+    async def test_formula_like_keys_are_escaped_in_the_file(self, exporter, tmp_path):
+        dest = tmp_path / "out.csv"
+        records = [
+            {"name": '=HYPERLINK("http://x")', "ra": 1.0},
+            {"name": "@cmd", "ra": 2.0},
+            {"name": "Plain", "ra": 3.0},
+        ]
+        await exporter.export(records, str(dest))
+        names = pd.read_csv(dest, dtype={"name": str})["name"].tolist()
+        assert names == ["'=HYPERLINK(\"http://x\")", "'@cmd", "Plain"]
+
+    @pytest.mark.asyncio
+    async def test_escaped_keys_round_trip_through_a_reload(self, tmp_path):
+        dest = tmp_path / "out.csv"
+        keys = ["=1+1", "'quoted", "-negative", "+plus", "plain"]
+        await AsyncCsvUpsertExporter("name", ["ra", "dec"], DefaultKeyNormalizer()).export(
+            [{"name": key, "ra": 1.0} for key in keys], str(dest)
+        )
+        reloaded = AsyncCsvUpsertExporter("name", ["ra", "dec"], DefaultKeyNormalizer())
+        await reloaded.export([{"name": key, "dec": 2.0} for key in keys], str(dest))
+        frame = pd.read_csv(dest)
+        assert len(frame) == len(keys)
+        assert frame["dec"].tolist() == [2.0] * len(keys)
+        assert reloaded._frame["name"].tolist() == keys
+
+    @pytest.mark.asyncio
+    async def test_non_text_keys_are_left_unchanged(self, exporter, tmp_path):
+        dest = tmp_path / "out.csv"
+        pd.DataFrame({"name": ["", "Alpha"], "ra": [1.0, 2.0]}).to_csv(dest, index=False)
+        await exporter.export([{"name": 7, "ra": 3.0}], str(dest))
+        written = pd.read_csv(dest, dtype={"name": str}, keep_default_na=False)
+        assert written["name"].tolist() == ["", "Alpha", "7"]
+
+    @pytest.mark.asyncio
+    async def test_escaping_can_be_disabled(self, tmp_path):
+        dest = tmp_path / "out.csv"
+        exporter = AsyncCsvUpsertExporter(
+            "name", ["ra"], DefaultKeyNormalizer(), escape_formulas=False
+        )
+        await exporter.export([{"name": "=1+1", "ra": 1.0}], str(dest))
+        assert pd.read_csv(dest, dtype={"name": str})["name"].tolist() == ["=1+1"]

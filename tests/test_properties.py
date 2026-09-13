@@ -109,15 +109,6 @@ class TestDefaultKeyNormalizerProperties:
         assert result == result.lower()
 
 
-# --------------------------------------------------------------------------- #
-# Similarity primitives
-#
-# The magnitudes below deliberately straddle the float32 range used by
-# ``unit_vector``: squaring happens inside the norm, so a component near 1e20
-# overflows and one near 1e-30 underflows when the norm is measured in the
-# working dtype. Both ends must still produce a unit vector.
-# --------------------------------------------------------------------------- #
-
 _WIDE_COMPONENT = st.floats(
     min_value=-1e25, max_value=1e25, allow_nan=False, allow_infinity=False
 )
@@ -132,8 +123,6 @@ class TestUnitVectorProperties:
     @given(_WIDE_VECTOR)
     def test_result_is_unit_length_or_a_genuine_zero_vector(self, vector):
         result = unit_vector(vector)
-        # A vector whose every component rounds to zero in float32 has no
-        # direction to preserve, and is the one case left unscaled.
         if not np.asarray(vector, dtype=np.float32).any():
             assert not result.any()
         else:
@@ -174,7 +163,6 @@ class TestUnitVectorProperties:
 class TestL2NormalizeProperties:
     @given(st.lists(st.lists(_WIDE_COMPONENT, min_size=1, max_size=6), min_size=1, max_size=6))
     def test_every_row_is_unit_length_or_zero(self, rows):
-        # to_matrix requires rectangular input, as its callers always supply.
         width = len(rows[0])
         rows = [row[:width] + [0.0] * (width - len(row)) for row in rows]
         normalized = l2_normalize(to_matrix(rows))
@@ -209,18 +197,12 @@ class TestTopSimilarityProperties:
         assert top_similarity([], references) == -1.0
 
 
-# --------------------------------------------------------------------------- #
-# Embedding stores: shared contract, and the two backends against each other
-# --------------------------------------------------------------------------- #
-
 _DIM = 4
 _STORE_COMPONENT = st.floats(
     min_value=-1e3, max_value=1e3, allow_nan=False, allow_infinity=False
 )
 _STORE_VECTOR = st.lists(_STORE_COMPONENT, min_size=_DIM, max_size=_DIM)
 
-# A small id alphabet makes collisions, replacements and exclusions frequent
-# instead of vanishingly rare.
 _CHUNK = st.builds(
     EmbeddingChunk,
     record_id=st.sampled_from(["a", "b", "c"]),
@@ -356,10 +338,6 @@ class TestEmbeddingStoreProperties:
         asyncio.run(scenario())
 
 
-# --------------------------------------------------------------------------- #
-# Normalization + deduplication
-# --------------------------------------------------------------------------- #
-
 _TITLE = st.text(max_size=10)
 _SCORE = st.one_of(
     st.none(),
@@ -425,14 +403,9 @@ class TestDeduplicationProperties:
         if pd.notna(kept_score):
             assert after.at[0, "score"] == kept_score
         else:
-            # The blank may be filled from the dropped row, or stay blank.
             filler = before.at[1, "score"]
             assert pd.isna(after.at[0, "score"]) or after.at[0, "score"] == filler
 
-
-# --------------------------------------------------------------------------- #
-# CSV upsert merge semantics
-# --------------------------------------------------------------------------- #
 
 _CSV_KEY = st.text(
     alphabet=st.characters(
@@ -464,9 +437,6 @@ _CLIP = (0.0, 100.0)
 
 
 def _read_csv(destination: Path) -> pd.DataFrame:
-    # The key is read as text for the same reason the exporter does it: letting
-    # pandas infer would turn a key like "007" into the integer 7 and the
-    # assertions would be measuring type inference rather than merge semantics.
     if not destination.is_file() or destination.stat().st_size == 0:
         return pd.DataFrame(columns=["name", "score"])
     return pd.read_csv(
@@ -614,10 +584,6 @@ class TestCsvUpsertProperties:
         asyncio.run(scenario())
 
 
-# --------------------------------------------------------------------------- #
-# Resume state
-# --------------------------------------------------------------------------- #
-
 _RECORD_ID = st.text(
     alphabet=st.characters(
         whitelist_categories=("Lu", "Ll", "Nd"), whitelist_characters="._-/"
@@ -701,10 +667,6 @@ class TestFileStateProperties:
         asyncio.run(scenario())
 
 
-# --------------------------------------------------------------------------- #
-# Paging limits
-# --------------------------------------------------------------------------- #
-
 _LIMIT = st.one_of(st.none(), st.integers(min_value=1, max_value=10_000))
 
 
@@ -745,10 +707,6 @@ class TestResolveLimitsProperties:
             page_size,
         )
 
-
-# --------------------------------------------------------------------------- #
-# Completeness and quality flags
-# --------------------------------------------------------------------------- #
 
 _TRACKED = ["alpha", "beta", "gamma", "delta"]
 _CELL = st.one_of(st.none(), st.text(min_size=1, max_size=4))
@@ -794,10 +752,6 @@ class TestQualityProperties:
         }
 
 
-# --------------------------------------------------------------------------- #
-# Record validators
-# --------------------------------------------------------------------------- #
-
 _BOUND = st.floats(
     min_value=-1e6, max_value=1e6, allow_nan=False, allow_infinity=False
 )
@@ -839,8 +793,6 @@ class TestNumericRangeValidatorProperties:
         )
 
 
-# The validator tokenizes on ``[^a-z]``, so its vocabulary is ASCII lowercase;
-# a keyword outside that alphabet tokenizes to nothing and can never match.
 _WORD = st.text(alphabet="abcdefghijklmnopqrstuvwxyz", min_size=2, max_size=6)
 _NULL_LIKE = {"null", "none", "unknown", "n/a", "nan", ""}
 

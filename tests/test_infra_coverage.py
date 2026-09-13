@@ -6,9 +6,12 @@ import pytest
 
 from sci_etl_core import _file_lock, _sync_bridge
 from sci_etl_core._atomic_io import atomic_write_text
+from sci_etl_core.embeddings.store_base import EmbeddingChunk
+from sci_etl_core.embeddings.store_sqlite_async import AsyncSqliteEmbeddingStore
 from sci_etl_core.models import PipelineMetadata
 from sci_etl_core.rate_limiter import SemaphoreRateLimiter
 from sci_etl_core.state.async_base import AsyncStateManager
+from sci_etl_core.state.async_file_state import AsyncFileStateManager
 
 
 class TestAtomicWrite:
@@ -108,3 +111,24 @@ class TestStateManagerDefaultFlush:
     @pytest.mark.asyncio
     async def test_default_flush_is_a_noop(self):
         assert await _NoopStateManager().flush() is None
+
+
+class TestFileStateWhitespaceIds:
+    @pytest.mark.asyncio
+    async def test_whitespace_only_id_is_ignored(self, tmp_path):
+        state = AsyncFileStateManager(tmp_path / "ids.txt", tmp_path / "meta.json")
+        await state.mark_processed("   ")
+        assert not (tmp_path / "ids.txt").exists()
+
+
+class TestSqliteEmbeddingStoreCancellation:
+    @pytest.mark.asyncio
+    async def test_cancellation_during_a_write_is_not_wrapped(self, tmp_path, mocker):
+        store = AsyncSqliteEmbeddingStore(tmp_path / "memory.db")
+        connection = await store._connect()
+        mocker.patch.object(connection, "executemany", side_effect=asyncio.CancelledError())
+        try:
+            with pytest.raises(asyncio.CancelledError):
+                await store.add([EmbeddingChunk("r", 0, "text", [1.0, 0.0])])
+        finally:
+            await store.aclose()

@@ -74,26 +74,42 @@ class AsyncETLPipeline:
         sleep_between: float = 0.0,
         total_limit: int | None = None,
         max_records: int | None = None,
+        start_index: int | None = None,
     ) -> int:
         """Process listings until the ceiling is reached or the source is exhausted.
 
-        The only clean exit is an empty listing. Any other interruption raises
-        :class:`PipelineAborted` carrying the count processed so far, so a
-        transport fault can never be mistaken for end-of-data.
+        Paging resumes from the offset saved by the state manager unless
+        ``start_index`` is given. Pass ``0`` to rescan a listing whose order has
+        shifted since the last run, such as a newest-first feed that gained new
+        submissions: processed records are skipped by id, so a rescan costs
+        listing requests but never reprocesses a record.
+
+        The only clean exit is an empty listing. A page made up entirely of
+        already-processed records is not the end of the data, so paging moves
+        past it. Any other interruption raises :class:`PipelineAborted`
+        carrying the count processed so far, so a transport fault can never be
+        mistaken for end-of-data.
+
+        Raises:
+            ValueError: ``start_index`` is negative.
         """
+        if start_index is not None and start_index < 0:
+            raise ValueError("start_index must not be negative")
         page_size, total_limit = self._resolve_limits(page_size, total_limit, max_records)
         processed_ids = await self._state_manager.load_processed_ids()
         metadata = await self._state_manager.load_metadata()
-        start_index = metadata.last_start_index
+        if start_index is None:
+            start_index = metadata.last_start_index
         total_processed = 0
 
         while total_processed < total_limit:
             raw_listing = await self._fetch_listing(query, page_size, start_index, total_processed)
             records, total_in_listing = self._parse_listing(raw_listing, processed_ids, total_processed)
-            if total_in_listing == 0 or not records:
+            if total_in_listing == 0:
                 break
 
-            total_processed += await self._process_page(records, processed_ids)
+            if records:
+                total_processed += await self._process_page(records, processed_ids)
 
             start_index += total_in_listing
             metadata.last_start_index = start_index

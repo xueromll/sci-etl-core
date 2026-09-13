@@ -19,8 +19,7 @@ docs.
 
 - [ ] Step 1
 - [ ] Step 2
-- [ ] Add or update tests (coverage stays at 100%)
-- [ ] Regenerate the sync facade if async source changed (`python tools/generate_sync.py`)
+- [ ] Add or update tests (new code fully covered)
 
 ## Pointers
 
@@ -30,11 +29,11 @@ docs.
 
 ## Definition of Done
 
-- Tests pass locally (`pytest`) and coverage remains at 100%.
+- Tests pass locally and coverage stays at 100% (`pytest --cov=sci_etl_core`).
 - Code follows PEP 8 with type hints on public signatures.
 - PR template is filled in.
 
 ## Getting Help
 
-New to the codebase? Read [CONTRIBUTING.md](../CONTRIBUTING.md) first, then ask
+New to the codebase? Read [CONTRIBUTING.md](https://github.com/xueromll/sci-etl-core/blob/master/CONTRIBUTING.md) first, then ask
 questions right here on the issue — we're glad to help you land your first PR.

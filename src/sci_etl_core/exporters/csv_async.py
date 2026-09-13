@@ -12,6 +12,26 @@ from sci_etl_core._atomic_io import atomic_write_text
 from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.processors.normalization import KeyNormalizer
 
+_FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
+_ESCAPE = "'"
+
+
+def _escape_cell(value: Any) -> Any:
+    """Prefix text a spreadsheet would evaluate as a formula with an apostrophe.
+
+    A value that already starts with an apostrophe is escaped as well, so that
+    :func:`_unescape_cell` restores every written key exactly.
+    """
+    if isinstance(value, str) and value.startswith((*_FORMULA_PREFIXES, _ESCAPE)):
+        return _ESCAPE + value
+    return value
+
+
+def _unescape_cell(value: Any) -> Any:
+    if isinstance(value, str) and value.startswith(_ESCAPE):
+        return value[1:]
+    return value
+
 
 class AsyncCsvUpsertExporter(AsyncExporter):
     """Concurrency-safe, crash-safe CSV upsert exporter.
@@ -21,6 +41,10 @@ class AsyncCsvUpsertExporter(AsyncExporter):
     one another. Each call renders the full merged snapshot and publishes it
     with an atomic rename, and the in-memory buffer is only advanced once the
     rename succeeds, keeping memory and disk consistent after a failure.
+
+    Keys come from LLM output, so by default any key a spreadsheet would treat
+    as a formula is written with a leading apostrophe and restored on reload.
+    Value columns are numeric and need no escaping.
     """
 
     def __init__(
@@ -29,11 +53,13 @@ class AsyncCsvUpsertExporter(AsyncExporter):
         value_columns: list[str],
         normalizer: KeyNormalizer,
         numeric_clip: dict[str, tuple[float, float]] | None = None,
+        escape_formulas: bool = True,
     ) -> None:
         self._key_column = key_column
         self._value_columns = value_columns
         self._normalizer = normalizer
         self._numeric_clip = numeric_clip or {}
+        self._escape_formulas = escape_formulas
         self._lock: asyncio.Lock | None = None
         self._frame: pd.DataFrame = pd.DataFrame(columns=[key_column, *value_columns])
         self._loaded = False
@@ -80,6 +106,8 @@ class AsyncCsvUpsertExporter(AsyncExporter):
         for column in (self._key_column, *self._value_columns):
             if column not in frame.columns:
                 frame[column] = None
+        if self._escape_formulas:
+            frame[self._key_column] = frame[self._key_column].map(_unescape_cell)
         return frame
 
     def _apply(self, data: list[dict[str, Any]]) -> tuple[pd.DataFrame, str]:
@@ -110,7 +138,13 @@ class AsyncCsvUpsertExporter(AsyncExporter):
                 [frame, pd.DataFrame(list(new_rows.values()))], ignore_index=True
             )
 
-        return frame, frame.drop(columns=["_norm_key"]).to_csv(index=False)
+        return frame, self._render(frame)
+
+    def _render(self, frame: pd.DataFrame) -> str:
+        output = frame.drop(columns=["_norm_key"])
+        if self._escape_formulas:
+            output[self._key_column] = output[self._key_column].map(_escape_cell)
+        return output.to_csv(index=False)
 
     def _fill_pending(self, row: dict[str, Any], record: dict[str, Any]) -> None:
         """Fill a not-yet-appended row's gaps, leaving settled values alone."""
