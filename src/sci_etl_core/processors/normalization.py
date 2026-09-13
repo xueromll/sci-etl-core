@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-import re
+import unicodedata
 from abc import ABC, abstractmethod
 
 import pandas as pd
 
 from sci_etl_core.processors.base import Processor
+
+_KEY_CATEGORY_CLASSES = frozenset({"L", "M", "N", "S"})
 
 
 class KeyNormalizer(ABC):
@@ -18,7 +20,15 @@ class DefaultKeyNormalizer(KeyNormalizer):
     def normalize(self, raw_value: str) -> str:
         if raw_value is None or pd.isna(raw_value):
             return ""
-        return re.sub(r"[^a-z0-9]", "", str(raw_value).strip().lower())
+        folded = unicodedata.normalize(
+            "NFKC", unicodedata.normalize("NFKC", str(raw_value)).casefold()
+        )
+        kept = "".join(
+            character
+            for character in folded
+            if unicodedata.category(character)[0] in _KEY_CATEGORY_CLASSES
+        )
+        return unicodedata.normalize("NFC", kept)
 
 
 class NormalizationStep(Processor):

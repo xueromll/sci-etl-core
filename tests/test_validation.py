@@ -61,15 +61,31 @@ class TestKeywordExclusionValidator:
         assert validator.is_valid({"name": "a MOCK here"}) is False
         assert validator.is_valid({"name": "genuine"}) is True
 
-    def test_multi_token_keyword_forbids_each_of_its_tokens(self):
+    def test_multi_token_keyword_matches_only_as_a_contiguous_phrase(self):
         validator = KeywordExclusionValidator(key_field="name", forbidden_keywords=["fake-source"])
         assert validator.is_valid({"name": "fake source detection"}) is False
-        assert validator.is_valid({"name": "a source of light"}) is False
+        assert validator.is_valid({"name": "a FAKE_SOURCE here"}) is False
+        assert validator.is_valid({"name": "a source of light"}) is True
+        assert validator.is_valid({"name": "source fake"}) is True
         assert validator.is_valid({"name": "genuine object"}) is True
+
+    def test_catalog_designation_does_not_block_its_whole_catalog(self):
+        validator = KeywordExclusionValidator(key_field="name", forbidden_keywords=["NGC 1234"])
+        assert validator.is_valid({"name": "NGC 1234"}) is False
+        assert validator.is_valid({"name": "ngc1234"}) is False
+        assert validator.is_valid({"name": "NGC 5678"}) is True
+        assert validator.is_valid({"name": "NGC 12345"}) is True
+        assert validator.is_valid({"name": "NGC 1052-DF2"}) is True
+
+    def test_non_latin_keywords_are_matched(self):
+        validator = KeywordExclusionValidator(key_field="name", forbidden_keywords=["Макет"])
+        assert validator.is_valid({"name": "макет галактики"}) is False
+        assert validator.is_valid({"name": "галактика Андромеды"}) is True
 
     def test_non_string_key_value_is_coerced_before_matching(self):
         validator = KeywordExclusionValidator(key_field="name", forbidden_keywords=["123"])
-        assert validator.is_valid({"name": 123}) is True
+        assert validator.is_valid({"name": 123}) is False
+        assert validator.is_valid({"name": 456}) is True
 
     def test_empty_forbidden_list_accepts_all_non_null_values(self):
         validator = KeywordExclusionValidator(key_field="name", forbidden_keywords=[])

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import asyncio
 import math
-import re
 import tempfile
+import unicodedata
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -95,8 +95,11 @@ class TestTrimAfterReferencesProperties:
 
 class TestDefaultKeyNormalizerProperties:
     @given(st.text())
-    def test_output_contains_only_lowercase_alphanumerics(self, raw):
-        assert re.fullmatch(r"[a-z0-9]*", _NORMALIZER.normalize(raw))
+    def test_output_contains_no_separators_punctuation_or_controls(self, raw):
+        assert all(
+            unicodedata.category(character)[0] in "LMNS"
+            for character in _NORMALIZER.normalize(raw)
+        )
 
     @given(st.text())
     def test_normalize_is_idempotent(self, raw):
@@ -104,9 +107,9 @@ class TestDefaultKeyNormalizerProperties:
         assert _NORMALIZER.normalize(once) == once
 
     @given(st.text())
-    def test_output_equals_its_own_lowercase(self, raw):
+    def test_output_is_stable_under_casefolding(self, raw):
         result = _NORMALIZER.normalize(raw)
-        assert result == result.lower()
+        assert _NORMALIZER.normalize(result.casefold()) == result
 
 
 _WIDE_COMPONENT = st.floats(
@@ -437,8 +440,6 @@ _CLIP = (0.0, 100.0)
 
 
 def _read_csv(destination: Path) -> pd.DataFrame:
-    if not destination.is_file() or destination.stat().st_size == 0:
-        return pd.DataFrame(columns=["name", "score"])
     return pd.read_csv(
         destination, dtype={"name": str}, keep_default_na=False, na_values=[""]
     )

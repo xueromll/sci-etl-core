@@ -20,10 +20,22 @@ class TestDefaultKeyNormalizer:
             ("a b c", "abc"),
             ("NGC 1052-DF2", "ngc1052df2"),
             ("", ""),
+            ("Галактика Андромеды", "галактикаандромеды"),
+            ("Straße", "strasse"),
+            ("ＡＢＣ１２３", "abc123"),
+            ("🌌 Milky Way", "🌌milkyway"),
+            ("C++", "c++"),
         ],
     )
-    def test_normalizes_to_lowercase_alnum(self, raw, expected):
+    def test_normalizes_to_casefolded_unicode_key(self, raw, expected):
         assert DefaultKeyNormalizer().normalize(raw) == expected
+
+    @pytest.mark.parametrize("pair", [("Ж", "Щ"), ("α", "β"), ("🔭", "🌌"), ("C", "C++")])
+    def test_distinct_non_latin_keys_do_not_merge(self, pair):
+        first, second = pair
+        normalizer = DefaultKeyNormalizer()
+        assert normalizer.normalize(first) != normalizer.normalize(second)
+        assert normalizer.normalize(first) != ""
 
     @pytest.mark.parametrize("missing", [None, float("nan")])
     def test_missing_values_become_empty_string(self, missing):

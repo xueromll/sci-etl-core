@@ -112,6 +112,14 @@ class TestStateManagerDefaultFlush:
     async def test_default_flush_is_a_noop(self):
         assert await _NoopStateManager().flush() is None
 
+    @pytest.mark.asyncio
+    async def test_minimal_subclass_fulfils_the_abstract_contract(self):
+        manager = _NoopStateManager()
+        assert await manager.mark_processed("record") is None
+        assert await manager.save_metadata(PipelineMetadata()) is None
+        assert await manager.load_processed_ids() == set()
+        assert await manager.load_metadata() == PipelineMetadata()
+
 
 class TestFileStateWhitespaceIds:
     @pytest.mark.asyncio
