@@ -63,7 +63,20 @@ class AsyncCsvUpsertExporter(AsyncExporter):
         self._frame = await asyncio.to_thread(self._init_frame, existing_text)
 
     def _init_frame(self, existing_text: str) -> pd.DataFrame:
-        frame = pd.read_csv(io.StringIO(existing_text))
+        # The key column is read as text so that pandas cannot rewrite it on the
+        # way back in. Left to infer, a key like "007" reloads as the integer 7,
+        # and a key spelled "NA" or "NaN" reloads as a missing value -- either
+        # one corrupts the stored key and stops the next record carrying that
+        # key from matching it, silently duplicating the row on restart.
+        # Suppressing the default NA vocabulary keeps those spellings intact,
+        # while an empty field still reads as missing so that a blank value
+        # column stays fillable.
+        frame = pd.read_csv(
+            io.StringIO(existing_text),
+            dtype={self._key_column: str},
+            keep_default_na=False,
+            na_values=[""],
+        )
         for column in (self._key_column, *self._value_columns):
             if column not in frame.columns:
                 frame[column] = None
@@ -72,7 +85,7 @@ class AsyncCsvUpsertExporter(AsyncExporter):
     def _apply(self, data: list[dict[str, Any]]) -> tuple[pd.DataFrame, str]:
         frame = self._frame.reset_index(drop=True)
         frame["_norm_key"] = frame[self._key_column].apply(self._normalizer.normalize)
-        new_rows: list[dict[str, Any]] = []
+        new_rows: dict[str, dict[str, Any]] = {}
 
         for record in data:
             raw_key = record.get(self._key_column)
@@ -83,13 +96,30 @@ class AsyncCsvUpsertExporter(AsyncExporter):
             match_mask = frame["_norm_key"] == norm_key
             if match_mask.any():
                 self._fill_missing(frame, match_mask.idxmax(), record)
+            elif norm_key in new_rows:
+                # Rows pending from this same batch are not in ``frame`` yet, so
+                # they cannot be found by the mask above. Filling the pending row
+                # keeps one row per key; appending again would duplicate the key
+                # that the whole upsert exists to keep unique.
+                self._fill_pending(new_rows[norm_key], record)
             else:
-                new_rows.append(self._build_row(raw_key, norm_key, record))
+                new_rows[norm_key] = self._build_row(raw_key, norm_key, record)
 
         if new_rows:
-            frame = pd.concat([frame, pd.DataFrame(new_rows)], ignore_index=True)
+            frame = pd.concat(
+                [frame, pd.DataFrame(list(new_rows.values()))], ignore_index=True
+            )
 
         return frame, frame.drop(columns=["_norm_key"]).to_csv(index=False)
+
+    def _fill_pending(self, row: dict[str, Any], record: dict[str, Any]) -> None:
+        """Fill a not-yet-appended row's gaps, leaving settled values alone."""
+        for column in self._value_columns:
+            if row.get(column) is not None:
+                continue
+            coerced = self._coerce(column, record.get(column))
+            if coerced is not None:
+                row[column] = coerced
 
     def _fill_missing(self, frame: pd.DataFrame, index: int, record: dict[str, Any]) -> None:
         for column in self._value_columns:

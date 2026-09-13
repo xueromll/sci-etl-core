@@ -24,13 +24,21 @@ class _Row:
 
 
 class InMemoryEmbeddingStore(AsyncEmbeddingStore):
-    """Non-persistent store backed by a plain list. Vectors are unit-normalized."""
+    """Non-persistent store backed by a dict. Vectors are unit-normalized.
+
+    Chunks are keyed by ``(record_id, chunk_index)`` so that re-adding an
+    article replaces its earlier chunks instead of accumulating duplicates.
+    That mirrors the primary key of the durable SQLite store, keeping the two
+    backends interchangeable: re-ingesting a record must not silently give it
+    extra weight in one of them.
+    """
 
     def __init__(self) -> None:
-        self._rows: list[_Row] = []
+        self._rows: dict[tuple[str, int], _Row] = {}
 
     async def add(self, chunks: Sequence[EmbeddingChunk]) -> None:
-        self._rows.extend(_Row(chunk) for chunk in chunks)
+        for chunk in chunks:
+            self._rows[(chunk.record_id, chunk.chunk_index)] = _Row(chunk)
 
     async def query(
         self,
@@ -39,12 +47,15 @@ class InMemoryEmbeddingStore(AsyncEmbeddingStore):
         min_score: float = -1.0,
         exclude_record_id: str | None = None,
     ) -> list[SearchHit]:
+        if top_k <= 0:
+            return []
         query_vector = unit_vector(vector)
-        if query_vector.size == 0 or float(np.linalg.norm(query_vector)) == 0.0:
+        norm = float(np.linalg.norm(query_vector))
+        if query_vector.size == 0 or norm == 0.0 or not np.isfinite(norm):
             return []
         candidates = [
             row
-            for row in self._rows
+            for row in self._rows.values()
             if row.vector.size == query_vector.size
             and (exclude_record_id is None or row.record_id != exclude_record_id)
         ]

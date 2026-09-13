@@ -5,12 +5,12 @@ from typing import IO, Any, Iterator
 
 try:
     import fcntl
-except ImportError:
+except ImportError:  # pragma: no cover - platform-dependent import
     fcntl = None
 
 try:
     import msvcrt
-except ImportError:
+except ImportError:  # pragma: no cover - platform-dependent import
     msvcrt = None
 
 _LOCK_BYTES = 1

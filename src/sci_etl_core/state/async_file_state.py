@@ -32,8 +32,23 @@ class AsyncFileStateManager(AsyncStateManager):
             return await asyncio.to_thread(self._read_ids)
 
     async def mark_processed(self, record_id: str) -> None:
+        """Record an id as processed.
+
+        Raises:
+            ValueError: ``record_id`` contains a line break. The file stores one
+                id per line, so writing it would be read back as several
+                distinct ids, silently marking records that were never seen.
+        """
         if not record_id:
             return
+        record_id = record_id.strip()
+        if not record_id:
+            return
+        if "\n" in record_id or "\r" in record_id:
+            raise ValueError(
+                "record_id must not contain a line break; "
+                f"{record_id!r} would corrupt the processed-ids file"
+            )
         async with self._get_lock():
             await asyncio.to_thread(self._append_id, record_id)
 

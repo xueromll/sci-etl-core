@@ -48,6 +48,15 @@ class AsyncETLPipeline:
         self._closeables = list(closeables or [])
         self._memory_ingestor = memory_ingestor
 
+    @property
+    def closeables(self) -> list[Any]:
+        """Resources whose ``aclose`` the owning facade should await on teardown."""
+        return self._closeables
+
+    def log(self, message: str) -> None:
+        """Emit a message through the injected logger."""
+        self._log(message)
+
     async def __aenter__(self) -> "AsyncETLPipeline":
         return self
 

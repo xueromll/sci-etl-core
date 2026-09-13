@@ -19,7 +19,11 @@ def atomic_write_text(destination: str | Path, text: str, encoding: str = "utf-8
     )
     temp_path = Path(temp_name)
     try:
-        with os.fdopen(descriptor, "w", encoding=encoding) as handle:
+        # newline="" disables newline translation so the payload lands byte for
+        # byte. Without it, content that already carries CRLF -- anything pandas
+        # writes with to_csv -- gains a second carriage return on Windows and
+        # every row ends up separated by a blank line.
+        with os.fdopen(descriptor, "w", encoding=encoding, newline="") as handle:
             handle.write(text)
             handle.flush()
             os.fsync(handle.fileno())

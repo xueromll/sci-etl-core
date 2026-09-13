@@ -18,11 +18,19 @@ class SlidingWindowChunker(TextChunker):
     so the default keeps each window comfortably under the 512-token ceiling of
     the common small embedding models. The overlap preserves context that would
     otherwise be severed at a window boundary.
+
+    When ``overlap_words`` is left unset it is derived from ``chunk_words`` so a
+    small custom window never collides with the standard overlap; an explicit
+    overlap is always validated strictly.
     """
 
-    def __init__(self, chunk_words: int = 350, overlap_words: int = 50) -> None:
+    _DEFAULT_OVERLAP = 50
+
+    def __init__(self, chunk_words: int = 350, overlap_words: int | None = None) -> None:
         if chunk_words < 1:
             raise ValueError("chunk_words must be a positive integer")
+        if overlap_words is None:
+            overlap_words = min(self._DEFAULT_OVERLAP, chunk_words - 1)
         if not 0 <= overlap_words < chunk_words:
             raise ValueError("overlap_words must be in the range [0, chunk_words)")
         self._chunk_words = chunk_words
