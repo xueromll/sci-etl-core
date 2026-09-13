@@ -52,11 +52,11 @@ def _pipeline(mocker, records, *, max_workers=4):
 
 
 class TestPipelineEmptyRecordId:
-    def test_record_without_id_is_processed_but_not_marked(self, mocker):
+    def test_record_without_id_is_skipped_because_it_cannot_be_tracked(self, mocker):
         pipeline, state = _pipeline(
             mocker, [RawRecord(record_id="", title="t", abstract="a")]
         )
-        assert pipeline.run(query="q", max_records=1, sleep_between=0) == 1
+        assert pipeline.run(query="q", max_records=1, sleep_between=0) == 0
         state.mark_processed.assert_not_called()
 
 

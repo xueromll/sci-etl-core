@@ -7,7 +7,7 @@ from typing import Any, Callable
 import httpx
 from bs4 import BeautifulSoup
 
-from sci_etl_core.exceptions import ExtractionError, MalformedResponseError, UpstreamError
+from sci_etl_core.exceptions import ExtractionError, MalformedResponseError, ParsingError, UpstreamError
 from sci_etl_core.extractors.async_base import AsyncExtractor
 from sci_etl_core.models import RawRecord
 from sci_etl_core.parsers.base import Parser
@@ -15,6 +15,8 @@ from sci_etl_core.parsers.reference_trimmer import trim_after_references
 
 _RETRYABLE_STATUS = frozenset({429, 500, 502, 503, 504})
 _SERVER_ERROR_FLOOR = 500
+_SUCCESS_FLOOR = 200
+_SUCCESS_CEILING = 300
 _VERSION_SUFFIX = re.compile(r"v\d+$")
 _FEED_ROOT = "feed"
 
@@ -45,9 +47,14 @@ class AsyncArxivExtractor(AsyncExtractor):
     async def search(self, query: str, max_results: int, start_index: int) -> bytes:
         """Fetch one listing page, retrying transient faults.
 
+        Redirects are followed, so a moved endpoint is not mistaken for a
+        failure regardless of how the injected client was configured.
+
         Raises:
             UpstreamError: Every attempt failed. A transport fault is never
                 reported as an empty result.
+            ExtractionError: arXiv rejected the request with a status that
+                retrying cannot fix, such as ``400`` for a malformed query.
         """
         params = {
             "search_query": query,
@@ -61,17 +68,19 @@ class AsyncArxivExtractor(AsyncExtractor):
         last_error: Exception | None = None
         for attempt in range(self._max_retries):
             try:
-                response = await self._client.get(self.API_URL, params=params)
-                if self._is_retryable(response.status_code):
-                    last_error = ExtractionError(f"arXiv returned status {response.status_code}")
-                    await self._sleep(self._backoff_factor**attempt)
-                    continue
-                response.raise_for_status()
-                return response.content
-            except (httpx.TimeoutException, httpx.TransportError) as exc:
+                response = await self._client.get(self.API_URL, params=params, follow_redirects=True)
+            except httpx.RequestError as exc:
                 last_error = exc
-                if attempt < self._max_retries - 1:
-                    await self._sleep(self._backoff_factor**attempt)
+            else:
+                if _SUCCESS_FLOOR <= response.status_code < _SUCCESS_CEILING:
+                    return response.content
+                if not self._is_retryable(response.status_code):
+                    raise ExtractionError(
+                        f"arXiv rejected the listing request with status {response.status_code}"
+                    )
+                last_error = UpstreamError(f"arXiv returned status {response.status_code}")
+            if attempt < self._max_retries - 1:
+                await self._sleep(self._backoff_factor**attempt)
 
         message = f"arXiv search failed after {self._max_retries} attempts"
         self._log(f"{message}: {last_error!r}")
@@ -79,6 +88,9 @@ class AsyncArxivExtractor(AsyncExtractor):
 
     def parse_listing(self, raw_listing: bytes, seen_ids: set[str]) -> tuple[list[RawRecord], int]:
         """Parse an Atom listing, treating an unreadable payload as an error.
+
+        An entry without an ``<id>`` cannot be tracked as processed, so it is
+        skipped; it still counts toward the page total so paging advances.
 
         Raises:
             MalformedResponseError: The payload is empty or lacks a feed root.
@@ -93,25 +105,35 @@ class AsyncArxivExtractor(AsyncExtractor):
         for entry in entries:
             raw_id = entry.id.get_text(strip=True) if entry.id else ""
             record_id = self._normalize_id(raw_id)
-            if record_id in seen_ids:
+            if not record_id or record_id in seen_ids:
                 continue
             base_id = self._strip_version(record_id)
             if base_id in seen_base_ids:
                 continue
             seen_base_ids.add(base_id)
-            html_link = next(
-                (link.get("href") for link in entry.find_all("link") if "html" in link.get("href", "")),
-                None,
-            )
             records.append(
                 RawRecord(
                     record_id=record_id,
                     title=entry.title.get_text(strip=True) if entry.title else "",
                     abstract=entry.summary.get_text(strip=True) if entry.summary else "",
-                    source_url=html_link,
+                    source_url=self._landing_page_url(entry),
                 )
             )
         return records, len(entries)
+
+    @staticmethod
+    def _landing_page_url(entry: Any) -> str | None:
+        """Return the entry's landing-page link.
+
+        arXiv marks it ``rel="alternate"`` and ``type="text/html"``. Its href
+        points at ``/abs/``, so it has to be found by those attributes rather
+        than by the text of the URL.
+        """
+        for link in entry.find_all("link"):
+            href = link.get("href")
+            if href and (link.get("rel") == "alternate" or link.get("type") == "text/html"):
+                return href
+        return None
 
     @staticmethod
     def _is_retryable(status_code: int) -> bool:
@@ -150,9 +172,12 @@ class AsyncArxivExtractor(AsyncExtractor):
     async def fetch_full_text(self, record: RawRecord) -> str:
         """Return the best-available full text, falling back to the abstract.
 
-        The abstract is used only when every source answered that the artifact
-        is permanently unavailable. A transport failure is raised instead, so
-        the record stays unmarked and is retried on the next run.
+        The LaTeX source is tried first, then the PDF. A source that is
+        permanently unavailable (such as a ``404``) or whose payload its parser
+        cannot read (such as a PDF-only submission served as the e-print) is
+        passed over for the next one. The abstract is used only when no source
+        yields text and none failed transiently. A transport failure is raised
+        instead, so the record stays unmarked and is retried on the next run.
 
         Raises:
             UpstreamError: At least one source failed transiently and no source
@@ -182,7 +207,7 @@ class AsyncArxivExtractor(AsyncExtractor):
         )
         if content is None:
             return None
-        return (await asyncio.to_thread(self._latex_parser.extract_text, content)) or None
+        return await self._parse(self._latex_parser, content, label="LaTeX", record_id=arxiv_id)
 
     async def _fetch_pdf_text(self, arxiv_id: str) -> str | None:
         content = await self._get_bytes(
@@ -190,10 +215,19 @@ class AsyncArxivExtractor(AsyncExtractor):
         )
         if content is None:
             return None
-        return (await asyncio.to_thread(self._pdf_parser.extract_text, content)) or None
+        return await self._parse(self._pdf_parser, content, label="PDF", record_id=arxiv_id)
+
+    async def _parse(self, parser: Parser, content: bytes, label: str, record_id: str) -> str | None:
+        """Parse a fetched artifact, treating an unreadable one as unavailable."""
+        try:
+            text = await asyncio.to_thread(parser.extract_text, content)
+        except ParsingError as exc:
+            self._log(f"{label} unusable for {record_id!r}: {exc}")
+            return None
+        return text or None
 
     async def _get_bytes(self, url: str, label: str, record_id: str) -> bytes | None:
-        """Fetch a binary artifact, retrying only transient faults.
+        """Fetch a binary artifact, following redirects and retrying only transient faults.
 
         Returns:
             The payload, or ``None`` when the source gave a fatal verdict such
@@ -205,8 +239,8 @@ class AsyncArxivExtractor(AsyncExtractor):
         last_error: Exception | None = None
         for attempt in range(self._max_retries):
             try:
-                response = await self._client.get(url)
-            except (httpx.TimeoutException, httpx.TransportError) as exc:
+                response = await self._client.get(url, follow_redirects=True)
+            except httpx.RequestError as exc:
                 last_error = exc
             else:
                 if response.status_code == httpx.codes.OK:

@@ -40,6 +40,10 @@ class InMemoryEmbeddingStore(AsyncEmbeddingStore):
         for chunk in chunks:
             self._rows[(chunk.record_id, chunk.chunk_index)] = _Row(chunk)
 
+    async def delete_record(self, record_id: str) -> None:
+        for key in [key for key in self._rows if key[0] == record_id]:
+            del self._rows[key]
+
     async def query(
         self,
         vector: Sequence[float],
@@ -65,6 +69,8 @@ class InMemoryEmbeddingStore(AsyncEmbeddingStore):
         hits: list[SearchHit] = []
         for index in np.argsort(scores)[::-1]:
             score = float(scores[index])
+            if not np.isfinite(score):
+                continue
             if score < min_score:
                 break
             row = candidates[index]

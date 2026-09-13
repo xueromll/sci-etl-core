@@ -1,8 +1,16 @@
 from __future__ import annotations
 
+import asyncio
+
 import pytest
 
-from sci_etl_core.exceptions import LLMError, MalformedResponseError, PipelineAborted, UpstreamError
+from sci_etl_core.exceptions import (
+    ExtractionError,
+    LLMError,
+    MalformedResponseError,
+    PipelineAborted,
+    UpstreamError,
+)
 from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.extractors.async_base import AsyncExtractor
 from sci_etl_core.llm.extraction_async import AsyncEntityExtractor
@@ -12,8 +20,8 @@ from sci_etl_core.pipeline_async import AsyncETLPipeline
 from sci_etl_core.state.async_base import AsyncStateManager
 
 
-def _records(n: int) -> list[RawRecord]:
-    return [RawRecord(record_id=str(i), title=f"t{i}", abstract=f"a{i}") for i in range(n)]
+def _records(n: int, start: int = 0) -> list[RawRecord]:
+    return [RawRecord(record_id=str(i), title=f"t{i}", abstract=f"a{i}") for i in range(start, start + n)]
 
 
 def _build(mocker, records, *, relevant=True, entities=None, max_concurrency=6):
@@ -48,6 +56,14 @@ def _build(mocker, records, *, relevant=True, entities=None, max_concurrency=6):
         sleep=mocker.AsyncMock(),
     )
     return pipeline, extractor, relevance, entity, exporter, state
+
+
+def _marked(state) -> list[str]:
+    return [call.args[0] for call in state.mark_processed.await_args_list]
+
+
+def _saved_offset(state) -> int:
+    return state.save_metadata.await_args.args[0].last_start_index
 
 
 class TestAsyncPipelineHappyPath:
@@ -85,10 +101,15 @@ class TestAsyncPipelineHappyPath:
         assert state.save_metadata.await_count >= 1
 
     @pytest.mark.asyncio
-    async def test_record_without_id_is_not_marked(self, mocker):
-        pipeline, _, _, _, _, state = _build(mocker, [RawRecord(record_id="", title="t", abstract="a")])
-        assert await pipeline.run(query="q", max_records=1, sleep_between=0) == 1
+    async def test_record_without_id_is_skipped_and_logged(self, mocker):
+        pipeline, _, relevance, _, _, state = _build(mocker, [RawRecord(record_id="", title="t", abstract="a")])
+        logged: list[str] = []
+        pipeline._log = logged.append
+        assert await pipeline.run(query="q", max_records=1, sleep_between=0) == 0
+        relevance.is_relevant.assert_not_awaited()
         state.mark_processed.assert_not_awaited()
+        assert any("no record_id" in message for message in logged)
+        assert _saved_offset(state) == 1
 
 
 class TestAsyncPipelineFailureSignaling:
@@ -108,6 +129,14 @@ class TestAsyncPipelineFailureSignaling:
             await pipeline.run(query="q", max_records=10, sleep_between=0)
         assert excinfo.value.partial_count == 3
         assert isinstance(excinfo.value.__cause__, UpstreamError)
+
+    @pytest.mark.asyncio
+    async def test_aborts_when_the_source_rejects_the_listing_request(self, mocker):
+        pipeline, extractor, *_ = _build(mocker, _records(1))
+        extractor.search = mocker.AsyncMock(side_effect=ExtractionError("status 400"))
+        with pytest.raises(PipelineAborted, match="Listing fetch failed") as excinfo:
+            await pipeline.run(query="q", max_records=5, sleep_between=0)
+        assert isinstance(excinfo.value.__cause__, ExtractionError)
 
     @pytest.mark.asyncio
     async def test_aborts_when_parse_listing_reports_malformed(self, mocker):
@@ -151,10 +180,97 @@ class TestAsyncPipelineResilience:
         entity.extract = mocker.AsyncMock(side_effect=LLMError("outage"))
         logged: list[str] = []
         pipeline._log = logged.append
-        assert await pipeline.run(query="q", max_records=1, sleep_between=0) == 0
+        with pytest.raises(PipelineAborted) as excinfo:
+            await pipeline.run(query="q", max_records=1, sleep_between=0)
+        assert isinstance(excinfo.value.__cause__, LLMError)
         state.mark_processed.assert_not_awaited()
         exporter.export.assert_not_called()
         assert any("LLMError" in message for message in logged)
+
+
+class TestAsyncPipelineOffsetIntegrity:
+    @pytest.mark.asyncio
+    async def test_failed_record_holds_the_saved_offset_at_its_page(self, mocker):
+        pipeline, extractor, _, entity, _, state = _build(mocker, [])
+        extractor.parse_listing = mocker.Mock(
+            side_effect=[(_records(2), 2), (_records(2, start=2), 2), ([], 0)]
+        )
+
+        async def extract(text):
+            if text == "text-0":
+                raise UpstreamError("transient")
+            return [{"name": text}]
+
+        entity.extract = mocker.AsyncMock(side_effect=extract)
+        assert await pipeline.run(query="q", page_size=2, total_limit=10) == 3
+        assert state.save_metadata.await_count == 2
+        assert _saved_offset(state) == 0
+        assert "0" not in _marked(state)
+
+    @pytest.mark.asyncio
+    async def test_page_where_nothing_could_be_processed_aborts(self, mocker):
+        pipeline, _, relevance, entity, _, state = _build(mocker, _records(3))
+        relevance.is_relevant = mocker.AsyncMock(side_effect=lambda record: record.record_id != "2")
+        entity.extract = mocker.AsyncMock(side_effect=LLMError("401 invalid api key"))
+        with pytest.raises(PipelineAborted, match="could be processed") as excinfo:
+            await pipeline.run(query="q", page_size=3, total_limit=10)
+        assert excinfo.value.partial_count == 0
+        assert isinstance(excinfo.value.__cause__, LLMError)
+        assert _marked(state) == ["2"]
+        state.save_metadata.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_record_cancelled_on_its_own_is_a_failure_not_progress(self, mocker):
+        pipeline, _, relevance, _, _, state = _build(mocker, _records(2))
+
+        async def gate(record):
+            if record.record_id == "0":
+                raise asyncio.CancelledError()
+            return True
+
+        relevance.is_relevant = mocker.AsyncMock(side_effect=gate)
+        logged: list[str] = []
+        pipeline._log = logged.append
+        assert await pipeline.run(query="q", page_size=2, total_limit=10) == 1
+        assert _marked(state) == ["1"]
+        assert any("CancelledError" in message for message in logged)
+        assert _saved_offset(state) == 0
+
+
+class TestAsyncPipelineCeiling:
+    @pytest.mark.asyncio
+    async def test_total_limit_is_exact_under_concurrency(self, mocker):
+        pipeline, _, _, _, _, state = _build(mocker, _records(50), max_concurrency=8)
+        assert await pipeline.run(query="q", max_records=10, sleep_between=0) == 10
+        assert state.mark_processed.await_count == 10
+        assert _saved_offset(state) == 0
+
+    @pytest.mark.asyncio
+    async def test_records_after_the_limit_skip_the_relevance_call(self, mocker):
+        pipeline, _, relevance, _, _, state = _build(mocker, _records(5), max_concurrency=1)
+        assert await pipeline.run(query="q", page_size=5, total_limit=2) == 2
+        assert relevance.is_relevant.await_count == 2
+        assert _marked(state) == ["0", "1"]
+
+    @pytest.mark.asyncio
+    async def test_records_racing_through_the_relevance_gate_cannot_overshoot(self, mocker):
+        pipeline, _, relevance, _, _, state = _build(mocker, _records(4), max_concurrency=4)
+
+        async def slow_gate(_record):
+            await asyncio.sleep(0)
+            return True
+
+        relevance.is_relevant = mocker.AsyncMock(side_effect=slow_gate)
+        assert await pipeline.run(query="q", page_size=4, total_limit=1) == 1
+        assert relevance.is_relevant.await_count == 4
+        assert state.mark_processed.await_count == 1
+
+    @pytest.mark.asyncio
+    async def test_failed_record_frees_its_slot_for_the_next(self, mocker):
+        pipeline, _, _, entity, _, state = _build(mocker, _records(2), max_concurrency=1)
+        entity.extract = mocker.AsyncMock(side_effect=[LLMError("once"), [{"name": "ok"}]])
+        assert await pipeline.run(query="q", page_size=2, total_limit=1) == 1
+        assert _marked(state) == ["1"]
 
 
 class TestAsyncPipelineConcurrency:
@@ -163,15 +279,9 @@ class TestAsyncPipelineConcurrency:
         count = 200
         pipeline, _, _, _, _, state = _build(mocker, _records(count), max_concurrency=16)
         assert await pipeline.run(query="q", max_records=count, sleep_between=0) == count
-        marked = [call.args[0] for call in state.mark_processed.await_args_list]
+        marked = _marked(state)
         assert len(marked) == count
         assert len(set(marked)) == count
-
-    @pytest.mark.asyncio
-    async def test_respects_max_records_ceiling(self, mocker):
-        pipeline, *_ = _build(mocker, _records(50), max_concurrency=8)
-        processed = await pipeline.run(query="q", max_records=10, sleep_between=0)
-        assert 10 <= processed <= 50
 
 
 class TestAsyncPipelineContextManager:
@@ -180,10 +290,36 @@ class TestAsyncPipelineContextManager:
         closeable = mocker.Mock()
         closeable.aclose = mocker.AsyncMock()
         pipeline, *_ = _build(mocker, _records(0))
-        pipeline._closeables = [closeable]
+        pipeline._closeables = [closeable, object()]
         async with pipeline as entered:
             assert entered is pipeline
         closeable.aclose.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_close_failure_does_not_stop_later_closes_and_is_raised(self, mocker):
+        failing = mocker.Mock()
+        failing.aclose = mocker.AsyncMock(side_effect=OSError("close failed"))
+        healthy = mocker.Mock()
+        healthy.aclose = mocker.AsyncMock()
+        pipeline, *_ = _build(mocker, _records(0))
+        pipeline._closeables = [failing, healthy]
+        with pytest.raises(OSError, match="close failed"):
+            async with pipeline:
+                pass
+        healthy.aclose.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_close_failure_never_masks_the_block_exception(self, mocker):
+        failing = mocker.Mock()
+        failing.aclose = mocker.AsyncMock(side_effect=OSError("close failed"))
+        pipeline, *_ = _build(mocker, _records(0))
+        pipeline._closeables = [failing]
+        logged: list[str] = []
+        pipeline._log = logged.append
+        with pytest.raises(RuntimeError, match="original"):
+            async with pipeline:
+                raise RuntimeError("original")
+        assert any("Resource close failed" in message for message in logged)
 
     def test_log_forwards_to_the_injected_logger(self, mocker):
         pipeline, *_ = _build(mocker, _records(0))
@@ -201,7 +337,7 @@ class TestAsyncPipelineResume:
         extractor.parse_listing = mocker.Mock(side_effect=[([], 2), (fresh, 1), ([], 0)])
         assert await pipeline.run(query="q", page_size=2, total_limit=10) == 1
         assert [call.args[2] for call in extractor.search.await_args_list] == [0, 2, 3]
-        assert state.save_metadata.await_args.args[0].last_start_index == 3
+        assert _saved_offset(state) == 3
 
     @pytest.mark.asyncio
     async def test_saved_offset_is_used_by_default(self, mocker):

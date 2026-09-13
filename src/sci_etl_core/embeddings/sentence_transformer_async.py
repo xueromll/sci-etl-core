@@ -32,9 +32,18 @@ class AsyncSentenceTransformerEmbedder(AsyncEmbedder):
         return SentenceTransformer(model_name)
 
     async def embed(self, texts: Sequence[str]) -> list[list[float]]:
+        """Return one vector per text.
+
+        Raises:
+            EmbeddingError: The model failed to encode the batch, for example by
+                running out of memory.
+        """
         if not texts:
             return []
-        encoded = await asyncio.to_thread(self._encode, list(texts))
+        try:
+            encoded = await asyncio.to_thread(self._encode, list(texts))
+        except Exception as exc:
+            raise EmbeddingError(f"Local embedding failed: {exc!r}") from exc
         return [[float(value) for value in vector] for vector in encoded]
 
     def _encode(self, texts: list[str]) -> Any:

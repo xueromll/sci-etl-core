@@ -14,6 +14,8 @@ class AsyncExtractor(ABC):
             UpstreamError: The source could not be reached or answered with a
                 server-side failure. Implementations must not collapse this
                 into a falsy return value.
+            ExtractionError: The source rejected the request permanently. The
+                pipeline aborts on any ``ExtractionError`` from this method.
         """
 
     @abstractmethod

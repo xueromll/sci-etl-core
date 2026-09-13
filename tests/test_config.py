@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import pytest
@@ -32,13 +33,38 @@ class TestLoadYaml:
 class TestLoadConfig:
     def test_uses_defaults_when_yaml_empty_and_no_env(self, mocker):
         mocker.patch.object(config_module, "load_dotenv")
+        mocker.patch.object(config_module, "find_dotenv", return_value="/project/.env")
         mocker.patch.object(config_module, "load_yaml", return_value={})
         mocker.patch.object(config_module.os, "getenv", return_value="")
         cfg = load_config(BaseAppConfig, Path("missing.yaml"))
         assert cfg.pipeline.max_records == 100
         assert cfg.llm.model == "gpt-4o-mini"
         assert cfg.llm.api_key.get_secret_value() == ""
-        config_module.load_dotenv.assert_called_once_with()
+        config_module.find_dotenv.assert_called_once_with(usecwd=True)
+        config_module.load_dotenv.assert_called_once_with("/project/.env")
+
+    def test_dotenv_is_searched_from_the_working_directory(self, monkeypatch, tmp_path):
+        (tmp_path / ".env").write_text("SCI_ETL_CWD_TEST_KEY=from-cwd\n", encoding="utf-8")
+        (tmp_path / "config.yaml").write_text("llm:\n  model: m\n", encoding="utf-8")
+        monkeypatch.chdir(tmp_path)
+        try:
+            cfg = load_config(BaseAppConfig, Path("config.yaml"), api_key_env_var="SCI_ETL_CWD_TEST_KEY")
+            assert cfg.llm.api_key.get_secret_value() == "from-cwd"
+        finally:
+            os.environ.pop("SCI_ETL_CWD_TEST_KEY", None)
+
+    def test_yaml_syntax_error_is_a_configuration_error(self, tmp_path):
+        path = tmp_path / "c.yaml"
+        path.write_text("llm: [unclosed\n", encoding="utf-8")
+        with pytest.raises(ConfigurationError, match="not valid YAML"):
+            load_yaml(path)
+
+    @pytest.mark.parametrize("text", ["- a\n- b\n", "just a string\n", "42\n"])
+    def test_non_mapping_document_is_a_configuration_error(self, tmp_path, text):
+        path = tmp_path / "c.yaml"
+        path.write_text(text, encoding="utf-8")
+        with pytest.raises(ConfigurationError, match="mapping"):
+            load_yaml(path)
 
     def test_env_path_is_forwarded_to_dotenv(self, mocker):
         mocker.patch.object(config_module, "load_dotenv")

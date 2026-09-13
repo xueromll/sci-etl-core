@@ -23,6 +23,12 @@ class AsyncEmbeddingRelevanceFilter(AsyncRelevanceFilter):
     then embedded and kept when its cosine similarity to the nearest reference
     reaches ``threshold``, so semantically related work is matched even when it
     shares no keywords with the query.
+
+    Only a real similarity score can reject a record. A failed embedding call,
+    a record vector that is missing, all zero or non-finite, and a vector whose
+    dimension differs from the references all return ``default_on_error``:
+    none of them is evidence that the record is irrelevant, and a negative
+    verdict would mark it processed for good.
     """
 
     def __init__(
@@ -51,17 +57,32 @@ class AsyncEmbeddingRelevanceFilter(AsyncRelevanceFilter):
         try:
             references = await self._ensure_references()
             vectors = await self._embedder.embed([self._record_to_text(record)])
-            query = vectors[0] if vectors else []
-            return top_similarity(query, references) >= self._threshold
+            query = self._validated_query(vectors, references)
         except asyncio.CancelledError:
             raise
         except EmbeddingError:
             return self._default_on_error
+        return top_similarity(query, references) >= self._threshold
 
     async def _ensure_references(self) -> np.ndarray:
         if self._reference_matrix is None:
             async with self._lock:
                 if self._reference_matrix is None:
                     vectors = await self._embedder.embed(self._reference_texts)
-                    self._reference_matrix = l2_normalize(to_matrix(vectors))
+                    try:
+                        matrix = to_matrix(vectors)
+                    except ValueError as exc:
+                        raise EmbeddingError("Reference vectors have inconsistent dimensions") from exc
+                    self._reference_matrix = l2_normalize(matrix)
         return self._reference_matrix
+
+    @staticmethod
+    def _validated_query(vectors: list[list[float]], references: np.ndarray) -> list[float]:
+        if len(vectors) != 1:
+            raise EmbeddingError(f"Expected one record vector, got {len(vectors)}")
+        query = np.asarray(vectors[0], dtype=np.float64)
+        if query.ndim != 1 or references.ndim != 2 or query.shape[0] != references.shape[1]:
+            raise EmbeddingError("Record vector dimension does not match the reference vectors")
+        if not np.all(np.isfinite(query)) or not np.any(query):
+            raise EmbeddingError("Record vector is all zero or holds a non-finite value")
+        return list(vectors[0])

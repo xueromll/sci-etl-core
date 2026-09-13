@@ -363,8 +363,14 @@ class TestDeduplicationProperties:
     def test_output_has_one_row_per_normalized_key(self, records):
         frame = _normalized_frame(records)
         result = DeduplicationStep("_norm_key").process(frame)
-        keys = result["_norm_key"].tolist()
+        keys = [key for key in result["_norm_key"].tolist() if key]
         assert len(keys) == len(set(keys))
+
+    @given(_RECORDS)
+    def test_rows_without_a_key_are_never_merged(self, records):
+        frame = _normalized_frame(records)
+        result = DeduplicationStep("_norm_key").process(frame)
+        assert (result["_norm_key"] == "").sum() == (frame["_norm_key"] == "").sum()
 
     @given(_RECORDS)
     def test_no_key_is_invented_or_lost(self, records):
@@ -383,8 +389,8 @@ class TestDeduplicationProperties:
         """Collapsing duplicates must not discard the only value in a group."""
         frame = _normalized_frame(records)
         result = DeduplicationStep("_norm_key").process(frame)
-        survivors = result.set_index("_norm_key")["score"]
-        for key, group in frame.groupby("_norm_key"):
+        survivors = result[result["_norm_key"] != ""].set_index("_norm_key")["score"]
+        for key, group in frame[frame["_norm_key"] != ""].groupby("_norm_key"):
             if group["score"].notna().any():
                 assert pd.notna(survivors.loc[key])
 

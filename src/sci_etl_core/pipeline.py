@@ -28,17 +28,28 @@ class ETLPipeline:
     def __enter__(self) -> "ETLPipeline":
         return self
 
-    def __exit__(self, *exc: Any) -> None:
+    def __exit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
+        """Close every resource, even when an earlier one fails to close.
+
+        A close failure is raised only when the block itself succeeded, so
+        teardown never masks the exception that ended the block.
+        """
+        errors: list[Exception] = []
         for resource in self._async.closeables:
             aclose = getattr(resource, "aclose", None)
-            if aclose is not None:
-                self._close(aclose())
+            if aclose is None:
+                continue
+            error = self._close(aclose())
+            if error is not None:
+                errors.append(error)
+        if errors and exc is None:
+            raise errors[0]
 
-    def _close(self, closing: Coroutine[Any, Any, Any]) -> None:
-        """Await a close coroutine, tolerating an already-disposed bridge loop.
+    def _close(self, closing: Coroutine[Any, Any, Any]) -> Exception | None:
+        """Await a close coroutine, returning its failure instead of raising it.
 
-        Teardown must never mask the exception that triggered it, so a stopped
-        or closed loop is logged and skipped instead of propagated.
+        A stopped or closed bridge loop is logged and skipped. Any other close
+        failure is logged and returned so the remaining resources still close.
         """
         try:
             run_sync(closing, timeout=_CLOSE_TIMEOUT)
@@ -46,3 +57,7 @@ class ETLPipeline:
             with suppress(RuntimeError):
                 closing.close()
             self._async.log(f"Resource close skipped: {error!r}")
+        except Exception as error:
+            self._async.log(f"Resource close failed: {error!r}")
+            return error
+        return None

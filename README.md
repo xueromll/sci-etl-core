@@ -45,8 +45,9 @@ pipeline on a background loop.
   bounded concurrency; `ETLPipeline` wraps it for blocking code.
 - **Explicit failure signaling** — a transport fault or malformed listing
   aborts the run with `PipelineAborted` (carrying the partial count) instead of
-  looking like the end of the data. A single failing record is logged and
-  skipped.
+  looking like the end of the data. A single failing record is logged and left
+  for the next run, and a page on which nothing could be processed stops the
+  run instead of burning through the rest of the listing.
 - **Resumable, crash-safe state** — plain-file or SQLite backends record
   processed ids and the listing offset; CSV and metadata writes use atomic
   renames.
@@ -87,7 +88,9 @@ class MySourceExtractor(AsyncExtractor):
 ```
 
 - **`search`** returns one raw listing page. If the source can't be reached,
-  it raises `UpstreamError` instead of returning an empty value.
+  it raises `UpstreamError` instead of returning an empty value; if the source
+  rejects the request outright, it raises `ExtractionError`. Either one aborts
+  the run.
 - **`parse_listing`** returns the records whose ids aren't in `seen_ids`, plus
   the number of entries on the page, counting the skipped ones. A count of `0`
   ends the run. If the payload can't be read, it raises
@@ -219,13 +222,15 @@ What a run does:
 2. For each remaining record, with at most `max_concurrency` in flight:
    relevance filter → full-text fetch → optional memory ingest → entity
    extraction → export → mark processed. Irrelevant records are marked
-   processed without fetching full text.
-3. Saves the new listing offset, waits `sleep_between` seconds (default 0),
-   and repeats until `total_limit` relevant records are processed or the
-   listing is empty.
+   processed without fetching full text. Records without a `record_id` can't
+   be tracked, so they are skipped and logged.
+3. Saves the listing offset, waits `sleep_between` seconds (default 0), and
+   repeats until `total_limit` relevant records are processed or the listing
+   is empty. The offset only moves past pages whose records were all settled;
+   see [State, Resuming, and Errors](#state-resuming-and-errors).
 
-`total_limit` counts **relevant** records only, and defaults to `page_size`.
-The legacy `max_records=` argument sets both values. `AsyncArxivExtractor` also
+`total_limit` counts **relevant** records only, is never exceeded, and defaults
+to `page_size`. The legacy `max_records=` argument sets both values. `AsyncArxivExtractor` also
 waits `sleep_before_search` seconds (default 3) before every listing request,
 to respect arXiv's rate limits.
 
@@ -238,9 +243,14 @@ state manager or embedding store you use.
 requests whose messages never mention "JSON". The response shapes the library
 reads:
 
-- `AsyncLLMRelevanceFilter` reads the boolean `relevant` key.
+- `AsyncLLMRelevanceFilter` reads the `relevant` key. It accepts a boolean,
+  `0`/`1`, or the strings `"true"`, `"false"`, `"yes"`, `"no"`, `"1"`, and
+  `"0"` in any case. Anything else, including a missing key, is treated as an
+  error and returns `default_on_error`.
 - `AsyncLLMEntityExtractor` reads the list under `result_key` (default
-  `"items"`), or the only value if the response has exactly one key.
+  `"items"`), or the only value if the response has exactly one key. The list
+  must hold objects; `null` means no entities and a lone object counts as one.
+  Any other shape raises `LLMError`, so the record is retried.
 - `AsyncCsvUpsertExporter` takes each item's `key_column` value as the row key,
   so the extraction prompt must ask for that field.
 
@@ -382,8 +392,9 @@ llm = AsyncOpenAICompatibleClient(
 ```
 
 - **API key.** The key comes from the `LLM_API_KEY` environment variable
-  (choose another with `api_key_env_var=`), which can be loaded from the
-  `.env` file you pass. It is stored as a Pydantic `SecretStr`, so it doesn't
+  (choose another with `api_key_env_var=`), which can be loaded from a `.env`
+  file: the one you pass, or else the first `.env` found from the current
+  working directory upward. It is stored as a Pydantic `SecretStr`, so it doesn't
   show up in reprs or logs. Variables already set in the environment take
   precedence over `.env`; copy `.env.example` to get started.
 - **The environment wins over YAML.** When the variable is set, it overrides
@@ -392,8 +403,8 @@ llm = AsyncOpenAICompatibleClient(
 - **Project-specific settings.** `BaseAppConfig` accepts extra top-level keys,
   or you can subclass it.
 - **Async loading.** `load_config_async` takes the same arguments.
-- **Errors.** A missing YAML file or a validation failure raises
-  `ConfigurationError`.
+- **Errors.** A missing or unparseable YAML file, a file whose top level isn't
+  a mapping, and a validation failure all raise `ConfigurationError`.
 
 ## Post-Processing and Visualization
 
@@ -402,6 +413,12 @@ The pipeline's exporter receives each record's entities as a `list[dict]`, and
 keeps one row per normalized key: later records only fill empty cells, value
 columns are converted to floats (anything non-numeric becomes empty), and
 optional `numeric_clip` bounds clamp them.
+
+The exporter reads the existing file (which must be UTF-8) before its first
+write. If that read fails, for example because of a different encoding or a
+malformed row, the export raises and the file is left untouched instead of
+being overwritten. On Windows, a write is retried for about a second and a
+half while another program holds the file open.
 
 Keys come straight from LLM output, so a key a spreadsheet would run as a
 formula (starting with `=`, `+`, `-`, `@`, a tab, or a carriage return) is
@@ -505,13 +522,21 @@ async def show_similar(text: str) -> None:
 
 - **What gets stored.** Ingestion runs after the relevance gate, so only
   relevant records are embedded. `SlidingWindowChunker` defaults to 350-word
-  windows with a 50-word overlap. Chunks are keyed by
-  `(record_id, chunk_index)`, so re-ingesting a record replaces its chunks.
+  windows with a 50-word overlap. Re-ingesting a record replaces all of its
+  chunks, so text that now yields fewer passages leaves nothing stale behind.
 - **Failures.** An `EmbeddingError` or `EmbeddingStoreError` during ingestion
-  is logged, and the record's entities are still exported.
+  is logged, and the record's entities are still exported. That includes a
+  memory file that isn't a SQLite database, and an embedder that returns a
+  different number of vectors than passages.
 - **Stores.** `InMemoryEmbeddingStore()` suits tests and short-lived runs.
   `AsyncSqliteEmbeddingStore` persists vectors with the standard-library
-  `sqlite3` module and scans every stored vector on each query.
+  `sqlite3` module and scans every stored vector on each query. It serializes
+  access to its connection, so concurrent records can share one store, and
+  each write is a single transaction. A stored vector holding NaN or infinity
+  never appears in results.
+- **Custom stores.** Subclasses of `AsyncEmbeddingStore` implement `add`,
+  `delete_record`, `query`, and `count`. `replace_record` defaults to delete
+  then add; override it if your backend can do both atomically.
 - **Local embeddings.** `AsyncSentenceTransformerEmbedder("all-MiniLM-L6-v2")`
   embeds without network calls. It needs the `embeddings-local` extra, loads
   the model when constructed, and accepts a preloaded `model=`.
@@ -539,9 +564,21 @@ Two state backends ship with the library:
   database. Add it to `closeables` so its connection is closed. Its `flush()`
   checkpoints the WAL.
 
-Each run starts at the saved `last_start_index`, skips ids that were already
-processed, and saves the new offset after every page. Records that fail
-mid-run are never marked processed, so the next run retries them.
+Each run starts at the saved `last_start_index` and skips ids that were
+already processed. The offset is saved after every page, but it only moves
+past a page once every record on it is settled, meaning processed or marked
+irrelevant. When a record fails, or is left over because `total_limit` was
+reached, the offset stays at the start of that page for the rest of the run,
+so the next run revisits it while skipping everything already processed.
+
+Records are exported before they are marked processed, so a crash between the
+two re-exports that record on the next run. `AsyncCsvUpsertExporter` absorbs
+this; an appending exporter of your own should tolerate duplicates.
+
+`AsyncFileStateManager` raises `OSError` when a state file exists but can't be
+read, rather than treating it as empty, and rejects record ids that contain a
+line boundary. Metadata content that isn't valid falls back to offset 0, which
+only costs a rescan.
 
 > **Newest-first listings.** The arXiv extractor lists the newest submissions
 > first, so new papers push older ones to higher offsets. A run that resumes
@@ -553,19 +590,26 @@ mid-run are never marked processed, so the next run retries them.
 | Situation | Behavior |
 |-----------|----------|
 | Listing request still fails after retries | `run()` raises `PipelineAborted` (cause: `UpstreamError`) |
+| Source rejects the listing request, e.g. arXiv answers `400` | `run()` raises `PipelineAborted` (cause: `ExtractionError`) |
 | Listing payload can't be parsed | `run()` raises `PipelineAborted` (cause: `MalformedResponseError`) |
 | Listing is valid but has no entries | `run()` returns the count normally |
 | Listing page holds only already-processed records | paging continues with the next page |
-| One record raises, e.g. a transient full-text failure | logged through `logger`; record left unmarked for the next run; other records continue |
-| arXiv reports the LaTeX and PDF as unavailable (e.g. 404) | full text falls back to the abstract |
-| LLM call fails inside `AsyncLLMRelevanceFilter` | returns `default_on_error` (**`True`**) |
+| One record raises, e.g. a transient full-text failure | logged through `logger`; record left unmarked; saved offset held at its page; other records continue |
+| Records on a page fail and none on it is processed, e.g. a rejected API key or an unreadable CSV | `run()` raises `PipelineAborted` (cause: the last record's error) |
+| arXiv reports the LaTeX and PDF as unavailable (e.g. 404), or neither can be parsed | full text falls back to the abstract |
+| arXiv serves a single gzipped `.tex` file or a PDF as the e-print | the TeX is read, or the PDF is used instead |
+| LLM call fails inside `AsyncLLMRelevanceFilter`, or its verdict is unclear | returns `default_on_error` (**`True`**) |
 | Record has an empty abstract | relevance filters return `default_on_empty_abstract` (**`True`**) |
-| LLM call fails inside `AsyncLLMEntityExtractor` | `LLMError` propagates: logged, record left unmarked and retried on the next run |
+| LLM call fails inside `AsyncLLMEntityExtractor`, or its entity list is malformed | `LLMError` propagates: logged, record left unmarked and retried on the next run |
+| Record has no `record_id` | skipped and logged, since it can't be tracked as processed |
 
 All library exceptions derive from `SciEtlError`: `ExtractionError`
 (`UpstreamError`, `MalformedResponseError`), `ParsingError`, `LLMError`,
 `EmbeddingError`, `EmbeddingStoreError`, `ConfigurationError`, and
-`PipelineAborted`. All of them can be imported from `sci_etl_core`.
+`PipelineAborted`. All of them can be imported from `sci_etl_core`. The bundled
+parsers raise `ParsingError` for bytes they can't read; a custom `Parser`
+should do the same, so `AsyncArxivExtractor` moves on to its next source
+instead of failing the record.
 
 ## Graceful Shutdown
 

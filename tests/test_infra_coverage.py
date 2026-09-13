@@ -133,8 +133,7 @@ class TestSqliteEmbeddingStoreCancellation:
     @pytest.mark.asyncio
     async def test_cancellation_during_a_write_is_not_wrapped(self, tmp_path, mocker):
         store = AsyncSqliteEmbeddingStore(tmp_path / "memory.db")
-        connection = await store._connect()
-        mocker.patch.object(connection, "executemany", side_effect=asyncio.CancelledError())
+        mocker.patch.object(store, "_execute", side_effect=asyncio.CancelledError())
         try:
             with pytest.raises(asyncio.CancelledError):
                 await store.add([EmbeddingChunk("r", 0, "text", [1.0, 0.0])])

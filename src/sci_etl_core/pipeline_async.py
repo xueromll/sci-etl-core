@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 import asyncio
+from dataclasses import dataclass, field
+from enum import Enum
 from typing import TYPE_CHECKING, Any, Callable, Iterable
 
 from sci_etl_core.exceptions import (
     EmbeddingError,
     EmbeddingStoreError,
+    ExtractionError,
     MalformedResponseError,
     PipelineAborted,
-    UpstreamError,
 )
 from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.extractors.async_base import AsyncExtractor
@@ -19,6 +21,47 @@ from sci_etl_core.state.async_base import AsyncStateManager
 
 if TYPE_CHECKING:
     from sci_etl_core.embeddings.ingest_async import AsyncChunkIngestor
+
+
+class _Outcome(Enum):
+    PROCESSED = "processed"
+    IRRELEVANT = "irrelevant"
+    DEFERRED = "deferred"
+
+
+class _PageBudget:
+    """Relevant-record slots a page may still fill under the run's ceiling."""
+
+    def __init__(self, remaining: int) -> None:
+        self._remaining = remaining
+
+    @property
+    def exhausted(self) -> bool:
+        return self._remaining <= 0
+
+    def reserve(self) -> bool:
+        if self._remaining <= 0:
+            return False
+        self._remaining -= 1
+        return True
+
+    def release(self) -> None:
+        self._remaining += 1
+
+
+@dataclass(slots=True)
+class _PageResult:
+    processed: int = 0
+    deferred: int = 0
+    failures: list[BaseException] = field(default_factory=list)
+
+    @property
+    def complete(self) -> bool:
+        return not self.failures and not self.deferred
+
+    @property
+    def stalled(self) -> bool:
+        return bool(self.failures) and self.processed == 0
 
 
 class AsyncETLPipeline:
@@ -61,10 +104,23 @@ class AsyncETLPipeline:
         return self
 
     async def __aexit__(self, exc_type: Any, exc: Any, tb: Any) -> bool:
+        """Close every resource, even when an earlier one fails to close.
+
+        A close failure is logged. It is raised only when the block itself
+        succeeded, so teardown never masks the exception that ended the block.
+        """
+        errors: list[Exception] = []
         for resource in self._closeables:
             aclose = getattr(resource, "aclose", None)
-            if aclose is not None:
+            if aclose is None:
+                continue
+            try:
                 await aclose()
+            except Exception as error:
+                self._log(f"Resource close failed: {error!r}")
+                errors.append(error)
+        if errors and exc is None:
+            raise errors[0]
         return False
 
     async def run(
@@ -84,14 +140,27 @@ class AsyncETLPipeline:
         submissions: processed records are skipped by id, so a rescan costs
         listing requests but never reprocesses a record.
 
-        The only clean exit is an empty listing. A page made up entirely of
-        already-processed records is not the end of the data, so paging moves
-        past it. Any other interruption raises :class:`PipelineAborted`
-        carrying the count processed so far, so a transport fault can never be
-        mistaken for end-of-data.
+        The saved offset only moves past pages whose every record was settled.
+        Once a record fails, or is deferred because ``total_limit`` was reached,
+        the offset stays at the start of that page for the rest of the run, so
+        the next run revisits the unsettled record instead of skipping it.
+        ``total_limit`` is exact: no more relevant records are processed than
+        it allows. Records without a ``record_id`` cannot be tracked and are
+        skipped with a log message.
+
+        The only clean exits are an empty listing and reaching ``total_limit``.
+        A page made up entirely of already-processed records is not the end of
+        the data, so paging moves past it. Any other interruption raises
+        :class:`PipelineAborted` carrying the count processed so far, so a
+        transport fault can never be mistaken for end-of-data.
 
         Raises:
             ValueError: ``start_index`` is negative.
+            PipelineAborted: A listing could not be fetched or parsed, or records
+                on a page failed while none on it could be processed. The latter
+                signals a systemic fault, such as a rejected API key or an
+                unwritable export, rather than one bad record, so the run stops
+                instead of spending calls on every remaining page.
         """
         if start_index is not None and start_index < 0:
             raise ValueError("start_index must not be negative")
@@ -101,6 +170,7 @@ class AsyncETLPipeline:
         if start_index is None:
             start_index = metadata.last_start_index
         total_processed = 0
+        offset_settled = True
 
         while total_processed < total_limit:
             raw_listing = await self._fetch_listing(query, page_size, start_index, total_processed)
@@ -108,11 +178,17 @@ class AsyncETLPipeline:
             if total_in_listing == 0:
                 break
 
-            if records:
-                total_processed += await self._process_page(records, processed_ids)
+            page = await self._process_page(records, processed_ids, total_limit - total_processed)
+            total_processed += page.processed
+            if page.stalled:
+                raise PipelineAborted(
+                    "No record on the listing page could be processed", total_processed
+                ) from page.failures[-1]
 
             start_index += total_in_listing
-            metadata.last_start_index = start_index
+            offset_settled = offset_settled and page.complete
+            if offset_settled:
+                metadata.last_start_index = start_index
             await self._state_manager.save_metadata(metadata)
             await self._sleep(sleep_between)
 
@@ -123,8 +199,8 @@ class AsyncETLPipeline:
     ) -> bytes:
         try:
             raw_listing = await self._extractor.search(query, page_size, start_index)
-        except UpstreamError as exc:
-            raise PipelineAborted("Listing fetch failed upstream", partial_count) from exc
+        except ExtractionError as exc:
+            raise PipelineAborted("Listing fetch failed", partial_count) from exc
         if not raw_listing:
             raise PipelineAborted("Listing fetch returned no payload", partial_count)
         return raw_listing
@@ -137,18 +213,31 @@ class AsyncETLPipeline:
         except MalformedResponseError as exc:
             raise PipelineAborted("Listing payload was malformed", partial_count) from exc
 
-    async def _process_page(self, records: list[RawRecord], processed_ids: set[str]) -> int:
+    async def _process_page(
+        self, records: list[RawRecord], processed_ids: set[str], remaining: int
+    ) -> _PageResult:
+        trackable: list[RawRecord] = []
+        for record in records:
+            if record.record_id:
+                trackable.append(record)
+            else:
+                self._log(f"Record skipped: no record_id to track it by (title {record.title!r})")
+
+        budget = _PageBudget(remaining)
         results = await asyncio.gather(
-            *(self._process_record(record, processed_ids) for record in records),
+            *(self._process_record(record, processed_ids, budget) for record in trackable),
             return_exceptions=True,
         )
-        processed = 0
+        page = _PageResult()
         for result in results:
-            if isinstance(result, Exception):
+            if isinstance(result, BaseException):
                 self._log(f"Record processing failed: {result!r}")
-            elif result:
-                processed += 1
-        return processed
+                page.failures.append(result)
+            elif result is _Outcome.DEFERRED:
+                page.deferred += 1
+            elif result is _Outcome.PROCESSED:
+                page.processed += 1
+        return page
 
     @staticmethod
     def _resolve_limits(
@@ -166,20 +255,28 @@ class AsyncETLPipeline:
             total_limit = max_records if max_records is not None else page_size
         return page_size, total_limit
 
-    async def _process_record(self, record: RawRecord, processed_ids: set[str]) -> bool:
+    async def _process_record(
+        self, record: RawRecord, processed_ids: set[str], budget: _PageBudget
+    ) -> _Outcome:
         async with self._semaphore:
+            if budget.exhausted:
+                return _Outcome.DEFERRED
             if not await self._relevance_filter.is_relevant(record):
                 await self._mark_done(record, processed_ids)
-                return False
-
-            text = await self._extractor.fetch_full_text(record)
-            await self._ingest_memory(record, text)
-            entities = await self._entity_extractor.extract(text)
-            if entities:
-                await self._exporter.export(entities, self._destination)
-
-            await self._mark_done(record, processed_ids)
-            return True
+                return _Outcome.IRRELEVANT
+            if not budget.reserve():
+                return _Outcome.DEFERRED
+            try:
+                text = await self._extractor.fetch_full_text(record)
+                await self._ingest_memory(record, text)
+                entities = await self._entity_extractor.extract(text)
+                if entities:
+                    await self._exporter.export(entities, self._destination)
+                await self._mark_done(record, processed_ids)
+            except BaseException:
+                budget.release()
+                raise
+            return _Outcome.PROCESSED
 
     async def _ingest_memory(self, record: RawRecord, text: str) -> None:
         """Chunk and store the full text; a memory fault is logged, not fatal.
@@ -198,7 +295,5 @@ class AsyncETLPipeline:
             self._log(f"Memory ingest failed for {record.record_id}: {exc!r}")
 
     async def _mark_done(self, record: RawRecord, processed_ids: set[str]) -> None:
-        if not record.record_id:
-            return
         await self._state_manager.mark_processed(record.record_id)
         processed_ids.add(record.record_id)

@@ -120,10 +120,38 @@ class TestAsyncLLMRelevanceFilter:
         f = AsyncLLMRelevanceFilter(_async_llm(mocker, {"relevant": False}), "p")
         assert await f.is_relevant(RawRecord("1", "t", "abstract")) is False
 
+    @pytest.mark.parametrize("default", [True, False])
+    @pytest.mark.parametrize(
+        "payload",
+        [{}, {"relevant": None}, {"relevant": "maybe"}, {"relevant": 2}, {"relevant": [True]}, [{"relevant": False}], "false"],
+    )
     @pytest.mark.asyncio
-    async def test_missing_key_defaults_to_false(self, mocker):
-        f = AsyncLLMRelevanceFilter(_async_llm(mocker, {}), "p")
-        assert await f.is_relevant(RawRecord("1", "t", "abstract")) is False
+    async def test_unclear_verdict_uses_default_on_error(self, mocker, payload, default):
+        f = AsyncLLMRelevanceFilter(_async_llm(mocker, payload), "p", default_on_error=default)
+        assert await f.is_relevant(RawRecord("1", "t", "abstract")) is default
+
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            ("false", False),
+            (" FALSE ", False),
+            ("no", False),
+            ("0", False),
+            (0, False),
+            (0.0, False),
+            ("true", True),
+            ("Yes", True),
+            ("1", True),
+            (1, True),
+            (1.0, True),
+        ],
+    )
+    @pytest.mark.asyncio
+    async def test_textual_and_numeric_verdicts_are_read_strictly(self, mocker, value, expected):
+        f = AsyncLLMRelevanceFilter(
+            _async_llm(mocker, {"relevant": value}), "p", default_on_error=not expected
+        )
+        assert await f.is_relevant(RawRecord("1", "t", "abstract")) is expected
 
     @pytest.mark.parametrize("default", [True, False])
     @pytest.mark.asyncio

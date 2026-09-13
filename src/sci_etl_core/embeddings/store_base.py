@@ -36,6 +36,20 @@ class AsyncEmbeddingStore(ABC):
         """Persist chunk embeddings, replacing any with the same id and index."""
 
     @abstractmethod
+    async def delete_record(self, record_id: str) -> None:
+        """Remove every stored chunk belonging to ``record_id``."""
+
+    async def replace_record(self, record_id: str, chunks: Sequence[EmbeddingChunk]) -> None:
+        """Make ``chunks`` the only stored chunks of ``record_id``.
+
+        Adding alone would leave a record's old higher-index chunks behind when
+        its text now yields fewer passages. The default deletes and then adds;
+        a backend that can do both atomically should override it.
+        """
+        await self.delete_record(record_id)
+        await self.add(chunks)
+
+    @abstractmethod
     async def query(
         self,
         vector: Sequence[float],
@@ -46,7 +60,8 @@ class AsyncEmbeddingStore(ABC):
         """Return the nearest stored chunks to ``vector`` by cosine similarity.
 
         ``exclude_record_id`` drops a record's own chunks, so an article can be
-        compared against every other article without matching itself.
+        compared against every other article without matching itself. A stored
+        vector whose score is not finite, such as one holding NaN, never matches.
         """
 
     @abstractmethod

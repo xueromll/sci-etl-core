@@ -36,6 +36,14 @@ class AsyncOpenAICompatibleClient(AsyncLLMClient):
         self._sleep = sleep
 
     async def complete_json(self, system_prompt: str, user_content: str, timeout: int | None = None) -> dict[str, Any]:
+        """Request a JSON-mode completion and return the parsed object.
+
+        An empty completion reads as ``{}``.
+
+        Raises:
+            LLMError: The request failed after retries, or the completion is
+                not valid JSON or is JSON other than an object.
+        """
         last_error: Exception | None = None
         for attempt in range(self._max_retries):
             try:
@@ -73,4 +81,7 @@ class AsyncOpenAICompatibleClient(AsyncLLMClient):
         content = response.choices[0].message.content
         if not content:
             return {}
-        return json.loads(content.strip())
+        parsed = json.loads(content.strip())
+        if not isinstance(parsed, dict):
+            raise LLMError(f"LLM returned JSON {type(parsed).__name__}, not an object")
+        return parsed

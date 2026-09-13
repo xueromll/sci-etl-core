@@ -43,12 +43,54 @@ class TestAsyncFileStateManager:
         assert stored in await manager.load_processed_ids()
 
     @pytest.mark.asyncio
-    async def test_load_processed_ids_returns_empty_on_os_error(self, manager, mocker):
+    async def test_unreadable_ids_file_raises_instead_of_reading_as_empty(self, manager, mocker):
         manager._processed_ids_file.write_text("2401.1\n", encoding="utf-8")
         mocker.patch(
             "sci_etl_core.state.async_file_state.Path.open", side_effect=OSError("io")
         )
+        with pytest.raises(OSError, match="io"):
+            await manager.load_processed_ids()
+
+    @pytest.mark.asyncio
+    async def test_unreadable_metadata_file_raises(self, manager, mocker):
+        manager._metadata_file.write_text('{"last_start_index": 5}', encoding="utf-8")
+        mocker.patch(
+            "sci_etl_core.state.async_file_state.Path.open", side_effect=OSError("io")
+        )
+        with pytest.raises(OSError, match="io"):
+            await manager.load_metadata()
+
+    @pytest.mark.parametrize(
+        "boundary", ["\n", "\r", "\x0b", "\x0c", "\x1c", "\x1d", "\x1e", "\x85", " ", " "]
+    )
+    @pytest.mark.asyncio
+    async def test_ids_containing_any_line_boundary_are_rejected(self, manager, boundary):
+        with pytest.raises(ValueError, match="line boundary"):
+            await manager.mark_processed(f"2401.1{boundary}2401.2")
         assert await manager.load_processed_ids() == set()
+
+    @pytest.mark.parametrize(
+        "payload",
+        [
+            '{"last_start_index": "7"}',
+            '{"last_start_index": -3}',
+            '{"last_start_index": true}',
+            '{"last_start_index": null}',
+            '{"last_run_date": 5}',
+            "[1, 2]",
+        ],
+    )
+    @pytest.mark.asyncio
+    async def test_invalid_metadata_values_fall_back_to_defaults(self, manager, payload):
+        manager._metadata_file.write_text(payload, encoding="utf-8")
+        meta = await manager.load_metadata()
+        assert meta.last_start_index == 0
+        assert meta.last_run_at is None
+
+    @pytest.mark.asyncio
+    async def test_metadata_that_is_not_utf8_falls_back(self, manager):
+        manager._metadata_file.write_bytes(b'{"last_start_index": \xff}')
+        assert (await manager.load_metadata()).last_start_index == 0
 
     @pytest.mark.asyncio
     async def test_metadata_defaults_when_absent(self, manager):

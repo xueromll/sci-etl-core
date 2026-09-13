@@ -13,4 +13,5 @@ def build_async_client(
         transport=transport,
         timeout=httpx.Timeout(timeout),
         headers={"User-Agent": user_agent},
+        follow_redirects=True,
     )

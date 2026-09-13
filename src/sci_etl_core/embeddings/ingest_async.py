@@ -5,6 +5,7 @@ from typing import Any
 from sci_etl_core.embeddings.async_base import AsyncEmbedder
 from sci_etl_core.embeddings.chunking import TextChunker
 from sci_etl_core.embeddings.store_base import AsyncEmbeddingStore, EmbeddingChunk
+from sci_etl_core.exceptions import EmbeddingError
 from sci_etl_core.models import RawRecord
 
 
@@ -27,16 +28,32 @@ class AsyncChunkIngestor:
         self._store = store
 
     async def ingest(self, record: RawRecord, text: str) -> int:
+        """Replace the record's stored passages with those of ``text``.
+
+        Every earlier chunk of the record is removed, so re-ingesting text that
+        yields fewer passages leaves no stale chunks behind, and text with no
+        passages clears the record from memory.
+
+        Returns:
+            The number of chunks stored.
+
+        Raises:
+            EmbeddingError: The embedder returned a different number of vectors
+                than it was given passages.
+            EmbeddingStoreError: The store could not be written.
+        """
         passages = self._chunker.chunk(text)
-        if not passages:
-            return 0
-        vectors = await self._embedder.embed(passages)
+        vectors = await self._embedder.embed(passages) if passages else []
+        if len(vectors) != len(passages):
+            raise EmbeddingError(
+                f"Embedder returned {len(vectors)} vectors for {len(passages)} passages"
+            )
         metadata = self._metadata_for(record)
         items = [
             EmbeddingChunk(record.record_id, index, passage, vector, dict(metadata))
             for index, (passage, vector) in enumerate(zip(passages, vectors))
         ]
-        await self._store.add(items)
+        await self._store.replace_record(record.record_id, items)
         return len(items)
 
     @staticmethod

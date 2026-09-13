@@ -37,3 +37,29 @@ class TestPipelineCloseErrorHandling:
             pass
 
         assert any("Resource close skipped" in message for message in logged)
+
+    def test_every_resource_is_closed_and_the_first_failure_raised(self, mocker):
+        failing = mocker.Mock()
+        failing.aclose = mocker.AsyncMock(side_effect=ValueError("close failed"))
+        healthy = mocker.Mock()
+        healthy.aclose = mocker.AsyncMock()
+        pipeline = _pipeline(mocker, [failing, healthy])
+
+        with pytest.raises(ValueError, match="close failed"):
+            with pipeline:
+                pass
+
+        healthy.aclose.assert_awaited_once()
+
+    def test_close_failure_never_masks_the_block_exception(self, mocker):
+        failing = mocker.Mock()
+        failing.aclose = mocker.AsyncMock(side_effect=ValueError("close failed"))
+        pipeline = _pipeline(mocker, [failing])
+        logged: list[str] = []
+        mocker.patch.object(pipeline._async, "log", side_effect=logged.append)
+
+        with pytest.raises(RuntimeError, match="original"):
+            with pipeline:
+                raise RuntimeError("original")
+
+        assert any("Resource close failed" in message for message in logged)

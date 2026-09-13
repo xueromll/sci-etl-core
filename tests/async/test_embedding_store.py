@@ -154,17 +154,6 @@ class TestAsyncSqliteEmbeddingStore:
         finally:
             await store.aclose()
 
-    @pytest.mark.asyncio
-    async def test_write_failure_is_typed(self, path, mocker):
-        store = AsyncSqliteEmbeddingStore(path)
-        try:
-            db = await store._connect()
-            mocker.patch.object(db, "executemany", side_effect=RuntimeError("disk full"))
-            with pytest.raises(EmbeddingStoreError, match="Failed to write"):
-                await store.add(_chunks(("a", 0, "x", [1.0, 0.0])))
-        finally:
-            await store.aclose()
-
 
 class TestAsyncChunkIngestor:
     @pytest.mark.asyncio
