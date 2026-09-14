@@ -42,19 +42,27 @@ class AsyncFileStateManager(AsyncStateManager):
     async def mark_processed(self, record_id: str) -> None:
         """Record an id as processed.
 
+        An empty or whitespace-only id carries nothing to track and is ignored.
+
         Raises:
-            ValueError: ``record_id`` contains a line boundary, meaning any
+            ValueError: ``record_id`` has leading or trailing whitespace, which
+                the file cannot store faithfully: lines are stripped when read,
+                so the id would come back changed, never match the record again,
+                and the record would be reprocessed on every run. Also raised
+                when ``record_id`` contains a line boundary, meaning any
                 character :meth:`str.splitlines` splits on (``\\n``, ``\\r``,
                 ``\\x0b``, ``\\x0c``, ``\\x1c``-``\\x1e``, ``\\x85``,
                 ``\\u2028``, ``\\u2029``). The file stores one id per line, so
                 writing it would be read back as several distinct ids, silently
                 marking records that were never seen.
         """
-        if not record_id:
+        if not record_id or not record_id.strip():
             return
-        record_id = record_id.strip()
-        if not record_id:
-            return
+        if record_id.strip() != record_id:
+            raise ValueError(
+                "record_id must not have leading or trailing whitespace; "
+                f"{record_id!r} would be read back as {record_id.strip()!r}"
+            )
         if record_id.splitlines() != [record_id]:
             raise ValueError(
                 "record_id must not contain a line boundary; "

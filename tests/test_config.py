@@ -116,3 +116,36 @@ class TestLoadConfig:
         mocker.patch.object(config_module.os, "getenv", return_value="")
         with pytest.raises(ConfigurationError, match="Invalid configuration"):
             load_config(BaseAppConfig, Path("c.yaml"))
+
+    def test_pipeline_section_carries_page_size_and_search_delay(self, mocker):
+        mocker.patch.object(config_module, "load_dotenv")
+        mocker.patch.object(
+            config_module, "load_yaml", return_value={"pipeline": {"page_size": 25, "search_delay": 0}}
+        )
+        mocker.patch.object(config_module.os, "getenv", return_value="")
+        cfg = load_config(BaseAppConfig, Path("c.yaml"))
+        assert (cfg.pipeline.page_size, cfg.pipeline.search_delay) == (25, 0)
+
+    @pytest.mark.parametrize(
+        "raw",
+        [
+            {"pipeline": {"max_workers": 0}},
+            {"pipeline": {"page_size": 0}},
+            {"pipeline": {"max_records": -1}},
+            {"pipeline": {"sleep_between": -1}},
+            {"pipeline": {"search_delay": -0.5}},
+            {"http": {"max_retries": 0}},
+            {"http": {"backoff_factor": -1}},
+            {"http": {"timeout": 0}},
+            {"llm": {"timeout": 0}},
+            {"full_text": {"max_concurrency": 0}},
+            {"full_text": {"max_rate": 0}},
+            {"full_text": {"time_period": 0}},
+        ],
+    )
+    def test_out_of_range_values_are_configuration_errors(self, mocker, raw):
+        mocker.patch.object(config_module, "load_dotenv")
+        mocker.patch.object(config_module, "load_yaml", return_value=raw)
+        mocker.patch.object(config_module.os, "getenv", return_value="")
+        with pytest.raises(ConfigurationError, match="Invalid configuration"):
+            load_config(BaseAppConfig, Path("c.yaml"))

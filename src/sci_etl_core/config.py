@@ -17,27 +17,29 @@ class LLMConfig(BaseModel):
     api_key: SecretStr = SecretStr("")
     base_url: str = "https://api.openai.com/v1"
     model: str = "gpt-4o-mini"
-    timeout: int = 120
+    timeout: int = Field(default=120, gt=0)
 
 
 class HttpConfig(BaseModel):
     user_agent: str = "sci-etl-core/0.1"
-    max_retries: int = 3
-    backoff_factor: float = 2.0
-    timeout: int = 25
+    max_retries: int = Field(default=3, ge=1)
+    backoff_factor: float = Field(default=2.0, ge=0)
+    timeout: int = Field(default=25, gt=0)
 
 
 class RateLimitConfig(BaseModel):
-    max_concurrency: int = 4
-    max_rate: float | None = None
-    time_period: float = 1.0
+    max_concurrency: int = Field(default=4, ge=1)
+    max_rate: float | None = Field(default=None, gt=0)
+    time_period: float = Field(default=1.0, gt=0)
 
 
 class PipelineConfig(BaseModel):
     search_query: str = ""
-    max_records: int = 100
-    sleep_between: float = 5.0
-    max_workers: int = 6
+    max_records: int = Field(default=100, ge=0)
+    page_size: int = Field(default=100, ge=1)
+    search_delay: float = Field(default=3.0, ge=0)
+    sleep_between: float = Field(default=5.0, ge=0)
+    max_workers: int = Field(default=6, ge=1)
 
 
 class BaseAppConfig(BaseModel):

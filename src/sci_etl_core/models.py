@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 
@@ -20,4 +20,5 @@ class PipelineMetadata:
     last_start_index: int = 0
 
     def touch(self) -> None:
-        self.last_run_at = datetime.now().isoformat()
+        """Stamp the current time as an ISO 8601 string with a UTC offset."""
+        self.last_run_at = datetime.now(timezone.utc).isoformat()

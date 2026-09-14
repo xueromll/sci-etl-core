@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timedelta
 
 import pytest
 
@@ -69,6 +70,13 @@ class TestAsyncFileStateManager:
             await manager.mark_processed(f"2401.1{boundary}2401.2")
         assert await manager.load_processed_ids() == set()
 
+    @pytest.mark.parametrize("record_id", [" 2401.1", "2401.1 ", "\t2401.1", "2401.1\n"])
+    @pytest.mark.asyncio
+    async def test_ids_with_surrounding_whitespace_are_rejected(self, manager, record_id):
+        with pytest.raises(ValueError, match="leading or trailing whitespace"):
+            await manager.mark_processed(record_id)
+        assert await manager.load_processed_ids() == set()
+
     @pytest.mark.parametrize(
         "payload",
         [
@@ -108,6 +116,12 @@ class TestAsyncFileStateManager:
         assert reloaded.last_run_at is not None
 
     @pytest.mark.asyncio
+    async def test_run_time_is_stamped_with_a_utc_offset(self, manager):
+        await manager.save_metadata(PipelineMetadata(last_start_index=1))
+        reloaded = await manager.load_metadata()
+        assert datetime.fromisoformat(reloaded.last_run_at).utcoffset() == timedelta(0)
+
+    @pytest.mark.asyncio
     async def test_corrupted_metadata_falls_back(self, manager):
         manager._metadata_file.write_text("{ not valid json", encoding="utf-8")
         assert (await manager.load_metadata()).last_start_index == 0
@@ -118,4 +132,3 @@ class TestAsyncFileStateManager:
         payload = json.loads(manager._metadata_file.read_text(encoding="utf-8"))
         assert payload["last_start_index"] == 7
         assert "last_run_date" in payload
-

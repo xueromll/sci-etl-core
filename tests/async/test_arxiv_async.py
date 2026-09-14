@@ -87,6 +87,11 @@ class TestAsyncArxivSearch:
         with pytest.raises(UpstreamError):
             await extractor.search("q", 10, 0)
 
+    @pytest.mark.parametrize("max_retries", [0, -1])
+    def test_max_retries_below_one_is_rejected(self, mocker, max_retries):
+        with pytest.raises(ValueError, match="max_retries"):
+            _build(_client(mocker), mocker, max_retries=max_retries)
+
 
 class TestAsyncArxivParseListing:
     def test_parses_all_new_entries(self, mocker):

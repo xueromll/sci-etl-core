@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Callable, Iterable
+from typing import TYPE_CHECKING, Any, Callable, Iterable, NoReturn
 
 from sci_etl_core.exceptions import (
     EmbeddingError,
@@ -21,6 +21,9 @@ from sci_etl_core.state.async_base import AsyncStateManager
 
 if TYPE_CHECKING:
     from sci_etl_core.embeddings.ingest_async import AsyncChunkIngestor
+
+_STALLED_PAGES_BEFORE_ABORT = 2
+_STALL_MESSAGE = "Records kept failing and none could be processed"
 
 
 class _Outcome(Enum):
@@ -79,6 +82,14 @@ class AsyncETLPipeline:
         closeables: Iterable[Any] | None = None,
         memory_ingestor: "AsyncChunkIngestor | None" = None,
     ) -> None:
+        """Wire the pipeline's collaborators together.
+
+        Raises:
+            ValueError: ``max_concurrency`` is less than 1. A zero-permit
+                semaphore would leave every record waiting forever.
+        """
+        if max_concurrency < 1:
+            raise ValueError("max_concurrency must be a positive integer")
         self._extractor = extractor
         self._relevance_filter = relevance_filter
         self._entity_extractor = entity_extractor
@@ -145,8 +156,9 @@ class AsyncETLPipeline:
         the offset stays at the start of that page for the rest of the run, so
         the next run revisits the unsettled record instead of skipping it.
         ``total_limit`` is exact: no more relevant records are processed than
-        it allows. Records without a ``record_id`` cannot be tracked and are
-        skipped with a log message.
+        it allows. Records whose ``record_id`` is missing or blank cannot be
+        tracked and are skipped with a log message. ``sleep_between`` is waited
+        between pages, never after the page that reaches ``total_limit``.
 
         The only clean exits are an empty listing and reaching ``total_limit``.
         A page made up entirely of already-processed records is not the end of
@@ -154,23 +166,36 @@ class AsyncETLPipeline:
         :class:`PipelineAborted` carrying the count processed so far, so a
         transport fault can never be mistaken for end-of-data.
 
+        A page on which records failed and none was processed is a stall. A
+        single stall is tolerated, because one transient fault on a page of
+        mostly irrelevant records says nothing about the source, and a later
+        page that processes a record clears it.
+
         Raises:
-            ValueError: ``start_index`` is negative.
-            PipelineAborted: A listing could not be fetched or parsed, or records
-                on a page failed while none on it could be processed. The latter
-                signals a systemic fault, such as a rejected API key or an
-                unwritable export, rather than one bad record, so the run stops
-                instead of spending calls on every remaining page.
+            ValueError: ``start_index`` or ``total_limit`` is negative, or the
+                resolved ``page_size`` is less than 1.
+            PipelineAborted: A listing could not be fetched or parsed, or
+                records kept failing with none processed: on a second page
+                before any progress, or on the last page before the listing
+                ended. That signals a systemic fault, such as a rejected API key
+                or an unwritable export, rather than one bad record, so the run
+                stops instead of spending calls on every remaining page.
         """
         if start_index is not None and start_index < 0:
             raise ValueError("start_index must not be negative")
         page_size, total_limit = self._resolve_limits(page_size, total_limit, max_records)
+        if page_size < 1:
+            raise ValueError("page_size must be a positive integer")
+        if total_limit < 0:
+            raise ValueError("total_limit must not be negative")
         processed_ids = await self._state_manager.load_processed_ids()
         metadata = await self._state_manager.load_metadata()
         if start_index is None:
             start_index = metadata.last_start_index
         total_processed = 0
         offset_settled = True
+        stalled_pages = 0
+        last_failure: BaseException | None = None
 
         while total_processed < total_limit:
             raw_listing = await self._fetch_listing(query, page_size, start_index, total_processed)
@@ -180,19 +205,29 @@ class AsyncETLPipeline:
 
             page = await self._process_page(records, processed_ids, total_limit - total_processed)
             total_processed += page.processed
-            if page.stalled:
-                raise PipelineAborted(
-                    "No record on the listing page could be processed", total_processed
-                ) from page.failures[-1]
+            if page.processed:
+                stalled_pages = 0
+            elif page.stalled:
+                stalled_pages += 1
+                last_failure = page.failures[-1]
+                if stalled_pages >= _STALLED_PAGES_BEFORE_ABORT:
+                    self._abort_stalled(total_processed, last_failure)
 
             start_index += total_in_listing
             offset_settled = offset_settled and page.complete
             if offset_settled:
                 metadata.last_start_index = start_index
             await self._state_manager.save_metadata(metadata)
-            await self._sleep(sleep_between)
+            if total_processed < total_limit:
+                await self._sleep(sleep_between)
 
+        if stalled_pages:
+            self._abort_stalled(total_processed, last_failure)
         return total_processed
+
+    @staticmethod
+    def _abort_stalled(partial_count: int, cause: BaseException | None) -> NoReturn:
+        raise PipelineAborted(_STALL_MESSAGE, partial_count) from cause
 
     async def _fetch_listing(
         self, query: str, page_size: int, start_index: int, partial_count: int
@@ -218,7 +253,7 @@ class AsyncETLPipeline:
     ) -> _PageResult:
         trackable: list[RawRecord] = []
         for record in records:
-            if record.record_id:
+            if record.record_id and record.record_id.strip():
                 trackable.append(record)
             else:
                 self._log(f"Record skipped: no record_id to track it by (title {record.title!r})")

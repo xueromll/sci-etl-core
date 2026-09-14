@@ -33,6 +33,14 @@ class AsyncOpenAIEmbedder(AsyncEmbedder):
         backoff_factor: float = 2.0,
         sleep: Any = asyncio.sleep,
     ) -> None:
+        """Configure the embedder.
+
+        Raises:
+            ValueError: ``max_retries`` is less than 1, which would fail every
+                request without making a single attempt.
+        """
+        if max_retries < 1:
+            raise ValueError("max_retries must be a positive integer")
         self._client = AsyncOpenAI(api_key=reveal_secret(api_key), base_url=base_url)
         self._model = model
         self._batch_size = max(1, batch_size)

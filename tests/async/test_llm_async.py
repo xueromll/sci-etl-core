@@ -108,6 +108,11 @@ class TestAsyncOpenAICompatibleClient:
         await self._make(mocker).aclose()
         patched.close.assert_awaited_once()
 
+    @pytest.mark.parametrize("max_retries", [0, -1])
+    def test_max_retries_below_one_is_rejected(self, patched, mocker, max_retries):
+        with pytest.raises(ValueError, match="max_retries"):
+            self._make(mocker, max_retries=max_retries)
+
 
 class TestAsyncLLMRelevanceFilter:
     @pytest.mark.asyncio

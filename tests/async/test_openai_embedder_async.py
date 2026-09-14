@@ -36,6 +36,11 @@ def _build(mocker, *, max_retries: int = 3, create=None):
 
 
 class TestAsyncOpenAIEmbedder:
+    @pytest.mark.parametrize("max_retries", [0, -1])
+    def test_max_retries_below_one_is_rejected(self, mocker, max_retries):
+        with pytest.raises(ValueError, match="max_retries"):
+            _build(mocker, max_retries=max_retries)
+
     @pytest.mark.asyncio
     async def test_empty_input_returns_empty(self, mocker):
         embedder, client = _build(mocker)

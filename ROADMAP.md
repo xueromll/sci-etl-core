@@ -51,6 +51,9 @@ including [udg-catalogue](https://github.com/xueromll/udg-catalogue).
   push and pull request, on Linux, Windows, and macOS with Python 3.10–3.14.
   CI also builds the sdist and wheel, checks their metadata, and imports the
   wheel in a clean environment.
+- **Releases on PyPI.** A tag-triggered workflow checks the tag against the
+  project version and publishes with trusted publishing, so
+  `pip install sci-etl-core` works without vendoring a wheel.
 - **Migration guide.** [MIGRATION.md](MIGRATION.md) walks through moving
   udg-catalogue onto the library, including parity checks against the old
   code.
@@ -88,10 +91,10 @@ Each of these is code udg-catalogue still carries on top of the library (see
   need a wrapper extractor to drop invalid entities before export.
 - **Config-driven components.** Let `HttpConfig`, `RateLimitConfig`, and
   `PipelineConfig` configure components directly, instead of being copied into
-  constructors by hand. Align `PipelineConfig` with `run()` at the same time:
-  add `page_size` and a search delay, which udg-catalogue adds by subclassing,
-  and reconcile `max_records` and `max_workers` with `total_limit` and
-  `max_concurrency`.
+  constructors by hand. Finish aligning `PipelineConfig` with `run()` at the
+  same time: `page_size` and `search_delay` are already config fields, but
+  `max_records` and `max_workers` still need reconciling with `total_limit`
+  and `max_concurrency`.
 - **Richer 3D plots.** Let `ScatterPlotConfig` take hover data, a hover
   template, a continuous color scale, and a fixed color range, so
   `AsyncPlotly3DExporter` can replace project-specific Plotly figures.
@@ -119,10 +122,8 @@ Each of these is code udg-catalogue still carries on top of the library (see
 - **Lint and type checks in CI.** Configure ruff and mypy and run both on every
   pull request. The package ships `py.typed`, but nothing checks its
   annotations yet. *(good first issue)*
-- **Releases on PyPI.** The README's install commands assume a PyPI package,
-  but `sci-etl-core` isn't published yet, so projects vendor a wheel or pin a
-  Git tag. Add a tag-triggered release workflow with trusted publishing, and a
-  changelog.
+- **Changelog.** Releases publish to PyPI, but nothing records what changed
+  between them. Add a changelog and link each GitHub release to its entry.
 - **Retire the `requests` session helper.** `sci_etl_core.http.build_retrying_session`
   is a synchronous leftover that no component uses. Deprecate it, and drop
   `requests` from the `full` extra once it's removed.
@@ -154,7 +155,8 @@ Each of these is code udg-catalogue still carries on top of the library (see
 
 - Chat-completion backends beyond OpenAI-compatible APIs (local models, other
   providers). Local *embeddings* already ship via sentence-transformers.
-- A small CLI (`sci-etl run config.yaml`) wrapping the config-driven assembly.
+- A small CLI (`sci-etl run config.yaml`), maintained as a separate
+  `sci-etl-cli` repository that depends on the published library.
 - Optional distributed execution for very large corpora.
 - A documentation site with an API reference generated from the docstrings.
 

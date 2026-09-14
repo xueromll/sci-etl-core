@@ -35,6 +35,14 @@ class AsyncArxivExtractor(AsyncExtractor):
         logger: Callable[[str], None] | None = None,
         sleep: Any = asyncio.sleep,
     ) -> None:
+        """Configure the extractor.
+
+        Raises:
+            ValueError: ``max_retries`` is less than 1, which would fail every
+                request without making a single attempt.
+        """
+        if max_retries < 1:
+            raise ValueError("max_retries must be a positive integer")
         self._client = client
         self._pdf_parser = pdf_parser
         self._latex_parser = latex_parser

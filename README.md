@@ -48,8 +48,8 @@ pipeline on a background loop.
 - **Explicit failure signaling** — a transport fault or malformed listing
   aborts the run with `PipelineAborted` (carrying the partial count) instead of
   looking like the end of the data. A single failing record is logged and left
-  for the next run, and a page on which nothing could be processed stops the
-  run instead of burning through the rest of the listing.
+  for the next run, and records that keep failing while nothing is processed
+  stop the run instead of burning through the rest of the listing.
 - **Resumable, crash-safe state** — plain-file or SQLite backends record
   processed ids and the listing offset; CSV and metadata writes use atomic
   renames.
@@ -224,15 +224,18 @@ What a run does:
 2. For each remaining record, with at most `max_concurrency` in flight:
    relevance filter → full-text fetch → optional memory ingest → entity
    extraction → export → mark processed. Irrelevant records are marked
-   processed without fetching full text. Records without a `record_id` can't
-   be tracked, so they are skipped and logged.
-3. Saves the listing offset, waits `sleep_between` seconds (default 0), and
-   repeats until `total_limit` relevant records are processed or the listing
-   is empty. The offset only moves past pages whose records were all settled;
-   see [State, Resuming, and Errors](#state-resuming-and-errors).
+   processed without fetching full text. Records whose `record_id` is missing
+   or blank can't be tracked, so they are skipped and logged.
+3. Saves the listing offset and repeats until `total_limit` relevant records
+   are processed or the listing is empty, waiting `sleep_between` seconds
+   (default 0) before each further page. The offset only moves past pages
+   whose records were all settled; see
+   [State, Resuming, and Errors](#state-resuming-and-errors).
 
 `total_limit` counts **relevant** records only, is never exceeded, and defaults
-to `page_size`. The legacy `max_records=` argument sets both values. `AsyncArxivExtractor` also
+to `page_size`. `max_concurrency` and `page_size` must be at least 1 and
+`total_limit` must not be negative; other values raise `ValueError` before any
+request is made. The legacy `max_records=` argument sets both values. `AsyncArxivExtractor` also
 waits `sleep_before_search` seconds (default 3) before every listing request,
 to respect arXiv's rate limits.
 
@@ -354,6 +357,8 @@ full_text:
 pipeline:
   search_query: "all:galaxy"
   max_records: 100
+  page_size: 100
+  search_delay: 3.0
   sleep_between: 5.0
   max_workers: 6
 ```
@@ -363,7 +368,7 @@ pipeline:
 | `llm` | `LLMConfig` | `api_key`, `base_url` (`https://api.openai.com/v1`), `model` (`gpt-4o-mini`), `timeout` (120) | `AsyncOpenAICompatibleClient` |
 | `http` | `HttpConfig` | `user_agent` (`sci-etl-core/0.1`), `max_retries` (3), `backoff_factor` (2.0), `timeout` (25) | `build_async_client`, `AsyncArxivExtractor` |
 | `full_text` | `RateLimitConfig` | `max_concurrency` (4), `max_rate` (unset), `time_period` (1.0) | `build_rate_limiter` |
-| `pipeline` | `PipelineConfig` | `search_query` (`""`), `max_records` (100), `sleep_between` (5.0), `max_workers` (6) | `AsyncETLPipeline`, `run()` |
+| `pipeline` | `PipelineConfig` | `search_query` (`""`), `max_records` (100), `page_size` (100), `search_delay` (3.0), `sleep_between` (5.0), `max_workers` (6) | `AsyncETLPipeline`, `AsyncArxivExtractor`, `run()` |
 
 **Components don't read the config on their own** — copy the values into the
 constructors:
@@ -380,6 +385,7 @@ extractor = AsyncArxivExtractor(
     latex_parser=LatexTarballParser(),
     max_retries=config.http.max_retries,
     backoff_factor=config.http.backoff_factor,
+    sleep_before_search=config.pipeline.search_delay,
 )
 llm = AsyncOpenAICompatibleClient(
     api_key=config.llm.api_key,  # a SecretStr is accepted as-is
@@ -389,6 +395,7 @@ llm = AsyncOpenAICompatibleClient(
 )
 # Then: AsyncETLPipeline(..., max_concurrency=config.pipeline.max_workers)
 # and:  run(query=config.pipeline.search_query,
+#           page_size=config.pipeline.page_size,
 #           total_limit=config.pipeline.max_records,
 #           sleep_between=config.pipeline.sleep_between)
 ```
@@ -407,6 +414,10 @@ llm = AsyncOpenAICompatibleClient(
 - **Async loading.** `load_config_async` takes the same arguments.
 - **Errors.** A missing or unparseable YAML file, a file whose top level isn't
   a mapping, and a validation failure all raise `ConfigurationError`.
+  Validation checks ranges too: counts such as `max_workers`, `page_size`,
+  `max_retries`, and `max_concurrency` must be at least 1, timeouts and
+  `time_period` must be positive, and delays and `max_records` must not be
+  negative.
 
 ## Post-Processing and Visualization
 
@@ -578,9 +589,11 @@ two re-exports that record on the next run. `AsyncCsvUpsertExporter` absorbs
 this; an appending exporter of your own should tolerate duplicates.
 
 `AsyncFileStateManager` raises `OSError` when a state file exists but can't be
-read, rather than treating it as empty, and rejects record ids that contain a
-line boundary. Metadata content that isn't valid falls back to offset 0, which
-only costs a rescan.
+read, rather than treating it as empty. It rejects record ids that contain a
+line boundary or have leading or trailing whitespace, since neither would read
+back unchanged. Metadata content that isn't valid falls back to offset 0, which
+only costs a rescan. Both backends record `last_run_at` as an ISO 8601
+timestamp in UTC.
 
 > **Newest-first listings.** The arXiv extractor lists the newest submissions
 > first, so new papers push older ones to higher offsets. A run that resumes
@@ -597,13 +610,14 @@ only costs a rescan.
 | Listing is valid but has no entries | `run()` returns the count normally |
 | Listing page holds only already-processed records | paging continues with the next page |
 | One record raises, e.g. a transient full-text failure | logged through `logger`; record left unmarked; saved offset held at its page; other records continue |
-| Records on a page fail and none on it is processed, e.g. a rejected API key or an unreadable CSV | `run()` raises `PipelineAborted` (cause: the last record's error) |
+| Records on one page fail and none on it is processed, but a later page processes a record | paging continues; the failed records stay unmarked for the next run |
+| Records fail with none processed on a second page before any progress, or on the last page of the listing, e.g. a rejected API key or an unreadable CSV | `run()` raises `PipelineAborted` (cause: the last record's error) |
 | arXiv reports the LaTeX and PDF as unavailable (e.g. 404), or neither can be parsed | full text falls back to the abstract |
 | arXiv serves a single gzipped `.tex` file or a PDF as the e-print | the TeX is read, or the PDF is used instead |
 | LLM call fails inside `AsyncLLMRelevanceFilter`, or its verdict is unclear | returns `default_on_error` (**`True`**) |
 | Record has an empty abstract | relevance filters return `default_on_empty_abstract` (**`True`**) |
 | LLM call fails inside `AsyncLLMEntityExtractor`, or its entity list is malformed | `LLMError` propagates: logged, record left unmarked and retried on the next run |
-| Record has no `record_id` | skipped and logged, since it can't be tracked as processed |
+| Record has a missing or blank `record_id` | skipped and logged, since it can't be tracked as processed |
 
 All library exceptions derive from `SciEtlError`: `ExtractionError`
 (`UpstreamError`, `MalformedResponseError`), `ParsingError`, `LLMError`,
@@ -725,8 +739,11 @@ implement the async interface instead.
 ## Logging
 
 `configure_logging(name, log_file, level=logging.INFO)` returns a
-`logging.Logger` that writes to a file and to stdout. Components take a plain
-`logger` callable, so pass a bound method:
+`logging.Logger` that writes to a file and to stdout, creating the file's
+folder if it doesn't exist. Calling it again with the same name, file, and
+level returns the same logger; a different file or level replaces the handlers
+it installed. Components take a plain `logger` callable, so pass a bound
+method:
 
 ```python
 from sci_etl_core import configure_logging
