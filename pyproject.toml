@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sci-etl-core"
-version = "0.1.2"
+version = "0.2.0"
 description = "Reusable, domain-agnostic ETL core for scientific text mining."
 readme = "README.md"
 license = "MIT"
@@ -52,6 +52,7 @@ cluster = ["scikit-learn", "numpy"]
 embeddings = ["numpy", "openai"]
 embeddings-local = ["numpy", "sentence-transformers"]
 dev = ["pytest", "pytest-asyncio", "pytest-mock", "pytest-cov", "hypothesis"]
+lint = ["ruff", "mypy", "types-PyYAML", "types-requests", "types-aiofiles"]
 full = [
     "httpx", "aiofiles", "aiolimiter",
     "openai", "tiktoken",
@@ -75,3 +76,32 @@ sci_etl_core = ["py.typed"]
 fail_under = 100
 show_missing = true
 exclude_also = ["if TYPE_CHECKING:"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/sci_etl_core/**/__init__.py" = ["F401"]
+
+[tool.mypy]
+files = ["src/sci_etl_core"]
+warn_unused_ignores = true
+warn_redundant_casts = true
+
+[[tool.mypy.overrides]]
+module = [
+    "aiolimiter.*",
+    "pandas.*",
+    "pdfplumber.*",
+    "plotly.*",
+    "sentence_transformers.*",
+    "sklearn.*",
+    "sqlalchemy.*",
+    "tiktoken.*",
+]
+ignore_missing_imports = true

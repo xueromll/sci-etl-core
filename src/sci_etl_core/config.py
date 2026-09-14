@@ -6,7 +6,7 @@ from typing import Any, TypeVar
 
 import yaml
 from dotenv import find_dotenv, load_dotenv
-from pydantic import BaseModel, ConfigDict, Field, SecretStr
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, ValidationError
 
 from sci_etl_core.exceptions import ConfigurationError
 
@@ -124,7 +124,26 @@ def load_config(
     """
     load_dotenv(env_path if env_path is not None else find_dotenv(usecwd=True))
     raw = apply_api_key(load_yaml(yaml_path), api_key_env_var)
+    return validate_config(config_cls, raw, yaml_path)
+
+
+def validate_config(config_cls: type[T], raw: dict[str, Any], source: Path) -> T:
+    """Validate settings read from ``source`` against ``config_cls``.
+
+    Raises:
+        ConfigurationError: Validation failed. The message names each failing
+            key and the reason but never the value that was read, so a secret
+            such as an API key taken from the environment cannot reach a log or
+            a terminal. The validation error is not chained for the same reason.
+    """
     try:
         return config_cls.model_validate(raw)
+    except ValidationError as exc:
+        problems = [
+            f"  {'.'.join(str(part) for part in detail['loc']) or '(top level)'}: {detail['msg']}"
+            for detail in exc.errors(include_url=False, include_input=False)
+        ]
+        message = "\n".join([f"Invalid configuration in {source}:", *problems])
     except Exception as exc:
-        raise ConfigurationError(f"Invalid configuration: {exc}") from exc
+        message = f"Invalid configuration in {source}: {type(exc).__name__}: {exc}"
+    raise ConfigurationError(message)

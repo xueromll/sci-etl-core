@@ -5,7 +5,7 @@ shift with community feedback. Want to help with any item? Comment on the
 matching issue or open one. Items marked **good first issue** are approachable
 for newcomers.
 
-## Current Status — v0.1.x
+## Current Status — v0.2
 
 `sci-etl-core` is functional and used in production for scientific corpus ETL,
 including [udg-catalogue](https://github.com/xueromll/udg-catalogue).
@@ -54,11 +54,22 @@ including [udg-catalogue](https://github.com/xueromll/udg-catalogue).
 - **Releases on PyPI.** A tag-triggered workflow checks the tag against the
   project version and publishes with trusted publishing, so
   `pip install sci-etl-core` works without vendoring a wheel.
+- **`Retry-After`-aware retries.** The arXiv extractor and the OpenAI-compatible
+  chat and embedding clients wait as long as a throttled response asks, up to
+  `max_retry_after`, and the OpenAI SDK's own retries no longer stack on top.
+- **Token usage.** The OpenAI-compatible clients count prompt and completion
+  tokens, so a run's API cost can be reported.
+- **Secret-safe config errors.** Validation messages name the failing keys
+  without echoing their values, so an API key can't leak through them.
+- **Lint, type checks, and a changelog.** ruff and mypy run in CI next to the
+  test suite, and [CHANGELOG.md](CHANGELOG.md) records each release.
+- **Command-line tool.** [sci-etl-cli](https://github.com/xueromll/sci-etl-cli)
+  runs a pipeline from a YAML file, with plug-ins for domain rules.
 - **Migration guide.** [MIGRATION.md](MIGRATION.md) walks through moving
   udg-catalogue onto the library, including parity checks against the old
   code.
 
-## Next Up — v0.2
+## Next Up — v0.3
 
 ### Reliability
 
@@ -72,11 +83,6 @@ including [udg-catalogue](https://github.com/xueromll/udg-catalogue).
   tracking the newest submission already seen. udg-catalogue rescans from 0
   on every run, paying a listing request and the search delay for every page
   it has already seen.
-- **`Retry-After`-aware backoff.** Honor `Retry-After` on `429` and `503`
-  responses in the arXiv extractor and in the LLM and embedding clients. The
-  default backoff waits 1 s and then 2 s, which is shorter than arXiv's
-  throttling: udg-catalogue's live run got `429` on every listing attempt,
-  which led it to raise `backoff_factor` to 5.
 - **Rate-limiter injection.** Accept an `AsyncRateLimiter` in extractors and in
   LLM and embedding clients, with per-host limits and limiters shared across
   components, replacing the wrapper class the README currently shows.
@@ -114,21 +120,16 @@ Each of these is code udg-catalogue still carries on top of the library (see
 - **New parsers.** DOCX and structured JATS/XML parsing.
 - **Pipeline observability.** Structured, per-record progress events and simple
   run metrics (counts, durations, failures), beyond the current `logger`
-  callback. Include LLM token usage, which `AsyncOpenAICompatibleClient`
-  currently discards, so a run's API cost can be reported.
+  callback. The clients already count token usage; fold it into those
+  metrics.
 
 ### Project health
 
-- **Lint and type checks in CI.** Configure ruff and mypy and run both on every
-  pull request. The package ships `py.typed`, but nothing checks its
-  annotations yet. *(good first issue)*
-- **Changelog.** Releases publish to PyPI, but nothing records what changed
-  between them. Add a changelog and link each GitHub release to its entry.
 - **Retire the `requests` session helper.** `sci_etl_core.http.build_retrying_session`
   is a synchronous leftover that no component uses. Deprecate it, and drop
   `requests` from the `full` extra once it's removed.
 
-## Later — v0.3+
+## Later — v0.4+
 
 - **Targeted reprocessing.** Let state managers forget selected record ids, so
   records can be re-extracted after a prompt or normalizer fix without
@@ -155,8 +156,6 @@ Each of these is code udg-catalogue still carries on top of the library (see
 
 - Chat-completion backends beyond OpenAI-compatible APIs (local models, other
   providers). Local *embeddings* already ship via sentence-transformers.
-- A small CLI (`sci-etl run config.yaml`), maintained as a separate
-  `sci-etl-cli` repository that depends on the published library.
 - Optional distributed execution for very large corpora.
 - A documentation site with an API reference generated from the docstrings.
 

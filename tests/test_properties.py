@@ -151,7 +151,7 @@ class TestUnitVectorProperties:
         original = np.asarray(vector, dtype=np.float32)
         assume(original.any())
         result = unit_vector(vector)
-        for scaled, source in zip(np.sign(result), np.sign(original)):
+        for scaled, source in zip(np.sign(result), np.sign(original), strict=True):
             assert scaled == source or scaled == 0.0
 
     @given(_WIDE_VECTOR, st.floats(min_value=1e-3, max_value=1e3, allow_nan=False))

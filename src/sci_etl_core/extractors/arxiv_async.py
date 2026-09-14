@@ -7,6 +7,7 @@ from typing import Any, Callable
 import httpx
 from bs4 import BeautifulSoup
 
+from sci_etl_core._retry_after import retry_after_from_headers, retry_delay
 from sci_etl_core.exceptions import ExtractionError, MalformedResponseError, ParsingError, UpstreamError
 from sci_etl_core.extractors.async_base import AsyncExtractor
 from sci_etl_core.models import RawRecord
@@ -34,15 +35,24 @@ class AsyncArxivExtractor(AsyncExtractor):
         sleep_before_search: float = 3.0,
         logger: Callable[[str], None] | None = None,
         sleep: Any = asyncio.sleep,
+        max_retry_after: float = 60.0,
     ) -> None:
         """Configure the extractor.
 
+        Between attempts the extractor waits ``backoff_factor ** attempt``
+        seconds, or longer when arXiv's ``Retry-After`` header asks for it, up
+        to ``max_retry_after`` seconds. Each retry is logged with its wait.
+
         Raises:
             ValueError: ``max_retries`` is less than 1, which would fail every
-                request without making a single attempt.
+                request without making a single attempt, or
+                ``max_retry_after`` is negative.
         """
         if max_retries < 1:
             raise ValueError("max_retries must be a positive integer")
+        if max_retry_after < 0:
+            raise ValueError("max_retry_after must not be negative")
+        self._max_retry_after = max_retry_after
         self._client = client
         self._pdf_parser = pdf_parser
         self._latex_parser = latex_parser
@@ -64,7 +74,7 @@ class AsyncArxivExtractor(AsyncExtractor):
             ExtractionError: arXiv rejected the request with a status that
                 retrying cannot fix, such as ``400`` for a malformed query.
         """
-        params = {
+        params: dict[str, str | int] = {
             "search_query": query,
             "start": start_index,
             "max_results": max_results,
@@ -75,6 +85,7 @@ class AsyncArxivExtractor(AsyncExtractor):
 
         last_error: Exception | None = None
         for attempt in range(self._max_retries):
+            retry_after: float | None = None
             try:
                 response = await self._client.get(self.API_URL, params=params, follow_redirects=True)
             except httpx.RequestError as exc:
@@ -87,8 +98,9 @@ class AsyncArxivExtractor(AsyncExtractor):
                         f"arXiv rejected the listing request with status {response.status_code}"
                     )
                 last_error = UpstreamError(f"arXiv returned status {response.status_code}")
+                retry_after = retry_after_from_headers(response.headers)
             if attempt < self._max_retries - 1:
-                await self._sleep(self._backoff_factor**attempt)
+                await self._wait_before_retry("arXiv search", attempt, last_error, retry_after)
 
         message = f"arXiv search failed after {self._max_retries} attempts"
         self._log(f"{message}: {last_error!r}")
@@ -151,6 +163,13 @@ class AsyncArxivExtractor(AsyncExtractor):
         permanent verdict about this URL and must not be retried.
         """
         return status_code in _RETRYABLE_STATUS or status_code >= _SERVER_ERROR_FLOOR
+
+    async def _wait_before_retry(
+        self, action: str, attempt: int, error: Exception | None, retry_after: float | None
+    ) -> None:
+        delay = retry_delay(attempt, self._backoff_factor, retry_after, self._max_retry_after)
+        self._log(f"{action} attempt {attempt + 1} failed ({error!r}); retrying in {delay:g} s")
+        await self._sleep(delay)
 
     @staticmethod
     def _parse_feed(raw_listing: bytes) -> BeautifulSoup:
@@ -246,6 +265,7 @@ class AsyncArxivExtractor(AsyncExtractor):
         """
         last_error: Exception | None = None
         for attempt in range(self._max_retries):
+            retry_after: float | None = None
             try:
                 response = await self._client.get(url, follow_redirects=True)
             except httpx.RequestError as exc:
@@ -261,8 +281,9 @@ class AsyncArxivExtractor(AsyncExtractor):
                 last_error = UpstreamError(
                     f"{label} fetch returned status {response.status_code}"
                 )
+                retry_after = retry_after_from_headers(response.headers)
             if attempt < self._max_retries - 1:
-                await self._sleep(self._backoff_factor**attempt)
+                await self._wait_before_retry(f"{label} fetch for {record_id!r}", attempt, last_error, retry_after)
 
         message = f"{label} fetch failed for {record_id!r} after {self._max_retries} attempts"
         self._log(f"{message}: {last_error!r}")

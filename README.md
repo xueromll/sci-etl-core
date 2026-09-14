@@ -25,9 +25,11 @@ pipeline on a background loop.
 - [Semantic Memory (Optional)](#semantic-memory-optional)
 - [State, Resuming, and Errors](#state-resuming-and-errors)
 - [Graceful Shutdown](#graceful-shutdown)
+- [Retries](#retries)
 - [Rate Limiting](#rate-limiting)
 - [Synchronous Components](#synchronous-components)
 - [Logging](#logging)
+- [Token Usage](#token-usage)
 - [Architecture](#architecture)
 - [Testing](#testing)
 - [Contributing](#contributing)
@@ -53,6 +55,11 @@ pipeline on a background loop.
 - **Resumable, crash-safe state** — plain-file or SQLite backends record
   processed ids and the listing offset; CSV and metadata writes use atomic
   renames.
+- **Polite retries** — the arXiv extractor and the OpenAI-compatible chat and
+  embedding clients wait as long as a throttled response's `Retry-After`
+  header asks, up to a configurable cap.
+- **Token usage** — the OpenAI-compatible clients count the tokens each
+  response reports, so a run's API cost can be shown.
 - **Semantic memory (optional)** — chunk and embed full texts into an
   in-memory or SQLite vector store, search for similar articles, or gate
   relevance by embedding similarity instead of an LLM call.
@@ -417,7 +424,10 @@ llm = AsyncOpenAICompatibleClient(
   Validation checks ranges too: counts such as `max_workers`, `page_size`,
   `max_retries`, and `max_concurrency` must be at least 1, timeouts and
   `time_period` must be positive, and delays and `max_records` must not be
-  negative.
+  negative. A validation message lists each failing key and the reason on its
+  own line but never the value, so an API key can't reach a log through it.
+  `validate_config(config_cls, raw, source)` applies the same checks to
+  settings loaded some other way.
 
 ## Post-Processing and Visualization
 
@@ -659,6 +669,27 @@ async def run_until_signalled(pipeline, state_manager, **run_kwargs):
   other thread it logs a message and installs nothing. That means it can't be
   used through `ETLPipeline`, whose loop runs on a background thread.
 
+## Retries
+
+`AsyncArxivExtractor`, `AsyncOpenAICompatibleClient`, and `AsyncOpenAIEmbedder`
+retry throttling (`429`), server errors, and transport faults, making at most
+`max_retries` attempts per request (default 3):
+
+- **Backoff.** Between attempts they wait `backoff_factor ** attempt` seconds:
+  1 s, then 2 s with the default factor of 2.
+- **`Retry-After`.** When a response says how long to wait, in `Retry-After`
+  or the `retry-after-ms` header OpenAI-compatible APIs send, they wait that
+  long instead whenever it is longer than the backoff, up to `max_retry_after`
+  seconds (default 60).
+- **One retry layer.** The OpenAI SDK's own retries are turned off, so
+  `max_retries` is the total number of attempts.
+- **Visibility.** The arXiv extractor logs each retry and its wait through
+  `logger`.
+
+The client from `build_async_client` also retries failed connections at the
+transport level (`total_retries`, default 5) before the extractor counts one
+failed attempt.
+
 ## Rate Limiting
 
 `AsyncETLPipeline(max_concurrency=...)` bounds how many records are processed
@@ -752,6 +783,24 @@ log = configure_logging("my_pipeline", "pipeline.log")
 # AsyncETLPipeline(..., logger=log.warning)
 # AsyncArxivExtractor(..., logger=log.info)
 ```
+
+## Token Usage
+
+`AsyncOpenAICompatibleClient.usage` and `AsyncOpenAIEmbedder.usage` return a
+`TokenUsage` snapshot counted across every response the client has received,
+including responses whose body was then rejected:
+
+```python
+async with pipeline:
+    await pipeline.run(query="all:galaxy", total_limit=50)
+usage = llm.usage
+print(f"{usage.requests} requests, {usage.prompt_tokens} prompt and {usage.completion_tokens} completion tokens")
+```
+
+`TokenUsage` has `requests`, `prompt_tokens`, `completion_tokens`, and
+`total_tokens`. A response without usage data counts as a request with zero
+tokens. Other `AsyncLLMClient` and `AsyncEmbedder` implementations return
+`None` unless they override the `usage` property.
 
 ## Architecture
 

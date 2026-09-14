@@ -51,7 +51,7 @@ class AsyncChunkIngestor:
         metadata = self._metadata_for(record)
         items = [
             EmbeddingChunk(record.record_id, index, passage, vector, dict(metadata))
-            for index, (passage, vector) in enumerate(zip(passages, vectors))
+            for index, (passage, vector) in enumerate(zip(passages, vectors, strict=True))
         ]
         await self._store.replace_record(record.record_id, items)
         return len(items)

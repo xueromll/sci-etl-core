@@ -157,6 +157,53 @@ class TestListingStatus:
         assert isinstance(excinfo.value.__cause__, httpx.TooManyRedirects)
 
 
+class TestRetryAfter:
+    @pytest.mark.asyncio
+    async def test_listing_retry_waits_as_long_as_arxiv_asks(self, mocker):
+        sleep = mocker.AsyncMock()
+        logged: list[str] = []
+        extractor, requested = _extractor(
+            {LISTING: httpx.Response(429, headers={"Retry-After": "7"})},
+            sleep=sleep,
+            max_retries=2,
+            logger=logged.append,
+        )
+        with pytest.raises(UpstreamError, match="after 2 attempts"):
+            await extractor.search("q", 10, 0)
+        assert len(requested) == 2
+        assert [call.args[0] for call in sleep.await_args_list] == [0, 7.0]
+        assert any("arXiv search attempt 1 failed" in message and "retrying in 7 s" in message for message in logged)
+
+    @pytest.mark.asyncio
+    async def test_long_server_wait_is_capped(self, mocker):
+        sleep = mocker.AsyncMock()
+        extractor, _ = _extractor(
+            {LISTING: httpx.Response(503, headers={"Retry-After": "3600"})},
+            sleep=sleep,
+            max_retries=2,
+            max_retry_after=30,
+        )
+        with pytest.raises(UpstreamError):
+            await extractor.search("q", 10, 0)
+        assert [call.args[0] for call in sleep.await_args_list] == [0, 30]
+
+    @pytest.mark.asyncio
+    async def test_full_text_retry_honors_retry_after(self, mocker):
+        sleep = mocker.AsyncMock()
+        extractor, _ = _extractor(
+            {PDF: httpx.Response(503, headers={"Retry-After": "4"})},
+            sleep=sleep,
+            max_retries=2,
+        )
+        with pytest.raises(UpstreamError, match="Full-text retrieval failed"):
+            await extractor.fetch_full_text(RECORD)
+        assert [call.args[0] for call in sleep.await_args_list] == [4.0]
+
+    def test_negative_retry_after_cap_is_rejected(self):
+        with pytest.raises(ValueError, match="max_retry_after"):
+            _extractor({}, max_retry_after=-1)
+
+
 class TestListingParsing:
     def _parse(self, entries: str):
         extractor, _ = _extractor({})

@@ -1,19 +1,22 @@
 from __future__ import annotations
 
+import importlib
 from contextlib import contextmanager
+from types import ModuleType
 from typing import IO, Any, Iterator
 
-try:
-    import fcntl
-except ImportError:  # pragma: no cover - platform-dependent import
-    fcntl = None
-
-try:
-    import msvcrt
-except ImportError:  # pragma: no cover - platform-dependent import
-    msvcrt = None
-
 _LOCK_BYTES = 1
+
+
+def _optional_module(name: str) -> ModuleType | None:
+    try:
+        return importlib.import_module(name)
+    except ImportError:
+        return None
+
+
+fcntl = _optional_module("fcntl")
+msvcrt = _optional_module("msvcrt")
 
 
 @contextmanager

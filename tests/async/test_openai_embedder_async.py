@@ -5,14 +5,15 @@ from types import SimpleNamespace
 
 import httpx
 import pytest
-from openai import APITimeoutError
+from openai import APITimeoutError, RateLimitError
 
 from sci_etl_core.embeddings.openai_compatible_async import AsyncOpenAIEmbedder
 from sci_etl_core.exceptions import EmbeddingError
+from sci_etl_core.models import TokenUsage
 
 
-def _response(*vectors: list[float]) -> SimpleNamespace:
-    return SimpleNamespace(data=[SimpleNamespace(embedding=v) for v in vectors])
+def _response(*vectors: list[float], usage: SimpleNamespace | None = None) -> SimpleNamespace:
+    return SimpleNamespace(data=[SimpleNamespace(embedding=v) for v in vectors], usage=usage)
 
 
 def _timeout() -> APITimeoutError:
@@ -96,3 +97,38 @@ class TestAsyncOpenAIEmbedder:
         embedder, client = _build(mocker)
         await embedder.aclose()
         client.close.assert_awaited_once()
+
+    def test_negative_retry_after_cap_is_rejected(self):
+        with pytest.raises(ValueError, match="max_retry_after"):
+            AsyncOpenAIEmbedder(api_key="secret", base_url="https://x/v1", model="embed-model", max_retry_after=-1)
+
+    @pytest.mark.asyncio
+    async def test_sdk_retries_are_disabled_so_one_retry_policy_applies(self):
+        embedder = AsyncOpenAIEmbedder(api_key="secret", base_url="https://x/v1", model="embed-model")
+        try:
+            assert embedder._client.max_retries == 0
+        finally:
+            await embedder.aclose()
+
+    @pytest.mark.asyncio
+    async def test_retry_waits_as_long_as_the_server_asks(self, mocker):
+        response = httpx.Response(
+            429, headers={"retry-after-ms": "2500"}, request=httpx.Request("POST", "https://x/v1/embeddings")
+        )
+        throttled = RateLimitError("slow down", response=response, body=None)
+        create = mocker.AsyncMock(side_effect=[throttled, _response([1.0])])
+        embedder, _ = _build(mocker, create=create)
+        assert await embedder.embed(["a"]) == [[1.0]]
+        embedder._sleep.assert_awaited_once_with(2.5)
+
+    @pytest.mark.asyncio
+    async def test_usage_accumulates_across_batches(self, mocker):
+        create = mocker.AsyncMock(
+            side_effect=[
+                _response([1.0], usage=SimpleNamespace(prompt_tokens=5, total_tokens=5)),
+                _response([0.0], usage=SimpleNamespace(prompt_tokens=7, total_tokens=7)),
+            ]
+        )
+        embedder, _ = _build(mocker, create=create)
+        await embedder.embed(["a", "b"])
+        assert embedder.usage == TokenUsage(requests=2, prompt_tokens=12)

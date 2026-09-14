@@ -17,9 +17,8 @@ __all__ = list(_EXPORTS)
 __getattr__, __dir__ = lazy_exports(__name__, globals(), _EXPORTS)
 
 if TYPE_CHECKING:
-    from sci_etl_core.exporters.base import Exporter
     from sci_etl_core.exporters.async_base import AsyncExporter
-    from sci_etl_core.exporters.plotly_async import ScatterPlotConfig
+    from sci_etl_core.exporters.base import Exporter
     from sci_etl_core.exporters.csv_async import AsyncCsvUpsertExporter
-    from sci_etl_core.exporters.plotly_async import AsyncPlotly3DExporter
+    from sci_etl_core.exporters.plotly_async import AsyncPlotly3DExporter, ScatterPlotConfig
     from sci_etl_core.exporters.sql_async import AsyncSqlTableExporter

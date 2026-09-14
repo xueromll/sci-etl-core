@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 import asyncio
+from types import SimpleNamespace
 
+import httpx
 import pytest
 
 from sci_etl_core.exceptions import LLMError
 from sci_etl_core.llm.async_base import AsyncLLMClient
 from sci_etl_core.llm.extraction_async import AsyncLLMEntityExtractor
 from sci_etl_core.llm.relevance_async import AsyncLLMRelevanceFilter
-from sci_etl_core.models import RawRecord
+from sci_etl_core.models import RawRecord, TokenUsage
 
 
 def _message(mocker, content):
@@ -113,6 +115,48 @@ class TestAsyncOpenAICompatibleClient:
         with pytest.raises(ValueError, match="max_retries"):
             self._make(mocker, max_retries=max_retries)
 
+    def test_negative_retry_after_cap_is_rejected(self, patched, mocker):
+        with pytest.raises(ValueError, match="max_retry_after"):
+            self._make(mocker, max_retry_after=-1)
+
+    def test_sdk_retries_are_disabled_so_one_retry_policy_applies(self, patched, mocker):
+        from sci_etl_core.llm import openai_compatible_async
+
+        self._make(mocker)
+        assert openai_compatible_async.AsyncOpenAI.call_args.kwargs["max_retries"] == 0
+
+    @pytest.mark.asyncio
+    async def test_retry_waits_as_long_as_the_server_asks(self, patched, mocker):
+        from openai import RateLimitError
+
+        response = httpx.Response(
+            429,
+            headers={"retry-after": "12"},
+            request=httpx.Request("POST", "https://api.example/v1/chat/completions"),
+        )
+        patched.chat.completions.create.side_effect = [
+            RateLimitError("rate limited", response=response, body=None),
+            _message(mocker, '{"ok": 1}'),
+        ]
+        sleep = mocker.AsyncMock()
+        assert await self._make(mocker, sleep=sleep).complete_json("s", "u") == {"ok": 1}
+        sleep.assert_awaited_once_with(12.0)
+
+    @pytest.mark.asyncio
+    async def test_usage_accumulates_across_responses(self, patched, mocker):
+        first = _message(mocker, "{}")
+        first.usage = SimpleNamespace(prompt_tokens=120, completion_tokens=8)
+        rejected = _message(mocker, "not json")
+        rejected.usage = SimpleNamespace(prompt_tokens=30, completion_tokens=None)
+        patched.chat.completions.create.side_effect = [first, rejected]
+        client = self._make(mocker)
+        await client.complete_json("s", "u")
+        with pytest.raises(LLMError):
+            await client.complete_json("s", "u")
+        assert client.usage == TokenUsage(requests=2, prompt_tokens=150, completion_tokens=8)
+        client.usage.prompt_tokens = 0
+        assert client.usage.prompt_tokens == 150
+
 
 class TestAsyncLLMRelevanceFilter:
     @pytest.mark.asyncio
@@ -128,7 +172,15 @@ class TestAsyncLLMRelevanceFilter:
     @pytest.mark.parametrize("default", [True, False])
     @pytest.mark.parametrize(
         "payload",
-        [{}, {"relevant": None}, {"relevant": "maybe"}, {"relevant": 2}, {"relevant": [True]}, [{"relevant": False}], "false"],
+        [
+            {},
+            {"relevant": None},
+            {"relevant": "maybe"},
+            {"relevant": 2},
+            {"relevant": [True]},
+            [{"relevant": False}],
+            "false",
+        ],
     )
     @pytest.mark.asyncio
     async def test_unclear_verdict_uses_default_on_error(self, mocker, payload, default):

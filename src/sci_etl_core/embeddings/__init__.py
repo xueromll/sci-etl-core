@@ -24,14 +24,11 @@ __getattr__, __dir__ = lazy_exports(__name__, globals(), _EXPORTS)
 
 if TYPE_CHECKING:
     from sci_etl_core.embeddings.async_base import AsyncEmbedder
+    from sci_etl_core.embeddings.chunking import SlidingWindowChunker, TextChunker
+    from sci_etl_core.embeddings.finder_async import AsyncSimilarArticleFinder
+    from sci_etl_core.embeddings.ingest_async import AsyncChunkIngestor
     from sci_etl_core.embeddings.openai_compatible_async import AsyncOpenAIEmbedder
     from sci_etl_core.embeddings.sentence_transformer_async import AsyncSentenceTransformerEmbedder
-    from sci_etl_core.embeddings.chunking import TextChunker
-    from sci_etl_core.embeddings.chunking import SlidingWindowChunker
-    from sci_etl_core.embeddings.store_base import AsyncEmbeddingStore
-    from sci_etl_core.embeddings.store_base import EmbeddingChunk
-    from sci_etl_core.embeddings.store_base import SearchHit
+    from sci_etl_core.embeddings.store_base import AsyncEmbeddingStore, EmbeddingChunk, SearchHit
     from sci_etl_core.embeddings.store_memory import InMemoryEmbeddingStore
     from sci_etl_core.embeddings.store_sqlite_async import AsyncSqliteEmbeddingStore
-    from sci_etl_core.embeddings.ingest_async import AsyncChunkIngestor
-    from sci_etl_core.embeddings.finder_async import AsyncSimilarArticleFinder

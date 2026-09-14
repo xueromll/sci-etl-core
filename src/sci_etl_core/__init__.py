@@ -68,6 +68,7 @@ _EXPORTS: dict[str, str] = {
     "configure_logging": "sci_etl_core.log_utils",
     "PipelineMetadata": "sci_etl_core.models",
     "RawRecord": "sci_etl_core.models",
+    "TokenUsage": "sci_etl_core.models",
     "Parser": "sci_etl_core.parsers.base",
     "TableParser": "sci_etl_core.parsers.base",
     "ETLPipeline": "sci_etl_core.pipeline",
@@ -85,69 +86,57 @@ __all__ = sorted(_EXPORTS)
 __getattr__, __dir__ = lazy_exports(__name__, globals(), _EXPORTS)
 
 if TYPE_CHECKING:
-    from sci_etl_core._adapters import SyncEntityExtractorAdapter
-    from sci_etl_core._adapters import SyncExporterAdapter
-    from sci_etl_core._adapters import SyncExtractorAdapter
-    from sci_etl_core._adapters import SyncRelevanceFilterAdapter
-    from sci_etl_core._adapters import SyncStateManagerAdapter
-    from sci_etl_core.config import BaseAppConfig
-    from sci_etl_core.config import HttpConfig
-    from sci_etl_core.config import LLMConfig
-    from sci_etl_core.config import PipelineConfig
-    from sci_etl_core.config import RateLimitConfig
-    from sci_etl_core.config import load_config
+    from sci_etl_core._adapters import (
+        SyncEntityExtractorAdapter,
+        SyncExporterAdapter,
+        SyncExtractorAdapter,
+        SyncRelevanceFilterAdapter,
+        SyncStateManagerAdapter,
+    )
+    from sci_etl_core.config import BaseAppConfig, HttpConfig, LLMConfig, PipelineConfig, RateLimitConfig, load_config
     from sci_etl_core.config_async import load_config_async
     from sci_etl_core.embeddings.async_base import AsyncEmbedder
-    from sci_etl_core.embeddings.chunking import SlidingWindowChunker
-    from sci_etl_core.embeddings.chunking import TextChunker
+    from sci_etl_core.embeddings.chunking import SlidingWindowChunker, TextChunker
     from sci_etl_core.embeddings.finder_async import AsyncSimilarArticleFinder
     from sci_etl_core.embeddings.ingest_async import AsyncChunkIngestor
     from sci_etl_core.embeddings.openai_compatible_async import AsyncOpenAIEmbedder
     from sci_etl_core.embeddings.sentence_transformer_async import AsyncSentenceTransformerEmbedder
-    from sci_etl_core.embeddings.store_base import AsyncEmbeddingStore
-    from sci_etl_core.embeddings.store_base import EmbeddingChunk
-    from sci_etl_core.embeddings.store_base import SearchHit
+    from sci_etl_core.embeddings.store_base import AsyncEmbeddingStore, EmbeddingChunk, SearchHit
     from sci_etl_core.embeddings.store_memory import InMemoryEmbeddingStore
     from sci_etl_core.embeddings.store_sqlite_async import AsyncSqliteEmbeddingStore
-    from sci_etl_core.exceptions import ConfigurationError
-    from sci_etl_core.exceptions import EmbeddingError
-    from sci_etl_core.exceptions import EmbeddingStoreError
-    from sci_etl_core.exceptions import ExtractionError
-    from sci_etl_core.exceptions import LLMError
-    from sci_etl_core.exceptions import MalformedResponseError
-    from sci_etl_core.exceptions import ParsingError
-    from sci_etl_core.exceptions import PipelineAborted
-    from sci_etl_core.exceptions import SciEtlError
-    from sci_etl_core.exceptions import UpstreamError
+    from sci_etl_core.exceptions import (
+        ConfigurationError,
+        EmbeddingError,
+        EmbeddingStoreError,
+        ExtractionError,
+        LLMError,
+        MalformedResponseError,
+        ParsingError,
+        PipelineAborted,
+        SciEtlError,
+        UpstreamError,
+    )
     from sci_etl_core.exporters.async_base import AsyncExporter
     from sci_etl_core.exporters.base import Exporter
     from sci_etl_core.exporters.csv_async import AsyncCsvUpsertExporter
-    from sci_etl_core.exporters.plotly_async import AsyncPlotly3DExporter
-    from sci_etl_core.exporters.plotly_async import ScatterPlotConfig
+    from sci_etl_core.exporters.plotly_async import AsyncPlotly3DExporter, ScatterPlotConfig
     from sci_etl_core.exporters.sql_async import AsyncSqlTableExporter
-    from sci_etl_core.extractors.async_base import AsyncExtractor
     from sci_etl_core.extractors.arxiv_async import AsyncArxivExtractor
+    from sci_etl_core.extractors.async_base import AsyncExtractor
     from sci_etl_core.extractors.base import Extractor
     from sci_etl_core.llm._adapters import SyncLLMClientAdapter
     from sci_etl_core.llm.async_base import AsyncLLMClient
-    from sci_etl_core.llm.base import EntityExtractor
-    from sci_etl_core.llm.base import LLMClient
-    from sci_etl_core.llm.base import RelevanceFilter
-    from sci_etl_core.llm.extraction_async import AsyncEntityExtractor
-    from sci_etl_core.llm.extraction_async import AsyncLLMEntityExtractor
+    from sci_etl_core.llm.base import EntityExtractor, LLMClient, RelevanceFilter
+    from sci_etl_core.llm.extraction_async import AsyncEntityExtractor, AsyncLLMEntityExtractor
     from sci_etl_core.llm.openai_compatible_async import AsyncOpenAICompatibleClient
-    from sci_etl_core.llm.relevance_async import AsyncLLMRelevanceFilter
-    from sci_etl_core.llm.relevance_async import AsyncRelevanceFilter
+    from sci_etl_core.llm.relevance_async import AsyncLLMRelevanceFilter, AsyncRelevanceFilter
     from sci_etl_core.llm.relevance_embedding_async import AsyncEmbeddingRelevanceFilter
     from sci_etl_core.log_utils import configure_logging
-    from sci_etl_core.models import PipelineMetadata
-    from sci_etl_core.models import RawRecord
-    from sci_etl_core.parsers.base import Parser
-    from sci_etl_core.parsers.base import TableParser
+    from sci_etl_core.models import PipelineMetadata, RawRecord, TokenUsage
+    from sci_etl_core.parsers.base import Parser, TableParser
     from sci_etl_core.pipeline import ETLPipeline
     from sci_etl_core.pipeline_async import AsyncETLPipeline
-    from sci_etl_core.processors.base import Processor
-    from sci_etl_core.processors.base import ProcessorChain
+    from sci_etl_core.processors.base import Processor, ProcessorChain
     from sci_etl_core.signals import ShutdownSignal
     from sci_etl_core.state.async_base import AsyncStateManager
     from sci_etl_core.state.async_file_state import AsyncFileStateManager

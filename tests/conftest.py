@@ -40,7 +40,7 @@ def _install_sqlalchemy_stub() -> None:
 
 _install_sqlalchemy_stub()
 
-from sci_etl_core.models import RawRecord
+from sci_etl_core.models import RawRecord  # noqa: E402
 
 
 @pytest.fixture

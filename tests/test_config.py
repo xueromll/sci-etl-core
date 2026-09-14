@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 import pytest
+from pydantic import model_validator
 
 from sci_etl_core import config as config_module
 from sci_etl_core.config import BaseAppConfig, load_config, load_yaml
@@ -116,6 +117,34 @@ class TestLoadConfig:
         mocker.patch.object(config_module.os, "getenv", return_value="")
         with pytest.raises(ConfigurationError, match="Invalid configuration"):
             load_config(BaseAppConfig, Path("c.yaml"))
+
+    def test_validation_errors_name_keys_but_never_echo_values(self, mocker):
+        class NeedsProject(BaseAppConfig):
+            project: str
+
+        mocker.patch.object(config_module, "load_dotenv")
+        mocker.patch.object(config_module, "load_yaml", return_value={"llm": {"timeout": 0}})
+        mocker.patch.object(config_module.os, "getenv", return_value="sk-live-do-not-print")
+        with pytest.raises(ConfigurationError) as excinfo:
+            load_config(NeedsProject, Path("c.yaml"))
+        message = str(excinfo.value)
+        assert "sk-live-do-not-print" not in message
+        assert message.startswith("Invalid configuration in c.yaml:")
+        assert "  project: Field required" in message
+        assert "  llm.timeout: Input should be greater than 0" in message
+        assert excinfo.value.__context__ is None
+
+    def test_errors_raised_outside_pydantic_validation_are_configuration_errors(self, mocker):
+        class Unreachable(BaseAppConfig):
+            @model_validator(mode="after")
+            def check_service(self):
+                raise RuntimeError("settings service unreachable")
+
+        mocker.patch.object(config_module, "load_dotenv")
+        mocker.patch.object(config_module, "load_yaml", return_value={})
+        mocker.patch.object(config_module.os, "getenv", return_value="")
+        with pytest.raises(ConfigurationError, match="RuntimeError: settings service unreachable"):
+            load_config(Unreachable, Path("c.yaml"))
 
     def test_pipeline_section_carries_page_size_and_search_delay(self, mocker):
         mocker.patch.object(config_module, "load_dotenv")

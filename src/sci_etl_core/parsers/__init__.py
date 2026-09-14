@@ -18,10 +18,8 @@ __all__ = list(_EXPORTS)
 __getattr__, __dir__ = lazy_exports(__name__, globals(), _EXPORTS)
 
 if TYPE_CHECKING:
-    from sci_etl_core.parsers.reference_trimmer import DEFAULT_TRIM_PATTERNS
+    from sci_etl_core.parsers.base import Parser, TableParser
     from sci_etl_core.parsers.html import HtmlTextParser
     from sci_etl_core.parsers.latex import LatexTarballParser
-    from sci_etl_core.parsers.base import Parser
     from sci_etl_core.parsers.pdf import PdfPlumberParser
-    from sci_etl_core.parsers.base import TableParser
-    from sci_etl_core.parsers.reference_trimmer import trim_after_references
+    from sci_etl_core.parsers.reference_trimmer import DEFAULT_TRIM_PATTERNS, trim_after_references

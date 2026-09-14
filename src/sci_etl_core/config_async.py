@@ -6,7 +6,7 @@ from typing import Any, TypeVar
 import aiofiles
 from dotenv import find_dotenv, load_dotenv
 
-from sci_etl_core.config import BaseAppConfig, apply_api_key, parse_yaml
+from sci_etl_core.config import BaseAppConfig, apply_api_key, parse_yaml, validate_config
 from sci_etl_core.exceptions import ConfigurationError
 
 T = TypeVar("T", bound=BaseAppConfig)
@@ -35,7 +35,4 @@ async def load_config_async(
     """Async counterpart of :func:`sci_etl_core.config.load_config`, with the same lookup rules."""
     load_dotenv(env_path if env_path is not None else find_dotenv(usecwd=True))
     raw = apply_api_key(await load_yaml_async(yaml_path), api_key_env_var)
-    try:
-        return config_cls.model_validate(raw)
-    except Exception as exc:
-        raise ConfigurationError(f"Invalid configuration: {exc}") from exc
+    return validate_config(config_cls, raw, Path(yaml_path))

@@ -22,14 +22,10 @@ __all__ = list(_EXPORTS)
 __getattr__, __dir__ = lazy_exports(__name__, globals(), _EXPORTS)
 
 if TYPE_CHECKING:
-    from sci_etl_core.llm.base import LLMClient
-    from sci_etl_core.llm.base import RelevanceFilter
-    from sci_etl_core.llm.base import EntityExtractor
     from sci_etl_core.llm._adapters import SyncLLMClientAdapter
     from sci_etl_core.llm.async_base import AsyncLLMClient
+    from sci_etl_core.llm.base import EntityExtractor, LLMClient, RelevanceFilter
+    from sci_etl_core.llm.extraction_async import AsyncEntityExtractor, AsyncLLMEntityExtractor
     from sci_etl_core.llm.openai_compatible_async import AsyncOpenAICompatibleClient
-    from sci_etl_core.llm.extraction_async import AsyncEntityExtractor
-    from sci_etl_core.llm.extraction_async import AsyncLLMEntityExtractor
-    from sci_etl_core.llm.relevance_async import AsyncRelevanceFilter
-    from sci_etl_core.llm.relevance_async import AsyncLLMRelevanceFilter
+    from sci_etl_core.llm.relevance_async import AsyncLLMRelevanceFilter, AsyncRelevanceFilter
     from sci_etl_core.llm.relevance_embedding_async import AsyncEmbeddingRelevanceFilter

@@ -114,7 +114,7 @@ class AsyncETLPipeline:
     async def __aenter__(self) -> "AsyncETLPipeline":
         return self
 
-    async def __aexit__(self, exc_type: Any, exc: Any, tb: Any) -> bool:
+    async def __aexit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
         """Close every resource, even when an earlier one fails to close.
 
         A close failure is logged. It is raised only when the block itself
@@ -132,7 +132,6 @@ class AsyncETLPipeline:
                 errors.append(error)
         if errors and exc is None:
             raise errors[0]
-        return False
 
     async def run(
         self,

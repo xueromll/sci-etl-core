@@ -105,7 +105,9 @@ class TestSqliteStoreFailures:
     @pytest.mark.asyncio
     async def test_read_failure_is_typed(self, tmp_path, mocker):
         store = AsyncSqliteEmbeddingStore(tmp_path / "memory.db")
-        mocker.patch.object(AsyncSqliteEmbeddingStore, "_select", side_effect=sqlite3.OperationalError("disk I/O error"))
+        mocker.patch.object(
+            AsyncSqliteEmbeddingStore, "_select", side_effect=sqlite3.OperationalError("disk I/O error")
+        )
         try:
             with pytest.raises(EmbeddingStoreError, match="Failed to read"):
                 await store.query([1.0, 0.0])
@@ -177,7 +179,8 @@ class TestIngestorReplacesRecords:
     @pytest.mark.asyncio
     async def test_vector_count_mismatch_raises_and_stores_nothing(self):
         store = InMemoryEmbeddingStore()
-        ingestor = AsyncChunkIngestor(SlidingWindowChunker(chunk_words=2, overlap_words=0), _UnitEmbedder(drop=1), store)
+        chunker = SlidingWindowChunker(chunk_words=2, overlap_words=0)
+        ingestor = AsyncChunkIngestor(chunker, _UnitEmbedder(drop=1), store)
         with pytest.raises(EmbeddingError, match="1 vectors for 2 passages"):
             await ingestor.ingest(RawRecord("a", "t", "abs"), "one two three four")
         assert await store.count() == 0

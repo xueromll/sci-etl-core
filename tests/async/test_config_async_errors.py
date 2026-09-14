@@ -22,6 +22,15 @@ class TestAsyncConfigErrors:
             await config_async.load_config_async(BaseAppConfig, path)
 
     @pytest.mark.asyncio
+    async def test_invalid_values_are_reported_by_key(self, mocker, tmp_path):
+        mocker.patch.object(config_async, "load_dotenv")
+        path = tmp_path / "c.yaml"
+        path.write_text("pipeline:\n  max_workers: 0\n", encoding="utf-8")
+        expected = r"pipeline\.max_workers: Input should be greater than or equal to 1"
+        with pytest.raises(ConfigurationError, match=expected):
+            await config_async.load_config_async(BaseAppConfig, path)
+
+    @pytest.mark.asyncio
     async def test_dotenv_lookup_starts_at_the_working_directory(self, mocker, tmp_path):
         load = mocker.patch.object(config_async, "load_dotenv")
         find = mocker.patch.object(config_async, "find_dotenv", return_value="/project/.env")

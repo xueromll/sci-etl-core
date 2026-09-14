@@ -104,7 +104,7 @@ class TestLazyExports:
     def test_unknown_attribute_raises_attribute_error(self, package):
         module = importlib.import_module(package)
         with pytest.raises(AttributeError, match="has no attribute 'missing_name'"):
-            getattr(module, "missing_name")
+            _ = module.missing_name
 
     def test_type_checking_imports_match_the_export_map(self, package):
         module = importlib.import_module(package)

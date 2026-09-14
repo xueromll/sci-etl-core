@@ -3,6 +3,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 
+from sci_etl_core.models import TokenUsage
+
 
 class AsyncEmbedder(ABC):
     """Turn text into dense vectors so records can be matched by meaning.
@@ -15,3 +17,8 @@ class AsyncEmbedder(ABC):
     @abstractmethod
     async def embed(self, texts: Sequence[str]) -> list[list[float]]:
         """Return one embedding vector per input text, preserving order."""
+
+    @property
+    def usage(self) -> TokenUsage | None:
+        """Tokens this embedder has used so far, or ``None`` when it does not track usage."""
+        return None

@@ -1,5 +1,6 @@
-from sci_etl_core.processors.normalization import DefaultKeyNormalizer, NormalizationStep
 import pandas as pd
+
+from sci_etl_core.processors.normalization import DefaultKeyNormalizer, NormalizationStep
 
 
 def test_default_key_normalizer_strips_and_lowercases():

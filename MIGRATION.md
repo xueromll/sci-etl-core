@@ -223,21 +223,20 @@ source in two thin files. For local development, `requirements-local.txt`:
 -e ../../sci-etl-core[async,llm,pdf,cluster]
 ```
 
-For Docker, CI, and new users, `requirements.txt`:
+For Docker, CI, and new users, `requirements.txt` installs the published
+release from PyPI:
 
 ```text
 -r requirements-app.txt
-./vendor/sci_etl_core-0.1.0-py3-none-any.whl[async,llm,pdf,cluster]
+sci-etl-core[async,llm,pdf,cluster]>=0.2.0,<0.3
 ```
 
-The wheel is built from the release tag with
-`pip wheel --no-deps -w vendor path/to/sci-etl-core` and committed to the
-project. Vendoring suits private repositories, where a Docker build or a CI
-runner has no credentials to download the library. If the library repository
-is public, pin the tag instead:
-`sci-etl-core[async,llm,pdf,cluster] @ https://github.com/xueromll/sci-etl-core/archive/refs/tags/v0.1.0.zip`.
-pip resolves relative paths from the current directory, so run installs from
-the project root.
+Pin a version range rather than one exact version, so bug-fix releases arrive
+without a change to the project, and raise the upper bound deliberately after
+checking a new minor release against your tests. Before the library was on
+PyPI, udg-catalogue committed a wheel built with
+`pip wheel --no-deps -w vendor path/to/sci-etl-core` and installed it from
+`vendor/`; that still works for a build that can't reach PyPI.
 
 ## Step 2: Configuration and secrets
 
@@ -871,7 +870,8 @@ the old output:
 - [ ] List every function in your pipeline and sort it into the three groups
       in [Map your pipeline onto the library](#map-your-pipeline-onto-the-library).
 - [ ] Install the library in editable mode, and decide how deployments will
-      get it (a pinned tag, or a vendored wheel for private repositories).
+      get it (a version range from PyPI, or a vendored wheel where PyPI is
+      out of reach).
 - [ ] Move settings into `BaseAppConfig` sections; keep your API key's
       environment-variable name with `api_key_env_var`.
 - [ ] Move prompts over unchanged, and set `result_key` to the list key your

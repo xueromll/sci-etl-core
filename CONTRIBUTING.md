@@ -97,15 +97,19 @@ pytest --cov=sci_etl_core --cov-report=term-missing   # coverage report
   decisions; don't write comments that restate the code.
 - **American English** for identifiers and docstrings.
 
-Linting and type checking aren't configured in the repository yet. If you use
-them, run with defaults and keep unrelated reformatting out of your PR:
+ruff and mypy run in CI on every push and pull request, configured in
+`pyproject.toml`. Run both before opening a PR:
 
 ```bash
-pip install ruff mypy
+pip install -e ".[full,dev,lint]"
 ruff check .
-ruff format --check .
-mypy src/sci_etl_core
+mypy
 ```
+
+`ruff check --fix .` sorts imports and applies the other safe fixes.
+Formatting isn't enforced, so keep unrelated reformatting out of your PR.
+Record user-facing changes under the unreleased version in
+[CHANGELOG.md](CHANGELOG.md).
 
 ## Commit Format
 
