@@ -6,14 +6,8 @@ real migration as the worked example:
 catalogue of ultra-diffuse galaxies (UDGs) from arXiv papers with an LLM.
 
 Every "before" snippet is taken from udg-catalogue as it was before the
-migration (commit
-[`5b5b241`](https://github.com/xueromll/udg-catalogue/commit/5b5b241)). Every
-"after" snippet is taken from the migrated project as of commit
-[`ea1b02f`](https://github.com/xueromll/udg-catalogue/commit/ea1b02f); the
-migration itself is commit
-[`05fab21`](https://github.com/xueromll/udg-catalogue/commit/05fab21), and the
-name-matching fix is
-[`4996b88`](https://github.com/xueromll/udg-catalogue/commit/4996b88). The
+migration, and every "after" snippet from the migrated project on its
+[`main` branch](https://github.com/xueromll/udg-catalogue/tree/main). The
 science is astronomy, but nothing in the steps depends on it: swap the prompts,
 fields, and domain rules for your own.
 
@@ -507,11 +501,11 @@ def universal_normalize_name(name: str) -> str:
 
 Port a function like this **unchanged** first, as a `KeyNormalizer` subclass,
 so the parity check in Step 8 compares plumbing and nothing else.
-udg-catalogue's first migration commit did exactly that.
+udg-catalogue did exactly that.
 
 This function turned out to merge different galaxies (see
-[What the migration uncovered](#what-the-migration-uncovered)), so a separate
-commit replaced it once parity was confirmed. **After**
+[What the migration uncovered](#what-the-migration-uncovered)), so it was
+replaced once parity was confirmed. **After**
 (`udg_catalogue/naming.py`):
 
 ```python
@@ -814,9 +808,9 @@ small `page_size` and `total_limit`, into a fresh state folder.
 | Live run | arXiv answered `429` to every listing attempt, and `run()` raised `PipelineAborted` with nothing written, instead of reporting success; this is what prompted the longer backoff in Step 3 |
 | Project test suite | 84 offline tests, 100% coverage, passing both with the editable library and in a clean environment installed from the vendored wheel |
 
-Only after these matched did the normalizer fix go in, in its own commit. That
-commit regenerated the sorted catalogue, and the only differences were the
-three invalid-RA rows, renumbered clusters with unchanged membership, and the
+Only after these matched did the normalizer fix go in, as a separate change.
+Regenerating the sorted catalogue with it, the only differences were the three
+invalid-RA rows, renumbered clusters with unchanged membership, and the
 dropped `filled_fields` column.
 
 When you run the migrated pipeline:
