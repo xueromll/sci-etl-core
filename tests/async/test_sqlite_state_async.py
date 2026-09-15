@@ -2,20 +2,27 @@ from __future__ import annotations
 
 import asyncio
 import sqlite3
+from collections.abc import AsyncIterator
+from contextlib import closing
 
 import pytest
+import pytest_asyncio
 
 from sci_etl_core.models import PipelineMetadata
 from sci_etl_core.state.async_base import AsyncStateManager
 from sci_etl_core.state.sqlite_async import AsyncSqliteStateManager
 
 
-@pytest.fixture
-def manager(tmp_path) -> AsyncSqliteStateManager:
+@pytest_asyncio.fixture
+async def manager(tmp_path) -> AsyncIterator[AsyncSqliteStateManager]:
     instance = AsyncSqliteStateManager(tmp_path / "nested" / "state.db")
     yield instance
-    if instance._connection is not None:
-        instance._connection.close()
+    await instance.aclose()
+
+
+def _drop_table(path, table: str) -> None:
+    with closing(sqlite3.connect(path, isolation_level=None)) as connection:
+        connection.execute(f"DROP TABLE {table}")
 
 
 class TestAsyncSqliteStateManagerContract:
@@ -28,22 +35,39 @@ class TestAsyncSqliteStateManagerContract:
         await manager.load_processed_ids()
         assert manager._database_path.is_file()
 
-    @pytest.mark.asyncio
-    async def test_lock_is_created_once(self, manager):
-        await manager.load_processed_ids()
-        assert manager._get_lock() is manager._get_lock()
+    def test_can_be_constructed_outside_a_running_loop(self, tmp_path):
+        manager = AsyncSqliteStateManager(tmp_path / "state.db")
+
+        async def mark_and_reload() -> set[str]:
+            try:
+                await manager.mark_processed("outside")
+                return await manager.load_processed_ids()
+            finally:
+                await manager.aclose()
+
+        assert asyncio.run(mark_and_reload()) == {"outside"}
 
     @pytest.mark.asyncio
-    async def test_connection_is_reused_across_calls(self, manager):
+    async def test_connection_is_reused_across_calls(self, manager, mocker):
+        connect = mocker.spy(sqlite3, "connect")
         await manager.load_processed_ids()
-        first = manager._connection
         await manager.load_processed_ids()
-        assert manager._connection is first
+        assert connect.call_count == 1
+
+    @pytest.mark.asyncio
+    async def test_connects_in_autocommit_mode_with_timeout_and_full_sync(self, manager, mocker):
+        connect = mocker.spy(sqlite3, "connect")
+        await manager.load_processed_ids()
+        assert connect.call_args == mocker.call(
+            manager._database_path, timeout=30.0, check_same_thread=False, isolation_level=None
+        )
+        assert connect.spy_return.execute("PRAGMA synchronous").fetchone()[0] == 2
 
     @pytest.mark.asyncio
     async def test_journal_mode_is_write_ahead_logging(self, manager):
         await manager.load_processed_ids()
-        mode = manager._connection.execute("PRAGMA journal_mode").fetchone()[0]
+        with closing(sqlite3.connect(manager._database_path)) as reader:
+            mode = reader.execute("PRAGMA journal_mode").fetchone()[0]
         assert mode.lower() == "wal"
 
 
@@ -114,7 +138,8 @@ class TestAsyncSqliteStateManagerMetadata:
         await manager.save_metadata(PipelineMetadata(last_start_index=11))
         await manager.save_metadata(PipelineMetadata(last_start_index=42))
         assert (await manager.load_metadata()).last_start_index == 42
-        rows = manager._connection.execute("SELECT COUNT(*) FROM pipeline_metadata").fetchone()
+        with closing(sqlite3.connect(manager._database_path)) as reader:
+            rows = reader.execute("SELECT COUNT(*) FROM pipeline_metadata").fetchone()
         assert rows[0] == 1
 
     @pytest.mark.asyncio
@@ -123,6 +148,42 @@ class TestAsyncSqliteStateManagerMetadata:
         await manager.save_metadata(PipelineMetadata(last_start_index=3))
         assert await manager.load_processed_ids() == {"only-id"}
         assert (await manager.load_metadata()).last_start_index == 3
+
+
+class TestAsyncSqliteStateManagerErrors:
+    @pytest.mark.asyncio
+    async def test_file_that_is_not_a_database_raises_the_sqlite_error_unwrapped(self, tmp_path):
+        path = tmp_path / "state.db"
+        path.write_bytes(b"definitely not sqlite " * 50)
+        manager = AsyncSqliteStateManager(path)
+        try:
+            with pytest.raises(sqlite3.DatabaseError) as caught:
+                await manager.load_processed_ids()
+            assert type(caught.value) is sqlite3.DatabaseError
+            assert str(caught.value) == "file is not a database"
+            assert caught.value.__cause__ is None
+        finally:
+            await manager.aclose()
+
+    @pytest.mark.parametrize(
+        ("operation", "table"),
+        [
+            (lambda manager: manager.load_processed_ids(), "processed_ids"),
+            (lambda manager: manager.mark_processed("id"), "processed_ids"),
+            (lambda manager: manager.load_metadata(), "pipeline_metadata"),
+            (lambda manager: manager.save_metadata(PipelineMetadata()), "pipeline_metadata"),
+        ],
+        ids=["load-ids", "mark", "load-metadata", "save-metadata"],
+    )
+    @pytest.mark.asyncio
+    async def test_operation_failure_raises_the_sqlite_error_unwrapped(self, manager, operation, table):
+        await manager.load_processed_ids()
+        _drop_table(manager._database_path, table)
+        with pytest.raises(sqlite3.OperationalError) as caught:
+            await operation(manager)
+        assert type(caught.value) is sqlite3.OperationalError
+        assert str(caught.value) == f"no such table: {table}"
+        assert caught.value.__cause__ is None
 
 
 class TestAsyncSqliteStateManagerDurability:
@@ -135,24 +196,30 @@ class TestAsyncSqliteStateManagerDurability:
         assert (await manager.load_metadata()).last_start_index == 9
 
     @pytest.mark.asyncio
-    async def test_aclose_is_safe_before_any_connection(self, manager):
+    async def test_aclose_is_safe_before_any_connection(self, manager, mocker):
+        connect = mocker.spy(sqlite3, "connect")
         await manager.aclose()
-        assert manager._connection is None
+        assert connect.call_count == 0
 
     @pytest.mark.asyncio
-    async def test_aclose_releases_and_reconnects(self, manager):
+    async def test_aclose_releases_and_reconnects(self, manager, mocker):
+        connect = mocker.spy(sqlite3, "connect")
         await manager.mark_processed("kept")
         await manager.aclose()
-        assert manager._connection is None
+        with pytest.raises(sqlite3.ProgrammingError):
+            connect.spy_return.execute("SELECT 1")
         assert await manager.load_processed_ids() == {"kept"}
-        assert manager._connection is not None
+        assert connect.call_count == 2
 
     @pytest.mark.asyncio
-    async def test_aclose_is_idempotent(self, manager):
+    async def test_aclose_is_idempotent(self, manager, mocker):
+        connect = mocker.spy(sqlite3, "connect")
         await manager.load_processed_ids()
         await manager.aclose()
         await manager.aclose()
-        assert manager._connection is None
+        with pytest.raises(sqlite3.ProgrammingError):
+            connect.spy_return.execute("SELECT 1")
+        assert connect.call_count == 1
 
     @pytest.mark.asyncio
     async def test_state_survives_a_new_manager_instance(self, manager, tmp_path):
@@ -176,3 +243,21 @@ class TestAsyncSqliteStateManagerDurability:
         finally:
             reader.close()
         assert rows == [("committed",)]
+
+
+class TestAsyncSqliteStateManagerCancellation:
+    @pytest.mark.asyncio
+    async def test_cancelled_mark_keeps_the_connection_until_its_thread_finishes(self, manager, statement_gate):
+        gate = statement_gate(blocked_prefix="INSERT OR IGNORE INTO processed_ids", observed_prefix="SELECT record_id")
+        mark = asyncio.create_task(manager.mark_processed("first"))
+        await asyncio.to_thread(gate.blocked.wait, 5)
+        mark.cancel()
+        load = asyncio.create_task(manager.load_processed_ids())
+        load_overlapped = await asyncio.to_thread(gate.observed.wait, 0.5)
+        gate.release.set()
+        await asyncio.to_thread(gate.finished.wait, 5)
+        with pytest.raises(asyncio.CancelledError):
+            await mark
+        assert not load_overlapped
+        assert await load == {"first"}
+        assert gate.events == ["first-start", "first-end", "second-start"]

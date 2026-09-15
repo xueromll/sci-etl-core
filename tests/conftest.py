@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import sqlite3
 import sys
 import types
 from pathlib import Path
@@ -54,6 +55,46 @@ def make_record():
         return RawRecord(record_id=record_id, title=title, abstract=abstract, metadata=metadata)
 
     return _make
+
+
+@pytest.fixture(scope="session")
+def fts5_terms():
+    def _terms(documents: list[str]) -> list[list[str]]:
+        connection = sqlite3.connect(":memory:")
+        try:
+            connection.execute('CREATE VIRTUAL TABLE docs USING fts5(body, tokenize="unicode61 remove_diacritics 2")')
+            connection.execute("CREATE VIRTUAL TABLE vocab USING fts5vocab(docs, 'instance')")
+            with connection:
+                connection.executemany("INSERT INTO docs(rowid, body) VALUES (?, ?)", enumerate(documents, start=1))
+            terms: list[list[str]] = [[] for _ in documents]
+            for doc, term in connection.execute("SELECT doc, term FROM vocab ORDER BY doc, offset"):
+                terms[doc - 1].append(term)
+            return terms
+        finally:
+            connection.close()
+
+    return _terms
+
+
+@pytest.fixture(scope="session")
+def fts5_match():
+    def _match(documents, expression: str) -> set[str]:
+        connection = sqlite3.connect(":memory:")
+        try:
+            connection.execute(
+                'CREATE VIRTUAL TABLE docs USING fts5(title, abstract, body, tokenize="unicode61 remove_diacritics 2")'
+            )
+            with connection:
+                connection.executemany(
+                    "INSERT INTO docs(rowid, title, abstract, body) VALUES (?, ?, ?, ?)",
+                    ((row, doc.title, doc.abstract, doc.body) for row, doc in enumerate(documents, start=1)),
+                )
+            found = connection.execute("SELECT rowid FROM docs WHERE docs MATCH ?", (expression,)).fetchall()
+            return {documents[rowid - 1].record_id for (rowid,) in found}
+        finally:
+            connection.close()
+
+    return _match
 
 
 @pytest.fixture

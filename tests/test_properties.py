@@ -25,6 +25,7 @@ from sci_etl_core.embeddings._similarity import (
 from sci_etl_core.embeddings.store_base import EmbeddingChunk
 from sci_etl_core.embeddings.store_memory import InMemoryEmbeddingStore
 from sci_etl_core.embeddings.store_sqlite_async import AsyncSqliteEmbeddingStore
+from sci_etl_core.exceptions import SearchQueryError
 from sci_etl_core.exporters.csv_async import AsyncCsvUpsertExporter
 from sci_etl_core.extractors.arxiv_async import AsyncArxivExtractor
 from sci_etl_core.parsers.reference_trimmer import trim_after_references
@@ -37,6 +38,12 @@ from sci_etl_core.processors.validation import (
     KeywordExclusionValidator,
     NumericRangeValidator,
 )
+from sci_etl_core.search.compile_fts5 import is_rankable, to_match_expression
+from sci_etl_core.search.evaluate import matches
+from sci_etl_core.search.parser import parse_query
+from sci_etl_core.search.query import And, Not, Or, Phrase, Term, normalize
+from sci_etl_core.search.store_base import SearchDocument
+from sci_etl_core.search.tokenize import Token, Unicode61Tokenizer
 from sci_etl_core.state.async_file_state import AsyncFileStateManager
 
 _EXTRACTOR = AsyncArxivExtractor(client=None, pdf_parser=None, latex_parser=None)
@@ -832,3 +839,137 @@ class TestKeywordExclusionValidatorProperties:
         validator = KeywordExclusionValidator("name", [])
         expected = value.strip().lower() not in _NULL_LIKE
         assert validator.is_valid({"name": value}) is expected
+
+
+_QUERY_PIECES = st.sampled_from(
+    [
+        "a", "Bé", "H-alpha", "and", "AND", "OR", "NOT", "&&", "||", "-", "(", ")", '"', "*", "~", ",", ":",
+        "title:", "Title,body:", "titel:", " ", "\t", "́",
+    ]
+)
+_QUERY_TEXT = st.one_of(st.text(max_size=40), st.lists(_QUERY_PIECES, max_size=24).map("".join))
+
+
+class TestParseQueryProperties:
+    @given(_QUERY_TEXT)
+    def test_returns_a_normalized_node_or_a_located_query_error(self, text):
+        try:
+            node = parse_query(text)
+        except SearchQueryError as error:
+            assert error.position is not None
+            assert 0 <= error.position <= len(text)
+            assert text[error.position : error.position + len(error.token)] == error.token
+        else:
+            assert normalize(node) == node
+
+
+_TOKENIZER = Unicode61Tokenizer()
+_PARITY_TEXT = st.text(
+    alphabet=st.one_of(
+        st.sampled_from("AaZzßẞÆæØøŁłÉéÖöÜüİıΣσςЖж019-~.'́̈ \t\n\x00\x02"),
+        st.characters(exclude_categories=("Cs",)),
+    ),
+    max_size=40,
+)
+
+
+class TestUnicode61TokenizerProperties:
+    @given(texts=st.lists(_PARITY_TEXT, min_size=1, max_size=8))
+    @settings(deadline=None)
+    def test_yields_exactly_the_terms_fts5_indexes(self, texts, fts5_terms):
+        assert [[token.text for token in _TOKENIZER.tokens(text)] for text in texts] == fts5_terms(texts)
+
+    @given(st.text())
+    def test_each_token_is_one_whole_word_at_its_offsets(self, text):
+        previous_end = 0
+        for token in _TOKENIZER.tokens(text):
+            assert previous_end <= token.start < token.end <= len(text)
+            word = text[token.start : token.end]
+            assert _TOKENIZER.tokens(word) == [Token(token.text, 0, len(word))]
+            previous_end = token.end
+
+
+_QUERY_WORDS = ["a", "b", "c", "Bé", "ab", "alpha", "h alpha", "mull", "~", 'a"b', "c\x00d"]
+_FIELD_SCOPES = [(), ("title",), ("abstract", "body")]
+_LEAF = st.one_of(
+    st.builds(Term, st.sampled_from(_QUERY_WORDS), st.sampled_from(_FIELD_SCOPES), st.booleans()),
+    st.builds(
+        Phrase,
+        st.lists(st.sampled_from(_QUERY_WORDS), min_size=1, max_size=3).map(tuple),
+        st.sampled_from(_FIELD_SCOPES),
+    ),
+)
+_TREE = st.recursive(
+    _LEAF,
+    lambda children: st.one_of(
+        st.builds(Not, children),
+        st.builds(lambda kept, removed: And((kept, Not(removed))), children, children),
+        st.lists(children, min_size=1, max_size=4).map(lambda operands: And(tuple(operands))),
+        st.lists(children, min_size=1, max_size=4).map(lambda operands: Or(tuple(operands))),
+    ),
+    max_leaves=16,
+)
+_CORPUS_WORDS = ["a", "B", "c", "bé", "ab", "H-alpha", "Müller", "c~d", "~"]
+_FIELD_TEXT = st.lists(st.sampled_from(_CORPUS_WORDS), max_size=5).map(" ".join)
+_ROWS = st.lists(st.tuples(_FIELD_TEXT, _FIELD_TEXT, _FIELD_TEXT), min_size=1, max_size=5)
+
+
+def _documents(rows):
+    return [SearchDocument(str(index), *row) for index, row in enumerate(rows)]
+
+
+def _subtrees(node):
+    yield node
+    if isinstance(node, Not):
+        yield from _subtrees(node.operand)
+    elif isinstance(node, (And, Or)):
+        for operand in node.operands:
+            yield from _subtrees(operand)
+
+
+class TestNormalizeProperties:
+    @given(_TREE)
+    def test_normalizing_twice_changes_nothing(self, tree):
+        once = normalize(tree)
+        assert normalize(once) == once
+
+    @given(_TREE)
+    def test_the_result_has_canonical_shape(self, tree):
+        for node in _subtrees(normalize(tree)):
+            if isinstance(node, Not):
+                assert not isinstance(node.operand, Not)
+            if isinstance(node, (And, Or)):
+                assert len(node.operands) >= 2
+                assert not any(isinstance(operand, type(node)) for operand in node.operands)
+            if isinstance(node, And):
+                assert sum(isinstance(operand, Not) for operand in node.operands) <= 1
+
+    @given(tree=_TREE, rows=_ROWS)
+    def test_the_result_matches_exactly_the_documents_the_tree_matches(self, tree, rows):
+        for document in _documents(rows):
+            assert matches(normalize(tree), document) is matches(tree, document)
+
+
+class TestCompileFts5Properties:
+    @given(tree=_TREE, rows=_ROWS)
+    @settings(deadline=None, max_examples=200)
+    def test_fts5_returns_exactly_the_documents_matches_accepts(self, tree, rows, fts5_match):
+        documents = _documents(rows)
+        if not is_rankable(tree):
+            with pytest.raises(SearchQueryError):
+                to_match_expression(tree)
+            return
+        expected = {document.record_id for document in documents if matches(tree, document)}
+        assert fts5_match(documents, to_match_expression(tree)) == expected
+
+    @given(text=_QUERY_TEXT, rows=_ROWS)
+    @settings(deadline=None)
+    def test_a_rankable_parsed_query_runs_on_fts5_as_matches_evaluates_it(self, text, rows, fts5_match):
+        try:
+            node = parse_query(text)
+        except SearchQueryError:
+            return
+        if is_rankable(node):
+            documents = _documents(rows)
+            expected = {document.record_id for document in documents if matches(node, document)}
+            assert fts5_match(documents, to_match_expression(node)) == expected

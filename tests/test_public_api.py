@@ -22,6 +22,7 @@ PACKAGES = [
     "sci_etl_core.llm",
     "sci_etl_core.parsers",
     "sci_etl_core.processors",
+    "sci_etl_core.search",
     "sci_etl_core.state",
 ]
 
@@ -139,6 +140,7 @@ class TestInstallFootprint:
             from sci_etl_core.embeddings import AsyncChunkIngestor, SlidingWindowChunker
             from sci_etl_core.parsers import HtmlTextParser, LatexTarballParser
             from sci_etl_core.processors import DeduplicationStep, NormalizationStep, QualityFlagStep
+            from sci_etl_core.search import parse_query
             dir(sci_etl_core)
             """,
         )

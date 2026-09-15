@@ -10,6 +10,9 @@ from sci_etl_core.exceptions import (
     ParsingError,
     PipelineAborted,
     SciEtlError,
+    SearchError,
+    SearchQueryError,
+    SearchStoreError,
     UpstreamError,
 )
 
@@ -24,10 +27,28 @@ from sci_etl_core.exceptions import (
         (LLMError, SciEtlError),
         (ConfigurationError, SciEtlError),
         (PipelineAborted, SciEtlError),
+        (SearchError, SciEtlError),
+        (SearchQueryError, SearchError),
+        (SearchStoreError, SearchError),
     ],
 )
 def test_hierarchy(error, ancestor):
     assert issubclass(error, ancestor)
+
+
+def test_a_query_error_is_never_a_store_error():
+    assert not issubclass(SearchQueryError, SearchStoreError)
+    assert not issubclass(SearchStoreError, SearchQueryError)
+
+
+class TestSearchQueryError:
+    def test_carries_the_position_and_token_at_fault(self):
+        error = SearchQueryError("Unknown field 'titel'", position=4, token="titel")
+        assert (str(error), error.position, error.token) == ("Unknown field 'titel'", 4, "titel")
+
+    def test_a_request_level_error_has_no_position(self):
+        error = SearchQueryError("Semantic mode requires a finder")
+        assert (error.position, error.token) == (None, "")
 
 
 class TestPipelineAborted:

@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-import asyncio
 import json
 import sqlite3
-from collections.abc import Callable, Sequence
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import Any
 
 import numpy as np
 
+from sci_etl_core._sqlite_async import AsyncSqliteRunner
 from sci_etl_core.embeddings._similarity import unit_vector
 from sci_etl_core.embeddings.store_base import (
     AsyncEmbeddingStore,
@@ -16,8 +16,6 @@ from sci_etl_core.embeddings.store_base import (
     SearchHit,
 )
 from sci_etl_core.exceptions import EmbeddingStoreError
-
-T = TypeVar("T")
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS chunks (
@@ -58,22 +56,21 @@ class AsyncSqliteEmbeddingStore(AsyncEmbeddingStore):
 
     def __init__(self, path: str | Path) -> None:
         self._path = str(path)
-        self._connection: sqlite3.Connection | None = None
-        self._lock = asyncio.Lock()
+        self._runner = AsyncSqliteRunner(self._open_connection, error_factory=EmbeddingStoreError)
 
     async def add(self, chunks: Sequence[EmbeddingChunk]) -> None:
         if not chunks:
             return
         rows = [self._to_row(chunk) for chunk in chunks]
-        await self._run(lambda connection: self._write(connection, None, rows), "write chunk embeddings")
+        await self._runner.run(lambda connection: self._write(connection, None, rows), "write chunk embeddings")
 
     async def delete_record(self, record_id: str) -> None:
-        await self._run(lambda connection: self._write(connection, record_id, []), "delete chunk embeddings")
+        await self._runner.run(lambda connection: self._write(connection, record_id, []), "delete chunk embeddings")
 
     async def replace_record(self, record_id: str, chunks: Sequence[EmbeddingChunk]) -> None:
         """Delete the record's chunks and insert ``chunks`` in one transaction."""
         rows = [self._to_row(chunk) for chunk in chunks]
-        await self._run(
+        await self._runner.run(
             lambda connection: self._write(connection, record_id, rows), "replace chunk embeddings"
         )
 
@@ -90,7 +87,7 @@ class AsyncSqliteEmbeddingStore(AsyncEmbeddingStore):
         norm = float(np.linalg.norm(query_vector))
         if query_vector.size == 0 or norm == 0.0 or not np.isfinite(norm):
             return []
-        rows = await self._run(
+        rows = await self._runner.run(
             lambda connection: self._select(connection, exclude_record_id), "read chunk embeddings"
         )
         hits = [hit for hit in self._score_rows(rows, query_vector) if hit.score >= min_score]
@@ -98,34 +95,15 @@ class AsyncSqliteEmbeddingStore(AsyncEmbeddingStore):
         return hits[:top_k]
 
     async def count(self) -> int:
-        rows = await self._run(lambda connection: connection.execute(_COUNT).fetchall(), "count chunk embeddings")
+        rows = await self._runner.run(
+            lambda connection: connection.execute(_COUNT).fetchall(), "count chunk embeddings"
+        )
         return int(rows[0][0])
 
     async def aclose(self) -> None:
-        async with self._lock:
-            connection, self._connection = self._connection, None
-        if connection is not None:
-            await asyncio.to_thread(connection.close)
+        await self._runner.aclose()
 
-    async def _run(self, operation: Callable[[sqlite3.Connection], T], action: str) -> T:
-        async with self._lock:
-            work = asyncio.ensure_future(asyncio.to_thread(self._execute, operation))
-            try:
-                return await asyncio.shield(work)
-            except asyncio.CancelledError:
-                await asyncio.wait({work})
-                if not work.cancelled():
-                    work.exception()
-                raise
-            except sqlite3.Error as exc:
-                raise EmbeddingStoreError(f"Failed to {action}: {exc}") from exc
-
-    def _execute(self, operation: Callable[[sqlite3.Connection], T]) -> T:
-        return operation(self._connect())
-
-    def _connect(self) -> sqlite3.Connection:
-        if self._connection is not None:
-            return self._connection
+    def _open_connection(self) -> sqlite3.Connection:
         try:
             connection = sqlite3.connect(self._path, check_same_thread=False)
         except sqlite3.Error as exc:
@@ -136,7 +114,6 @@ class AsyncSqliteEmbeddingStore(AsyncEmbeddingStore):
         except sqlite3.Error as exc:
             connection.close()
             raise EmbeddingStoreError(f"Failed to open the SQLite embedding store: {exc}") from exc
-        self._connection = connection
         return connection
 
     @staticmethod

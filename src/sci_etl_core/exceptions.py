@@ -49,6 +49,34 @@ class EmbeddingStoreError(SciEtlError):
     """
 
 
+class SearchError(SciEtlError):
+    """Raised when a text search operation fails."""
+
+
+class SearchQueryError(SearchError):
+    """Raised when a Boolean query cannot be parsed or cannot be run as asked.
+
+    Kept distinct from :class:`SearchStoreError` so a typo in a query is never
+    mistaken for a corrupt index. ``position`` is the character offset into the
+    query at fault and ``token`` is the text found there, so a UI can underline
+    it. ``position`` is ``None`` and ``token`` is empty when the error concerns
+    the request rather than a character of the query.
+    """
+
+    def __init__(self, message: str, *, position: int | None = None, token: str = "") -> None:
+        super().__init__(message)
+        self.position = position
+        self.token = token
+
+
+class SearchStoreError(SearchError):
+    """Raised when the text index cannot be read or written.
+
+    Kept distinct from :class:`SearchQueryError` so a storage fault is never
+    mistaken for a malformed query.
+    """
+
+
 class ConfigurationError(SciEtlError):
     """Raised when configuration loading or validation fails."""
 

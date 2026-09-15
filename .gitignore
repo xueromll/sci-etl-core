@@ -11,4 +11,4 @@ code.txt
 .env.*
 !.env.example
 .venv/
-.pytest_cache/
+hybrid-search-plan.md

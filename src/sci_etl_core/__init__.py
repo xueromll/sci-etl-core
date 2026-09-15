@@ -44,6 +44,9 @@ _EXPORTS: dict[str, str] = {
     "ParsingError": "sci_etl_core.exceptions",
     "PipelineAborted": "sci_etl_core.exceptions",
     "SciEtlError": "sci_etl_core.exceptions",
+    "SearchError": "sci_etl_core.exceptions",
+    "SearchQueryError": "sci_etl_core.exceptions",
+    "SearchStoreError": "sci_etl_core.exceptions",
     "UpstreamError": "sci_etl_core.exceptions",
     "AsyncExporter": "sci_etl_core.exporters.async_base",
     "Exporter": "sci_etl_core.exporters.base",
@@ -114,6 +117,9 @@ if TYPE_CHECKING:
         ParsingError,
         PipelineAborted,
         SciEtlError,
+        SearchError,
+        SearchQueryError,
+        SearchStoreError,
         UpstreamError,
     )
     from sci_etl_core.exporters.async_base import AsyncExporter
