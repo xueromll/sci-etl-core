@@ -23,6 +23,7 @@ pipeline on a background loop.
 - [Quick Start](#quick-start)
 - [Post-Processing and Visualization](#post-processing-and-visualization)
 - [Semantic Memory (Optional)](#semantic-memory-optional)
+- [Local Search and Discovery](#local-search-and-discovery)
 - [State, Resuming, and Errors](#state-resuming-and-errors)
 - [Graceful Shutdown](#graceful-shutdown)
 - [Retries](#retries)
@@ -63,6 +64,9 @@ pipeline on a background loop.
 - **Semantic memory (optional)** — chunk and embed full texts into an
   in-memory or SQLite vector store, search for similar articles, or gate
   relevance by embedding similarity instead of an LLM call.
+- **Local search and discovery** — Boolean queries over a SQLite FTS5 text
+  index that needs only the standard library, hybrid search that fuses BM25
+  with embedding similarity, metadata facets, and graphs of related papers.
 - **Dependency injection everywhere** — HTTP clients, parsers, models,
   prompts, and destinations are constructor arguments.
 - **Concrete implementations included** — arXiv extractor; OpenAI-compatible
@@ -128,8 +132,8 @@ pip install -e ".[full]"
 ```
 
 The base install covers configuration, both pipelines, the state backends, the
-sync adapters, HTML and LaTeX parsing, text chunking, and the pandas processor
-steps. Components load their optional dependencies only when you import them,
+sync adapters, HTML and LaTeX parsing, text chunking, Boolean text search,
+rank fusion, discovery graphs, and the pandas processor steps. Components load their optional dependencies only when you import them,
 so add the extras for the components you use:
 
 | Extra | Adds | Needed for |
@@ -142,6 +146,7 @@ so add the extras for the components you use:
 | `cluster` | `scikit-learn`, `numpy` | `ClusteringStep` |
 | `embeddings` | `numpy`, `openai` | `AsyncOpenAIEmbedder`, the vector stores, `AsyncEmbeddingRelevanceFilter` |
 | `embeddings-local` | `numpy`, `sentence-transformers` | `AsyncSentenceTransformerEmbedder` |
+| `search` | nothing | nothing extra: `sci_etl_core.search` needs only the standard library, so this extra just records why the package is installed |
 | `dev` | pytest and plugins, `hypothesis` | running the test suite |
 | `lint` | `ruff`, `mypy`, type stubs | linting and type-checking the source |
 
@@ -248,8 +253,9 @@ waits `sleep_before_search` seconds (default 3) before every listing request,
 to respect arXiv's rate limits.
 
 On exit, `async with pipeline` awaits `aclose()` on every entry in
-`closeables` that has one — the HTTP client, the LLM client, and any SQLite
-state manager or embedding store you use.
+`closeables` that has one — the HTTP client, the LLM client, and any
+`AsyncSqliteStateManager`, `AsyncSqliteEmbeddingStore`, or
+`AsyncSqliteFts5Store` you use.
 
 **Prompts must ask for JSON.** `AsyncOpenAICompatibleClient` requests JSON mode
 (`response_format={"type": "json_object"}`), and OpenAI's API rejects JSON-mode
@@ -577,6 +583,330 @@ async def show_similar(text: str) -> None:
   )
   ```
 
+To index the same records for Boolean search as well, see
+[Local Search and Discovery](#local-search-and-discovery). Its SQLite text
+index, `AsyncSqliteFts5Store`, is one more store to list in `closeables`
+beside the embedding store, and its `search` extra installs nothing.
+
+## Local Search and Discovery
+
+A text index next to the vector memory adds Boolean search, hybrid search that
+fuses keyword and meaning-based rankings, metadata facets, and graphs of
+related papers. All of it lives in `sci_etl_core.search` and needs only the
+standard library's `sqlite3`, so it works on a bare `pip install sci-etl-core`.
+The `search` extra installs nothing; it only lets a requirements file say why
+the package is there. Only the semantic side needs the `embeddings` extra.
+
+This example extends the one in [Semantic Memory](#semantic-memory-optional),
+so that each relevant record is indexed for both kinds of search:
+
+```python
+from sci_etl_core import AsyncCompositeIngestor
+from sci_etl_core.embeddings import (
+    AsyncChunkIngestor,
+    AsyncOpenAIEmbedder,
+    AsyncSimilarArticleFinder,
+    AsyncSqliteEmbeddingStore,
+    SlidingWindowChunker,
+)
+from sci_etl_core.search import AsyncHybridSearcher, AsyncSearchIndexer, AsyncSqliteFts5Store
+
+embedder = AsyncOpenAIEmbedder(
+    api_key="sk-...",
+    base_url="https://api.openai.com/v1",
+    model="text-embedding-3-small",
+)
+vector_store = AsyncSqliteEmbeddingStore("memory.db")
+text_store = AsyncSqliteFts5Store("search.db", facet_keys=("categories", "year"))
+
+ingestor = AsyncCompositeIngestor(
+    AsyncChunkIngestor(chunker=SlidingWindowChunker(), embedder=embedder, store=vector_store),
+    AsyncSearchIndexer(store=text_store),
+    logger=print,
+)
+
+# Add to the pipeline from the Quick Start:
+#   AsyncETLPipeline(
+#       ...,
+#       logger=print,
+#       memory_ingestor=ingestor,
+#       closeables=[client, llm, embedder, vector_store, text_store],
+#   )
+
+
+async def show_matches(query: str) -> None:
+    searcher = AsyncHybridSearcher(text_store, AsyncSimilarArticleFinder(embedder, vector_store))
+    outcome = await searcher.search(query, top_k=10)
+    if outcome.degraded:
+        print(f"Degraded: {', '.join(outcome.degraded)}")
+    for hit in outcome.hits:
+        print(f"{hit.score:.4f}  {hit.record_id}  {hit.title}")
+```
+
+- **Closing the stores.** `text_store` belongs in `closeables` for the same
+  reason `vector_store` does, because this is a one-shot script: the pipeline
+  owns both stores, so `show_matches` must run inside `async with pipeline`. A
+  long-lived application follows [Store ownership](#store-ownership) instead.
+- **One log stream.** The same `logger` goes to the composite and the
+  pipeline, so memory faults appear in one stream. A `SearchStoreError` while
+  indexing is logged as `Memory ingest failed for <record_id> in
+  AsyncSearchIndexer: ...`, and the record's chunks are still embedded and its
+  entities still exported. An embedding fault likewise leaves the text index
+  unaffected. A `SearchQueryError` is not a memory fault and fails the record.
+- **Ingestor order.** `AsyncCompositeIngestor` returns its first ingestor's
+  count, so pass the chunk ingestor first; an `AsyncSearchIndexer` in first
+  place raises `ValueError`. Without embeddings, pass an `AsyncSearchIndexer`
+  straight to `memory_ingestor=`.
+- **What gets indexed.** One document per record, holding its title, abstract,
+  full text, and `metadata`. Re-ingesting a record replaces its document, and
+  a record whose title, abstract, and text are all blank is removed.
+
+### Query syntax
+
+| Construct | Example | Matches |
+|-----------|---------|---------|
+| Term | `galaxy` | the word, ignoring case and accents, so `Müller` matches `Muller` |
+| Phrase | `"dwarf galaxy"` | the words next to each other, in order |
+| Prefix | `photometr*` | any word starting with `photometr` |
+| Field scope | `title:quasar`, `title,abstract:"dwarf galaxy"` | only in the named fields: `title`, `abstract`, `body` |
+| And | `a AND b`, `a && b`, `a b` | both |
+| Or | `a OR b`, `a \|\| b` | either |
+| Not | `NOT a`, `-a` | documents without `a` |
+| Grouping | `(a OR b) -c` | |
+
+`NOT` binds tightest, then `AND`, then `OR`. Operators are upper case, so
+`and` is an ordinary word. A word the tokenizer splits, such as `H-alpha`, is
+searched as a phrase of its parts.
+
+Parsing is pure and synchronous, so a query bar can run it on every keystroke.
+A malformed query raises `SearchQueryError`, whose `position` and `token` point
+at the fault, and `describe` returns the parsed words and phrases as
+`QueryChip`s for display:
+
+```python
+from sci_etl_core import SearchQueryError
+from sci_etl_core.search import describe, parse_query
+
+try:
+    chips = describe(parse_query("title:quasar (blazar OR -dwarf"))
+except SearchQueryError as exc:
+    print(f"{exc} (column {exc.position}: {exc.token!r})")
+```
+
+### Ranked search and plain filtering
+
+The stores take parsed queries, and `AsyncHybridSearcher` takes text and parses
+it once, before any I/O. A ranked search needs a term to rank by, so a query
+whose every term is negated, such as `NOT simulation` or
+`NOT simulation OR quasar`, raises `SearchQueryError` from `search`. Ask
+`filter_ids` instead. It accepts any query and returns a `frozenset` of record
+ids, which carries no order and so can't be mistaken for a ranking:
+
+```python
+from sci_etl_core.search import parse_query
+
+hits = await text_store.search(parse_query("photometr* dwarf"), limit=20)
+observational = await text_store.filter_ids(parse_query("NOT simulation"))
+```
+
+A `TextHit` has a `score` where higher is better. Its scale depends on the
+corpus, so compare scores only within one result list. Its `snippet` is plain
+text from one field, and `highlights` holds `[start, end)` character offsets
+into it for the matched words, so the UI applies its own markup.
+
+### Hybrid search
+
+`AsyncHybridSearcher(text_store, finder).search(query, top_k, mode=..., filters=...)`
+runs one or both retrieval legs:
+
+| `mode` | Runs | Without a `finder` |
+|--------|------|--------------------|
+| `"lexical"` | BM25 over the text index | unaffected |
+| `"semantic"` | the vector memory, scoring each article by its best chunk | raises `SearchQueryError` |
+| `"hybrid"` (default) | both at once, then fuses the two rankings | runs the lexical leg only and reports `skipped=("semantic",)` |
+
+- **What the embedder sees.** The semantic leg embeds the query's words, not
+  its syntax. Operators, field scopes, negated terms, and prefix terms are
+  dropped, so `quasar -dwarf` is embedded as `quasar`, and `quasar OR blazar`
+  the same as `quasar blazar`. A hybrid query made only of prefix terms skips
+  the semantic leg; in semantic mode it raises `SearchQueryError`.
+- **Degraded and skipped legs.** `SearchOutcome.degraded` names legs that were
+  attempted and failed. In hybrid mode, an `EmbeddingError` is logged through
+  `logger`, and the lexical results are returned. `SearchOutcome.skipped`
+  names legs that had nothing to run. Tell the user about both. A lexical
+  failure is always raised, because it means the local index is broken.
+- **Fusion.** Reciprocal rank fusion reads only the order of each list, so
+  BM25's corpus-dependent scale never skews the blend. Pass
+  `strategy=normalized_score_fusion` when score gaps should count, and
+  `fusion=FusionParams(weights=(1.0, 2.0))` to weigh the lexical and semantic
+  lists, in that order.
+- **Hits.** A `FusedHit` carries `lexical_rank` and `semantic_rank` (`None`
+  where that leg did not return it), `title`, `metadata`, and the lexical
+  snippet and highlights. Show ranks, never the fused score as a percentage. A
+  record found only by the semantic leg has no snippet; read its abstract with
+  `text_store.get_documents`.
+- **Candidate pool.** Each leg fetches `HybridParams.candidate_pool` records
+  (default 100, and never fewer than `top_k`) before fusion, so a record
+  ranked 40th lexically and 3rd semantically can still reach the top 20. The
+  semantic leg asks the vector memory for `candidate_pool × chunk_pool_factor`
+  chunks (default factor 5). Raise the factor when long articles fill the top
+  chunks and the pool comes back short.
+
+### Filters and facets
+
+Metadata filters are `MetadataFilter` values passed beside the query, never
+written into it. A store tags each document under the metadata keys named in
+its `facet_keys`. `AsyncArxivExtractor` fills `categories`, `authors`,
+`published`, and `year` in `RawRecord.metadata`, and `AsyncSearchIndexer`
+copies that metadata into the index.
+
+```python
+from sci_etl_core.search import MetadataFilter, parse_query
+
+filters = (
+    MetadataFilter("categories", {"astro-ph.GA", "astro-ph.CO"}),
+    MetadataFilter("year", {"2020", "2021"}, negated=True),
+)
+outcome = await searcher.search("dwarf galaxy", filters=filters)
+facets = await text_store.facet_counts(["categories", "year"], query=parse_query("dwarf galaxy"), filters=filters)
+```
+
+- **Matching.** A filter keeps the records tagged with any of its values, and
+  with `negated=True` drops them. Every filter must pass. Several values of one
+  key go in one filter: two filters on the same key, or a key outside
+  `facet_keys`, raise `ValueError` before any I/O.
+- **Tags.** Strings, integers, and lists of them become tags; other values are
+  not tagged. Matching is exact, so there are no range filters over dates or
+  years.
+- **Before the limit.** Filters are applied inside the index, before `limit`,
+  and to both legs of a hybrid search, so a filtered-out record never takes a
+  result slot.
+- **Facet counts.** `facet_counts` maps each key to `(value, count)` pairs,
+  sorted by count and then value, without zero counts. Each key's counts apply
+  the query and every filter on *other* keys, so a count says how many results
+  selecting that value would give, and the other values of a filtered key stay
+  visible. `query=None` counts across the whole index.
+- **Changing `facet_keys`.** The keys are fixed when a store is constructed
+  and recorded in the file. To change them, construct the store with the new
+  keys and `await text_store.rebuild_tags()`. Until then, a filter or facet on
+  a key whose tags aren't built raises `SearchStoreError`.
+
+### Text stores
+
+- **`InMemoryTextSearchStore(facet_keys=...)`** suits tests and short-lived
+  runs. It matches exactly the records the SQLite store matches and scores
+  with the same BM25 formula.
+- **`AsyncSqliteFts5Store(path, facet_keys=..., weights=...)`** persists the
+  index. Each article's text is stored once, each write is one transaction,
+  and every SQLite failure, including a file that isn't a database, raises
+  `SearchStoreError`. `weights=BM25Weights(title=10.0, abstract=4.0, body=1.0)`
+  sets how much a match in each field counts; those are the defaults.
+- **FTS5 is required.** The store needs a Python whose SQLite was built with
+  FTS5, and raises `SearchStoreError` when it is constructed otherwise.
+  `fts5_available()` checks in advance; `InMemoryTextSearchStore` works
+  everywhere.
+- **Maintenance is explicit.** `optimize()` merges the index's segments.
+  `integrity_check()` returns `False` when the index disagrees with the stored
+  documents, for example after the file was edited by other tools, and
+  `rebuild_index()` repairs it from the stored text without fetching anything.
+  A file created by a newer version of the library raises `SearchStoreError`
+  rather than being used.
+- **Custom stores** subclass `AsyncTextSearchStore`; see
+  [CONTRIBUTING.md](CONTRIBUTING.md#adding-a-new-component).
+
+### Discovery graphs
+
+`build_discovery_graph` grows a graph of related papers around a seed record,
+in the spirit of Connected Papers, from edge sources that relate records by
+similarity:
+
+```python
+from sci_etl_core.search import (
+    EmbeddingEdgeSource,
+    GraphParams,
+    MetadataEdgeSource,
+    MetadataFilter,
+    build_discovery_graph,
+    filter_graph,
+)
+
+
+async def show_neighborhood(record_id: str) -> None:
+    sources = [
+        EmbeddingEdgeSource(embedder, vector_store, text_store),
+        MetadataEdgeSource(text_store, keys=("categories",)),
+    ]
+    graph = await build_discovery_graph(record_id, sources, text_store, params=GraphParams(depth=2, fanout=8))
+    recent = filter_graph(graph, filters=[MetadataFilter("year", {"2025", "2026"})])
+    for node in recent.nodes:
+        print(f"community {node.community}  links {node.degree}  {node.title}")
+```
+
+- **Edge sources.** `EmbeddingEdgeSource` relates records whose title and
+  abstract are close in the vector memory, and `MetadataEdgeSource` records
+  that share tags, weighted by the Jaccard index of their tag sets. Its keys
+  must be among the text store's `facet_keys`, and it defaults to
+  `("categories", "authors")`. Other notions of relatedness, such as
+  citations, plug in as subclasses of `AsyncEdgeSource`.
+- **Growth.** The graph grows `depth` levels. Each record adds up to `fanout`
+  neighbors per source whose weight is at least `min_weight` (default 0.35),
+  and `max_nodes` (default 200) is checked before each level. With
+  `mutual_only` (the default), an edge is kept only when each record is among
+  the other's nearest, which keeps a hub paper from linking to everything.
+  Only records connected to the seed remain.
+- **Communities.** `GraphNode.community` comes from label propagation, which
+  is deterministic: the same graph always gives the same communities. When
+  `max_iterations` (default 20) cuts it short,
+  `DiscoveryGraph.communities_converged` is `False`, and a UI should say the
+  communities are approximate.
+- **Topology only.** Nodes and edges carry no coordinates or colors; the UI
+  runs its own layout.
+- **Filtering without I/O.** `filter_graph` is pure and synchronous, so a UI
+  can re-run it on every facet toggle. The seed always stays, edges that lose
+  an endpoint are dropped, and communities are kept so colors stay stable.
+  Pass `matched_ids=await text_store.filter_ids(parse_query(...))` to keep only
+  records matching a query; that call accepts pure negation, such as
+  `NOT simulation`.
+- **Cost.** `EmbeddingEdgeSource` issues up to one vector query per node, and
+  `AsyncSqliteEmbeddingStore` scans every stored chunk on each query, so keep
+  `max_nodes` small for a large memory.
+
+### Building a user interface
+
+`sci_etl_core.discovery` holds the read-model a presentation layer renders:
+`DiscoveryResult` (the query text and chips, fused hits, graph, facets,
+matched count, elapsed time, and degraded and skipped legs) and `Facet`. Both
+are frozen dataclasses, and importing the module loads no store, no event-loop
+machinery, and no optional dependency. Keep parsing on the keystroke and make
+only retrieval asynchronous: debounce it, cancel a search when a newer one
+starts, and drop any result that arrives after a newer search began.
+
+### Store ownership
+
+Three facts make it matter who closes a store:
+
+- `aclose()` on a SQLite store isn't final: a later call reopens the
+  connection.
+- `async with pipeline` closes every entry in `closeables` each time the block
+  exits.
+- A store's lock belongs to the first event loop that contends for it. Using
+  the same instance from a second loop fails, but only when both use it at
+  once, so a quiet test passes and a busy UI breaks.
+
+So give every store instance exactly **one owner**, the scope that outlives
+all its users, and let only the owner call `aclose()`. Use each instance from
+**one event loop**. Everything else borrows: `AsyncHybridSearcher`, the edge
+sources, and `AsyncCompositeIngestor` never close a store.
+
+| Deployment | Owner of the SQLite stores | Pipeline `closeables` |
+|------------|----------------------------|-----------------------|
+| Pipeline and UI in separate processes | each process, for the instances it opened on the shared files | lists the pipeline's own instances |
+| One-shot script that ingests and queries inside `async with pipeline` | the pipeline | lists the stores; queries run inside the block |
+| Long-lived application on one event loop that starts ingest runs | the application, which closes them on shutdown | must **not** list them, or the end of each run closes them and the next query reopens an unowned connection |
+| Blocking `ETLPipeline` plus an application on its own loop | two sets of instances on the same files: one used by the pipeline's background loop, one by the application's loop | lists the pipeline's set |
+
+SQLite's WAL mode lets one process read while another writes.
+
 ## State, Resuming, and Errors
 
 Two state backends ship with the library:
@@ -632,8 +962,8 @@ timestamp in UTC.
 
 All library exceptions derive from `SciEtlError`: `ExtractionError`
 (`UpstreamError`, `MalformedResponseError`), `ParsingError`, `LLMError`,
-`EmbeddingError`, `EmbeddingStoreError`, `ConfigurationError`, and
-`PipelineAborted`. All of them can be imported from `sci_etl_core`. The bundled
+`EmbeddingError`, `EmbeddingStoreError`, `SearchError` (`SearchQueryError`,
+`SearchStoreError`), `ConfigurationError`, and `PipelineAborted`. All of them can be imported from `sci_etl_core`. The bundled
 parsers raise `ParsingError` for bytes they can't read; a custom `Parser`
 should do the same, so `AsyncArxivExtractor` moves on to its next source
 instead of failing the record.
@@ -818,9 +1148,11 @@ AsyncExtractor.search --> parse_listing --> records not yet in AsyncStateManager
                                                   v
                           AsyncExtractor.fetch_full_text (LaTeX -> PDF -> abstract)
                                                   |
-                                                  +--> AsyncChunkIngestor (optional)
-                                                  |      TextChunker -> AsyncEmbedder
-                                                  |      -> AsyncEmbeddingStore
+                                                  +--> MemoryIngestor (optional)
+                                                  |      AsyncChunkIngestor: TextChunker -> AsyncEmbedder
+                                                  |        -> AsyncEmbeddingStore
+                                                  |      AsyncSearchIndexer: AsyncTextSearchStore
+                                                  |      AsyncCompositeIngestor: several at once
                                                   v
                           AsyncEntityExtractor.extract
                                                   |
@@ -828,6 +1160,10 @@ AsyncExtractor.search --> parse_listing --> records not yet in AsyncStateManager
                           AsyncExporter.export(entities, destination) --> mark processed
 
 After each page: AsyncStateManager.save_metadata(last_start_index)
+
+Search:    AsyncHybridSearcher.search(query) --> AsyncTextSearchStore.search (BM25) -------+--> fusion --> SearchOutcome
+                                             --> AsyncSimilarArticleFinder (vector memory) -+
+Discovery: build_discovery_graph(seed) --> AsyncEdgeSource.neighbours --> DiscoveryGraph --> filter_graph
 ```
 
 | Layer | Interface | Implementations | Import from |
@@ -842,6 +1178,10 @@ After each page: AsyncStateManager.save_metadata(last_start_index)
 | Embeddings | `AsyncEmbedder` | `AsyncOpenAIEmbedder`, `AsyncSentenceTransformerEmbedder` | `sci_etl_core.embeddings` |
 | Chunking | `TextChunker` | `SlidingWindowChunker` | `sci_etl_core.embeddings` |
 | Vector memory | `AsyncEmbeddingStore` | `InMemoryEmbeddingStore`, `AsyncSqliteEmbeddingStore` | `sci_etl_core.embeddings` |
+| Memory ingest | `MemoryIngestor` | `AsyncChunkIngestor`, `AsyncSearchIndexer`, `AsyncCompositeIngestor` | `sci_etl_core.embeddings`, `sci_etl_core.search`, `sci_etl_core` |
+| Text search | `AsyncTextSearchStore` | `InMemoryTextSearchStore`, `AsyncSqliteFts5Store` | `sci_etl_core.search` |
+| Fusion | `FusionStrategy` | `reciprocal_rank_fusion`, `normalized_score_fusion`; `AsyncHybridSearcher` | `sci_etl_core.search` |
+| Discovery graph | `AsyncEdgeSource` | `EmbeddingEdgeSource`, `MetadataEdgeSource`; `build_discovery_graph`, `filter_graph` | `sci_etl_core.search` |
 | Post-processing | `Processor`, `RecordValidator` | `ProcessorChain`, `NormalizationStep`, `DeduplicationStep`, `ClusteringStep`, `CompletenessStep`, `QualityFlagStep`; `NumericRangeValidator`, `KeywordExclusionValidator`, `CompositeValidator` | `sci_etl_core.processors` |
 | Sync adapters | `Extractor`, `RelevanceFilter`, `EntityExtractor`, `LLMClient`, `Exporter`, `StateManager` | `Sync*Adapter` for each | `sci_etl_core` |
 | Orchestration | — | `AsyncETLPipeline`, `ETLPipeline` | `sci_etl_core` |
@@ -851,7 +1191,8 @@ re-exported from `sci_etl_core` itself; parser implementations, processor
 steps, and validators come from their subpackages. Supporting modules:
 `sci_etl_core.config`, `sci_etl_core.http_async` (`build_async_client`),
 `sci_etl_core.rate_limiter`, `sci_etl_core.signals`, `sci_etl_core.log_utils`,
-and `sci_etl_core.exceptions`. Every package loads its public names on first
+`sci_etl_core.exceptions`, and `sci_etl_core.discovery` (the read-model for
+user interfaces). Every package loads its public names on first
 access, so importing one component never requires another component's
 optional dependencies.
 

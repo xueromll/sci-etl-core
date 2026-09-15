@@ -23,6 +23,7 @@ fields, and domain rules for your own.
 - [Step 7: Post-processing](#step-7-post-processing)
 - [Step 8: Check parity before changing behavior](#step-8-check-parity-before-changing-behavior)
 - [Step 9: Delete the old code](#step-9-delete-the-old-code)
+- [Upgrading to 0.3 and 0.4](#upgrading-to-03-and-04)
 - [What the migration uncovered](#what-the-migration-uncovered)
 - [Adapting this to your field](#adapting-this-to-your-field)
 
@@ -836,6 +837,31 @@ a test suite that exercises the real pipeline offline.
 twice; the migration was a good moment to give them one shared figure builder.
 `AsyncPlotly3DExporter` wasn't used, because udg-catalogue's map needs custom
 hover text and a fixed color range.
+
+## Upgrading to 0.3 and 0.4
+
+Step 1 pins a version range and raises its upper bound only after checking a
+new minor release against your tests. The 0.3 and 0.4 releases add local
+search and discovery graphs, and change these things a migrated pipeline can
+notice ([CHANGELOG.md](CHANGELOG.md) lists everything):
+
+- **arXiv records carry metadata.** `RawRecord.metadata` now holds
+  `categories`, `authors`, `published`, and `year` instead of staying empty.
+  Code of your own that reads records, including tests that compare
+  `metadata == {}`, sees the new keys. The metadata stored with embedding
+  chunks is unchanged.
+- **`memory_ingestor` accepts any `MemoryIngestor`.** An `AsyncChunkIngestor`
+  works exactly as before. A type hint in your code that names
+  `AsyncChunkIngestor` for this argument can widen to `MemoryIngestor`.
+- **Search is opt-in.** Nothing changes in a pipeline that passes no text
+  index; udg-catalogue's `build_pipeline` passes no `memory_ingestor` at all.
+  To add one, pass an `AsyncSearchIndexer`, or an `AsyncCompositeIngestor`
+  with a chunk ingestor first, as
+  [Local Search and Discovery](README.md#local-search-and-discovery) shows. Its
+  `AsyncSqliteFts5Store` goes in `closeables` like any other SQLite store.
+- **SQLite state is safer under cancellation.** `AsyncSqliteStateManager` no
+  longer lets a cancelled operation's worker thread overlap the next
+  operation. `AsyncFileStateManager`, which udg-catalogue uses, is unchanged.
 
 ## What the migration uncovered
 

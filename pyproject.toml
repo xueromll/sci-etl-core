@@ -51,6 +51,7 @@ viz = ["plotly", "aiofiles"]
 cluster = ["scikit-learn", "numpy"]
 embeddings = ["numpy", "openai"]
 embeddings-local = ["numpy", "sentence-transformers"]
+search = []
 dev = ["pytest", "pytest-asyncio", "pytest-mock", "pytest-cov", "hypothesis"]
 lint = ["ruff", "mypy", "types-PyYAML", "types-requests", "types-aiofiles"]
 full = [
