@@ -8,9 +8,16 @@ from datetime import date, time
 from typing import Any
 
 SNIPPET_OPEN = "\x02"
+"""Marks where a highlighted span starts in a raw snippet; :func:`sanitize_text` keeps it out of stored text."""
+
 SNIPPET_CLOSE = "\x03"
+"""Marks where a highlighted span ends in a raw snippet; :func:`sanitize_text` keeps it out of stored text."""
+
 SNIPPET_ELLIPSIS = "…"
+"""Stands for the text a snippet leaves out before or after it."""
+
 SNIPPET_TOKENS = 24
+"""The most tokens a snippet holds."""
 
 _UNSTORABLE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\ud800-\udfff]")
 _SURROGATE = re.compile(r"[\ud800-\udfff]")

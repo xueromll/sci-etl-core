@@ -7,7 +7,10 @@ from typing import Protocol
 from sci_etl_core.search._unicode61_data import FOLD_RUNS, REMOVED_MARKS, SEPARATOR_RANGES
 
 SURROGATE_CODE_POINTS = range(0xD800, 0xE000)
+"""Code points :class:`Unicode61Tokenizer` treats as separators; FTS5 cannot receive them, so parity is unchecked."""
+
 FTS5_MAX_TOKEN_BYTES = 32768
+"""The UTF-8 length at which FTS5 truncates an indexed term; :class:`Unicode61Tokenizer` never truncates."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -68,6 +71,7 @@ class Unicode61Tokenizer:
     """
 
     def tokens(self, text: str) -> list[Token]:
+        """Return the tokens of ``text`` in order, with offsets into ``text`` as written."""
         return [
             Token(folded, match.start(), match.end())
             for match in _TOKEN_RUN.finditer(text)

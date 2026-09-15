@@ -14,7 +14,8 @@ class FusedHit:
 
     ``lexical_rank`` and ``semantic_rank`` are 1-based, and ``None`` when that
     leg did not return the record. A record found only by the semantic leg has
-    no snippet and no highlights, so a UI shows its abstract instead. ``score``
+    no snippet and no highlights, so a UI shows its abstract instead, read with
+    the text store's ``get_documents``. ``score``
     comes from the fusion strategy and is comparable only within one result
     list; render the rank, never the score as a percentage.
     """

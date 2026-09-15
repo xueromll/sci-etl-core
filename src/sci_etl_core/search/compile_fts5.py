@@ -7,6 +7,10 @@ from sci_etl_core.exceptions import SearchQueryError
 from sci_etl_core.search.query import And, Node, Not, Or, Phrase, Term, normalize
 
 FILTER_LEAF = "d.doc_id IN (SELECT rowid FROM documents_fts WHERE documents_fts MATCH ?)"
+"""The SQL condition each maximal rankable subtree becomes in :func:`to_filter_expression`.
+
+Its ``?`` takes that subtree's MATCH expression, and it reads ``d.doc_id`` of the ``documents`` table.
+"""
 
 _UNSENDABLE = re.compile(r"[\x00\ud800-\udfff]")
 

@@ -16,7 +16,10 @@ if TYPE_CHECKING:
     from sci_etl_core.embeddings.finder_async import AsyncSimilarArticleFinder
 
 SearchMode = Literal["lexical", "semantic", "hybrid"]
+"""Which retrieval legs :meth:`AsyncHybridSearcher.search` runs."""
+
 SEARCH_MODES: tuple[str, ...] = ("lexical", "semantic", "hybrid")
+"""Every :data:`SearchMode`, for checking a mode that arrives as plain text."""
 
 _Article = tuple[str, float, dict[str, Any]]
 
@@ -102,10 +105,16 @@ class AsyncHybridSearcher:
         fusion: FusionParams | None = None,
         logger: Callable[[str], None] | None = None,
     ) -> None:
-        """``finder`` is optional: without it, hybrid search degrades to lexical.
+        """Configure the searcher; ``finder`` may be ``None`` to search the text index alone.
+
+        Without a finder, a hybrid search runs the lexical leg alone and reports
+        the semantic leg in :attr:`SearchOutcome.skipped`, not in ``degraded``,
+        and a semantic search raises
+        :class:`~sci_etl_core.exceptions.SearchQueryError`.
 
         ``fusion.weights``, when given, weighs the lexical and the semantic list,
-        in that order.
+        in that order. ``logger`` receives the line logged when a hybrid search
+        falls back to lexical results.
 
         Raises:
             ValueError: ``fusion.weights`` does not hold exactly two weights.
@@ -131,6 +140,11 @@ class AsyncHybridSearcher:
 
         Every error below except the last two is raised before any I/O. A
         ``top_k`` below 1 returns no hits.
+
+        A hit the lexical leg found carries its snippet and highlights. A hit
+        only the semantic leg found takes its title and metadata from the text
+        index, or from its best chunk's metadata when the index does not hold
+        the record.
 
         Raises:
             ValueError: ``mode`` is unknown, or ``filters`` holds two filters on

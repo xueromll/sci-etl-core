@@ -42,6 +42,7 @@ class TextHit:
     scores only within one result list. ``snippet`` is plain text from one
     field, and ``highlights`` are half-open ``[start, end)`` character offsets
     into it covering the matched words, so a UI applies its own markup.
+    ``title`` and ``metadata`` are the document's, as the store reads them back.
     """
 
     record_id: str
@@ -129,7 +130,8 @@ class AsyncTextSearchStore(ABC):
                 filters share a key.
             SearchQueryError: ``query`` is not rankable, such as a pure
                 negation (:func:`~sci_etl_core.search.compile_fts5.is_rankable`).
-            SearchStoreError: The index cannot be read.
+            SearchStoreError: The index cannot be read, or a filter's key has no
+                built tags yet (see ``AsyncSqliteFts5Store.rebuild_tags``).
         """
 
     @abstractmethod
@@ -144,7 +146,8 @@ class AsyncTextSearchStore(ABC):
         Raises:
             ValueError: A filter's key is not in :attr:`facet_keys`, or two
                 filters share a key.
-            SearchStoreError: The index cannot be read.
+            SearchStoreError: The index cannot be read, or a filter's key has no
+                built tags yet (see ``AsyncSqliteFts5Store.rebuild_tags``).
         """
 
     @abstractmethod
@@ -174,7 +177,9 @@ class AsyncTextSearchStore(ABC):
         Raises:
             ValueError: A key in ``keys`` or ``filters`` is not in
                 :attr:`facet_keys`, or two filters in ``filters`` share a key.
-            SearchStoreError: The index cannot be read.
+            SearchStoreError: The index cannot be read, or a key in ``keys`` or
+                ``filters`` has no built tags yet (see
+                ``AsyncSqliteFts5Store.rebuild_tags``).
         """
 
     @abstractmethod

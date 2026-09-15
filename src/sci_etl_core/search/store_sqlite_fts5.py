@@ -104,6 +104,11 @@ class AsyncSqliteFts5Store(AsyncTextSearchStore):
     then a filter or facet on a key whose tags are not built raises
     :class:`~sci_etl_core.exceptions.SearchStoreError`.
 
+    The file is opened, and created or migrated to the current schema, on the
+    first operation rather than at construction. A file that is not a database,
+    or whose schema is newer than this library supports, raises
+    :class:`~sci_etl_core.exceptions.SearchStoreError` then.
+
     :meth:`aclose` is not terminal: a later call reopens the connection. Give
     each instance exactly one owner, which awaits :meth:`aclose`, and use it
     from one event loop. For a one-shot script, list the store in the
@@ -275,6 +280,7 @@ class AsyncSqliteFts5Store(AsyncTextSearchStore):
         return await self._runner.run(_integrity_check, "check the search index")
 
     async def aclose(self) -> None:
+        """Close the connection; a later call transparently reopens it."""
         await self._runner.aclose()
 
     def _open_connection(self) -> sqlite3.Connection:

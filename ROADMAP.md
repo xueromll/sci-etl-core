@@ -5,7 +5,7 @@ shift with community feedback. Want to help with any item? Comment on the
 matching issue or open one. Items marked **good first issue** are approachable
 for newcomers.
 
-## Current Status — v0.2
+## Current Status — v0.3
 
 `sci-etl-core` is functional and used in production for scientific corpus ETL,
 including [udg-catalogue](https://github.com/xueromll/udg-catalogue).
@@ -63,13 +63,26 @@ including [udg-catalogue](https://github.com/xueromll/udg-catalogue).
   without echoing their values, so an API key can't leak through them.
 - **Lint, type checks, and a changelog.** ruff and mypy run in CI next to the
   test suite, and [CHANGELOG.md](CHANGELOG.md) records each release.
+- **Local Boolean search.** A query language with phrases, prefixes, field
+  scopes, and `AND` / `OR` / `NOT`, an in-memory and a SQLite FTS5 text index
+  that need only the standard library, and indexing from the pipeline next to
+  the vector memory.
+- **Hybrid search.** Reciprocal rank fusion of BM25 and embedding similarity,
+  with metadata filters, facet counts, and a report of retrieval legs that
+  failed or had nothing to run.
+- **Discovery graphs.** Graphs of related papers around a seed record, from
+  embedding similarity and shared metadata, with mutual-nearest-neighbor
+  pruning, deterministic communities, filtering without I/O, and a read-model
+  for user interfaces. Embedding edges run one exact-scan vector query per
+  node, so **Scalable vector memory** (v0.5+) would speed graph building up
+  with no change to the graph layer.
 - **Command-line tool.** [sci-etl-cli](https://github.com/xueromll/sci-etl-cli)
   runs a pipeline from a YAML file, with plug-ins for domain rules.
 - **Migration guide.** [MIGRATION.md](MIGRATION.md) walks through moving
   udg-catalogue onto the library, including parity checks against the old
   code.
 
-## Next Up — v0.3
+## Next Up — v0.4
 
 ### Reliability
 
@@ -119,7 +132,7 @@ Each of these is code udg-catalogue still carries on top of the library (see
 - **New extractors.** PubMed, Semantic Scholar, and OpenAlex, all behind the
   existing `AsyncExtractor` interface. Semantic Scholar and OpenAlex return
   reference lists, which citation edges in discovery graphs could use (see
-  v0.4+). *(good first issue: pick one source)*
+  v0.5+). *(good first issue: pick one source)*
 - **New parsers.** DOCX and structured JATS/XML parsing.
 - **Pipeline observability.** Structured, per-record progress events and simple
   run metrics (counts, durations, failures), beyond the current `logger`
@@ -128,16 +141,6 @@ Each of these is code udg-catalogue still carries on top of the library (see
 
 ### Local search
 
-Items marked *shipped* are on `master` and listed in
-[CHANGELOG.md](CHANGELOG.md) under the unreleased 0.3.0.
-
-- **Boolean search.** A query language with phrases, prefixes, field scopes,
-  and `AND` / `OR` / `NOT`, an in-memory and a SQLite FTS5 text index that
-  need only the standard library, and indexing from the pipeline next to the
-  vector memory. *(shipped)*
-- **Hybrid search.** Reciprocal rank fusion of BM25 and embedding similarity,
-  with metadata filters, facet counts, and a report of retrieval legs that
-  failed. *(shipped)*
 - **Proximity queries.** `NEAR("a b", 10)` in the query language.
 - **Backfill from vector memory.** Rebuild a text index from the chunk text
   already in an `AsyncSqliteEmbeddingStore`, so existing deployments don't
@@ -160,7 +163,7 @@ Items marked *shipped* are on `master` and listed in
   is a synchronous leftover that no component uses. Deprecate it, and drop
   `requests` from the `full` extra once it's removed.
 
-## Later — v0.4+
+## Later — v0.5+
 
 - **Targeted reprocessing.** Let state managers forget selected record ids, so
   records can be re-extracted after a prompt or normalizer fix without
@@ -182,16 +185,9 @@ Items marked *shipped* are on `master` and listed in
 - **Scalable vector memory.** An approximate-nearest-neighbor
   `AsyncEmbeddingStore` for corpora larger than the exact linear-scan SQLite
   store handles comfortably.
-- **Discovery graphs.** Graphs of related papers around a seed record, from
-  embedding similarity and shared metadata, with mutual-nearest-neighbor
-  pruning, deterministic communities, filtering without I/O, and a read-model
-  for user interfaces. Embedding edges run one exact-scan vector query per
-  node, so **Scalable vector memory** above speeds graph building up with no
-  change to the graph layer. *(shipped; listed in
-  [CHANGELOG.md](CHANGELOG.md) under the unreleased 0.4.0)*
 - **Citation edges.** An edge source for co-citation and bibliographic
   coupling, once an extractor supplies reference lists (see **New
-  extractors** in v0.3). Where references live on a record still has to be
+  extractors** in v0.4). Where references live on a record still has to be
   agreed with that work.
 - **Discovery interface.** An interactive search and graph view built on the
   `sci_etl_core.discovery` read-model, outside this repository: either a

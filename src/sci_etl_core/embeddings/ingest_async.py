@@ -14,7 +14,8 @@ class AsyncChunkIngestor:
 
     Intended as the second stage after an abstract-level relevance gate: only
     articles that already cleared the gate reach here, so the cost of embedding
-    a whole body is spent only on records worth remembering.
+    a whole body is spent only on records worth remembering. It satisfies
+    :class:`~sci_etl_core.ingest_protocol.MemoryIngestor`.
     """
 
     def __init__(
@@ -32,7 +33,9 @@ class AsyncChunkIngestor:
 
         Every earlier chunk of the record is removed, so re-ingesting text that
         yields fewer passages leaves no stale chunks behind, and text with no
-        passages clears the record from memory.
+        passages clears the record from memory. Each chunk's metadata is the
+        record's ``title`` and ``source_url`` only; ``record.metadata`` is not
+        stored in the vector memory.
 
         Returns:
             The number of chunks stored.

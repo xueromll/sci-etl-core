@@ -28,6 +28,15 @@ def _element_text(element: Any) -> str:
 
 
 class AsyncArxivExtractor(AsyncExtractor):
+    """Page through the arXiv Atom API, newest submissions first, and fetch each article's full text.
+
+    Full text comes from the e-print LaTeX source or the PDF, with the abstract
+    as a last resort (:meth:`fetch_full_text`). Each record's ``metadata`` holds
+    the entry's categories, authors, and publication date
+    (:meth:`parse_listing`), which a text search store can filter and facet on.
+    The injected ``client`` is borrowed and never closed.
+    """
+
     API_URL = "https://export.arxiv.org/api/query"
 
     def __init__(

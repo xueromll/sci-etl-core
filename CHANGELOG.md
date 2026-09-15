@@ -5,28 +5,7 @@ All notable changes to sci-etl-core are recorded here. The format follows
 [Semantic Versioning](https://semver.org/). Until 1.0, a minor release may
 change behavior; each such change is listed under **Changed**.
 
-## [0.4.0] - Unreleased
-
-### Added
-
-- Discovery graphs in `sci_etl_core.search`. `build_discovery_graph` grows the
-  neighborhood of a seed record breadth-first from one or more edge sources,
-  keeps only mutual nearest neighbors by default, and groups the records into
-  communities by deterministic label propagation. `GraphParams` bounds the
-  depth, fanout, minimum edge weight, node count, and label-propagation
-  passes, and `DiscoveryGraph.communities_converged` reports whether the pass
-  limit cut label propagation short. `filter_graph` narrows a built graph to
-  matched records and metadata filters without any I/O. `label_communities`
-  and `select_edges` are public as well.
-- Edge sources behind a new `AsyncEdgeSource` interface.
-  `EmbeddingEdgeSource` relates records by cosine similarity in the vector
-  memory, and `MetadataEdgeSource` by the share of tags two records have in
-  common, such as arXiv categories and authors.
-- `sci_etl_core.discovery`, a read-model for user interfaces: `Facet` and
-  `DiscoveryResult`, also exported from `sci_etl_core`. Importing it loads no
-  store and no optional dependency.
-
-## [0.3.0] - Unreleased
+## [0.3.0] - 2026-09-15
 
 ### Added
 
@@ -52,6 +31,22 @@ change behavior; each such change is listed under **Changed**.
   - `AsyncHybridSearcher`, which runs a lexical, semantic, or hybrid search
     and reports in `SearchOutcome.degraded` and `SearchOutcome.skipped` which
     retrieval legs failed or had nothing to run.
+- Discovery graphs in `sci_etl_core.search`. `build_discovery_graph` grows the
+  neighborhood of a seed record breadth-first from one or more edge sources,
+  keeps only mutual nearest neighbors by default, and groups the records into
+  communities by deterministic label propagation. `GraphParams` bounds the
+  depth, fanout, minimum edge weight, node count, and label-propagation
+  passes, and `DiscoveryGraph.communities_converged` reports whether the pass
+  limit cut label propagation short. `filter_graph` narrows a built graph to
+  matched records and metadata filters without any I/O. `label_communities`
+  and `select_edges` are public as well.
+- Edge sources behind a new `AsyncEdgeSource` interface.
+  `EmbeddingEdgeSource` relates records by cosine similarity in the vector
+  memory, and `MetadataEdgeSource` by the share of tags two records have in
+  common, such as arXiv categories and authors.
+- `sci_etl_core.discovery`, a read-model for user interfaces: `Facet` and
+  `DiscoveryResult`, also exported from `sci_etl_core`. Importing it loads no
+  store and no optional dependency.
 - `AsyncCompositeIngestor`, which sends each record to several memory backends
   at once, such as the vector memory and a text index, so that a memory fault
   in one does not stop the others.
@@ -82,7 +77,7 @@ change behavior; each such change is listed under **Changed**.
   operation no longer releases the connection while its worker thread is still
   using it. The next operation waits for that thread to finish.
 
-## [0.2.0] - Unreleased
+## [0.2.0] - 2026-09-14
 
 ### Security
 
@@ -164,9 +159,8 @@ extractor, OpenAI-compatible chat and embedding clients, PDF, LaTeX, and HTML
 parsers, CSV, SQL, and Plotly exporters, dataframe processors and validators,
 file and SQLite state, semantic memory, and the udg-catalogue migration guide.
 
-[0.4.0]: https://github.com/xueromll/sci-etl-core/compare/v0.3.0...HEAD
-[0.3.0]: https://github.com/xueromll/sci-etl-core/compare/v0.2.0...HEAD
-[0.2.0]: https://github.com/xueromll/sci-etl-core/compare/v0.1.2...HEAD
+[0.3.0]: https://github.com/xueromll/sci-etl-core/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/xueromll/sci-etl-core/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/xueromll/sci-etl-core/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/xueromll/sci-etl-core/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/xueromll/sci-etl-core/releases/tag/v0.1.0

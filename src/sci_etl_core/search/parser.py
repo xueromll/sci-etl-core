@@ -11,6 +11,7 @@ from sci_etl_core.search.query import FIELDS, And, Node, Not, Or, Phrase, Term, 
 from sci_etl_core.search.tokenize import Token, Unicode61Tokenizer
 
 MAX_GROUP_DEPTH = 32
+"""How deeply :func:`parse_query` lets parentheses nest, which bounds the parser's recursion."""
 
 _TOKENIZER = Unicode61Tokenizer()
 _FIELD_SCOPE = re.compile(r"[A-Za-z]+(?:,[A-Za-z]+)*:")

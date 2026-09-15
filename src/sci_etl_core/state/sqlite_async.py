@@ -24,6 +24,11 @@ class AsyncSqliteStateManager(AsyncStateManager):
     record. Blocking calls run in a worker thread and an :class:`asyncio.Lock`
     keeps the shared connection single-user, holding it until the thread
     finishes even if the awaiting task is cancelled.
+
+    The database file and its parent folder are created on first use.
+    ``timeout`` is how many seconds a statement waits for another process's
+    lock. A :class:`sqlite3.Error` propagates unwrapped. Use each instance from
+    one event loop.
     """
 
     def __init__(self, database_path: str | Path, timeout: float = 30.0) -> None:

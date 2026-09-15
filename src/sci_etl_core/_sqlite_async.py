@@ -34,6 +34,22 @@ class AsyncSqliteRunner:
         self._lock: asyncio.Lock | None = None
 
     async def run(self, operation: Callable[[sqlite3.Connection], T], action: str) -> T:
+        """Run ``operation`` on the connection in a worker thread and return its result.
+
+        Operations run one at a time. The lock is created on first use, so a
+        runner can be constructed outside a running event loop, but it binds to
+        the loop that first contends for it: use each runner from one loop only.
+        An exception other than :class:`sqlite3.Error` from ``open_connection``
+        or ``operation`` propagates unchanged.
+
+        Raises:
+            asyncio.CancelledError: The awaiting task was cancelled. Once
+                ``operation`` has started, this is raised only after it finishes
+                on its thread, and whatever it raised meanwhile is discarded.
+            sqlite3.Error: Opening the connection or running ``operation`` failed
+                and there is no ``error_factory``; with one, the error raised is
+                ``error_factory("Failed to <action>: <error>")``.
+        """
         async with self._get_lock():
             work = asyncio.ensure_future(asyncio.to_thread(self._execute, operation))
             try:

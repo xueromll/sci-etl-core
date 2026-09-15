@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 FIELDS: tuple[str, ...] = ("title", "abstract", "body")
+"""The text fields of a document, in index column order; a term or phrase can be scoped to any of them."""
 
 
 def _require_known_fields(fields: tuple[str, ...]) -> None:

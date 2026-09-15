@@ -52,6 +52,9 @@ class AsyncSqliteEmbeddingStore(AsyncEmbeddingStore):
     and dotted against the query. This is exact and dependency-light, and fits
     corpora up to the low millions of chunks; swap in an ANN index behind this
     same interface if the memory outgrows a full scan.
+
+    The file is opened, and its schema created, on first use. Use each instance
+    from one event loop.
     """
 
     def __init__(self, path: str | Path) -> None:
@@ -101,6 +104,7 @@ class AsyncSqliteEmbeddingStore(AsyncEmbeddingStore):
         return int(rows[0][0])
 
     async def aclose(self) -> None:
+        """Close the connection; a later call transparently reopens it."""
         await self._runner.aclose()
 
     def _open_connection(self) -> sqlite3.Connection:

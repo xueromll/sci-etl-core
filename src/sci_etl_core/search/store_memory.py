@@ -66,6 +66,10 @@ class InMemoryTextSearchStore(AsyncTextSearchStore):
 
     A snippet is taken from the field with the most counted matches, with ties
     going to ``title``, then ``abstract``, then ``body``.
+
+    Tags are derived from metadata on every write, so a filter or facet on any
+    of ``facet_keys`` works at once: the store never needs a ``rebuild_tags``
+    and never raises :class:`~sci_etl_core.exceptions.SearchStoreError`.
     """
 
     def __init__(

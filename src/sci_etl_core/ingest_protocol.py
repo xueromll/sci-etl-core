@@ -6,6 +6,11 @@ from sci_etl_core.exceptions import EmbeddingError, EmbeddingStoreError, SearchS
 from sci_etl_core.models import RawRecord
 
 MEMORY_FAULTS: tuple[type[Exception], ...] = (EmbeddingError, EmbeddingStoreError, SearchStoreError)
+"""The storage and embedding faults a memory ingest logs instead of failing the record.
+
+``SearchStoreError`` is listed rather than ``SearchError``, so a ``SearchQueryError`` is never mistaken for a
+storage fault.
+"""
 
 
 class MemoryIngestor(Protocol):

@@ -23,7 +23,7 @@ fields, and domain rules for your own.
 - [Step 7: Post-processing](#step-7-post-processing)
 - [Step 8: Check parity before changing behavior](#step-8-check-parity-before-changing-behavior)
 - [Step 9: Delete the old code](#step-9-delete-the-old-code)
-- [Upgrading to 0.3 and 0.4](#upgrading-to-03-and-04)
+- [Upgrading to 0.3](#upgrading-to-03)
 - [What the migration uncovered](#what-the-migration-uncovered)
 - [Adapting this to your field](#adapting-this-to-your-field)
 
@@ -838,11 +838,12 @@ twice; the migration was a good moment to give them one shared figure builder.
 `AsyncPlotly3DExporter` wasn't used, because udg-catalogue's map needs custom
 hover text and a fixed color range.
 
-## Upgrading to 0.3 and 0.4
+## Upgrading to 0.3
 
 Step 1 pins a version range and raises its upper bound only after checking a
-new minor release against your tests. The 0.3 and 0.4 releases add local
-search and discovery graphs, and change these things a migrated pipeline can
+new minor release against your tests: for udg-catalogue, `>=0.2.0,<0.3`
+becomes `>=0.3.0,<0.4` once its tests pass on 0.3. The 0.3 release adds local
+search and discovery graphs, and changes these things a migrated pipeline can
 notice ([CHANGELOG.md](CHANGELOG.md) lists everything):
 
 - **arXiv records carry metadata.** `RawRecord.metadata` now holds

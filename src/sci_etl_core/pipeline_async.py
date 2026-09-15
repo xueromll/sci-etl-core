@@ -64,6 +64,16 @@ class _PageResult:
 
 
 class AsyncETLPipeline:
+    """Take listed records through relevance, full text, memory, entity extraction, and export.
+
+    Records on a page run concurrently, up to ``max_concurrency`` at a time. An
+    irrelevant record is marked processed at once. A relevant one has its full
+    text fetched and stored through the optional ``memory_ingestor``, its
+    entities extracted and exported, and only then is marked processed, so a
+    record that fails is retried on the next run. :meth:`run` describes paging,
+    limits, and aborts.
+    """
+
     def __init__(
         self,
         extractor: AsyncExtractor,
@@ -79,6 +89,20 @@ class AsyncETLPipeline:
         memory_ingestor: MemoryIngestor | None = None,
     ) -> None:
         """Wire the pipeline's collaborators together.
+
+        ``memory_ingestor`` is any :class:`~sci_etl_core.ingest_protocol.MemoryIngestor`,
+        such as an ``AsyncChunkIngestor``, an ``AsyncSearchIndexer``, or an
+        ``AsyncCompositeIngestor`` feeding both. An exception it raises that is
+        in :data:`~sci_etl_core.ingest_protocol.MEMORY_FAULTS` is logged as
+        ``Memory ingest failed for <record_id>: <error>``, and the record's
+        entities are still exported. Any other exception, including
+        :class:`~sci_etl_core.exceptions.SearchQueryError`, fails the record.
+
+        ``closeables`` are closed each time ``async with pipeline`` exits, and a
+        SQLite store reopens when it is used after that. List a store only when
+        the pipeline owns it, as in a one-shot script; an application that keeps
+        using its stores after a run closes them itself. ``logger`` receives
+        every log line, and ``sleep`` is awaited between pages.
 
         Raises:
             ValueError: ``max_concurrency`` is less than 1. A zero-permit

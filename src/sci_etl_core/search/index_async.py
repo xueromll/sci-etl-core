@@ -15,7 +15,8 @@ class AsyncSearchIndexer:
     deployment passes it straight to the pipeline's ``memory_ingestor``.
 
     The indexer never swallows a failure and never parses a query; whether a
-    store fault is fatal is decided by its caller.
+    store fault is fatal is decided by its caller. It borrows ``store`` and
+    never closes it.
     """
 
     def __init__(self, store: AsyncTextSearchStore) -> None:
