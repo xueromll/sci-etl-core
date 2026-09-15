@@ -143,6 +143,7 @@ so add the extras for the components you use:
 | `embeddings` | `numpy`, `openai` | `AsyncOpenAIEmbedder`, the vector stores, `AsyncEmbeddingRelevanceFilter` |
 | `embeddings-local` | `numpy`, `sentence-transformers` | `AsyncSentenceTransformerEmbedder` |
 | `dev` | pytest and plugins, `hypothesis` | running the test suite |
+| `lint` | `ruff`, `mypy`, type stubs | linting and type-checking the source |
 
 Importing a component whose extra is missing raises `ModuleNotFoundError`
 naming the package to install.
@@ -857,15 +858,21 @@ optional dependencies.
 ## Testing
 
 ```bash
-pip install -e ".[full,dev]"
+pip install -e ".[full,dev,lint]"
 pytest                                                # full suite
 pytest --cov=sci_etl_core --cov-report=term-missing   # with coverage
+ruff check .                                          # lint and import order
+mypy                                                  # type check the source
 ```
 
 The suite runs offline: HTTP, LLM, and embedding calls are mocked, and a stub
 replaces SQLAlchemy when it isn't installed. Hypothesis property tests and ABC
 conformance tests guard the public interfaces, and `pytest --cov` fails if line
 coverage drops below 100%.
+
+ruff and mypy run in CI alongside the test suite; the `lint` extra installs
+both locally, and `ruff check --fix .` applies the safe fixes. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
 
 ## Contributing
 
