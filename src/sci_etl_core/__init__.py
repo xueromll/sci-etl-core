@@ -23,6 +23,8 @@ _EXPORTS: dict[str, str] = {
     "RateLimitConfig": "sci_etl_core.config",
     "load_config": "sci_etl_core.config",
     "load_config_async": "sci_etl_core.config_async",
+    "DiscoveryResult": "sci_etl_core.discovery",
+    "Facet": "sci_etl_core.discovery",
     "AsyncEmbedder": "sci_etl_core.embeddings.async_base",
     "SlidingWindowChunker": "sci_etl_core.embeddings.chunking",
     "TextChunker": "sci_etl_core.embeddings.chunking",
@@ -57,6 +59,9 @@ _EXPORTS: dict[str, str] = {
     "AsyncExtractor": "sci_etl_core.extractors.async_base",
     "AsyncArxivExtractor": "sci_etl_core.extractors.arxiv_async",
     "Extractor": "sci_etl_core.extractors.base",
+    "AsyncCompositeIngestor": "sci_etl_core.ingest_async",
+    "MEMORY_FAULTS": "sci_etl_core.ingest_protocol",
+    "MemoryIngestor": "sci_etl_core.ingest_protocol",
     "SyncLLMClientAdapter": "sci_etl_core.llm._adapters",
     "AsyncLLMClient": "sci_etl_core.llm.async_base",
     "EntityExtractor": "sci_etl_core.llm.base",
@@ -98,6 +103,7 @@ if TYPE_CHECKING:
     )
     from sci_etl_core.config import BaseAppConfig, HttpConfig, LLMConfig, PipelineConfig, RateLimitConfig, load_config
     from sci_etl_core.config_async import load_config_async
+    from sci_etl_core.discovery import DiscoveryResult, Facet
     from sci_etl_core.embeddings.async_base import AsyncEmbedder
     from sci_etl_core.embeddings.chunking import SlidingWindowChunker, TextChunker
     from sci_etl_core.embeddings.finder_async import AsyncSimilarArticleFinder
@@ -130,6 +136,8 @@ if TYPE_CHECKING:
     from sci_etl_core.extractors.arxiv_async import AsyncArxivExtractor
     from sci_etl_core.extractors.async_base import AsyncExtractor
     from sci_etl_core.extractors.base import Extractor
+    from sci_etl_core.ingest_async import AsyncCompositeIngestor
+    from sci_etl_core.ingest_protocol import MEMORY_FAULTS, MemoryIngestor
     from sci_etl_core.llm._adapters import SyncLLMClientAdapter
     from sci_etl_core.llm.async_base import AsyncLLMClient
     from sci_etl_core.llm.base import EntityExtractor, LLMClient, RelevanceFilter

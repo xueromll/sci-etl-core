@@ -5,14 +5,19 @@ import asyncio
 import pytest
 
 from sci_etl_core.exceptions import (
+    EmbeddingError,
+    EmbeddingStoreError,
     ExtractionError,
     LLMError,
     MalformedResponseError,
     PipelineAborted,
+    SearchQueryError,
+    SearchStoreError,
     UpstreamError,
 )
 from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.extractors.async_base import AsyncExtractor
+from sci_etl_core.ingest_async import AsyncCompositeIngestor
 from sci_etl_core.llm.extraction_async import AsyncEntityExtractor
 from sci_etl_core.llm.relevance_async import AsyncRelevanceFilter
 from sci_etl_core.models import PipelineMetadata, RawRecord
@@ -24,7 +29,7 @@ def _records(n: int, start: int = 0) -> list[RawRecord]:
     return [RawRecord(record_id=str(i), title=f"t{i}", abstract=f"a{i}") for i in range(start, start + n)]
 
 
-def _build(mocker, records, *, relevant=True, entities=None, max_concurrency=6):
+def _build(mocker, records, *, relevant=True, entities=None, max_concurrency=6, memory_ingestor=None):
     extractor = mocker.Mock(spec=AsyncExtractor)
     extractor.search = mocker.AsyncMock(return_value=b"<feed/>")
     extractor.parse_listing = mocker.Mock(side_effect=[(records, len(records))] + [([], 0)] * 10)
@@ -54,6 +59,7 @@ def _build(mocker, records, *, relevant=True, entities=None, max_concurrency=6):
         destination="out.csv",
         max_concurrency=max_concurrency,
         sleep=mocker.AsyncMock(),
+        memory_ingestor=memory_ingestor,
     )
     return pipeline, extractor, relevance, entity, exporter, state
 
@@ -424,6 +430,89 @@ class TestAsyncPipelineResume:
         with pytest.raises(ValueError, match="start_index"):
             await pipeline.run(query="q", start_index=-1)
         extractor.search.assert_not_awaited()
+
+
+class _RaisingIngestor:
+    def __init__(self, error: BaseException) -> None:
+        self.error = error
+
+    async def ingest(self, record: RawRecord, text: str) -> int:
+        raise self.error
+
+
+class _FinishingIngestor:
+    def __init__(self) -> None:
+        self.finished = False
+
+    async def ingest(self, record: RawRecord, text: str) -> int:
+        await asyncio.sleep(0.01)
+        self.finished = True
+        return 2
+
+
+class TestMemoryIngestFaults:
+    @pytest.mark.parametrize("error", [EmbeddingError("x"), EmbeddingStoreError("x"), SearchStoreError("x")])
+    @pytest.mark.asyncio
+    async def test_a_memory_fault_is_logged_and_the_record_is_still_exported_and_marked(self, mocker, error):
+        failing = _RaisingIngestor(error)
+        pipeline, _, _, _, exporter, state = _build(mocker, _records(1, start=1), memory_ingestor=failing)
+        logged: list[str] = []
+        pipeline._log = logged.append
+        assert await pipeline.run(query="q", max_records=1, sleep_between=0) == 1
+        exporter.export.assert_awaited_once()
+        state.mark_processed.assert_awaited_once_with("1")
+        assert logged == [f"Memory ingest failed for 1: {error!r}"]
+
+    @pytest.mark.asyncio
+    async def test_any_other_exception_fails_the_record(self, mocker):
+        failing = _RaisingIngestor(RuntimeError("x"))
+        pipeline, _, _, _, exporter, state = _build(mocker, _records(1, start=1), memory_ingestor=failing)
+        logged: list[str] = []
+        pipeline._log = logged.append
+        with pytest.raises(PipelineAborted):
+            await pipeline.run(query="q", max_records=1, sleep_between=0)
+        exporter.export.assert_not_awaited()
+        state.mark_processed.assert_not_awaited()
+        assert "Record processing failed: RuntimeError('x')" in logged
+
+    @pytest.mark.asyncio
+    async def test_a_query_error_is_not_a_memory_fault_and_fails_the_record(self, mocker):
+        failing = _RaisingIngestor(SearchQueryError("bad query"))
+        pipeline, _, _, _, exporter, state = _build(mocker, _records(1, start=1), memory_ingestor=failing)
+        logged: list[str] = []
+        pipeline._log = logged.append
+        with pytest.raises(PipelineAborted):
+            await pipeline.run(query="q", max_records=1, sleep_between=0)
+        exporter.export.assert_not_awaited()
+        state.mark_processed.assert_not_awaited()
+        assert any(message.startswith("Record processing failed: SearchQueryError") for message in logged)
+
+    @pytest.mark.asyncio
+    async def test_a_composite_absorbs_a_store_fault_and_the_record_is_still_exported(self, mocker):
+        sibling = _FinishingIngestor()
+        logged: list[str] = []
+        composite = AsyncCompositeIngestor(sibling, _RaisingIngestor(SearchStoreError("x")), logger=logged.append)
+        pipeline, _, _, _, exporter, state = _build(mocker, _records(1, start=1), memory_ingestor=composite)
+        pipeline._log = logged.append
+        assert await pipeline.run(query="q", max_records=1, sleep_between=0) == 1
+        exporter.export.assert_awaited_once()
+        state.mark_processed.assert_awaited_once_with("1")
+        assert logged == ["Memory ingest failed for 1 in _RaisingIngestor: SearchStoreError('x')"]
+        assert sibling.finished
+
+    @pytest.mark.asyncio
+    async def test_a_composite_re_raises_a_query_error_after_its_sibling_finished(self, mocker):
+        sibling = _FinishingIngestor()
+        logged: list[str] = []
+        composite = AsyncCompositeIngestor(sibling, _RaisingIngestor(SearchQueryError("bad")), logger=logged.append)
+        pipeline, _, _, _, exporter, state = _build(mocker, _records(1, start=1), memory_ingestor=composite)
+        pipeline._log = logged.append
+        with pytest.raises(PipelineAborted):
+            await pipeline.run(query="q", max_records=1, sleep_between=0)
+        exporter.export.assert_not_awaited()
+        state.mark_processed.assert_not_awaited()
+        assert any(message.startswith("Record processing failed: SearchQueryError") for message in logged)
+        assert sibling.finished
 
 
 class TestAsyncPipelineArgumentValidation:

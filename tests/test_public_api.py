@@ -81,6 +81,8 @@ def test_every_public_name_resolves():
     "name, module",
     [
         ("AsyncETLPipeline", "sci_etl_core.pipeline_async"),
+        ("AsyncCompositeIngestor", "sci_etl_core.ingest_async"),
+        ("MEMORY_FAULTS", "sci_etl_core.ingest_protocol"),
         ("AsyncSqliteStateManager", "sci_etl_core.state.sqlite_async"),
         ("RateLimitConfig", "sci_etl_core.config"),
         ("ShutdownSignal", "sci_etl_core.signals"),

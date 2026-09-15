@@ -6,6 +6,8 @@ from collections.abc import Iterable
 from sci_etl_core.exceptions import SearchQueryError
 from sci_etl_core.search.query import And, Node, Not, Or, Phrase, Term, normalize
 
+FILTER_LEAF = "d.doc_id IN (SELECT rowid FROM documents_fts WHERE documents_fts MATCH ?)"
+
 _UNSENDABLE = re.compile(r"[\x00\ud800-\udfff]")
 
 
@@ -33,7 +35,9 @@ def require_rankable(node: Node) -> None:
     Raises:
         SearchQueryError: ``node`` is not rankable, such as ``NOT b`` or
             ``NOT b OR c``. ``position`` is ``None``, because an AST carries no
-            offsets into the text it was parsed from.
+            offsets into the text it was parsed from;
+            :func:`~sci_etl_core.search.parser.parse_ranked_query` locates the
+            first negation when the query text is at hand.
     """
     if not is_rankable(node):
         raise _not_rankable()
@@ -60,17 +64,53 @@ def to_match_expression(node: Node) -> str:
     return expression
 
 
+def to_filter_expression(node: Node) -> tuple[str, tuple[str, ...]]:
+    """Compile the normalized ``node`` into a SQL boolean expression, with its parameters.
+
+    Any query compiles, including a pure negation, because SQL's ``AND``,
+    ``OR``, and ``NOT`` are total where FTS5's are not. Each maximal rankable
+    subtree becomes one :data:`FILTER_LEAF`, whose ``?`` takes that subtree's
+    :func:`to_match_expression`; the parameters are returned in the order their
+    placeholders appear. The expression reads ``d.doc_id``, so it runs as the
+    ``WHERE`` clause of a query over ``documents d``.
+
+    The SQL text comes only from the fixed grammar. Every word reaches SQLite
+    as a bound parameter, inside a quoted FTS5 literal.
+
+    For example, ``NOT b OR c`` compiles to
+    ``((NOT <leaf>) OR <leaf>)`` with parameters ``('"b"', '"c"')``.
+    """
+    parameters: list[str] = []
+    expression = _filter(normalize(node), parameters)
+    return expression, tuple(parameters)
+
+
 def _not_rankable() -> SearchQueryError:
     return SearchQueryError(
         "A ranked search needs at least one term that is not negated, and so does each OR alternative"
     )
 
 
+def _filter(node: Node, parameters: list[str]) -> str:
+    if isinstance(node, (Term, Phrase)):
+        return _leaf(_compile_leaf(node), parameters)
+    if isinstance(node, Not):
+        return "(NOT " + _filter(node.operand, parameters) + ")"
+    expression = _compile(node)
+    if expression is not None:
+        return _leaf(expression, parameters)
+    joiner = " AND " if isinstance(node, And) else " OR "
+    return "(" + joiner.join(_filter(operand, parameters) for operand in node.operands) + ")"
+
+
+def _leaf(expression: str, parameters: list[str]) -> str:
+    parameters.append(expression)
+    return FILTER_LEAF
+
+
 def _compile(node: Node) -> str | None:
-    if isinstance(node, Term):
-        return _scoped(node.fields, _quote(node.text) + ("*" if node.prefix else ""))
-    if isinstance(node, Phrase):
-        return _scoped(node.fields, _quote(" ".join(node.words)))
+    if isinstance(node, (Term, Phrase)):
+        return _compile_leaf(node)
     if isinstance(node, Or):
         alternatives = _compile_each(node.operands)
         return None if alternatives is None else "(" + " OR ".join(alternatives) + ")"
@@ -82,6 +122,12 @@ def _compile(node: Node) -> str | None:
         included = kept[0] if len(kept) == 1 else "(" + " AND ".join(kept) + ")"
         return f"{included} NOT {removed[0]}" if removed else included
     return None
+
+
+def _compile_leaf(node: Term | Phrase) -> str:
+    if isinstance(node, Term):
+        return _scoped(node.fields, _quote(node.text) + ("*" if node.prefix else ""))
+    return _scoped(node.fields, _quote(" ".join(node.words)))
 
 
 def _compile_each(operands: Iterable[Node]) -> list[str] | None:

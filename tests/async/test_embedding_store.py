@@ -267,3 +267,14 @@ class TestPipelineTwoStageIngestion:
         pipeline._log = logged.append
         assert await pipeline.run(query="q", max_records=1, sleep_between=0) == 1
         assert any("memory ingest failed" in message.lower() for message in logged)
+
+
+class TestChunkIngestorMetadata:
+    @pytest.mark.asyncio
+    async def test_chunks_keep_only_the_title_and_source_url_whatever_the_record_metadata(self):
+        store = InMemoryEmbeddingStore()
+        ingestor = AsyncChunkIngestor(SlidingWindowChunker(chunk_words=10), _FakeEmbedder({"a b": [1.0, 0.0]}), store)
+        record = RawRecord("1", "Title", "abstract", "https://arxiv.org/abs/1", {"categories": ["GA"], "year": "2025"})
+        assert await ingestor.ingest(record, "a b") == 1
+        (hit,) = await store.query([1.0, 0.0])
+        assert hit.metadata == {"title": "Title", "source_url": "https://arxiv.org/abs/1"}

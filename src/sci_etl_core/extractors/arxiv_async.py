@@ -19,7 +19,12 @@ _SERVER_ERROR_FLOOR = 500
 _SUCCESS_FLOOR = 200
 _SUCCESS_CEILING = 300
 _VERSION_SUFFIX = re.compile(r"v\d+$")
+_YEAR_PREFIX = re.compile(r"[0-9]{4}(?![0-9])")
 _FEED_ROOT = "feed"
+
+
+def _element_text(element: Any) -> str:
+    return element.get_text(strip=True) if element is not None else ""
 
 
 class AsyncArxivExtractor(AsyncExtractor):
@@ -112,6 +117,10 @@ class AsyncArxivExtractor(AsyncExtractor):
         An entry without an ``<id>`` cannot be tracked as processed, so it is
         skipped; it still counts toward the page total so paging advances.
 
+        Each record's ``metadata`` holds the entry's ``categories`` and
+        ``authors`` as lists, and its ``published`` date and ``year`` as strings
+        (see :meth:`_listing_metadata`).
+
         Raises:
             MalformedResponseError: The payload is empty or lacks a feed root.
         """
@@ -137,9 +146,38 @@ class AsyncArxivExtractor(AsyncExtractor):
                     title=entry.title.get_text(strip=True) if entry.title else "",
                     abstract=entry.summary.get_text(strip=True) if entry.summary else "",
                     source_url=self._landing_page_url(entry),
+                    metadata=self._listing_metadata(entry),
                 )
             )
         return records, len(entries)
+
+    @staticmethod
+    def _listing_metadata(entry: Any) -> dict[str, Any]:
+        """Collect an entry's categories, authors, and publication date.
+
+        ``categories`` lists the ``term`` of every ``<category>`` and ``authors``
+        the ``<name>`` of every ``<author>``, as sent, duplicates included; arXiv
+        sends the primary category first. Either is an empty list when the entry
+        has none, and a blank or missing term or name is skipped.
+
+        ``published`` is the ``<published>`` text as sent. ``year`` is its first
+        four characters, only when those are ASCII digits not followed by another
+        digit, as an ISO 8601 date begins. Both keys are omitted when the entry
+        has no ``<published>`` or it is blank, and ``year`` alone is omitted when
+        the date does not start with a four-digit year.
+        """
+        metadata: dict[str, Any] = {
+            "categories": [
+                term for category in entry.find_all("category") if (term := (category.get("term") or "").strip())
+            ],
+            "authors": [name for author in entry.find_all("author") if (name := _element_text(author.find("name")))],
+        }
+        published = _element_text(entry.find("published"))
+        if published:
+            metadata["published"] = published
+            if _YEAR_PREFIX.match(published):
+                metadata["year"] = published[:4]
+        return metadata
 
     @staticmethod
     def _landing_page_url(entry: Any) -> str | None:

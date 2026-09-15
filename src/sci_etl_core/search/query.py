@@ -142,3 +142,79 @@ def _merge_negations(operands: list[Node]) -> list[Node]:
 
 def _collapse(kind: type[And] | type[Or], operands: list[Node]) -> Node:
     return operands[0] if len(operands) == 1 else kind(tuple(operands))
+
+
+@dataclass(frozen=True, slots=True)
+class QueryChip:
+    """One word or phrase of a query, labelled for display.
+
+    ``text`` is the term, or the phrase's words joined by single spaces.
+    ``fields`` is empty when every field is searched. ``operator`` is ``"AND"``
+    or ``"OR"``, the operator of the innermost group holding the chip, and is
+    empty when the whole query is this one word or phrase. ``negated`` is true
+    when the chip must not match, and ``depth`` counts the groups around it, so
+    a UI can bracket ``a (b OR c)`` without re-implementing the grammar.
+    """
+
+    text: str
+    fields: tuple[str, ...] = ()
+    operator: str = ""
+    negated: bool = False
+    prefix: bool = False
+    phrase: bool = False
+    depth: int = 0
+
+
+def describe(node: Node) -> list[QueryChip]:
+    """Return the words and phrases of ``node`` as chips, in the order they were written.
+
+    ``node`` is normalized first, so ``NOT NOT a`` is described as ``a``.
+    """
+    chips: list[QueryChip] = []
+    _describe(normalize(node), "", False, 0, chips)
+    return chips
+
+
+def _describe(node: Node, operator: str, negated: bool, depth: int, chips: list[QueryChip]) -> None:
+    if isinstance(node, Not):
+        _describe(node.operand, operator, not negated, depth, chips)
+    elif isinstance(node, (And, Or)):
+        group = "AND" if isinstance(node, And) else "OR"
+        for operand in node.operands:
+            _describe(operand, group, negated, depth + 1, chips)
+    elif isinstance(node, Term):
+        chips.append(QueryChip(node.text, node.fields, operator, negated, node.prefix, False, max(depth - 1, 0)))
+    else:
+        chips.append(QueryChip(" ".join(node.words), node.fields, operator, negated, False, True, max(depth - 1, 0)))
+
+
+def semantic_text(node: Node) -> str:
+    """Return the words an embedder should see for ``node``: its meaning, not its syntax.
+
+    ``node`` is normalized first. The text of every term and phrase that is not
+    negated is joined with single spaces, in the order written. Operators,
+    field scopes, and every negated subtree are dropped, so ``quasar -dwarf``
+    becomes ``quasar`` rather than pulling results towards dwarfs.
+
+    Prefix terms are left out entirely: ``photometr`` is a matching feature, not
+    a word an embedder understands, so ``photometr* dwarf`` gives ``dwarf`` and
+    ``photometr*`` gives the empty string.
+
+    ``OR`` loses its meaning here. A single vector cannot represent a
+    disjunction, so ``quasar OR blazar`` gives ``quasar blazar``, the same text
+    as ``quasar AND blazar``.
+    """
+    words: list[str] = []
+    _collect_meaning(normalize(node), words)
+    return " ".join(words)
+
+
+def _collect_meaning(node: Node, words: list[str]) -> None:
+    if isinstance(node, (And, Or)):
+        for operand in node.operands:
+            _collect_meaning(operand, words)
+    elif isinstance(node, Term):
+        if not node.prefix:
+            words.append(node.text)
+    elif isinstance(node, Phrase):
+        words.extend(node.words)

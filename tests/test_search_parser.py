@@ -5,10 +5,12 @@ import re
 import pytest
 
 from sci_etl_core.exceptions import SearchQueryError
-from sci_etl_core.search.parser import MAX_GROUP_DEPTH, parse_query
-from sci_etl_core.search.query import And, Not, Or, Phrase, Term
+from sci_etl_core.search.parser import MAX_GROUP_DEPTH, parse_query, parse_ranked_query, parse_semantic_query
+from sci_etl_core.search.query import And, Not, Or, Phrase, QueryChip, Term, describe
 
 A, B, C = Term("a"), Term("b"), Term("c")
+NOT_RANKABLE = "A ranked search needs at least one term that is not negated"
+NO_WHOLE_WORD = "A semantic search needs at least one whole word; prefix terms match lexically only"
 
 
 @pytest.mark.parametrize(
@@ -181,3 +183,85 @@ class TestNestingLimits:
 
     def test_a_long_flat_query_parses(self):
         assert parse_query(" OR ".join(["a -b"] * 5_000)) == Or((And((A, Not(B))),) * 5_000)
+
+
+class TestParseRankedQuery:
+    def test_a_rankable_query_returns_its_normalized_node(self):
+        assert parse_ranked_query("a -b", default_fields=["title"]) == And(
+            (Term("a", fields=("title",)), Not(Term("b", fields=("title",))))
+        )
+
+    @pytest.mark.parametrize(
+        "query, position, token",
+        [
+            ("NOT b", 0, "NOT"),
+            ("NOT b OR c", 0, "NOT"),
+            ("a OR -b", 5, "-"),
+            ("x AND (y OR NOT z)", 12, "NOT"),
+            ('"NOT a" OR -(b c)', 11, "-"),
+        ],
+    )
+    def test_a_query_that_cannot_be_ranked_is_located_at_its_first_negation(self, query, position, token):
+        with pytest.raises(SearchQueryError, match=NOT_RANKABLE) as raised:
+            parse_ranked_query(query)
+        assert (raised.value.position, raised.value.token) == (position, token)
+        assert query[position : position + len(token)] == token
+
+    def test_a_malformed_query_is_reported_as_parse_query_reports_it(self):
+        with pytest.raises(SearchQueryError, match="'\\(' is never closed") as raised:
+            parse_ranked_query("NOT (a")
+        assert (raised.value.position, raised.value.token) == (4, "(")
+
+
+class TestParseSemanticQuery:
+    def test_returns_the_node_and_the_text_to_embed(self):
+        assert parse_semantic_query("photometr* dwarf -quasar") == (
+            And((Term("photometr", prefix=True), Term("dwarf"), Not(Term("quasar")))),
+            "dwarf",
+        )
+
+    @pytest.mark.parametrize(
+        "query, position, token",
+        [
+            ("photometr*", 0, "photometr*"),
+            ("a* title:b*", 0, "a*"),
+            ("-quasar title:photometr*", 8, "title:photometr*"),
+            ("gal* -dwarf", 0, "gal*"),
+        ],
+    )
+    def test_a_query_with_only_prefix_terms_is_located_at_its_first_prefix_term(self, query, position, token):
+        with pytest.raises(SearchQueryError, match=re.escape(NO_WHOLE_WORD)) as raised:
+            parse_semantic_query(query)
+        assert (raised.value.position, raised.value.token) == (position, token)
+
+    def test_rankability_is_checked_before_the_text_to_embed(self):
+        with pytest.raises(SearchQueryError, match=NOT_RANKABLE) as raised:
+            parse_semantic_query("NOT a*")
+        assert (raised.value.position, raised.value.token) == (0, "NOT")
+
+
+class TestDescribe:
+    def test_a_single_word_is_one_chip_without_an_operator(self):
+        assert describe(parse_query("title:quasar")) == [QueryChip("quasar", fields=("title",))]
+
+    def test_chips_follow_the_written_order_with_their_group_and_polarity(self):
+        assert describe(parse_query('a -"dwarf galaxy" (b OR title:photometr*)')) == [
+            QueryChip("a", operator="AND"),
+            QueryChip("dwarf galaxy", operator="AND", negated=True, phrase=True),
+            QueryChip("b", operator="OR", depth=1),
+            QueryChip("photometr", fields=("title",), operator="OR", prefix=True, depth=1),
+        ]
+
+    def test_a_negated_group_negates_every_chip_inside_it(self):
+        assert describe(parse_query("NOT (a OR b)")) == [
+            QueryChip("a", operator="OR", negated=True),
+            QueryChip("b", operator="OR", negated=True),
+        ]
+
+    def test_a_hand_built_ast_is_normalized_first(self):
+        assert describe(Not(Not(A))) == [QueryChip("a")]
+        assert describe(And((A, Not(B), Not(C)))) == [
+            QueryChip("a", operator="AND"),
+            QueryChip("b", operator="OR", negated=True, depth=1),
+            QueryChip("c", operator="OR", negated=True, depth=1),
+        ]

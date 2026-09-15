@@ -38,11 +38,17 @@ from sci_etl_core.processors.validation import (
     KeywordExclusionValidator,
     NumericRangeValidator,
 )
-from sci_etl_core.search.compile_fts5 import is_rankable, to_match_expression
+from sci_etl_core.search.compile_fts5 import is_rankable, to_filter_expression, to_match_expression
+from sci_etl_core.search.edges import AsyncEdgeSource
 from sci_etl_core.search.evaluate import matches
+from sci_etl_core.search.filters import split_markers, tag_rows
+from sci_etl_core.search.fusion import reciprocal_rank_fusion
+from sci_etl_core.search.graph import GraphEdge, GraphParams, build_discovery_graph, label_communities
 from sci_etl_core.search.parser import parse_query
 from sci_etl_core.search.query import And, Not, Or, Phrase, Term, normalize
 from sci_etl_core.search.store_base import SearchDocument
+from sci_etl_core.search.store_memory import InMemoryTextSearchStore
+from sci_etl_core.search.store_sqlite_fts5 import AsyncSqliteFts5Store
 from sci_etl_core.search.tokenize import Token, Unicode61Tokenizer
 from sci_etl_core.state.async_file_state import AsyncFileStateManager
 
@@ -962,6 +968,13 @@ class TestCompileFts5Properties:
         expected = {document.record_id for document in documents if matches(tree, document)}
         assert fts5_match(documents, to_match_expression(tree)) == expected
 
+    @given(tree=_TREE, rows=_ROWS)
+    @settings(deadline=None, max_examples=200)
+    def test_the_filter_expression_selects_exactly_the_documents_matches_accepts(self, tree, rows, fts5_filter):
+        documents = _documents(rows)
+        expected = {document.record_id for document in documents if matches(tree, document)}
+        assert fts5_filter(documents, *to_filter_expression(tree)) == expected
+
     @given(text=_QUERY_TEXT, rows=_ROWS)
     @settings(deadline=None)
     def test_a_rankable_parsed_query_runs_on_fts5_as_matches_evaluates_it(self, text, rows, fts5_match):
@@ -973,3 +986,177 @@ class TestCompileFts5Properties:
             documents = _documents(rows)
             expected = {document.record_id for document in documents if matches(node, document)}
             assert fts5_match(documents, to_match_expression(node)) == expected
+
+
+@asynccontextmanager
+async def _both_text_stores():
+    """Yield an in-memory and an FTS5 text search store, both empty."""
+    with tempfile.TemporaryDirectory() as directory:
+        fts5 = AsyncSqliteFts5Store(Path(directory) / "search.db")
+        try:
+            yield InMemoryTextSearchStore(), fts5
+        finally:
+            await fts5.aclose()
+
+
+def _query_words(tree):
+    words: set[str] = set()
+    stems: set[str] = set()
+    for node in _subtrees(tree):
+        if isinstance(node, Term):
+            tokens = [token.text for token in _TOKENIZER.tokens(node.text)]
+            if node.prefix and tokens:
+                stems.add(tokens.pop())
+            words.update(tokens)
+        elif isinstance(node, Phrase):
+            words.update(token.text for token in _TOKENIZER.tokens(" ".join(node.words)))
+    return words, stems
+
+
+def _assert_highlights_cover_query_words(hit, words, stems):
+    previous_end = 0
+    for start, end in hit.highlights:
+        assert previous_end <= start < end <= len(hit.snippet)
+        for token in _TOKENIZER.tokens(hit.snippet[start:end]):
+            assert token.text in words or any(token.text.startswith(stem) for stem in stems)
+        previous_end = end
+
+
+class TestTextSearchStoreProperties:
+    @given(tree=_TREE, rows=_ROWS)
+    @_FS_SETTINGS
+    def test_both_backends_match_rank_and_highlight_alike(self, tree, rows):
+        documents = _documents(rows)
+
+        async def scenario():
+            async with _both_text_stores() as (memory, fts5):
+                await memory.index(documents)
+                await fts5.index(documents)
+                assert await memory.filter_ids(tree) == await fts5.filter_ids(tree)
+                if not is_rankable(tree):
+                    for store in (memory, fts5):
+                        with pytest.raises(SearchQueryError):
+                            await store.search(tree)
+                    return
+                limit = await fts5.count() + 1
+                expected = await memory.search(tree, limit)
+                actual = await fts5.search(tree, limit)
+                assert sorted(hit.record_id for hit in actual) == sorted(hit.record_id for hit in expected)
+                words, stems = _query_words(tree)
+                for hit in (*expected, *actual):
+                    _assert_highlights_cover_query_words(hit, words, stems)
+
+        asyncio.run(scenario())
+
+
+_TAG_VALUE = st.one_of(
+    st.text(max_size=3), st.integers(min_value=-3, max_value=3), st.booleans(), st.floats(allow_nan=False), st.none()
+)
+_METADATA = st.dictionaries(
+    st.sampled_from(["a", "b", "c"]),
+    st.one_of(_TAG_VALUE, st.lists(_TAG_VALUE, max_size=4), st.tuples(_TAG_VALUE, _TAG_VALUE)),
+    max_size=3,
+)
+
+
+class TestTagRowsProperties:
+    @given(metadata=_METADATA, keys=st.lists(st.sampled_from(["a", "b", "c", "d"]), max_size=5))
+    def test_rows_never_repeat_and_are_sorted_within_each_key(self, metadata, keys):
+        rows = tag_rows(metadata, keys)
+        assert len(rows) == len(set(rows))
+        assert list(rows) == sorted(rows)
+        assert all(isinstance(value, str) and value for _key, value in rows)
+
+
+_RANKED_LISTS = st.lists(
+    st.lists(st.sampled_from("abcdefg"), max_size=6).map(lambda ids: [(record_id, 0.0) for record_id in ids]),
+    max_size=4,
+)
+
+
+class TestReciprocalRankFusionProperties:
+    @given(lists=_RANKED_LISTS, data=st.data())
+    def test_the_order_of_the_lists_never_changes_the_result(self, lists, data):
+        assert reciprocal_rank_fusion(data.draw(st.permutations(lists))) == reciprocal_rank_fusion(lists)
+
+    @given(lists=_RANKED_LISTS, data=st.data())
+    def test_moving_a_record_up_a_list_raises_its_fused_score(self, lists, data):
+        assume(lists)
+        index = data.draw(st.integers(min_value=0, max_value=len(lists) - 1))
+        distinct = list(dict.fromkeys(record_id for record_id, _score in lists[index]))
+        assume(len(distinct) >= 2)
+        position = data.draw(st.integers(min_value=1, max_value=len(distinct) - 1))
+        promoted = [*distinct[: position - 1], distinct[position], distinct[position - 1], *distinct[position + 1 :]]
+        moved = distinct[position]
+        changed = [*lists[:index], [(record_id, 0.0) for record_id in promoted], *lists[index + 1 :]]
+        assert dict(reciprocal_rank_fusion(changed))[moved] > dict(reciprocal_rank_fusion(lists))[moved]
+
+
+_GRAPH_IDS = [f"n{index}" for index in range(8)]
+
+
+class _TableEdgeSource(AsyncEdgeSource):
+    def __init__(self, table):
+        self.table = table
+
+    @property
+    def kind(self):
+        return "semantic"
+
+    async def neighbours(self, record_ids, limit):
+        return {record_id: self.table.get(record_id, []) for record_id in record_ids}
+
+
+class TestDiscoveryGraphProperties:
+    @given(
+        table=st.dictionaries(
+            st.sampled_from(_GRAPH_IDS),
+            st.lists(st.tuples(st.sampled_from(_GRAPH_IDS), st.floats(min_value=0.0, max_value=1.0)), max_size=6),
+        ),
+        seed=st.sampled_from(_GRAPH_IDS),
+        depth=st.integers(min_value=0, max_value=3),
+        fanout=st.integers(min_value=1, max_value=4),
+        max_nodes=st.integers(min_value=1, max_value=8),
+        mutual_only=st.booleans(),
+    )
+    @settings(deadline=None)
+    def test_no_edge_leaves_the_nodes_and_the_node_cap_holds(self, table, seed, depth, fanout, max_nodes, mutual_only):
+        params = GraphParams(depth=depth, fanout=fanout, max_nodes=max_nodes, mutual_only=mutual_only)
+        graph = asyncio.run(
+            build_discovery_graph(seed, [_TableEdgeSource(table)], InMemoryTextSearchStore(), params=params)
+        )
+        ids = [node.record_id for node in graph.nodes]
+        assert ids[0] == seed
+        assert len(ids) == len(set(ids)) <= max_nodes
+        assert all(edge.source in ids and edge.target in ids and edge.source < edge.target for edge in graph.edges)
+
+
+_COMMUNITY_EDGES = st.lists(
+    st.tuples(st.sampled_from(_GRAPH_IDS), st.sampled_from(_GRAPH_IDS), st.sampled_from([0.5, 1.0, 2.0])),
+    max_size=20,
+)
+
+
+class TestLabelCommunitiesProperties:
+    @given(pairs=_COMMUNITY_EDGES, extra=st.lists(st.sampled_from(_GRAPH_IDS), max_size=3), data=st.data())
+    def test_communities_do_not_depend_on_input_order_or_spare_passes(self, pairs, extra, data):
+        nodes = sorted({*extra, *(record_id for pair in pairs for record_id in pair[:2])})
+        edges = [GraphEdge(first, second, weight, "semantic") for first, second, weight in pairs]
+        expected = label_communities(nodes, edges)
+        shuffled_nodes = data.draw(st.permutations(nodes))
+        shuffled_edges = data.draw(st.permutations(edges))
+        assert label_communities(shuffled_nodes, shuffled_edges) == expected
+        communities, converged = expected
+        if converged:
+            assert label_communities(nodes, edges, max_iterations=40) == expected
+
+
+class TestSplitMarkersProperties:
+    @given(st.one_of(st.text(alphabet=st.sampled_from("ab \x02\x03…"), max_size=30), st.text(max_size=30)))
+    def test_never_raises_and_every_span_lies_within_the_plain_text(self, raw):
+        plain, spans = split_markers(raw)
+        assert "\x02" not in plain and "\x03" not in plain
+        previous_end = 0
+        for start, end in spans:
+            assert previous_end <= start < end <= len(plain)
+            previous_end = end

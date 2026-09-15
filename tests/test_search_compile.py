@@ -5,12 +5,19 @@ import re
 import pytest
 
 from sci_etl_core.exceptions import SearchQueryError
-from sci_etl_core.search.compile_fts5 import is_rankable, require_rankable, to_match_expression
+from sci_etl_core.search.compile_fts5 import (
+    FILTER_LEAF,
+    is_rankable,
+    require_rankable,
+    to_filter_expression,
+    to_match_expression,
+)
 from sci_etl_core.search.parser import parse_query
-from sci_etl_core.search.query import And, Not, Or, Phrase, Term
+from sci_etl_core.search.query import And, Not, Or, Phrase, Term, semantic_text
 from sci_etl_core.search.store_base import SearchDocument
 
 A, B, C = Term("a"), Term("b"), Term("c")
+LEAF = FILTER_LEAF
 NOT_RANKABLE = "A ranked search needs at least one term that is not negated, and so does each OR alternative"
 
 
@@ -115,3 +122,81 @@ def test_every_word_reaches_fts5_as_one_quoted_literal(node, expression, fts5_ma
 )
 def test_composites_are_parenthesized_so_precedence_never_decides(node, expression):
     assert_rankable(node, expression)
+
+
+FILTER_CORPUS = [
+    SearchDocument("1", title="a"),
+    SearchDocument("2", title="b"),
+    SearchDocument("3", title="a b"),
+    SearchDocument("4", title="c"),
+    SearchDocument("5", body="a c"),
+    SearchDocument("6"),
+]
+
+
+class TestFilterExpression:
+    def test_a_double_negation_compiles_to_one_leaf(self):
+        assert to_filter_expression(Not(Not(A))) == (LEAF, ('"a"',))
+
+    def test_a_negated_group_without_a_positive_part_is_not_over_one_leaf(self):
+        assert to_filter_expression(parse_query("NOT (a OR b)")) == (f"(NOT {LEAF})", ('("a" OR "b")',))
+
+    def test_a_mixed_query_keeps_each_rankable_subtree_as_one_leaf(self):
+        assert to_filter_expression(parse_query("(a -b) OR NOT c")) == (
+            f"({LEAF} OR (NOT {LEAF}))",
+            ('"a" NOT "b"', '"c"'),
+        )
+
+    def test_not_b_or_c_negates_only_its_first_alternative(self):
+        assert to_filter_expression(parse_query("NOT b OR c")) == (f"((NOT {LEAF}) OR {LEAF})", ('"b"', '"c"'))
+
+    def test_a_rankable_query_is_a_single_leaf(self):
+        assert to_filter_expression(parse_query("a -b -c")) == (LEAF, ('"a" NOT ("b" OR "c")',))
+
+    def test_a_conjunction_that_cannot_be_ranked_joins_its_parts_with_and(self):
+        node = And((A, Not(Or((B, Not(C))))))
+        assert to_filter_expression(node) == (
+            f"({LEAF} AND (NOT ({LEAF} OR (NOT {LEAF}))))",
+            ('"a"', '"b"', '"c"'),
+        )
+
+    def test_a_hand_built_ast_is_normalized_first(self):
+        assert to_filter_expression(And((Not(B), Not(C)))) == (f"(NOT {LEAF})", ('("b" OR "c")',))
+
+    @pytest.mark.parametrize(
+        "query, expected",
+        [
+            ("NOT b", {"1", "4", "5", "6"}),
+            ("NOT b OR c", {"1", "4", "5", "6"}),
+            ("NOT (a OR b)", {"4", "6"}),
+            ("(a -b) OR NOT c", {"1", "2", "3", "5", "6"}),
+            ("a -b", {"1", "5"}),
+        ],
+    )
+    def test_runs_on_sqlite_selecting_exactly_the_matching_documents(self, query, expected, fts5_filter):
+        assert fts5_filter(FILTER_CORPUS, *to_filter_expression(parse_query(query))) == expected
+
+
+class TestSemanticText:
+    @pytest.mark.parametrize(
+        "query, expected",
+        [
+            ("photometr* dwarf", "dwarf"),
+            ("photometr*", ""),
+            ("quasar -dwarf", "quasar"),
+            ("a -(b OR c) d", "a d"),
+            ('title:quasar abstract:"dwarf galaxy"', "quasar dwarf galaxy"),
+            ("NOT NOT a", "a"),
+            ("(a OR photometr*) title:b*", "a"),
+        ],
+    )
+    def test_keeps_whole_words_that_are_not_negated_in_source_order(self, query, expected):
+        assert semantic_text(parse_query(query)) == expected
+
+    def test_or_embeds_as_the_same_text_as_and(self):
+        assert semantic_text(parse_query("quasar OR blazar")) == semantic_text(parse_query("quasar AND blazar"))
+        assert semantic_text(parse_query("quasar OR blazar")) == "quasar blazar"
+
+    def test_a_hand_built_ast_is_normalized_first(self):
+        assert semantic_text(Not(Not(Phrase(("dwarf", "galaxy"))))) == "dwarf galaxy"
+        assert semantic_text(Not(A)) == ""

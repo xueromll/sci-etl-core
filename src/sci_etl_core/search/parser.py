@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from enum import Enum
 
 from sci_etl_core.exceptions import SearchQueryError
-from sci_etl_core.search.query import FIELDS, And, Node, Not, Or, Phrase, Term, normalize
+from sci_etl_core.search.compile_fts5 import require_rankable
+from sci_etl_core.search.query import FIELDS, And, Node, Not, Or, Phrase, Term, normalize, semantic_text
 from sci_etl_core.search.tokenize import Token, Unicode61Tokenizer
 
 MAX_GROUP_DEPTH = 32
@@ -72,6 +73,66 @@ def parse_query(text: str, *, default_fields: Sequence[str] = ()) -> Node:
             raise _unknown_field(name, None)
     scope = tuple(field for field in FIELDS if field in default_fields)
     return normalize(_Parser(_Scanner(text, scope)).parse())
+
+
+def parse_ranked_query(text: str, *, default_fields: Sequence[str] = ()) -> Node:
+    """Parse a query for a ranked search, which needs a term that is not negated.
+
+    This is :func:`parse_query` followed by
+    :func:`~sci_etl_core.search.compile_fts5.require_rankable`, with the
+    rankability error located in ``text``.
+
+    Raises:
+        SearchQueryError: The query is malformed, as for :func:`parse_query`,
+            or it cannot be ranked, such as ``NOT b`` or ``a OR -b``. A query
+            that cannot be ranked is located at its first ``NOT`` or ``-``.
+    """
+    node = parse_query(text, default_fields=default_fields)
+    try:
+        require_rankable(node)
+    except SearchQueryError as error:
+        position, token = _locate(text, _is_negation)
+        raise SearchQueryError(str(error), position=position, token=token) from None
+    return node
+
+
+def parse_semantic_query(text: str, *, default_fields: Sequence[str] = ()) -> tuple[Node, str]:
+    """Parse a query for a semantic search, returning the AST and the text to embed.
+
+    The text is :func:`~sci_etl_core.search.query.semantic_text` of the AST.
+
+    Raises:
+        SearchQueryError: The query is malformed or cannot be ranked, as for
+            :func:`parse_ranked_query`, or every term that is not negated is a
+            prefix term, so there is nothing to embed. That last error is
+            located at the first prefix term.
+    """
+    node = parse_ranked_query(text, default_fields=default_fields)
+    meaning = semantic_text(node)
+    if not meaning:
+        position, token = _locate(text, _is_prefix_term)
+        raise SearchQueryError(
+            "A semantic search needs at least one whole word; prefix terms match lexically only",
+            position=position,
+            token=token,
+        )
+    return node, meaning
+
+
+def _locate(text: str, wanted: Callable[[_Lexeme], bool]) -> tuple[int, str]:
+    scanner = _Scanner(text, ())
+    lexeme = scanner.next()
+    while lexeme.kind is not _Kind.END and not wanted(lexeme):
+        lexeme = scanner.next()
+    return lexeme.position, lexeme.text
+
+
+def _is_negation(lexeme: _Lexeme) -> bool:
+    return lexeme.kind is _Kind.NOT
+
+
+def _is_prefix_term(lexeme: _Lexeme) -> bool:
+    return isinstance(lexeme.node, Term) and lexeme.node.prefix
 
 
 def _unknown_field(name: str, position: int | None) -> SearchQueryError:

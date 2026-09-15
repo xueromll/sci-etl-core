@@ -3,24 +3,20 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Callable, Iterable, NoReturn
+from typing import Any, Callable, Iterable, NoReturn
 
 from sci_etl_core.exceptions import (
-    EmbeddingError,
-    EmbeddingStoreError,
     ExtractionError,
     MalformedResponseError,
     PipelineAborted,
 )
 from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.extractors.async_base import AsyncExtractor
+from sci_etl_core.ingest_protocol import MEMORY_FAULTS, MemoryIngestor
 from sci_etl_core.llm.extraction_async import AsyncEntityExtractor
 from sci_etl_core.llm.relevance_async import AsyncRelevanceFilter
 from sci_etl_core.models import RawRecord
 from sci_etl_core.state.async_base import AsyncStateManager
-
-if TYPE_CHECKING:
-    from sci_etl_core.embeddings.ingest_async import AsyncChunkIngestor
 
 _STALLED_PAGES_BEFORE_ABORT = 2
 _STALL_MESSAGE = "Records kept failing and none could be processed"
@@ -80,7 +76,7 @@ class AsyncETLPipeline:
         logger: Callable[[str], None] | None = None,
         sleep: Any = asyncio.sleep,
         closeables: Iterable[Any] | None = None,
-        memory_ingestor: "AsyncChunkIngestor | None" = None,
+        memory_ingestor: MemoryIngestor | None = None,
     ) -> None:
         """Wire the pipeline's collaborators together.
 
@@ -313,11 +309,13 @@ class AsyncETLPipeline:
             return _Outcome.PROCESSED
 
     async def _ingest_memory(self, record: RawRecord, text: str) -> None:
-        """Chunk and store the full text; a memory fault is logged, not fatal.
+        """Store the full text in memory; a memory fault is logged, not fatal.
 
         The record has already earned its place through the relevance gate, so a
-        storage or embedding hiccup must not discard its entity export. The
-        failure is surfaced through the logger rather than swallowed silently.
+        storage or embedding hiccup (:data:`~sci_etl_core.ingest_protocol.MEMORY_FAULTS`)
+        must not discard its entity export. The failure is surfaced through the
+        logger rather than swallowed silently. Any other exception, such as a
+        :class:`~sci_etl_core.exceptions.SearchQueryError`, fails the record.
         """
         if self._memory_ingestor is None:
             return
@@ -325,7 +323,7 @@ class AsyncETLPipeline:
             await self._memory_ingestor.ingest(record, text)
         except asyncio.CancelledError:
             raise
-        except (EmbeddingError, EmbeddingStoreError) as exc:
+        except MEMORY_FAULTS as exc:
             self._log(f"Memory ingest failed for {record.record_id}: {exc!r}")
 
     async def _mark_done(self, record: RawRecord, processed_ids: set[str]) -> None:

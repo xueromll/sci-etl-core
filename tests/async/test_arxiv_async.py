@@ -137,6 +137,64 @@ class TestAsyncArxivParseListing:
             extractor.parse_listing(payload, set())
 
 
+def _single_entry_feed(entry_body: str) -> bytes:
+    return (
+        "<?xml version='1.0'?>"
+        "<feed xmlns='http://www.w3.org/2005/Atom' xmlns:arxiv='http://arxiv.org/schemas/atom'>"
+        "<entry><id>http://arxiv.org/abs/2401.00001v1</id><title>T</title><summary>S</summary>"
+        f"{entry_body}</entry></feed>"
+    ).encode()
+
+
+class TestAsyncArxivListingMetadata:
+    def test_holds_categories_authors_published_and_year(self, mocker):
+        feed = _single_entry_feed(
+            "<published>2024-01-02T18:00:00Z</published>"
+            "<author><name>Ada Lovelace</name><arxiv:affiliation>Analytical Engines</arxiv:affiliation></author>"
+            "<author><name>Carl Sagan</name></author>"
+            "<arxiv:primary_category term='astro-ph.GA' scheme='http://arxiv.org/schemas/atom'/>"
+            "<category term='astro-ph.GA' scheme='http://arxiv.org/schemas/atom'/>"
+            "<category term='astro-ph.CO' scheme='http://arxiv.org/schemas/atom'/>"
+        )
+        (record,), _ = _build(_client(mocker), mocker).parse_listing(feed, set())
+        assert record.metadata == {
+            "categories": ["astro-ph.GA", "astro-ph.CO"],
+            "authors": ["Ada Lovelace", "Carl Sagan"],
+            "published": "2024-01-02T18:00:00Z",
+            "year": "2024",
+        }
+
+    def test_an_entry_without_categories_or_authors_gets_empty_lists(self, mocker):
+        (record,), _ = _build(_client(mocker), mocker).parse_listing(_single_entry_feed(""), set())
+        assert record.metadata == {"categories": [], "authors": []}
+
+    @pytest.mark.parametrize("published", ["", "<published>   </published>"])
+    def test_a_missing_or_blank_published_date_omits_published_and_year(self, mocker, published):
+        (record,), _ = _build(_client(mocker), mocker).parse_listing(_single_entry_feed(published), set())
+        assert "published" not in record.metadata
+        assert "year" not in record.metadata
+
+    @pytest.mark.parametrize("published", ["January 2024", "24-01-02", "20245-01-02", "２０２４-01-02", "2024"])
+    def test_year_is_taken_only_from_a_leading_four_digit_year(self, mocker, published):
+        feed = _single_entry_feed(f"<published>{published}</published>")
+        (record,), _ = _build(_client(mocker), mocker).parse_listing(feed, set())
+        assert record.metadata["published"] == published
+        assert record.metadata.get("year") == ("2024" if published == "2024" else None)
+
+    def test_a_repeated_category_is_kept_as_sent(self, mocker):
+        feed = _single_entry_feed("<category term='astro-ph.GA'/><category term='astro-ph.GA'/>")
+        (record,), _ = _build(_client(mocker), mocker).parse_listing(feed, set())
+        assert record.metadata["categories"] == ["astro-ph.GA", "astro-ph.GA"]
+
+    def test_blank_or_missing_terms_and_names_are_skipped(self, mocker):
+        feed = _single_entry_feed(
+            "<category term='  '/><category/><category term=' hep-th '/>"
+            "<author><name> </name></author><author/><author><name>Vera Rubin</name></author>"
+        )
+        (record,), _ = _build(_client(mocker), mocker).parse_listing(feed, set())
+        assert record.metadata == {"categories": ["hep-th"], "authors": ["Vera Rubin"]}
+
+
 class TestAsyncArxivFetchFullText:
     @pytest.mark.asyncio
     async def test_prefers_latex_source(self, mocker):

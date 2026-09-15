@@ -49,6 +49,10 @@ from sci_etl_core.processors.validation import (
     NumericRangeValidator,
     RecordValidator,
 )
+from sci_etl_core.search.edges import AsyncEdgeSource, EmbeddingEdgeSource, MetadataEdgeSource
+from sci_etl_core.search.store_base import AsyncTextSearchStore
+from sci_etl_core.search.store_memory import InMemoryTextSearchStore
+from sci_etl_core.search.store_sqlite_fts5 import AsyncSqliteFts5Store
 from sci_etl_core.state.async_base import AsyncStateManager
 from sci_etl_core.state.async_file_state import AsyncFileStateManager
 from sci_etl_core.state.sqlite_async import AsyncSqliteStateManager
@@ -84,6 +88,10 @@ CASES: list[tuple[type, type]] = [
     (AsyncEmbedder, AsyncSentenceTransformerEmbedder),
     (AsyncEmbeddingStore, InMemoryEmbeddingStore),
     (AsyncEmbeddingStore, AsyncSqliteEmbeddingStore),
+    (AsyncTextSearchStore, InMemoryTextSearchStore),
+    (AsyncTextSearchStore, AsyncSqliteFts5Store),
+    (AsyncEdgeSource, EmbeddingEdgeSource),
+    (AsyncEdgeSource, MetadataEdgeSource),
     (TextChunker, SlidingWindowChunker),
     (KeyNormalizer, DefaultKeyNormalizer),
     (RecordValidator, KeywordExclusionValidator),
@@ -110,4 +118,5 @@ class TestAbcConformance:
 
     def test_overridden_methods_are_callable(self, abc, concrete):
         for name in getattr(abc, "__abstractmethods__", frozenset()):
-            assert callable(getattr(concrete, name))
+            member = getattr(concrete, name)
+            assert isinstance(member, property) or callable(member)

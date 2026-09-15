@@ -97,6 +97,39 @@ def fts5_match():
     return _match
 
 
+@pytest.fixture(scope="session")
+def fts5_filter():
+    def _select(documents, expression: str, parameters: tuple[str, ...]) -> set[str]:
+        connection = sqlite3.connect(":memory:")
+        try:
+            connection.executescript(
+                """
+                CREATE TABLE documents (
+                    doc_id INTEGER PRIMARY KEY, record_id TEXT NOT NULL UNIQUE, title TEXT, abstract TEXT, body TEXT
+                );
+                CREATE VIRTUAL TABLE documents_fts USING fts5(
+                    title, abstract, body, content='documents', content_rowid='doc_id',
+                    tokenize="unicode61 remove_diacritics 2"
+                );
+                """
+            )
+            with connection:
+                connection.executemany(
+                    "INSERT INTO documents VALUES (?, ?, ?, ?, ?)",
+                    (
+                        (row, doc.record_id, doc.title, doc.abstract, doc.body)
+                        for row, doc in enumerate(documents, start=1)
+                    ),
+                )
+                connection.execute("INSERT INTO documents_fts(documents_fts) VALUES ('rebuild')")
+            found = connection.execute(f"SELECT d.record_id FROM documents d WHERE {expression}", parameters)
+            return {record_id for (record_id,) in found.fetchall()}
+        finally:
+            connection.close()
+
+    return _select
+
+
 @pytest.fixture
 def sample_frame() -> pd.DataFrame:
     return pd.DataFrame(
