@@ -62,7 +62,10 @@ class InMemoryTextSearchStore(AsyncTextSearchStore):
     most cases but not all: whether it counts a word inside a part of the query
     that fails to match depends on the state of its internal iterators, so for
     such queries the two stores can score, and so order, the same records
-    differently.
+    differently. Known divergence: FTS5 may count a term inside a failing
+    ``OR`` branch, so raw scores can differ on mixed-negation queries; matched
+    record sets are identical. The property-based parity test compares sets,
+    not scores.
 
     A snippet is taken from the field with the most counted matches, with ties
     going to ``title``, then ``abstract``, then ``body``.

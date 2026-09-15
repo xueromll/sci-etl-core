@@ -6,6 +6,7 @@ dist/
 
 code.txt
 .coverage
+coverage.txt
 
 .env
 .env.*
