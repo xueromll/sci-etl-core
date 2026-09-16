@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sqlite3
 from pathlib import Path
 
@@ -13,6 +14,11 @@ _SCHEMA: tuple[str, ...] = (
     " id INTEGER PRIMARY KEY CHECK (id = 1),"
     " last_run_at TEXT,"
     " last_start_index INTEGER NOT NULL DEFAULT 0)",
+)
+_ADDED_METADATA_COLUMNS: tuple[tuple[str, str], ...] = (
+    ("head_ids", "TEXT NOT NULL DEFAULT '[]'"),
+    ("head_offset", "INTEGER NOT NULL DEFAULT 0"),
+    ("tail_ids", "TEXT NOT NULL DEFAULT '[]'"),
 )
 
 
@@ -56,23 +62,38 @@ class AsyncSqliteStateManager(AsyncStateManager):
     async def load_metadata(self) -> PipelineMetadata:
         row = await self._runner.run(
             lambda connection: connection.execute(
-                "SELECT last_run_at, last_start_index FROM pipeline_metadata WHERE id = 1"
+                "SELECT last_run_at, last_start_index, head_ids, head_offset, tail_ids"
+                " FROM pipeline_metadata WHERE id = 1"
             ).fetchone(),
             "load pipeline metadata",
         )
         if row is None:
             return PipelineMetadata()
-        return PipelineMetadata(last_run_at=row[0], last_start_index=row[1])
+        return PipelineMetadata(
+            last_run_at=row[0],
+            last_start_index=row[1],
+            head_ids=json.loads(row[2]),
+            head_offset=row[3],
+            tail_ids=json.loads(row[4]),
+        )
 
     async def save_metadata(self, metadata: PipelineMetadata) -> None:
         metadata.touch()
         await self._runner.run(
             lambda connection: connection.execute(
-                "INSERT INTO pipeline_metadata (id, last_run_at, last_start_index)"
-                " VALUES (1, ?, ?)"
+                "INSERT INTO pipeline_metadata (id, last_run_at, last_start_index, head_ids, head_offset, tail_ids)"
+                " VALUES (1, ?, ?, ?, ?, ?)"
                 " ON CONFLICT(id) DO UPDATE SET last_run_at = excluded.last_run_at,"
-                " last_start_index = excluded.last_start_index",
-                (metadata.last_run_at, metadata.last_start_index),
+                " last_start_index = excluded.last_start_index,"
+                " head_ids = excluded.head_ids, head_offset = excluded.head_offset,"
+                " tail_ids = excluded.tail_ids",
+                (
+                    metadata.last_run_at,
+                    metadata.last_start_index,
+                    json.dumps(list(metadata.head_ids)),
+                    metadata.head_offset,
+                    json.dumps(list(metadata.tail_ids)),
+                ),
             ),
             "save pipeline metadata",
         )
@@ -98,4 +119,8 @@ class AsyncSqliteStateManager(AsyncStateManager):
         connection.execute("PRAGMA synchronous=FULL")
         for statement in _SCHEMA:
             connection.execute(statement)
+        existing = {row[1] for row in connection.execute("PRAGMA table_info(pipeline_metadata)")}
+        for column, definition in _ADDED_METADATA_COLUMNS:
+            if column not in existing:
+                connection.execute(f"ALTER TABLE pipeline_metadata ADD COLUMN {column} {definition}")
         return connection

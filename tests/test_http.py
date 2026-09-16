@@ -1,9 +1,17 @@
 from __future__ import annotations
 
+import pytest
 import requests
 from urllib3.util.retry import Retry
 
 from sci_etl_core.http import build_retrying_session
+
+pytestmark = pytest.mark.filterwarnings("ignore:build_retrying_session is deprecated:DeprecationWarning")
+
+
+def test_warns_that_the_helper_is_deprecated():
+    with pytest.warns(DeprecationWarning, match="removed in sci-etl-core 0.5.0"):
+        build_retrying_session()
 
 
 class TestBuildRetryingSession:

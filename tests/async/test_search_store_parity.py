@@ -7,10 +7,10 @@ from datetime import datetime, timezone
 import pytest
 
 from sci_etl_core.exceptions import SearchQueryError
-from sci_etl_core.search.filters import MetadataFilter
+from sci_etl_core.search.filters import MetadataFilter, RangeFilter
 from sci_etl_core.search.parser import parse_query
 from sci_etl_core.search.query import Not, Term
-from sci_etl_core.search.store_base import BM25Weights, SearchDocument
+from sci_etl_core.search.store_base import BM25Weights, SearchDocument, Snippet
 from sci_etl_core.search.store_memory import InMemoryTextSearchStore
 from sci_etl_core.search.store_sqlite_fts5 import AsyncSqliteFts5Store
 from sci_etl_core.search.tokenize import Unicode61Tokenizer
@@ -31,6 +31,19 @@ IN_BODY_AND_IN_TITLE = [
     SearchDocument("in-body", title="survey", body="galaxy"),
     SearchDocument("in-title", title="galaxy", body="survey"),
 ]
+DATED_DOCUMENTS = [
+    SearchDocument(
+        f"y{year}",
+        title="galaxy",
+        metadata={
+            "year": year,
+            "published": f"{year}-06-30T10:00:00Z",
+            "categories": ["GA"] if year % 2 else ["CO"],
+        },
+    )
+    for year in range(2018, 2026)
+]
+DATED_FACETS = ("year", "published", "categories")
 DWARF_AND_GIANT = [
     SearchDocument("a", title="dwarf"),
     SearchDocument("b", title="giant"),
@@ -263,6 +276,83 @@ class TestTextSearchStoreContract:
             }
             await store.index([SearchDocument("r1", title="galaxy", metadata={"authors": ["B"], "year": 2024})])
             assert await store.facet_counts(["authors", "year"]) == {"authors": (("B", 1),), "year": (("2024", 1),)}
+
+    @pytest.mark.parametrize(
+        "filters, expected",
+        [
+            ([RangeFilter("year", 2020, 2022)], ["y2020", "y2021", "y2022"]),
+            ([RangeFilter("year", "2024")], ["y2024", "y2025"]),
+            ([RangeFilter("published", "2021", "2022-06")], ["y2021", "y2022"]),
+            ([RangeFilter("published", high="2019-06-30T09")], ["y2018"]),
+            (
+                [RangeFilter("year", low=2024, negated=True), MetadataFilter("categories", {"GA"})],
+                ["y2019", "y2021", "y2023"],
+            ),
+            ([RangeFilter("categories", low="H")], []),
+        ],
+    )
+    @pytest.mark.asyncio
+    async def test_range_filters_select_tags_between_their_bounds(self, kind, tmp_path, filters, expected):
+        async with open_store(kind, tmp_path, facet_keys=DATED_FACETS) as store:
+            await store.index(DATED_DOCUMENTS)
+            assert sorted(await store.filter_ids(Term("galaxy"), filters)) == expected
+            hits = await store.search(Term("galaxy"), limit=2, filters=filters)
+            assert [hit.record_id for hit in hits] == expected[:2]
+
+    @pytest.mark.asyncio
+    async def test_facet_counts_apply_range_filters_on_other_keys(self, kind, tmp_path):
+        async with open_store(kind, tmp_path, facet_keys=DATED_FACETS) as store:
+            await store.index(DATED_DOCUMENTS)
+            recent = [RangeFilter("year", low=2022), MetadataFilter("categories", {"GA"})]
+            assert await store.facet_counts(["categories", "year"], filters=recent) == {
+                "categories": (("CO", 2), ("GA", 2)),
+                "year": (("2019", 1), ("2021", 1), ("2023", 1), ("2025", 1)),
+            }
+
+    @pytest.mark.asyncio
+    async def test_range_counts_count_each_range_without_filters_on_its_own_key(self, kind, tmp_path):
+        async with open_store(kind, tmp_path, facet_keys=DATED_FACETS) as store:
+            await store.index(DATED_DOCUMENTS)
+            buckets = [
+                RangeFilter("year", 2018, 2019),
+                RangeFilter("year", 2020, 2025),
+                RangeFilter("year", 2020, 2025, negated=True),
+                RangeFilter("published", high="2020-12"),
+            ]
+            filters = [RangeFilter("year", low=2025), MetadataFilter("categories", {"GA"})]
+            assert await store.range_counts(buckets, query=Term("galaxy"), filters=filters) == (1, 3, 1, 0)
+            assert await store.range_counts(buckets[:2]) == (2, 6)
+            assert await store.range_counts([], filters=filters) == ()
+            assert await store.range_counts(buckets[:1], query=Term("quasar")) == (0,)
+
+    @pytest.mark.asyncio
+    async def test_invalid_range_requests_raise_before_any_io(self, kind, tmp_path):
+        async with open_store(kind, tmp_path / "never-created", facet_keys=("year",)) as store:
+            with pytest.raises(ValueError, match="'authors' is not a facet key"):
+                await store.range_counts([RangeFilter("authors", low="A")])
+            with pytest.raises(ValueError, match="Only one filter per key"):
+                await store.range_counts(
+                    [RangeFilter("year", 2020)], filters=[RangeFilter("year", 2020), MetadataFilter("year", {"1"})]
+                )
+            with pytest.raises(ValueError, match="'authors' is not a facet key"):
+                await store.filter_ids(filters=[RangeFilter("authors", low="A")])
+
+    @pytest.mark.asyncio
+    async def test_every_field_with_a_match_gets_a_snippet(self, kind, tmp_path):
+        words = [f"w{index}" for index in range(60)]
+        words[40] = "dwarf"
+        document = SearchDocument("r1", title="Dwarf galaxies", abstract="Tidal streams", body=" ".join(words))
+        async with open_store(kind, tmp_path) as store:
+            await store.index([document])
+            (hit,) = await store.search(parse_query("dwarf OR streams"))
+            assert [snippet.field for snippet in hit.snippets] == ["title", "abstract", "body"]
+            title, abstract, body = hit.snippets
+            assert title == Snippet("title", "Dwarf galaxies", ((0, 5),))
+            assert abstract == Snippet("abstract", "Tidal streams", ((6, 13),))
+            assert body.text.startswith("…") and [body.text[start:end] for start, end in body.highlights] == ["dwarf"]
+            assert (hit.snippet, hit.highlights) == (title.text, title.highlights)
+            (scoped,) = await store.search(parse_query("body:dwarf"))
+            assert [snippet.field for snippet in scoped.snippets] == ["body"]
 
     @pytest.mark.asyncio
     async def test_control_characters_are_stored_as_spaces(self, kind, tmp_path):

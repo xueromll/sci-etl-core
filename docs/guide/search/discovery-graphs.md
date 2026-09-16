@@ -30,8 +30,10 @@ async def show_neighborhood(record_id: str) -> None:
   abstract are close in the vector memory, and `MetadataEdgeSource` records
   that share tags, weighted by the Jaccard index of their tag sets. Its keys
   must be among the text store's `facet_keys`, and it defaults to
-  `("categories", "authors")`. Other notions of relatedness, such as
-  citations, plug in as subclasses of `AsyncEdgeSource`.
+  `("categories", "authors")`. Other notions of relatedness plug in as
+  subclasses of `AsyncEdgeSource`. No bundled source uses citations yet, but
+  `AsyncOpenAlexExtractor` stores the works a paper cites under `references`
+  in its metadata.
 - **Growth.** The graph grows `depth` levels. Each record adds up to `fanout`
   neighbors per source whose weight is at least `min_weight` (default 0.35),
   and `max_nodes` (default 200) is checked before each level. With
@@ -50,7 +52,8 @@ async def show_neighborhood(record_id: str) -> None:
   an endpoint are dropped, and communities are kept so colors stay stable.
   Pass `matched_ids=await text_store.filter_ids(parse_query(...))` to keep only
   records matching a query; that call accepts pure negation, such as
-  `NOT simulation`.
+  `NOT simulation`. `filters` takes `RangeFilter`s too, such as
+  `RangeFilter("year", low=2020)`.
 - **Cost.** `EmbeddingEdgeSource` issues up to one vector query per node, and
   `AsyncSqliteEmbeddingStore` scans every stored chunk on each query, so keep
   `max_nodes` small for a large memory.

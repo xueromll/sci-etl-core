@@ -5,7 +5,7 @@ shift with community feedback. Want to help with any item? Comment on the
 matching issue or open one. Items marked **good first issue** are approachable
 for newcomers.
 
-## Current Status — v0.3
+## Current Status — v0.4
 
 `sci-etl-core` is functional and used in production for scientific corpus ETL,
 including [udg-catalogue](https://github.com/xueromll/udg-catalogue).
@@ -82,7 +82,7 @@ including [udg-catalogue](https://github.com/xueromll/udg-catalogue).
   udg-catalogue onto the library, including parity checks against the old
   code.
 
-## Next Up — v0.4
+## Released — v0.4
 
 ### Reliability
 
@@ -90,15 +90,15 @@ including [udg-catalogue](https://github.com/xueromll/udg-catalogue).
   `AsyncStateManager.flush()` into `AsyncETLPipeline`, so an interrupt drains
   in-flight work without user-side task management. It should also work
   through `ETLPipeline`, whose background event loop can't install signal
-  handlers today.
+  handlers today. *Shipped in 0.4.*
 - **Incremental resume for shifting listings.** Pick up new submissions in a
   newest-first listing without rescanning from offset 0, for example by
   tracking the newest submission already seen. udg-catalogue rescans from 0
   on every run, paying a listing request and the search delay for every page
-  it has already seen.
+  it has already seen. *Shipped in 0.4.*
 - **Rate-limiter injection.** Accept an `AsyncRateLimiter` in extractors and in
   LLM and embedding clients, with per-host limits and limiters shared across
-  components, replacing the wrapper class the rate limiting guide currently shows.
+  components, replacing the wrapper class the rate limiting guide currently shows. *Shipped in 0.4.*
 
 ### Found in the udg-catalogue migration
 
@@ -107,61 +107,61 @@ Each of these is code udg-catalogue still carries on top of the library (see
 
 - **Record validation in the pipeline.** Accept a `RecordValidator` on
   `AsyncLLMEntityExtractor`, logging what it rejects, so projects no longer
-  need a wrapper extractor to drop invalid entities before export.
+  need a wrapper extractor to drop invalid entities before export. *Shipped in 0.4.*
 - **Config-driven components.** Let `HttpConfig`, `RateLimitConfig`, and
   `PipelineConfig` configure components directly, instead of being copied into
   constructors by hand. Finish aligning `PipelineConfig` with `run()` at the
   same time: `page_size` and `search_delay` are already config fields, but
   `max_records` and `max_workers` still need reconciling with `total_limit`
   and `max_concurrency`. Include the search and discovery parameter
-  dataclasses (`BM25Weights`, `FusionParams`, `HybridParams`, `GraphParams`).
+  dataclasses (`BM25Weights`, `FusionParams`, `HybridParams`, `GraphParams`). *Shipped in 0.4.*
 - **Richer 3D plots.** Let `ScatterPlotConfig` take hover data, a hover
   template, a continuous color scale, and a fixed color range, so
-  `AsyncPlotly3DExporter` can replace project-specific Plotly figures.
+  `AsyncPlotly3DExporter` can replace project-specific Plotly figures. *Shipped in 0.4.*
 - **More processor steps.** A `ValueClipStep` that clamps numeric columns
   during post-processing, as the CSV exporter's `numeric_clip` does during
-  export, and a step that sorts rows and orders columns.
-  *(good first issue: `ValueClipStep`)*
+  export, and a step that sorts rows and orders columns. *Shipped in 0.4.*
 
 ### New capabilities
 
 - **LLM response caching.** Pluggable cache (in-memory + on-disk) keyed on
   prompt and model, to cut cost and speed up re-runs. Injected like every other
-  collaborator, so custom backends (e.g. Redis) are simple to add.
-  *(good first issue: in-memory backend)*
+  collaborator, so custom backends (e.g. Redis) are simple to add. *Shipped in 0.4.*
 - **New extractors.** PubMed, Semantic Scholar, and OpenAlex, all behind the
-  existing `AsyncExtractor` interface. Semantic Scholar and OpenAlex return
-  reference lists, which citation edges in discovery graphs could use (see
-  v0.5+). *(good first issue: pick one source)*
-- **New parsers.** DOCX and structured JATS/XML parsing.
+  existing `AsyncExtractor` interface. `AsyncOpenAlexExtractor` stores each
+  paper's reference list under `references`, which citation edges in
+  discovery graphs could use (see v0.5+). *Shipped in 0.4.*
+- **New parsers.** DOCX and structured JATS/XML parsing. *Shipped in 0.4.*
 - **Pipeline observability.** Structured, per-record progress events and simple
   run metrics (counts, durations, failures), beyond the current `logger`
   callback. The clients already count token usage; fold it into those
-  metrics.
+  metrics. *Shipped in 0.4.*
 
 ### Local search
 
-- **Proximity queries.** `NEAR("a b", 10)` in the query language.
+- **Proximity queries.** `NEAR("a b", 10)` in the query language. *Shipped in 0.4.*
 - **Backfill from vector memory.** Rebuild a text index from the chunk text
   already in an `AsyncSqliteEmbeddingStore`, so existing deployments don't
   have to fetch full texts again. Overlapping chunk windows must be merged
-  without repeating words, or BM25 over-counts words at window boundaries.
+  without repeating words, or BM25 over-counts words at window boundaries. *Shipped in 0.4.*
 - **Tune the semantic candidate pool.** Measure how many distinct records the
   top chunks span on a real memory database, such as udg-catalogue's, and
-  adjust the `chunk_pool_factor` default of 5 if it is too small.
+  adjust the `chunk_pool_factor` default of 5 if it is too small. *Not in 0.4;
+  still open.*
 - **Richer snippets.** Highlights from every matching field instead of the one
   FTS5 picks, and a snippet for hits found only by the semantic leg, which
-  needs `find_similar_articles` to return each record's best chunk.
+  needs `find_similar_articles` to return each record's best chunk. *Shipped in 0.4.*
 - **Range filters.** Filter and count dates and years by range, not only by
-  exact value.
+  exact value. *Shipped in 0.4.*
 - **Substring and CJK matching.** An optional trigram index, if corpora need
-  it. It roughly doubles the index size.
+  it. It roughly doubles the index size. *Not in 0.4; still open.*
 
 ### Project health
 
 - **Retire the `requests` session helper.** `sci_etl_core.http.build_retrying_session`
   is a synchronous leftover that no component uses. Deprecate it, and drop
-  `requests` from the `full` extra once it's removed.
+  `requests` from the `full` extra once it's removed. *Deprecated in 0.4;
+  removal in 0.5.*
 
 ## Later — v0.5+
 
@@ -186,9 +186,8 @@ Each of these is code udg-catalogue still carries on top of the library (see
   `AsyncEmbeddingStore` for corpora larger than the exact linear-scan SQLite
   store handles comfortably.
 - **Citation edges.** An edge source for co-citation and bibliographic
-  coupling, once an extractor supplies reference lists (see **New
-  extractors** in v0.4). Where references live on a record still has to be
-  agreed with that work.
+  coupling, now that `AsyncOpenAlexExtractor` supplies reference lists under
+  `metadata["references"]` (see **New extractors** in v0.4).
 - **Discovery interface.** An interactive search and graph view built on the
   `sci_etl_core.discovery` read-model, outside this repository: either a
   subcommand of [sci-etl-cli](https://github.com/xueromll/sci-etl-cli) or an

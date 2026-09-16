@@ -16,16 +16,18 @@ from sci_etl_core.search.filters import (
     SNIPPET_ELLIPSIS,
     SNIPPET_OPEN,
     SNIPPET_TOKENS,
-    MetadataFilter,
+    RangeFilter,
+    SearchFilter,
     encode_metadata,
     sanitize_text,
     split_markers,
+    tag_in_range,
     tag_rows,
     validate_facet_keys,
     validate_filters,
 )
-from sci_etl_core.search.query import Node
-from sci_etl_core.search.store_base import AsyncTextSearchStore, BM25Weights, SearchDocument, TextHit
+from sci_etl_core.search.query import FIELDS, Node
+from sci_etl_core.search.store_base import AsyncTextSearchStore, BM25Weights, SearchDocument, Snippet, TextHit
 
 T = TypeVar("T")
 
@@ -37,10 +39,11 @@ _UPSERT = (
 _SELECT_DOC_ID = "SELECT doc_id FROM documents WHERE record_id = ?"
 _DELETE_TAGS = "DELETE FROM document_tags WHERE doc_id = ?"
 _INSERT_TAG = "INSERT INTO document_tags (doc_id, key, value) VALUES (?, ?, ?)"
+_SNIPPET = "snippet(documents_fts, {column}, ?, ?, ?, ?)"
 _SEARCH = (
-    "SELECT d.record_id, d.title, d.metadata, bm25(documents_fts, ?, ?, ?) AS score,"
-    " snippet(documents_fts, -1, ?, ?, ?, ?)"
-    " FROM documents_fts JOIN documents d ON d.doc_id = documents_fts.rowid"
+    "SELECT d.record_id, d.title, d.metadata, bm25(documents_fts, ?, ?, ?) AS score, "
+    + ", ".join(_SNIPPET.format(column=column) for column in range(-1, len(FIELDS)))
+    + " FROM documents_fts JOIN documents d ON d.doc_id = documents_fts.rowid"
     " WHERE documents_fts MATCH ?{conditions}"
     " ORDER BY score, d.record_id LIMIT ?"
 )
@@ -48,7 +51,9 @@ _FACET_COUNTS = (
     "SELECT t.value, COUNT(*) AS matched FROM document_tags t JOIN documents d ON d.doc_id = t.doc_id"
     " WHERE t.key = ? AND {conditions} GROUP BY t.value ORDER BY matched DESC, t.value"
 )
+_RANGE_COUNT = "SELECT COUNT(*) FROM documents d WHERE {conditions}"
 _ID_BATCH = 500
+_IN_RANGE_FUNCTION = "sci_etl_tag_in_range"
 
 
 def fts5_available(connect: Callable[[], sqlite3.Connection] | None = None) -> bool:
@@ -94,9 +99,14 @@ class AsyncSqliteFts5Store(AsyncTextSearchStore):
     :class:`~sci_etl_core.exceptions.SearchStoreError`.
 
     Ranking is FTS5's ``bm25()`` with the field ``weights``, reported as a
-    score where higher is better. A snippet comes from the one field FTS5
-    chooses. Each document's ``indexed_at`` is the UTC time from ``now``, as an
-    ISO 8601 string with an offset.
+    score where higher is better. ``snippet`` comes from the one field FTS5
+    chooses, and ``snippets`` holds FTS5's snippet of every field it
+    highlights a match in. On the queries where FTS5 counts a word inside a
+    part of the query that fails to match, as
+    :class:`~sci_etl_core.search.store_memory.InMemoryTextSearchStore`
+    describes, the two stores can highlight different words and so list
+    different fields. Each document's ``indexed_at`` is the UTC time from
+    ``now``, as an ISO 8601 string with an offset.
 
     ``facet_keys`` names the metadata keys tagged for filters and facets. It is
     fixed for the life of the instance and recorded in the file. To change it,
@@ -159,7 +169,7 @@ class AsyncSqliteFts5Store(AsyncTextSearchStore):
         query: Node,
         limit: int = 20,
         exclude_record_id: str | None = None,
-        filters: Sequence[MetadataFilter] = (),
+        filters: Sequence[SearchFilter] = (),
     ) -> list[TextHit]:
         validate_filters(filters, self._facet_keys)
         expression = to_match_expression(query)
@@ -174,10 +184,7 @@ class AsyncSqliteFts5Store(AsyncTextSearchStore):
             self._weights.title,
             self._weights.abstract,
             self._weights.body,
-            SNIPPET_OPEN,
-            SNIPPET_CLOSE,
-            SNIPPET_ELLIPSIS,
-            SNIPPET_TOKENS,
+            *[SNIPPET_OPEN, SNIPPET_CLOSE, SNIPPET_ELLIPSIS, SNIPPET_TOKENS] * (len(FIELDS) + 1),
             expression,
             *condition_parameters,
             limit,
@@ -186,7 +193,7 @@ class AsyncSqliteFts5Store(AsyncTextSearchStore):
         return [_hit(*row) for row in rows]
 
     async def filter_ids(
-        self, query: Node | None = None, filters: Sequence[MetadataFilter] = ()
+        self, query: Node | None = None, filters: Sequence[SearchFilter] = ()
     ) -> frozenset[str]:
         validate_filters(filters, self._facet_keys)
         conditions, parameters = _conditions(None if query is None else to_filter_expression(query), filters)
@@ -209,7 +216,7 @@ class AsyncSqliteFts5Store(AsyncTextSearchStore):
         keys: Sequence[str],
         *,
         query: Node | None = None,
-        filters: Sequence[MetadataFilter] = (),
+        filters: Sequence[SearchFilter] = (),
     ) -> dict[str, tuple[tuple[str, int], ...]]:
         validate_filters(filters, self._facet_keys)
         validate_facet_keys(keys, self._facet_keys)
@@ -228,6 +235,32 @@ class AsyncSqliteFts5Store(AsyncTextSearchStore):
             }
 
         return await self._read(filters, count_values, required_keys=keys)
+
+    async def range_counts(
+        self,
+        ranges: Sequence[RangeFilter],
+        *,
+        query: Node | None = None,
+        filters: Sequence[SearchFilter] = (),
+    ) -> tuple[int, ...]:
+        """Count matching documents inside each of ``ranges`` in one consistent read.
+
+        The counts are those :meth:`AsyncTextSearchStore.range_counts` describes.
+        """
+        validate_filters(filters, self._facet_keys)
+        range_keys = [search_range.key for search_range in ranges]
+        validate_facet_keys(range_keys, self._facet_keys)
+        filter_expression = None if query is None else to_filter_expression(query)
+        statements: list[tuple[str, list[Any]]] = []
+        for search_range in ranges:
+            others = [search_filter for search_filter in filters if search_filter.key != search_range.key]
+            conditions, parameters = _conditions(filter_expression, [*others, search_range])
+            statements.append((_RANGE_COUNT.format(conditions=" AND ".join(conditions)), parameters))
+
+        def count_ranges(connection: sqlite3.Connection) -> tuple[int, ...]:
+            return tuple(int(connection.execute(sql, parameters).fetchone()[0]) for sql, parameters in statements)
+
+        return await self._read(filters, count_ranges, required_keys=range_keys)
 
     async def count(self) -> int:
         rows = await self._runner.run(
@@ -289,6 +322,7 @@ class AsyncSqliteFts5Store(AsyncTextSearchStore):
         except sqlite3.Error as exc:
             raise SearchStoreError(f"Failed to open the SQLite search index: {exc}") from exc
         try:
+            connection.create_function(_IN_RANGE_FUNCTION, 3, tag_in_range, deterministic=True)
             bootstrap(connection, self._facet_keys)
         except sqlite3.Error as exc:
             connection.close()
@@ -312,7 +346,7 @@ class AsyncSqliteFts5Store(AsyncTextSearchStore):
 
     async def _read(
         self,
-        filters: Sequence[MetadataFilter],
+        filters: Sequence[SearchFilter],
         operation: Callable[[sqlite3.Connection], T],
         required_keys: Sequence[str] = (),
     ) -> T:
@@ -353,21 +387,25 @@ class AsyncSqliteFts5Store(AsyncTextSearchStore):
 
 
 def _conditions(
-    filter_expression: tuple[str, tuple[str, ...]] | None, filters: Iterable[MetadataFilter]
+    filter_expression: tuple[str, tuple[str, ...]] | None, filters: Iterable[SearchFilter]
 ) -> tuple[list[str], list[Any]]:
     conditions: list[str] = []
     parameters: list[Any] = []
     if filter_expression is not None:
         conditions.append(filter_expression[0])
         parameters.extend(filter_expression[1])
-    for metadata_filter in filters:
-        placeholders = ", ".join("?" * len(metadata_filter.values))
-        exists = "NOT EXISTS" if metadata_filter.negated else "EXISTS"
+    for search_filter in filters:
+        exists = "NOT EXISTS" if search_filter.negated else "EXISTS"
+        if isinstance(search_filter, RangeFilter):
+            test = f"{_IN_RANGE_FUNCTION}(t.value, ?, ?)"
+            values: list[Any] = [search_filter.low, search_filter.high]
+        else:
+            test = f"t.value IN ({', '.join('?' * len(search_filter.values))})"
+            values = sorted(search_filter.values)
         conditions.append(
-            f"{exists} (SELECT 1 FROM document_tags t WHERE t.doc_id = d.doc_id AND t.key = ?"
-            f" AND t.value IN ({placeholders}))"
+            f"{exists} (SELECT 1 FROM document_tags t WHERE t.doc_id = d.doc_id AND t.key = ? AND {test})"
         )
-        parameters.extend([metadata_filter.key, *sorted(metadata_filter.values)])
+        parameters.extend([search_filter.key, *values])
     return conditions, parameters
 
 
@@ -395,9 +433,14 @@ def _integrity_check(connection: sqlite3.Connection) -> bool:
     return True
 
 
-def _hit(record_id: str, title: str, metadata: str, rank: float, raw_snippet: str) -> TextHit:
+def _hit(record_id: str, title: str, metadata: str, rank: float, raw_snippet: str, *raw_fields: str) -> TextHit:
     snippet, highlights = split_markers(raw_snippet)
-    return TextHit(record_id, -rank, snippet, highlights, _decode_metadata(metadata), title)
+    snippets = tuple(
+        Snippet(name, *marked)
+        for name, raw_field in zip(FIELDS, raw_fields, strict=True)
+        if (marked := split_markers(raw_field))[1]
+    )
+    return TextHit(record_id, -rank, snippet, highlights, _decode_metadata(metadata), title, snippets)
 
 
 def _decode_metadata(text: str) -> dict[str, Any]:

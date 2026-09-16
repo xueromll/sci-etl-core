@@ -12,6 +12,18 @@ from sci_etl_core.models import PipelineMetadata
 from sci_etl_core.state.async_base import AsyncStateManager
 
 
+def _offset(value: Any) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        return 0
+    return value
+
+
+def _ids(value: Any) -> list[str]:
+    if not isinstance(value, list) or not all(isinstance(record_id, str) for record_id in value):
+        return []
+    return value
+
+
 class AsyncFileStateManager(AsyncStateManager):
     """Plain-file state backend hardened against concurrent access.
 
@@ -84,18 +96,24 @@ class AsyncFileStateManager(AsyncStateManager):
         async with self._get_lock():
             raw = await asyncio.to_thread(self._read_metadata)
         last_run_at = raw.get("last_run_date")
-        last_start_index = raw.get("last_start_index", 0)
         if not isinstance(last_run_at, str):
             last_run_at = None
-        if isinstance(last_start_index, bool) or not isinstance(last_start_index, int) or last_start_index < 0:
-            last_start_index = 0
-        return PipelineMetadata(last_run_at=last_run_at, last_start_index=last_start_index)
+        return PipelineMetadata(
+            last_run_at=last_run_at,
+            last_start_index=_offset(raw.get("last_start_index", 0)),
+            head_ids=_ids(raw.get("head_ids", [])),
+            head_offset=_offset(raw.get("head_offset", 0)),
+            tail_ids=_ids(raw.get("tail_ids", [])),
+        )
 
     async def save_metadata(self, metadata: PipelineMetadata) -> None:
         metadata.touch()
         payload = {
             "last_run_date": metadata.last_run_at,
             "last_start_index": metadata.last_start_index,
+            "head_ids": list(metadata.head_ids),
+            "head_offset": metadata.head_offset,
+            "tail_ids": list(metadata.tail_ids),
         }
         async with self._get_lock():
             await asyncio.to_thread(self._write_metadata, payload)

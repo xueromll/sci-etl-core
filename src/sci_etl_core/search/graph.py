@@ -6,7 +6,7 @@ from collections.abc import Collection, Mapping, Sequence
 from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, Any
 
-from sci_etl_core.search.filters import MetadataFilter, matches_filters, validate_filters
+from sci_etl_core.search.filters import SearchFilter, matches_filters, validate_filters
 
 if TYPE_CHECKING:
     from sci_etl_core.search.edges import AsyncEdgeSource
@@ -188,7 +188,7 @@ def filter_graph(
     graph: DiscoveryGraph,
     *,
     matched_ids: Collection[str] | None = None,
-    filters: Sequence[MetadataFilter] = (),
+    filters: Sequence[SearchFilter] = (),
 ) -> DiscoveryGraph:
     """Keep the nodes whose record is in ``matched_ids`` and whose metadata passes ``filters``.
 

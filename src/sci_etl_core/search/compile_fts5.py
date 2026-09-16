@@ -4,7 +4,7 @@ import re
 from collections.abc import Iterable
 
 from sci_etl_core.exceptions import SearchQueryError
-from sci_etl_core.search.query import And, Node, Not, Or, Phrase, Term, normalize
+from sci_etl_core.search.query import And, Near, Node, Not, Or, Phrase, Term, normalize
 
 FILTER_LEAF = "d.doc_id IN (SELECT rowid FROM documents_fts WHERE documents_fts MATCH ?)"
 """The SQL condition each maximal rankable subtree becomes in :func:`to_filter_expression`.
@@ -21,7 +21,7 @@ def is_rankable(node: Node) -> bool:
     FTS5 has no unary ``NOT``; its ``NOT`` subtracts one match set from another.
     After :func:`~sci_etl_core.search.query.normalize`:
 
-    - a :class:`Term` or :class:`Phrase` is rankable;
+    - a :class:`Term`, :class:`Phrase`, or :class:`Near` is rankable;
     - an :class:`Or` is rankable when every operand is;
     - an :class:`And` is rankable when every operand that is not a :class:`Not`
       is rankable, and so is the operand of its :class:`Not`, if it has one;
@@ -96,7 +96,7 @@ def _not_rankable() -> SearchQueryError:
 
 
 def _filter(node: Node, parameters: list[str]) -> str:
-    if isinstance(node, (Term, Phrase)):
+    if isinstance(node, (Term, Phrase, Near)):
         return _leaf(_compile_leaf(node), parameters)
     if isinstance(node, Not):
         return "(NOT " + _filter(node.operand, parameters) + ")"
@@ -113,7 +113,7 @@ def _leaf(expression: str, parameters: list[str]) -> str:
 
 
 def _compile(node: Node) -> str | None:
-    if isinstance(node, (Term, Phrase)):
+    if isinstance(node, (Term, Phrase, Near)):
         return _compile_leaf(node)
     if isinstance(node, Or):
         alternatives = _compile_each(node.operands)
@@ -128,10 +128,17 @@ def _compile(node: Node) -> str | None:
     return None
 
 
-def _compile_leaf(node: Term | Phrase) -> str:
+def _compile_leaf(node: Term | Phrase | Near) -> str:
+    if isinstance(node, Near):
+        operands = " ".join(_unscoped_literal(operand) for operand in node.operands)
+        return _scoped(node.fields, f"NEAR({operands}, {node.distance})")
+    return _scoped(node.fields, _unscoped_literal(node))
+
+
+def _unscoped_literal(node: Term | Phrase) -> str:
     if isinstance(node, Term):
-        return _scoped(node.fields, _quote(node.text) + ("*" if node.prefix else ""))
-    return _scoped(node.fields, _quote(" ".join(node.words)))
+        return _quote(node.text) + ("*" if node.prefix else "")
+    return _quote(" ".join(node.words))
 
 
 def _compile_each(operands: Iterable[Node]) -> list[str] | None:

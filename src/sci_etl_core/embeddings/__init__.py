@@ -13,6 +13,7 @@ _EXPORTS: dict[str, str] = {
     "AsyncEmbeddingStore": "sci_etl_core.embeddings.store_base",
     "EmbeddingChunk": "sci_etl_core.embeddings.store_base",
     "SearchHit": "sci_etl_core.embeddings.store_base",
+    "StoredRecord": "sci_etl_core.embeddings.store_base",
     "InMemoryEmbeddingStore": "sci_etl_core.embeddings.store_memory",
     "AsyncSqliteEmbeddingStore": "sci_etl_core.embeddings.store_sqlite_async",
     "AsyncChunkIngestor": "sci_etl_core.embeddings.ingest_async",
@@ -29,6 +30,6 @@ if TYPE_CHECKING:
     from sci_etl_core.embeddings.ingest_async import AsyncChunkIngestor
     from sci_etl_core.embeddings.openai_compatible_async import AsyncOpenAIEmbedder
     from sci_etl_core.embeddings.sentence_transformer_async import AsyncSentenceTransformerEmbedder
-    from sci_etl_core.embeddings.store_base import AsyncEmbeddingStore, EmbeddingChunk, SearchHit
+    from sci_etl_core.embeddings.store_base import AsyncEmbeddingStore, EmbeddingChunk, SearchHit, StoredRecord
     from sci_etl_core.embeddings.store_memory import InMemoryEmbeddingStore
     from sci_etl_core.embeddings.store_sqlite_async import AsyncSqliteEmbeddingStore

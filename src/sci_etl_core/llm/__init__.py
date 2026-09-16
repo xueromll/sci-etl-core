@@ -16,6 +16,12 @@ _EXPORTS: dict[str, str] = {
     "AsyncRelevanceFilter": "sci_etl_core.llm.relevance_async",
     "AsyncLLMRelevanceFilter": "sci_etl_core.llm.relevance_async",
     "AsyncEmbeddingRelevanceFilter": "sci_etl_core.llm.relevance_embedding_async",
+    "AsyncLLMResponseCache": "sci_etl_core.llm.cache_async",
+    "AsyncSqliteLLMResponseCache": "sci_etl_core.llm.cache_async",
+    "CacheStats": "sci_etl_core.llm.cache_async",
+    "CachingLLMClient": "sci_etl_core.llm.cache_async",
+    "InMemoryLLMResponseCache": "sci_etl_core.llm.cache_async",
+    "response_cache_key": "sci_etl_core.llm.cache_async",
 }
 
 __all__ = list(_EXPORTS)
@@ -25,6 +31,14 @@ if TYPE_CHECKING:
     from sci_etl_core.llm._adapters import SyncLLMClientAdapter
     from sci_etl_core.llm.async_base import AsyncLLMClient
     from sci_etl_core.llm.base import EntityExtractor, LLMClient, RelevanceFilter
+    from sci_etl_core.llm.cache_async import (
+        AsyncLLMResponseCache,
+        AsyncSqliteLLMResponseCache,
+        CacheStats,
+        CachingLLMClient,
+        InMemoryLLMResponseCache,
+        response_cache_key,
+    )
     from sci_etl_core.llm.extraction_async import AsyncEntityExtractor, AsyncLLMEntityExtractor
     from sci_etl_core.llm.openai_compatible_async import AsyncOpenAICompatibleClient
     from sci_etl_core.llm.relevance_async import AsyncLLMRelevanceFilter, AsyncRelevanceFilter

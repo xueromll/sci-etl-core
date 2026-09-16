@@ -8,11 +8,9 @@ from dataclasses import dataclass
 from typing import Any
 
 from sci_etl_core.search.compile_fts5 import require_rankable
-from sci_etl_core.search.evaluate import TokenizedDocument, matches, occurrences
+from sci_etl_core.search.evaluate import TokenizedDocument, matches, near_hits, occurrences
 from sci_etl_core.search.filters import (
-    SNIPPET_ELLIPSIS,
-    SNIPPET_TOKENS,
-    MetadataFilter,
+    SearchFilter,
     encode_metadata,
     matches_filters,
     sanitize_text,
@@ -20,8 +18,9 @@ from sci_etl_core.search.filters import (
     validate_facet_keys,
     validate_filters,
 )
-from sci_etl_core.search.query import FIELDS, And, Node, Not, Or, Phrase, Term, normalize
-from sci_etl_core.search.store_base import AsyncTextSearchStore, BM25Weights, SearchDocument, TextHit
+from sci_etl_core.search.query import FIELDS, And, Near, Node, Not, Or, Phrase, Term, normalize
+from sci_etl_core.search.snippets import snippet_window
+from sci_etl_core.search.store_base import AsyncTextSearchStore, BM25Weights, SearchDocument, Snippet, TextHit
 from sci_etl_core.search.tokenize import Token, Tokenizer, Unicode61Tokenizer
 
 BM25_K1 = 1.2
@@ -67,8 +66,9 @@ class InMemoryTextSearchStore(AsyncTextSearchStore):
     record sets are identical. The property-based parity test compares sets,
     not scores.
 
-    A snippet is taken from the field with the most counted matches, with ties
-    going to ``title``, then ``abstract``, then ``body``.
+    The snippet is taken from the field with the most counted matches, with
+    ties going to ``title``, then ``abstract``, then ``body``, and ``snippets``
+    holds one for every field with a counted match.
 
     Tags are derived from metadata on every write, so a filter or facet on any
     of ``facet_keys`` works at once: the store never needs a ``rebuild_tags``
@@ -103,7 +103,7 @@ class InMemoryTextSearchStore(AsyncTextSearchStore):
         query: Node,
         limit: int = 20,
         exclude_record_id: str | None = None,
-        filters: Sequence[MetadataFilter] = (),
+        filters: Sequence[SearchFilter] = (),
     ) -> list[TextHit]:
         validate_filters(filters, self._facet_keys)
         require_rankable(query)
@@ -114,14 +114,15 @@ class InMemoryTextSearchStore(AsyncTextSearchStore):
         if not matched:
             return []
         leaves = list(_leaves(node))
+        lengths = [len(self._tokenizer.tokens(_leaf_text(leaf))) for leaf in leaves]
         idf = self._inverse_document_frequencies(leaves)
         average_length = max(sum(entry.length for entry in self._entries.values()), 1) / len(self._entries)
-        hits = [self._hit(entry, node, leaves, idf, average_length) for entry in matched]
+        hits = [self._hit(entry, node, leaves, lengths, idf, average_length) for entry in matched]
         hits.sort(key=lambda hit: (-hit.score, hit.record_id))
         return hits[:limit]
 
     async def filter_ids(
-        self, query: Node | None = None, filters: Sequence[MetadataFilter] = ()
+        self, query: Node | None = None, filters: Sequence[SearchFilter] = ()
     ) -> frozenset[str]:
         validate_filters(filters, self._facet_keys)
         node = None if query is None else normalize(query)
@@ -139,7 +140,7 @@ class InMemoryTextSearchStore(AsyncTextSearchStore):
         keys: Sequence[str],
         *,
         query: Node | None = None,
-        filters: Sequence[MetadataFilter] = (),
+        filters: Sequence[SearchFilter] = (),
     ) -> dict[str, tuple[tuple[str, int], ...]]:
         validate_filters(filters, self._facet_keys)
         validate_facet_keys(keys, self._facet_keys)
@@ -175,7 +176,7 @@ class InMemoryTextSearchStore(AsyncTextSearchStore):
             tags=frozenset(tag_rows(metadata, self._facet_keys)),
         )
 
-    def _matching(self, node: Node | None, filters: Sequence[MetadataFilter]) -> Iterator[_Entry]:
+    def _matching(self, node: Node | None, filters: Sequence[SearchFilter]) -> Iterator[_Entry]:
         for entry in self._entries.values():
             if node is not None and not matches(node, entry.tokenized, tokenizer=self._tokenizer):
                 continue
@@ -194,10 +195,16 @@ class InMemoryTextSearchStore(AsyncTextSearchStore):
         return frequencies
 
     def _hit(
-        self, entry: _Entry, node: Node, leaves: list[Term | Phrase], idf: list[float], average_length: float
+        self,
+        entry: _Entry,
+        node: Node,
+        leaves: list[Term | Phrase],
+        lengths: list[int],
+        idf: list[float],
+        average_length: float,
     ) -> TextHit:
         found = [occurrences(leaf, entry.tokenized, tokenizer=self._tokenizer) for leaf in leaves]
-        _, counted = _counted_hits(node, iter(found))
+        _, counted = _counted_hits(node, iter(found), iter(lengths))
         saturation = BM25_K1 * (1 - BM25_B + BM25_B * entry.length / average_length)
         score = 0.0
         highlighted: _Hits = {name: [] for name in FIELDS}
@@ -207,8 +214,15 @@ class InMemoryTextSearchStore(AsyncTextSearchStore):
             for name, ranges in hits.items():
                 highlighted[name].extend(ranges)
         best = max(FIELDS, key=lambda name: (len(highlighted[name]), -FIELDS.index(name)))
-        snippet, highlights = _snippet(entry.fields[best], entry.tokens[best], highlighted[best])
-        return TextHit(entry.record_id, score, snippet, highlights, dict(entry.metadata), entry.fields["title"])
+        snippet, highlights = snippet_window(entry.fields[best], entry.tokens[best], highlighted[best])
+        snippets = tuple(
+            Snippet(name, *snippet_window(entry.fields[name], entry.tokens[name], highlighted[name]))
+            for name in FIELDS
+            if highlighted[name]
+        )
+        return TextHit(
+            entry.record_id, score, snippet, highlights, dict(entry.metadata), entry.fields["title"], snippets
+        )
 
 
 def _leaves(node: Node) -> Iterator[Term | Phrase]:
@@ -217,50 +231,31 @@ def _leaves(node: Node) -> Iterator[Term | Phrase]:
     elif isinstance(node, (And, Or)):
         for operand in node.operands:
             yield from _leaves(operand)
+    elif isinstance(node, Near):
+        yield from node.scoped_operands()
     else:
         yield node
 
 
-def _counted_hits(node: Node, found: Iterator[_Hits]) -> tuple[bool, list[_Hits]]:
+def _leaf_text(leaf: Term | Phrase) -> str:
+    return leaf.text if isinstance(leaf, Term) else " ".join(leaf.words)
+
+
+def _counted_hits(node: Node, found: Iterator[_Hits], lengths: Iterator[int]) -> tuple[bool, list[_Hits]]:
     if isinstance(node, (Term, Phrase)):
         hits = next(found)
+        next(lengths)
         return bool(hits), [hits]
+    if isinstance(node, Near):
+        operands = range(len(node.operands))
+        trimmed = near_hits([next(found) for _ in operands], [next(lengths) for _ in operands], node.distance)
+        return any(trimmed), trimmed
     if isinstance(node, Not):
-        operand_matched, operand_hits = _counted_hits(node.operand, found)
+        operand_matched, operand_hits = _counted_hits(node.operand, found, lengths)
         return not operand_matched, [{} for _ in operand_hits]
-    parts = [_counted_hits(operand, found) for operand in node.operands]
+    parts = [_counted_hits(operand, found, lengths) for operand in node.operands]
     if isinstance(node, And):
         matched = all(part_matched for part_matched, _ in parts)
         return matched, [hits if matched else {} for _, part_hits in parts for hits in part_hits]
     matched = any(part_matched for part_matched, _ in parts)
     return matched, [hits if part_matched else {} for part_matched, part_hits in parts for hits in part_hits]
-
-
-def _snippet(
-    text: str, tokens: list[Token], ranges: list[tuple[int, int]]
-) -> tuple[str, tuple[tuple[int, int], ...]]:
-    spans = _merge_overlapping(sorted(ranges))
-    first = spans[0][0] if spans else 0
-    start = max(0, min(first, len(tokens) - SNIPPET_TOKENS))
-    stop = min(len(tokens), start + SNIPPET_TOKENS)
-    prefix = SNIPPET_ELLIPSIS if start > 0 else ""
-    suffix = SNIPPET_ELLIPSIS if stop < len(tokens) else ""
-    begin = tokens[start].start if prefix else 0
-    end = tokens[stop - 1].end if suffix else len(text)
-    shift = len(prefix) - begin
-    highlights = tuple(
-        (tokens[max(span_start, start)].start + shift, tokens[min(span_stop, stop) - 1].end + shift)
-        for span_start, span_stop in spans
-        if max(span_start, start) < min(span_stop, stop)
-    )
-    return prefix + text[begin:end] + suffix, highlights
-
-
-def _merge_overlapping(ranges: list[tuple[int, int]]) -> list[tuple[int, int]]:
-    merged: list[tuple[int, int]] = []
-    for start, stop in ranges:
-        if merged and start < merged[-1][1]:
-            merged[-1] = (merged[-1][0], max(merged[-1][1], stop))
-        else:
-            merged.append((start, stop))
-    return merged

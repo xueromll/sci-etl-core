@@ -55,6 +55,51 @@ class Phrase:
         _require_known_fields(self.fields)
 
 
+NEAR_DISTANCE = 10
+"""The default :attr:`Near.distance`, as in FTS5."""
+
+
+@dataclass(frozen=True, slots=True)
+class Near:
+    """Terms and phrases that must all occur in one field, close to each other, in any order.
+
+    With the occurrences chosen so that the one starting last starts at token
+    ``p``, every other operand must end at most ``distance`` tokens before
+    ``p``: ``NEAR(a b, 2)`` matches ``a x x b`` and ``b x a`` but not
+    ``a x x x b``. The operands carry no field scope of their own; ``fields``
+    limits the whole group, and empty means any one field.
+
+    Raises:
+        ValueError: There are fewer than two operands, an operand has fields
+            of its own, ``distance`` is negative, or ``fields`` names an unknown
+            field or repeats one.
+    """
+
+    operands: tuple[Term | Phrase, ...]
+    distance: int = NEAR_DISTANCE
+    fields: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        if len(self.operands) < 2:
+            raise ValueError("NEAR needs at least two terms or phrases")
+        if any(operand.fields for operand in self.operands):
+            raise ValueError("The terms and phrases inside NEAR cannot have fields of their own; scope the group")
+        if self.distance < 0:
+            raise ValueError(f"NEAR distance must not be negative, not {self.distance!r}")
+        _require_known_fields(self.fields)
+
+    def scoped_operands(self) -> tuple[Term | Phrase, ...]:
+        """Return the operands with the group's fields applied to each."""
+        if not self.fields:
+            return self.operands
+        return tuple(
+            Term(operand.text, self.fields, operand.prefix)
+            if isinstance(operand, Term)
+            else Phrase(operand.words, self.fields)
+            for operand in self.operands
+        )
+
+
 @dataclass(frozen=True, slots=True)
 class And:
     """Matches when every operand matches.
@@ -92,7 +137,7 @@ class Not:
     operand: Node
 
 
-Node = Term | Phrase | And | Or | Not
+Node = Term | Phrase | Near | And | Or | Not
 
 
 def normalize(node: Node) -> Node:
@@ -155,6 +200,9 @@ class QueryChip:
     empty when the whole query is this one word or phrase. ``negated`` is true
     when the chip must not match, and ``depth`` counts the groups around it, so
     a UI can bracket ``a (b OR c)`` without re-implementing the grammar.
+    ``near`` is the distance of the ``NEAR`` group the chip stands for, whose
+    ``text`` is then its terms and phrases, phrases in double quotes, joined by
+    single spaces; it is ``None`` for any other chip.
     """
 
     text: str
@@ -164,6 +212,7 @@ class QueryChip:
     prefix: bool = False
     phrase: bool = False
     depth: int = 0
+    near: int | None = None
 
 
 def describe(node: Node) -> list[QueryChip]:
@@ -185,8 +234,17 @@ def _describe(node: Node, operator: str, negated: bool, depth: int, chips: list[
             _describe(operand, group, negated, depth + 1, chips)
     elif isinstance(node, Term):
         chips.append(QueryChip(node.text, node.fields, operator, negated, node.prefix, False, max(depth - 1, 0)))
+    elif isinstance(node, Near):
+        text = " ".join(_near_operand_text(operand) for operand in node.operands)
+        chips.append(QueryChip(text, node.fields, operator, negated, False, False, max(depth - 1, 0), node.distance))
     else:
         chips.append(QueryChip(" ".join(node.words), node.fields, operator, negated, False, True, max(depth - 1, 0)))
+
+
+def _near_operand_text(operand: Term | Phrase) -> str:
+    if isinstance(operand, Term):
+        return operand.text + ("*" if operand.prefix else "")
+    return '"' + " ".join(operand.words) + '"'
 
 
 def semantic_text(node: Node) -> str:
@@ -219,3 +277,6 @@ def _collect_meaning(node: Node, words: list[str]) -> None:
             words.append(node.text)
     elif isinstance(node, Phrase):
         words.extend(node.words)
+    elif isinstance(node, Near):
+        for operand in node.operands:
+            _collect_meaning(operand, words)

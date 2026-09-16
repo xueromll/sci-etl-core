@@ -21,6 +21,7 @@ _EXPORTS: dict[str, str] = {
     "LLMConfig": "sci_etl_core.config",
     "PipelineConfig": "sci_etl_core.config",
     "RateLimitConfig": "sci_etl_core.config",
+    "SearchConfig": "sci_etl_core.config",
     "load_config": "sci_etl_core.config",
     "load_config_async": "sci_etl_core.config_async",
     "DiscoveryResult": "sci_etl_core.discovery",
@@ -41,10 +42,12 @@ _EXPORTS: dict[str, str] = {
     "EmbeddingError": "sci_etl_core.exceptions",
     "EmbeddingStoreError": "sci_etl_core.exceptions",
     "ExtractionError": "sci_etl_core.exceptions",
+    "LLMCacheError": "sci_etl_core.exceptions",
     "LLMError": "sci_etl_core.exceptions",
     "MalformedResponseError": "sci_etl_core.exceptions",
     "ParsingError": "sci_etl_core.exceptions",
     "PipelineAborted": "sci_etl_core.exceptions",
+    "PipelineInterrupted": "sci_etl_core.exceptions",
     "SciEtlError": "sci_etl_core.exceptions",
     "SearchError": "sci_etl_core.exceptions",
     "SearchQueryError": "sci_etl_core.exceptions",
@@ -58,12 +61,19 @@ _EXPORTS: dict[str, str] = {
     "AsyncSqlTableExporter": "sci_etl_core.exporters.sql_async",
     "AsyncExtractor": "sci_etl_core.extractors.async_base",
     "AsyncArxivExtractor": "sci_etl_core.extractors.arxiv_async",
+    "AsyncOpenAlexExtractor": "sci_etl_core.extractors.openalex_async",
+    "AsyncPubMedExtractor": "sci_etl_core.extractors.pubmed_async",
+    "AsyncSemanticScholarExtractor": "sci_etl_core.extractors.semantic_scholar_async",
     "Extractor": "sci_etl_core.extractors.base",
     "AsyncCompositeIngestor": "sci_etl_core.ingest_async",
     "MEMORY_FAULTS": "sci_etl_core.ingest_protocol",
     "MemoryIngestor": "sci_etl_core.ingest_protocol",
     "SyncLLMClientAdapter": "sci_etl_core.llm._adapters",
     "AsyncLLMClient": "sci_etl_core.llm.async_base",
+    "AsyncLLMResponseCache": "sci_etl_core.llm.cache_async",
+    "AsyncSqliteLLMResponseCache": "sci_etl_core.llm.cache_async",
+    "CachingLLMClient": "sci_etl_core.llm.cache_async",
+    "InMemoryLLMResponseCache": "sci_etl_core.llm.cache_async",
     "EntityExtractor": "sci_etl_core.llm.base",
     "LLMClient": "sci_etl_core.llm.base",
     "RelevanceFilter": "sci_etl_core.llm.base",
@@ -74,6 +84,7 @@ _EXPORTS: dict[str, str] = {
     "AsyncRelevanceFilter": "sci_etl_core.llm.relevance_async",
     "AsyncEmbeddingRelevanceFilter": "sci_etl_core.llm.relevance_embedding_async",
     "configure_logging": "sci_etl_core.log_utils",
+    "RunMetrics": "sci_etl_core.observability",
     "PipelineMetadata": "sci_etl_core.models",
     "RawRecord": "sci_etl_core.models",
     "TokenUsage": "sci_etl_core.models",
@@ -101,7 +112,15 @@ if TYPE_CHECKING:
         SyncRelevanceFilterAdapter,
         SyncStateManagerAdapter,
     )
-    from sci_etl_core.config import BaseAppConfig, HttpConfig, LLMConfig, PipelineConfig, RateLimitConfig, load_config
+    from sci_etl_core.config import (
+        BaseAppConfig,
+        HttpConfig,
+        LLMConfig,
+        PipelineConfig,
+        RateLimitConfig,
+        SearchConfig,
+        load_config,
+    )
     from sci_etl_core.config_async import load_config_async
     from sci_etl_core.discovery import DiscoveryResult, Facet
     from sci_etl_core.embeddings.async_base import AsyncEmbedder
@@ -118,10 +137,12 @@ if TYPE_CHECKING:
         EmbeddingError,
         EmbeddingStoreError,
         ExtractionError,
+        LLMCacheError,
         LLMError,
         MalformedResponseError,
         ParsingError,
         PipelineAborted,
+        PipelineInterrupted,
         SciEtlError,
         SearchError,
         SearchQueryError,
@@ -136,17 +157,27 @@ if TYPE_CHECKING:
     from sci_etl_core.extractors.arxiv_async import AsyncArxivExtractor
     from sci_etl_core.extractors.async_base import AsyncExtractor
     from sci_etl_core.extractors.base import Extractor
+    from sci_etl_core.extractors.openalex_async import AsyncOpenAlexExtractor
+    from sci_etl_core.extractors.pubmed_async import AsyncPubMedExtractor
+    from sci_etl_core.extractors.semantic_scholar_async import AsyncSemanticScholarExtractor
     from sci_etl_core.ingest_async import AsyncCompositeIngestor
     from sci_etl_core.ingest_protocol import MEMORY_FAULTS, MemoryIngestor
     from sci_etl_core.llm._adapters import SyncLLMClientAdapter
     from sci_etl_core.llm.async_base import AsyncLLMClient
     from sci_etl_core.llm.base import EntityExtractor, LLMClient, RelevanceFilter
+    from sci_etl_core.llm.cache_async import (
+        AsyncLLMResponseCache,
+        AsyncSqliteLLMResponseCache,
+        CachingLLMClient,
+        InMemoryLLMResponseCache,
+    )
     from sci_etl_core.llm.extraction_async import AsyncEntityExtractor, AsyncLLMEntityExtractor
     from sci_etl_core.llm.openai_compatible_async import AsyncOpenAICompatibleClient
     from sci_etl_core.llm.relevance_async import AsyncLLMRelevanceFilter, AsyncRelevanceFilter
     from sci_etl_core.llm.relevance_embedding_async import AsyncEmbeddingRelevanceFilter
     from sci_etl_core.log_utils import configure_logging
     from sci_etl_core.models import PipelineMetadata, RawRecord, TokenUsage
+    from sci_etl_core.observability import RunMetrics
     from sci_etl_core.parsers.base import Parser, TableParser
     from sci_etl_core.pipeline import ETLPipeline
     from sci_etl_core.pipeline_async import AsyncETLPipeline

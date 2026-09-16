@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import json
 import sqlite3
-from collections.abc import Sequence
+from collections.abc import AsyncIterator, Sequence
+from functools import partial
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +15,7 @@ from sci_etl_core.embeddings.store_base import (
     AsyncEmbeddingStore,
     EmbeddingChunk,
     SearchHit,
+    StoredRecord,
 )
 from sci_etl_core.exceptions import EmbeddingStoreError
 
@@ -35,6 +37,13 @@ _INSERT = (
 _DELETE = "DELETE FROM chunks WHERE record_id = ?"
 _SELECT = "SELECT record_id, chunk_index, text, dim, vector, metadata FROM chunks"
 _COUNT = "SELECT COUNT(*) FROM chunks"
+_NEXT_RECORD_IDS = (
+    "SELECT DISTINCT record_id FROM chunks WHERE ? IS NULL OR record_id > ? ORDER BY record_id LIMIT ?"
+)
+_RECORD_PASSAGES = (
+    "SELECT record_id, text, metadata FROM chunks WHERE record_id IN ({placeholders})"
+    " ORDER BY record_id, chunk_index"
+)
 
 
 class AsyncSqliteEmbeddingStore(AsyncEmbeddingStore):
@@ -103,6 +112,32 @@ class AsyncSqliteEmbeddingStore(AsyncEmbeddingStore):
         )
         return int(rows[0][0])
 
+    async def iter_records(self, batch_size: int = 100) -> AsyncIterator[StoredRecord]:
+        """Yield every stored record's passages, reading ``batch_size`` records at a time.
+
+        Each batch is read in one transaction and continues after the last
+        ``record_id`` of the batch before, so records written during iteration
+        are yielded when their id sorts after that point, and a record never
+        repeats. No vector is loaded.
+
+        Raises:
+            ValueError: ``batch_size`` is less than 1.
+            EmbeddingStoreError: The store cannot be read, or a chunk's metadata
+                is not a JSON object.
+        """
+        if batch_size < 1:
+            raise ValueError("batch_size must be a positive integer")
+        after: str | None = None
+        while True:
+            batch = await self._runner.run(
+                partial(self._read_batch, after=after, batch_size=batch_size), "read stored passages"
+            )
+            if not batch:
+                return
+            for record in batch:
+                yield record
+            after = batch[-1].record_id
+
     async def aclose(self) -> None:
         """Close the connection; a later call transparently reopens it."""
         await self._runner.aclose()
@@ -151,6 +186,24 @@ class AsyncSqliteEmbeddingStore(AsyncEmbeddingStore):
         return hits
 
     @staticmethod
+    def _read_batch(connection: sqlite3.Connection, after: str | None, batch_size: int) -> list[StoredRecord]:
+        with connection:
+            connection.execute("BEGIN")
+            record_ids = [row[0] for row in connection.execute(_NEXT_RECORD_IDS, (after, after, batch_size)).fetchall()]
+            if not record_ids:
+                return []
+            rows = connection.execute(
+                _RECORD_PASSAGES.format(placeholders=", ".join("?" * len(record_ids))), record_ids
+            ).fetchall()
+        passages: dict[str, list[str]] = {}
+        metadata: dict[str, dict[str, Any]] = {}
+        for record_id, text, encoded in rows:
+            passages.setdefault(record_id, []).append(text)
+            if record_id not in metadata:
+                metadata[record_id] = _decode_metadata(encoded)
+        return [StoredRecord(record_id, tuple(passages[record_id]), metadata[record_id]) for record_id in passages]
+
+    @staticmethod
     def _to_row(chunk: EmbeddingChunk) -> tuple[Any, ...]:
         vector = unit_vector(chunk.vector).astype(np.float32)
         return (
@@ -161,3 +214,13 @@ class AsyncSqliteEmbeddingStore(AsyncEmbeddingStore):
             vector.tobytes(),
             json.dumps(chunk.metadata),
         )
+
+
+def _decode_metadata(text: str) -> dict[str, Any]:
+    try:
+        metadata = json.loads(text)
+    except ValueError:
+        metadata = None
+    if not isinstance(metadata, dict):
+        raise EmbeddingStoreError(f"A stored chunk's metadata is not a JSON object: {text[:80]!r}")
+    return metadata

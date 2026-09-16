@@ -36,6 +36,16 @@ class SlidingWindowChunker(TextChunker):
         self._chunk_words = chunk_words
         self._overlap_words = overlap_words
 
+    @property
+    def chunk_words(self) -> int:
+        """How many words a window holds."""
+        return self._chunk_words
+
+    @property
+    def overlap_words(self) -> int:
+        """How many words each window repeats from the one before it."""
+        return self._overlap_words
+
     def chunk(self, text: str) -> list[str]:
         words = text.split()
         if not words:

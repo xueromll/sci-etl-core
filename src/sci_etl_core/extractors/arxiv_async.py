@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import re
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any, Callable
 
 import httpx
 from bs4 import BeautifulSoup
@@ -13,6 +13,10 @@ from sci_etl_core.extractors.async_base import AsyncExtractor
 from sci_etl_core.models import RawRecord
 from sci_etl_core.parsers.base import Parser
 from sci_etl_core.parsers.reference_trimmer import trim_after_references
+from sci_etl_core.rate_limiter import RateLimiting, limiter_for
+
+if TYPE_CHECKING:
+    from sci_etl_core.config import HttpConfig, PipelineConfig
 
 _RETRYABLE_STATUS = frozenset({429, 500, 502, 503, 504})
 _SERVER_ERROR_FLOOR = 500
@@ -50,12 +54,20 @@ class AsyncArxivExtractor(AsyncExtractor):
         logger: Callable[[str], None] | None = None,
         sleep: Any = asyncio.sleep,
         max_retry_after: float = 60.0,
+        rate_limiter: RateLimiting | None = None,
     ) -> None:
         """Configure the extractor.
 
         Between attempts the extractor waits ``backoff_factor ** attempt``
         seconds, or longer when arXiv's ``Retry-After`` header asks for it, up
         to ``max_retry_after`` seconds. Each retry is logged with its wait.
+
+        Every HTTP request, including each retry, first enters ``rate_limiter``:
+        an :class:`~sci_etl_core.rate_limiter.AsyncRateLimiter` for all
+        requests, or a :class:`~sci_etl_core.rate_limiter.HostRateLimiter` to
+        budget the API host (``export.arxiv.org``) and the full-text host
+        (``arxiv.org``) apart. The slot is released once the response arrives,
+        so no slot is held while waiting to retry.
 
         Raises:
             ValueError: ``max_retries`` is less than 1, which would fail every
@@ -75,6 +87,31 @@ class AsyncArxivExtractor(AsyncExtractor):
         self._sleep_before_search = sleep_before_search
         self._log = logger or (lambda _msg: None)
         self._sleep = sleep
+        self._rate_limiter = rate_limiter
+
+    @classmethod
+    def from_config(
+        cls,
+        http: HttpConfig,
+        pipeline: PipelineConfig | None = None,
+        *,
+        client: httpx.AsyncClient,
+        pdf_parser: Parser,
+        latex_parser: Parser,
+        **options: Any,
+    ) -> "AsyncArxivExtractor":
+        """Build an extractor from config sections.
+
+        ``http`` supplies ``max_retries`` and ``backoff_factor``, and
+        ``pipeline`` supplies ``search_delay`` as ``sleep_before_search``.
+        ``options`` pass any other constructor argument, such as ``logger`` or
+        ``rate_limiter``, and override a value taken from the config.
+        """
+        settings: dict[str, Any] = {"max_retries": http.max_retries, "backoff_factor": http.backoff_factor}
+        if pipeline is not None:
+            settings["sleep_before_search"] = pipeline.search_delay
+        settings.update(options)
+        return cls(client=client, pdf_parser=pdf_parser, latex_parser=latex_parser, **settings)
 
     async def search(self, query: str, max_results: int, start_index: int) -> bytes:
         """Fetch one listing page, retrying transient faults.
@@ -101,7 +138,8 @@ class AsyncArxivExtractor(AsyncExtractor):
         for attempt in range(self._max_retries):
             retry_after: float | None = None
             try:
-                response = await self._client.get(self.API_URL, params=params, follow_redirects=True)
+                async with limiter_for(self._rate_limiter, self.API_URL):
+                    response = await self._client.get(self.API_URL, params=params, follow_redirects=True)
             except httpx.RequestError as exc:
                 last_error = exc
             else:
@@ -314,7 +352,8 @@ class AsyncArxivExtractor(AsyncExtractor):
         for attempt in range(self._max_retries):
             retry_after: float | None = None
             try:
-                response = await self._client.get(url, follow_redirects=True)
+                async with limiter_for(self._rate_limiter, url):
+                    response = await self._client.get(url, follow_redirects=True)
             except httpx.RequestError as exc:
                 last_error = exc
             else:

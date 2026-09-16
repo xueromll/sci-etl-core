@@ -22,6 +22,7 @@ from sci_etl_core.embeddings._similarity import (
     top_similarity,
     unit_vector,
 )
+from sci_etl_core.embeddings.chunking import SlidingWindowChunker
 from sci_etl_core.embeddings.store_base import EmbeddingChunk
 from sci_etl_core.embeddings.store_memory import InMemoryEmbeddingStore
 from sci_etl_core.embeddings.store_sqlite_async import AsyncSqliteEmbeddingStore
@@ -38,14 +39,15 @@ from sci_etl_core.processors.validation import (
     KeywordExclusionValidator,
     NumericRangeValidator,
 )
+from sci_etl_core.search.backfill_async import merge_passages
 from sci_etl_core.search.compile_fts5 import is_rankable, to_filter_expression, to_match_expression
 from sci_etl_core.search.edges import AsyncEdgeSource
 from sci_etl_core.search.evaluate import matches
-from sci_etl_core.search.filters import split_markers, tag_rows
+from sci_etl_core.search.filters import MetadataFilter, RangeFilter, matches_filters, split_markers, tag_rows
 from sci_etl_core.search.fusion import reciprocal_rank_fusion
 from sci_etl_core.search.graph import GraphEdge, GraphParams, build_discovery_graph, label_communities
 from sci_etl_core.search.parser import parse_query
-from sci_etl_core.search.query import And, Not, Or, Phrase, Term, normalize
+from sci_etl_core.search.query import And, Near, Not, Or, Phrase, Term, normalize
 from sci_etl_core.search.store_base import SearchDocument
 from sci_etl_core.search.store_memory import InMemoryTextSearchStore
 from sci_etl_core.search.store_sqlite_fts5 import AsyncSqliteFts5Store
@@ -850,7 +852,7 @@ class TestKeywordExclusionValidatorProperties:
 _QUERY_PIECES = st.sampled_from(
     [
         "a", "Bé", "H-alpha", "and", "AND", "OR", "NOT", "&&", "||", "-", "(", ")", '"', "*", "~", ",", ":",
-        "title:", "Title,body:", "titel:", " ", "\t", "́",
+        "title:", "Title,body:", "titel:", " ", "\t", "́", "NEAR(", "NEAR", ", 2)", "0", "title:NEAR(",
     ]
 )
 _QUERY_TEXT = st.one_of(st.text(max_size=40), st.lists(_QUERY_PIECES, max_size=24).map("".join))
@@ -897,11 +899,21 @@ class TestUnicode61TokenizerProperties:
 
 _QUERY_WORDS = ["a", "b", "c", "Bé", "ab", "alpha", "h alpha", "mull", "~", 'a"b', "c\x00d"]
 _FIELD_SCOPES = [(), ("title",), ("abstract", "body")]
+_NEAR_OPERAND = st.one_of(
+    st.builds(Term, st.sampled_from(_QUERY_WORDS), st.just(()), st.booleans()),
+    st.builds(Phrase, st.lists(st.sampled_from(_QUERY_WORDS), min_size=1, max_size=2).map(tuple)),
+)
 _LEAF = st.one_of(
     st.builds(Term, st.sampled_from(_QUERY_WORDS), st.sampled_from(_FIELD_SCOPES), st.booleans()),
     st.builds(
         Phrase,
         st.lists(st.sampled_from(_QUERY_WORDS), min_size=1, max_size=3).map(tuple),
+        st.sampled_from(_FIELD_SCOPES),
+    ),
+    st.builds(
+        Near,
+        st.lists(_NEAR_OPERAND, min_size=2, max_size=4).map(tuple),
+        st.integers(min_value=0, max_value=3),
         st.sampled_from(_FIELD_SCOPES),
     ),
 )
@@ -1010,6 +1022,10 @@ def _query_words(tree):
             words.update(tokens)
         elif isinstance(node, Phrase):
             words.update(token.text for token in _TOKENIZER.tokens(" ".join(node.words)))
+        elif isinstance(node, Near):
+            operand_words, operand_stems = _query_words(Or(node.operands))
+            words.update(operand_words)
+            stems.update(operand_stems)
     return words, stems
 
 
@@ -1066,6 +1082,82 @@ class TestTagRowsProperties:
         assert len(rows) == len(set(rows))
         assert list(rows) == sorted(rows)
         assert all(isinstance(value, str) and value for _key, value in rows)
+
+
+_RANGE_TAG = st.one_of(
+    st.integers(min_value=-12, max_value=12),
+    st.sampled_from(["2019", "2020-05", "2020-05-31T23:00", "2021", "abc", "-0", "07", "+3", "", "é"]),
+    st.integers(min_value=-12, max_value=12).map(str),
+)
+_RANGE_DOCUMENTS = st.lists(
+    st.one_of(_RANGE_TAG, st.lists(_RANGE_TAG, max_size=3), st.none()), min_size=1, max_size=8
+).map(
+    lambda values: [
+        SearchDocument(f"r{index}", title="galaxy", metadata={} if value is None else {"k": value})
+        for index, value in enumerate(values)
+    ]
+)
+_INT_BOUND = st.one_of(st.none(), st.integers(min_value=-15, max_value=15))
+_TEXT_BOUND = st.one_of(st.none(), st.sampled_from(["2019", "2020", "2020-05", "2020-05-31", "21", "a", "é", "-", "0"]))
+
+
+@st.composite
+def _range_filters(draw):
+    bounds = draw(st.one_of(st.tuples(_INT_BOUND, _INT_BOUND), st.tuples(_TEXT_BOUND, _TEXT_BOUND)))
+    try:
+        return RangeFilter("k", *bounds, negated=draw(st.booleans()))
+    except ValueError:
+        assume(False)
+
+
+class TestRangeFilterProperties:
+    @given(documents=_RANGE_DOCUMENTS, ranges=st.lists(_range_filters(), min_size=1, max_size=3))
+    @_FS_SETTINGS
+    def test_both_backends_select_and_count_the_same_records_as_matches_filters(self, documents, ranges):
+        expected = [
+            frozenset(
+                document.record_id for document in documents if matches_filters(document.metadata, [search_range])
+            )
+            for search_range in ranges
+        ]
+
+        async def scenario():
+            with tempfile.TemporaryDirectory() as directory:
+                fts5 = AsyncSqliteFts5Store(Path(directory) / "search.db", facet_keys=("k",))
+                memory = InMemoryTextSearchStore(facet_keys=("k",))
+                try:
+                    for store in (memory, fts5):
+                        await store.index(documents)
+                        assert [await store.filter_ids(None, [search_range]) for search_range in ranges] == expected
+                        assert await store.range_counts(ranges, filters=[MetadataFilter("k", {"x"})]) == tuple(
+                            len(ids) for ids in expected
+                        )
+                finally:
+                    await fts5.aclose()
+
+        asyncio.run(scenario())
+
+    @given(value=_RANGE_TAG.map(str), search_range=_range_filters())
+    def test_an_integer_range_only_ever_contains_tags_that_read_back_as_the_same_integer(self, value, search_range):
+        bound = search_range.low if search_range.low is not None else search_range.high
+        if isinstance(bound, int) and search_range.contains(value):
+            assert str(int(value)) == value
+
+
+class TestMergePassagesProperties:
+    @given(
+        words=st.lists(
+            st.text(st.characters(exclude_categories=("Cs", "Zs", "Cc")), min_size=1, max_size=3), max_size=60
+        ),
+        chunk_words=st.integers(min_value=1, max_value=12),
+        data=st.data(),
+    )
+    def test_the_passages_of_a_sliding_window_chunker_merge_back_into_the_text(self, words, chunk_words, data):
+        overlap_words = data.draw(st.integers(min_value=0, max_value=chunk_words - 1))
+        text = " ".join(words)
+        assume(text.split() == words)
+        passages = SlidingWindowChunker(chunk_words, overlap_words).chunk(text)
+        assert merge_passages(passages, overlap_words) == text
 
 
 _RANKED_LISTS = st.lists(

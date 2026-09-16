@@ -54,6 +54,11 @@ pipeline = AsyncETLPipeline(..., memory_ingestor=ingestor, closeables=[client, e
 - **Custom stores.** Subclasses of `AsyncEmbeddingStore` implement `add`,
   `delete_record`, `query`, and `count`. `replace_record` defaults to delete
   then add; override it if your backend can do both atomically.
+- **Reading the memory back.** `finder.find_best_chunks(text, top_k=5)` ranks
+  articles as `find_similar_articles` does but returns each one's best
+  `SearchHit`, chunk text included, to show the passage that matched. A
+  store's `iter_records()` yields every record's passages as `StoredRecord`s,
+  without loading vectors.
 - **Local embeddings.** `AsyncSentenceTransformerEmbedder("all-MiniLM-L6-v2")`
   embeds without network calls. It needs the `embeddings-local` extra, loads
   the model when constructed, and accepts a preloaded `model=`.
@@ -78,4 +83,6 @@ relevance_filter = AsyncEmbeddingRelevanceFilter(
 To index the same records for Boolean search as well, see
 [Local search and discovery](search/index.md). Its SQLite text index,
 `AsyncSqliteFts5Store`, is one more store to list in `closeables` beside the
-embedding store, and its `search` extra installs nothing.
+embedding store, and its `search` extra installs nothing. A memory filled
+before you added the text index can be indexed from its stored chunks; see
+[Backfilling from vector memory](search/backfill.md).

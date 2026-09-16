@@ -24,6 +24,7 @@ fields, and domain rules for your own.
 - [Step 8: Check parity before changing behavior](#step-8-check-parity-before-changing-behavior)
 - [Step 9: Delete the old code](#step-9-delete-the-old-code)
 - [Upgrading to 0.3](#upgrading-to-03)
+- [Upgrading to 0.4](#upgrading-to-04)
 - [What the migration uncovered](#what-the-migration-uncovered)
 - [Adapting this to your field](#adapting-this-to-your-field)
 
@@ -863,6 +864,51 @@ notice ([CHANGELOG.md](CHANGELOG.md) lists everything):
 - **SQLite state is safer under cancellation.** `AsyncSqliteStateManager` no
   longer lets a cancelled operation's worker thread overlap the next
   operation. `AsyncFileStateManager`, which udg-catalogue uses, is unchanged.
+
+## Upgrading to 0.4
+
+The 0.4 release adds the PubMed, Semantic Scholar, and OpenAlex extractors,
+DOCX and JATS XML parsers, LLM response caching, graceful shutdown, progress
+events and run metrics, rate limiters for every HTTP component, `NEAR`
+queries, range filters, snippets for every matching field, and backfilling a
+text index from the vector memory. Several of them retire code this guide had
+the project write:
+
+- **Renamed pipeline settings.** `pipeline.max_records` is now `total_limit`
+  and `pipeline.max_workers` is `max_concurrency`. The old YAML keys and the
+  `PipelineConfig.max_records` and `max_workers` properties still work until
+  0.5, with a `DeprecationWarning`, so the `build_pipeline` and
+  `run_ingestion` shown above warn on 0.4. `run(max_records=)` is deprecated
+  the same way.
+- **Validation without a wrapper.** `AsyncLLMEntityExtractor` takes
+  `validator=`, `logger=`, and `label_field=`, and logs each entity it drops
+  as `Entity rejected by validation: <label>`. That replaces the
+  `ValidatedEntityExtractor` from Step 5.
+- **Components from the config.** `AsyncArxivExtractor.from_config`,
+  `AsyncOpenAICompatibleClient.from_config`, and `AsyncETLPipeline.from_config`
+  read the `http`, `llm`, and `pipeline` sections, and
+  `config.pipeline.run_arguments()` returns the arguments for `run()`, so the
+  settings no longer need copying into constructors by hand.
+- **Newest-first resume.** `run(newest_first=True)` picks up new arXiv
+  submissions without the full rescan that `start_index=0` costs, and saves
+  the head of the listing in the metadata file next to `last_start_index`.
+  `start_index` can't be combined with it.
+- **Plots.** `ScatterPlotConfig` takes `hover_data_columns`,
+  `hover_template`, `color_continuous_scale`, and `color_range`, the custom
+  hover text and fixed color range that kept udg-catalogue off
+  `AsyncPlotly3DExporter`.
+- **Clamping and table layout.** `ValueClipStep` clamps columns during
+  post-processing, and `TableLayoutStep` sorts rows and orders columns.
+- **Search from the memory you already have.** udg-catalogue's
+  `build_pipeline` passes no `memory_ingestor`, but a project that stored
+  chunks in an `AsyncSqliteEmbeddingStore` can build a text index from them
+  with `backfill_text_index` instead of fetching every paper again.
+- **Snippets for semantic hits.** A `FusedHit` found only by the semantic leg
+  now carries a snippet of its best chunk, where it used to have an empty
+  `snippet`. A UI that showed the abstract whenever `snippet` was empty should
+  check `lexical_rank is None` instead.
+- **Deprecated `requests` helper.** `build_retrying_session` warns and will be
+  removed in 0.5, along with `requests` in the `full` extra.
 
 ## What the migration uncovered
 

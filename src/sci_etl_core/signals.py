@@ -22,6 +22,10 @@ class ShutdownSignal:
     default hard termination proceed. Handlers are installed only from the main
     thread, so the synchronous bridge loop is unaffected, and the exact handler
     in force beforehand is put back on exit.
+
+    Pass one to :class:`~sci_etl_core.pipeline_async.AsyncETLPipeline` or
+    :class:`~sci_etl_core.pipeline.ETLPipeline` as ``shutdown`` and the pipeline
+    installs the handlers for each run and stops cleanly when the flag is set.
     """
 
     def __init__(
@@ -35,6 +39,8 @@ class ShutdownSignal:
         self._loop: asyncio.AbstractEventLoop | None = None
         self._loop_handled: set[signal.Signals] = set()
         self._previous: dict[signal.Signals, Any] = {}
+        self._depth = 0
+        self._depth_lock = threading.Lock()
 
     @property
     def triggered(self) -> bool:
@@ -50,21 +56,46 @@ class ShutdownSignal:
         self._event.set()
 
     @contextmanager
-    def guard(self) -> Iterator["ShutdownSignal"]:
-        """Install handlers for the duration of the block and restore them after."""
-        self.install()
+    def guard(self, loop: asyncio.AbstractEventLoop | None = None) -> Iterator["ShutdownSignal"]:
+        """Install handlers for the duration of the block and restore them after.
+
+        Guards nest: only the outermost block installs and restores handlers, so
+        a pipeline given this signal can run inside a caller's own guard.
+        ``loop`` is passed to :meth:`install`.
+        """
+        with self._depth_lock:
+            outermost = self._depth == 0
+            self._depth += 1
         try:
+            if outermost:
+                self.install(loop)
             yield self
         finally:
-            self.uninstall()
+            with self._depth_lock:
+                self._depth -= 1
+            if outermost:
+                self.uninstall()
 
-    def install(self) -> None:
-        self._loop = asyncio.get_running_loop()
+    def install(self, loop: asyncio.AbstractEventLoop | None = None) -> None:
+        """Install the handlers from the main thread.
+
+        Without ``loop``, the handlers serve the running event loop. With
+        ``loop``, plain OS handlers set the flag on that loop, which may run on
+        another thread; this lets a thread that blocks while a background loop
+        does the work, as :class:`~sci_etl_core.pipeline.ETLPipeline` does,
+        receive signals for it.
+        """
+        serves_running_loop = loop is None
+        self._loop = asyncio.get_running_loop() if loop is None else loop
         if threading.current_thread() is not threading.main_thread():
             self._log("Shutdown handlers skipped: not running on the main thread")
             return
         for member in self._signals:
-            self._install_one(member)
+            if serves_running_loop:
+                self._install_one(member)
+            else:
+                self._capture_previous(member)
+                self._install_os_handler(member)
 
     def uninstall(self) -> None:
         for member in tuple(self._loop_handled):

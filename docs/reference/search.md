@@ -20,7 +20,11 @@ Every name on this page is importable from `sci_etl_core.search`.
 
 ::: sci_etl_core.search.store_sqlite_fts5
 
+::: sci_etl_core.search.snippets
+
 ::: sci_etl_core.search.index_async
+
+::: sci_etl_core.search.backfill_async
 
 ::: sci_etl_core.search.fusion
 

@@ -3,11 +3,15 @@ from __future__ import annotations
 from collections.abc import Iterator
 from dataclasses import dataclass
 
-from sci_etl_core.search.query import FIELDS, And, Node, Not, Or, Phrase, Term
+from sci_etl_core.search.query import FIELDS, And, Near, Node, Not, Or, Phrase, Term
 from sci_etl_core.search.store_base import SearchDocument
 from sci_etl_core.search.tokenize import Tokenizer, Unicode61Tokenizer
 
 _UNICODE61 = Unicode61Tokenizer()
+_COLUMN_SHIFT = 32
+_EXHAUSTED = 1 << 62
+
+Hits = dict[str, list[tuple[int, int]]]
 
 
 @dataclass(frozen=True, slots=True)
@@ -38,6 +42,10 @@ def matches(node: Node, document: SearchDocument | TokenizedDocument, *, tokeniz
     - A phrase matches consecutive tokens within one field. With ``prefix``, a
       term's last token matches every token that starts with it.
     - A leaf without ``fields`` searches every field.
+    - A :class:`~sci_etl_core.search.query.Near` group matches as
+      :func:`trim_near` describes. An operand whose text has no token is
+      dropped from the group, and a group left with one operand matches as
+      that operand.
 
     Any query can be evaluated, including a pure negation such as ``NOT b``.
     ``node`` is interpreted exactly as given, without
@@ -52,6 +60,107 @@ def matches(node: Node, document: SearchDocument | TokenizedDocument, *, tokeniz
     if isinstance(document, SearchDocument):
         document = TokenizedDocument.from_document(document, active)
     return _satisfies(node, document, active)
+
+
+def near_occurrences(
+    near: Near, document: TokenizedDocument, *, tokenizer: Tokenizer | None = None
+) -> list[Hits]:
+    """Return where each operand of ``near`` occurs as part of a match, one mapping per operand.
+
+    The mappings are those of :func:`occurrences`, trimmed by :func:`trim_near`
+    to the occurrences FTS5 counts, and are all empty when the group does not
+    match. An operand dropped for having no token gets an empty mapping.
+    """
+    active = _UNICODE61 if tokenizer is None else tokenizer
+    operands = near.scoped_operands()
+    found = [occurrences(operand, document, tokenizer=active) for operand in operands]
+    lengths = [len(_leaf_words(active, operand)) for operand in operands]
+    return near_hits(found, lengths, near.distance)
+
+
+def near_hits(found: list[Hits], lengths: list[int], distance: int) -> list[Hits]:
+    """Apply ``NEAR`` to each operand's occurrences, given how many tokens each operand spans.
+
+    Operands spanning no token are dropped, as FTS5 drops them, and one left
+    alone keeps all its occurrences. Otherwise the result is :func:`trim_near`.
+    """
+    kept = [index for index, length in enumerate(lengths) if length > 0]
+    result: list[Hits] = [{} for _ in found]
+    if len(kept) == 1:
+        result[kept[0]] = found[kept[0]]
+    elif kept:
+        trimmed = trim_near([found[index] for index in kept], [lengths[index] for index in kept], distance)
+        for index, hits in zip(kept, trimmed, strict=True):
+            result[index] = hits
+    return result
+
+
+def trim_near(found: list[Hits], lengths: list[int], distance: int) -> list[Hits]:
+    """Keep the occurrences that FTS5 counts as part of a ``NEAR`` match, following its algorithm step for step.
+
+    Occurrences in different fields are never near each other. A set of
+    occurrences, one per operand, matches when every operand ends at most
+    ``distance`` tokens before the start of the occurrence that starts last.
+    FTS5 walks every operand's start positions together, and each time the
+    current positions match it keeps them and advances the operand whose next
+    position is smallest. The occurrences kept are exactly those it walks past
+    in a match, which is what it scores and highlights, and every mapping is
+    empty when no set matches.
+    """
+    positions = [sorted(_packed(hits)) for hits in found]
+    kept: list[list[int]] = [[] for _ in found]
+    if all(positions):
+        _walk_near(positions, lengths, distance, kept)
+    if not kept[0]:
+        return [{} for _ in found]
+    return [_unpacked(starts, length) for starts, length in zip(kept, lengths, strict=True)]
+
+
+def _walk_near(positions: list[list[int]], lengths: list[int], distance: int, kept: list[list[int]]) -> None:
+    cursor = [0] * len(positions)
+
+    def current(index: int) -> int:
+        return positions[index][cursor[index]]
+
+    def lookahead(index: int) -> int:
+        following = cursor[index] + 1
+        return positions[index][following] if following < len(positions[index]) else _EXHAUSTED
+
+    def advance(index: int) -> bool:
+        cursor[index] += 1
+        return cursor[index] >= len(positions[index])
+
+    while True:
+        latest = current(0)
+        matched = False
+        while not matched:
+            matched = True
+            for index in range(len(positions)):
+                earliest = latest - lengths[index] - distance
+                if current(index) < earliest or current(index) > latest:
+                    matched = False
+                    while current(index) < earliest:
+                        if advance(index):
+                            return
+                    latest = max(latest, current(index))
+        for index, starts in enumerate(kept):
+            if not starts or starts[-1] != current(index):
+                starts.append(current(index))
+        advancing = min(range(len(positions)), key=lookahead)
+        if advance(advancing):
+            return
+
+
+def _packed(hits: Hits) -> list[int]:
+    return [(FIELDS.index(name) << _COLUMN_SHIFT) | start for name, ranges in hits.items() for start, _ in ranges]
+
+
+def _unpacked(starts: list[int], length: int) -> Hits:
+    hits: Hits = {}
+    for packed in starts:
+        start = packed & ((1 << _COLUMN_SHIFT) - 1)
+        hits.setdefault(FIELDS[packed >> _COLUMN_SHIFT], []).append((start, start + length))
+    return hits
 
 
 def occurrences(
@@ -80,6 +189,8 @@ def _satisfies(node: Node, document: TokenizedDocument, tokenizer: Tokenizer) ->
         return all(_satisfies(operand, document, tokenizer) for operand in node.operands)
     if isinstance(node, Or):
         return any(_satisfies(operand, document, tokenizer) for operand in node.operands)
+    if isinstance(node, Near):
+        return any(near_occurrences(node, document, tokenizer=tokenizer))
     query = _leaf_words(tokenizer, node)
     prefix = _is_prefix(node)
     return any(

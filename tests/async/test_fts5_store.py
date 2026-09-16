@@ -13,7 +13,7 @@ from sci_etl_core.extractors.async_base import AsyncExtractor
 from sci_etl_core.llm.extraction_async import AsyncEntityExtractor
 from sci_etl_core.llm.relevance_async import AsyncRelevanceFilter
 from sci_etl_core.pipeline_async import AsyncETLPipeline
-from sci_etl_core.search.filters import MetadataFilter
+from sci_etl_core.search.filters import MetadataFilter, RangeFilter
 from sci_etl_core.search.query import Term
 from sci_etl_core.search.store_base import SearchDocument
 from sci_etl_core.search.store_sqlite_fts5 import AsyncSqliteFts5Store, fts5_available
@@ -221,6 +221,10 @@ class TestMaintenance:
                 await second.filter_ids(filters=year)
             with pytest.raises(SearchStoreError, match=not_built):
                 await second.facet_counts(["year"])
+            with pytest.raises(SearchStoreError, match=not_built):
+                await second.filter_ids(filters=[RangeFilter("year", low="2020")])
+            with pytest.raises(SearchStoreError, match=not_built):
+                await second.range_counts([RangeFilter("year", low="2020")])
             assert await second.filter_ids(filters=[MetadataFilter("categories", {"GA"})]) == frozenset({"r1"})
             await second.index([document("r2", categories=["CO"], year="2025")])
             await second.rebuild_tags()

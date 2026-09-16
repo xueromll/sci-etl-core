@@ -24,6 +24,9 @@ from sci_etl_core.exporters.plotly_async import AsyncPlotly3DExporter
 from sci_etl_core.exporters.sql_async import AsyncSqlTableExporter
 from sci_etl_core.extractors.arxiv_async import AsyncArxivExtractor
 from sci_etl_core.extractors.async_base import AsyncExtractor
+from sci_etl_core.extractors.openalex_async import AsyncOpenAlexExtractor
+from sci_etl_core.extractors.pubmed_async import AsyncPubMedExtractor
+from sci_etl_core.extractors.semantic_scholar_async import AsyncSemanticScholarExtractor
 from sci_etl_core.llm._adapters import SyncLLMClientAdapter
 from sci_etl_core.llm.async_base import AsyncLLMClient
 from sci_etl_core.llm.extraction_async import AsyncEntityExtractor, AsyncLLMEntityExtractor
@@ -59,6 +62,9 @@ from sci_etl_core.state.sqlite_async import AsyncSqliteStateManager
 
 CASES: list[tuple[type, type]] = [
     (AsyncExtractor, AsyncArxivExtractor),
+    (AsyncExtractor, AsyncOpenAlexExtractor),
+    (AsyncExtractor, AsyncPubMedExtractor),
+    (AsyncExtractor, AsyncSemanticScholarExtractor),
     (Parser, HtmlTextParser),
     (Parser, LatexTarballParser),
     (Parser, PdfPlumberParser),

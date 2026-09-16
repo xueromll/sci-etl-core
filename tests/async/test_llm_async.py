@@ -11,6 +11,7 @@ from sci_etl_core.llm.async_base import AsyncLLMClient
 from sci_etl_core.llm.extraction_async import AsyncLLMEntityExtractor
 from sci_etl_core.llm.relevance_async import AsyncLLMRelevanceFilter
 from sci_etl_core.models import RawRecord, TokenUsage
+from sci_etl_core.processors.validation import NumericRangeValidator, RecordValidator
 
 
 def _message(mocker, content):
@@ -265,6 +266,51 @@ class TestAsyncLLMEntityExtractor:
     async def test_bytes_input_is_decoded(self, mocker):
         ex = AsyncLLMEntityExtractor(_async_llm(mocker, {"items": [{"ok": 1}]}), "p", result_key="items")
         assert await ex.extract(b"plain bytes body") == [{"ok": 1}]
+
+
+class TestAsyncLLMEntityExtractorValidation:
+    @staticmethod
+    def _validator(mocker, accepts):
+        validator = mocker.Mock(spec=RecordValidator)
+        validator.is_valid.side_effect = accepts
+        return validator
+
+    @pytest.mark.asyncio
+    async def test_rejected_entities_are_dropped_and_logged_by_label(self, mocker):
+        payload = {"items": [{"name": "A", "ra": 10}, {"name": "B", "ra": 400}]}
+        lines: list[str] = []
+        ex = AsyncLLMEntityExtractor(
+            _async_llm(mocker, payload),
+            "p",
+            validator=NumericRangeValidator({"ra": (0.0, 360.0)}),
+            logger=lines.append,
+            label_field="name",
+        )
+        assert await ex.extract("text") == [{"name": "A", "ra": 10}]
+        assert lines == ["Entity rejected by validation: 'B'"]
+
+    @pytest.mark.asyncio
+    async def test_rejection_without_label_field_logs_the_position(self, mocker):
+        lines: list[str] = []
+        validator = self._validator(mocker, lambda entity: entity["ok"])
+        payload = {"items": [{"ok": True}, {"ok": False}]}
+        ex = AsyncLLMEntityExtractor(_async_llm(mocker, payload), "p", validator=validator, logger=lines.append)
+        assert await ex.extract("text") == [{"ok": True}]
+        assert lines == ["Entity rejected by validation: entity 1"]
+
+    @pytest.mark.asyncio
+    async def test_validator_applies_to_an_unwrapped_single_key_response(self, mocker):
+        validator = self._validator(mocker, lambda _entity: False)
+        ex = AsyncLLMEntityExtractor(_async_llm(mocker, {"other": [{"name": "A"}]}), "p", validator=validator)
+        assert await ex.extract("text") == []
+
+    @pytest.mark.asyncio
+    async def test_every_entity_is_checked(self, mocker):
+        validator = self._validator(mocker, lambda _entity: True)
+        payload = {"items": [{"n": 1}, {"n": 2}, {"n": 3}]}
+        ex = AsyncLLMEntityExtractor(_async_llm(mocker, payload), "p", validator=validator)
+        assert await ex.extract("text") == payload["items"]
+        assert validator.is_valid.call_count == 3
 
 
 class TestAsyncLLMEntityExtractorTokenTruncation:

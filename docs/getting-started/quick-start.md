@@ -98,7 +98,8 @@ asyncio.run(main())
 `total_limit` counts **relevant** records only, is never exceeded, and defaults
 to `page_size`. `max_concurrency` and `page_size` must be at least 1 and
 `total_limit` must not be negative; other values raise `ValueError` before any
-request is made. The legacy `max_records=` argument sets both values.
+request is made. The deprecated `max_records=` argument sets both values
+and will be removed in 0.5.
 `AsyncArxivExtractor` also waits `sleep_before_search` seconds (default 3)
 before every listing request, to respect arXiv's rate limits.
 
@@ -121,7 +122,9 @@ reads:
 - `AsyncLLMEntityExtractor` reads the list under `result_key` (default
   `"items"`), or the only value if the response has exactly one key. The list
   must hold objects; `null` means no entities and a lone object counts as one.
-  Any other shape raises `LLMError`, so the record is retried.
+  Any other value there raises `LLMError`, so the record is retried. A
+  response with several keys but no `result_key` yields no entities, and the
+  record is marked processed, so name the key in the prompt.
 - `AsyncCsvUpsertExporter` takes each item's `key_column` value as the row key,
   so the extraction prompt must ask for that field.
 

@@ -4,7 +4,7 @@ from dataclasses import FrozenInstanceError
 
 import pytest
 
-from sci_etl_core.search.query import And, Not, Or, Phrase, Term, normalize
+from sci_etl_core.search.query import And, Near, Not, Or, Phrase, Term, normalize
 
 A, B, C, D = (Term(word) for word in "abcd")
 
@@ -102,6 +102,10 @@ class TestNodeValidation:
             (lambda: Phrase(()), "at least one word"),
             (lambda: Phrase(("dwarf", "")), "no word may be empty"),
             (lambda: Phrase(("dwarf",), fields=("keywords",)), "Unknown field 'keywords'"),
+            (lambda: Near((A,)), "at least two terms or phrases"),
+            (lambda: Near((A, Term("b", fields=("title",)))), "cannot have fields of their own"),
+            (lambda: Near((A, B), distance=-1), "must not be negative"),
+            (lambda: Near((A, B), fields=("titel",)), "Unknown field 'titel'"),
             (lambda: And(()), "at least one operand"),
             (lambda: Or(()), "at least one operand"),
         ],

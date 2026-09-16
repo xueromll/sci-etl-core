@@ -76,14 +76,14 @@ class TestAsyncPipelineHappyPath:
     @pytest.mark.asyncio
     async def test_processes_relevant_records_and_exports(self, mocker):
         pipeline, _, _, _, exporter, state = _build(mocker, _records(3))
-        assert await pipeline.run(query="q", max_records=3, sleep_between=0) == 3
+        assert await pipeline.run(query="q", page_size=3, total_limit=3, sleep_between=0) == 3
         assert exporter.export.await_count == 3
         assert state.mark_processed.await_count == 3
 
     @pytest.mark.asyncio
     async def test_skips_irrelevant(self, mocker):
         pipeline, extractor, _, _, exporter, state = _build(mocker, _records(2), relevant=False)
-        assert await pipeline.run(query="q", max_records=2, sleep_between=0) == 0
+        assert await pipeline.run(query="q", page_size=2, total_limit=2, sleep_between=0) == 0
         extractor.fetch_full_text.assert_not_called()
         exporter.export.assert_not_called()
         assert state.mark_processed.await_count == 2
@@ -91,19 +91,19 @@ class TestAsyncPipelineHappyPath:
     @pytest.mark.asyncio
     async def test_no_export_when_extraction_empty(self, mocker):
         pipeline, _, _, _, exporter, _ = _build(mocker, _records(2), entities=[])
-        assert await pipeline.run(query="q", max_records=2, sleep_between=0) == 2
+        assert await pipeline.run(query="q", page_size=2, total_limit=2, sleep_between=0) == 2
         exporter.export.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_stops_when_listing_exhausted(self, mocker):
         pipeline, extractor, *_ = _build(mocker, _records(1))
-        await pipeline.run(query="q", max_records=100, sleep_between=0)
+        await pipeline.run(query="q", page_size=100, total_limit=100, sleep_between=0)
         assert extractor.parse_listing.call_count >= 2
 
     @pytest.mark.asyncio
     async def test_persists_metadata_each_page(self, mocker):
         pipeline, _, _, _, _, state = _build(mocker, _records(2))
-        await pipeline.run(query="q", max_records=2, sleep_between=0)
+        await pipeline.run(query="q", page_size=2, total_limit=2, sleep_between=0)
         assert state.save_metadata.await_count >= 1
 
     @pytest.mark.parametrize("record_id", ["", "   "])
@@ -114,7 +114,7 @@ class TestAsyncPipelineHappyPath:
         )
         logged: list[str] = []
         pipeline._log = logged.append
-        assert await pipeline.run(query="q", max_records=1, sleep_between=0) == 0
+        assert await pipeline.run(query="q", page_size=1, total_limit=1, sleep_between=0) == 0
         relevance.is_relevant.assert_not_awaited()
         state.mark_processed.assert_not_awaited()
         assert any("no record_id" in message for message in logged)
@@ -127,7 +127,7 @@ class TestAsyncPipelineFailureSignaling:
         pipeline, extractor, *_ = _build(mocker, _records(1))
         extractor.search = mocker.AsyncMock(return_value=None)
         with pytest.raises(PipelineAborted, match="no payload") as excinfo:
-            await pipeline.run(query="q", max_records=10, sleep_between=0)
+            await pipeline.run(query="q", page_size=10, total_limit=10, sleep_between=0)
         assert excinfo.value.partial_count == 0
 
     @pytest.mark.asyncio
@@ -135,7 +135,7 @@ class TestAsyncPipelineFailureSignaling:
         pipeline, extractor, *_ = _build(mocker, _records(3))
         extractor.search = mocker.AsyncMock(side_effect=[b"<feed/>", UpstreamError("gateway down")])
         with pytest.raises(PipelineAborted) as excinfo:
-            await pipeline.run(query="q", max_records=10, sleep_between=0)
+            await pipeline.run(query="q", page_size=10, total_limit=10, sleep_between=0)
         assert excinfo.value.partial_count == 3
         assert isinstance(excinfo.value.__cause__, UpstreamError)
 
@@ -144,7 +144,7 @@ class TestAsyncPipelineFailureSignaling:
         pipeline, extractor, *_ = _build(mocker, _records(1))
         extractor.search = mocker.AsyncMock(side_effect=ExtractionError("status 400"))
         with pytest.raises(PipelineAborted, match="Listing fetch failed") as excinfo:
-            await pipeline.run(query="q", max_records=5, sleep_between=0)
+            await pipeline.run(query="q", page_size=5, total_limit=5, sleep_between=0)
         assert isinstance(excinfo.value.__cause__, ExtractionError)
 
     @pytest.mark.asyncio
@@ -154,14 +154,14 @@ class TestAsyncPipelineFailureSignaling:
             side_effect=[(_records(2), 2), MalformedResponseError("bad xml")]
         )
         with pytest.raises(PipelineAborted, match="malformed") as excinfo:
-            await pipeline.run(query="q", max_records=10, sleep_between=0)
+            await pipeline.run(query="q", page_size=10, total_limit=10, sleep_between=0)
         assert excinfo.value.partial_count == 2
         assert isinstance(excinfo.value.__cause__, MalformedResponseError)
 
     @pytest.mark.asyncio
     async def test_empty_listing_is_the_only_clean_termination(self, mocker):
         pipeline, extractor, *_ = _build(mocker, _records(1))
-        assert await pipeline.run(query="q", max_records=100, sleep_between=0) == 1
+        assert await pipeline.run(query="q", page_size=100, total_limit=100, sleep_between=0) == 1
         assert extractor.search.await_count == 2
 
 
@@ -180,7 +180,7 @@ class TestAsyncPipelineResilience:
         entity.extract = mocker.AsyncMock(side_effect=flaky)
         logged: list[str] = []
         pipeline._log = logged.append
-        assert await pipeline.run(query="q", max_records=3, sleep_between=0) >= 2
+        assert await pipeline.run(query="q", page_size=3, total_limit=3, sleep_between=0) >= 2
         assert any("failed" in m.lower() for m in logged)
 
     @pytest.mark.asyncio
@@ -190,7 +190,7 @@ class TestAsyncPipelineResilience:
         logged: list[str] = []
         pipeline._log = logged.append
         with pytest.raises(PipelineAborted) as excinfo:
-            await pipeline.run(query="q", max_records=1, sleep_between=0)
+            await pipeline.run(query="q", page_size=1, total_limit=1, sleep_between=0)
         assert isinstance(excinfo.value.__cause__, LLMError)
         state.mark_processed.assert_not_awaited()
         exporter.export.assert_not_called()
@@ -298,7 +298,7 @@ class TestAsyncPipelineCeiling:
     @pytest.mark.asyncio
     async def test_total_limit_is_exact_under_concurrency(self, mocker):
         pipeline, _, _, _, _, state = _build(mocker, _records(50), max_concurrency=8)
-        assert await pipeline.run(query="q", max_records=10, sleep_between=0) == 10
+        assert await pipeline.run(query="q", page_size=10, total_limit=10, sleep_between=0) == 10
         assert state.mark_processed.await_count == 10
         assert _saved_offset(state) == 0
 
@@ -349,7 +349,7 @@ class TestAsyncPipelineConcurrency:
     async def test_shared_ids_no_lost_updates(self, mocker):
         count = 200
         pipeline, _, _, _, _, state = _build(mocker, _records(count), max_concurrency=16)
-        assert await pipeline.run(query="q", max_records=count, sleep_between=0) == count
+        assert await pipeline.run(query="q", page_size=count, total_limit=count, sleep_between=0) == count
         marked = _marked(state)
         assert len(marked) == count
         assert len(set(marked)) == count
@@ -458,7 +458,7 @@ class TestMemoryIngestFaults:
         pipeline, _, _, _, exporter, state = _build(mocker, _records(1, start=1), memory_ingestor=failing)
         logged: list[str] = []
         pipeline._log = logged.append
-        assert await pipeline.run(query="q", max_records=1, sleep_between=0) == 1
+        assert await pipeline.run(query="q", page_size=1, total_limit=1, sleep_between=0) == 1
         exporter.export.assert_awaited_once()
         state.mark_processed.assert_awaited_once_with("1")
         assert logged == [f"Memory ingest failed for 1: {error!r}"]
@@ -470,7 +470,7 @@ class TestMemoryIngestFaults:
         logged: list[str] = []
         pipeline._log = logged.append
         with pytest.raises(PipelineAborted):
-            await pipeline.run(query="q", max_records=1, sleep_between=0)
+            await pipeline.run(query="q", page_size=1, total_limit=1, sleep_between=0)
         exporter.export.assert_not_awaited()
         state.mark_processed.assert_not_awaited()
         assert "Record processing failed: RuntimeError('x')" in logged
@@ -482,7 +482,7 @@ class TestMemoryIngestFaults:
         logged: list[str] = []
         pipeline._log = logged.append
         with pytest.raises(PipelineAborted):
-            await pipeline.run(query="q", max_records=1, sleep_between=0)
+            await pipeline.run(query="q", page_size=1, total_limit=1, sleep_between=0)
         exporter.export.assert_not_awaited()
         state.mark_processed.assert_not_awaited()
         assert any(message.startswith("Record processing failed: SearchQueryError") for message in logged)
@@ -494,7 +494,7 @@ class TestMemoryIngestFaults:
         composite = AsyncCompositeIngestor(sibling, _RaisingIngestor(SearchStoreError("x")), logger=logged.append)
         pipeline, _, _, _, exporter, state = _build(mocker, _records(1, start=1), memory_ingestor=composite)
         pipeline._log = logged.append
-        assert await pipeline.run(query="q", max_records=1, sleep_between=0) == 1
+        assert await pipeline.run(query="q", page_size=1, total_limit=1, sleep_between=0) == 1
         exporter.export.assert_awaited_once()
         state.mark_processed.assert_awaited_once_with("1")
         assert logged == ["Memory ingest failed for 1 in _RaisingIngestor: SearchStoreError('x')"]
@@ -508,7 +508,7 @@ class TestMemoryIngestFaults:
         pipeline, _, _, _, exporter, state = _build(mocker, _records(1, start=1), memory_ingestor=composite)
         pipeline._log = logged.append
         with pytest.raises(PipelineAborted):
-            await pipeline.run(query="q", max_records=1, sleep_between=0)
+            await pipeline.run(query="q", page_size=1, total_limit=1, sleep_between=0)
         exporter.export.assert_not_awaited()
         state.mark_processed.assert_not_awaited()
         assert any(message.startswith("Record processing failed: SearchQueryError") for message in logged)
@@ -521,6 +521,7 @@ class TestAsyncPipelineArgumentValidation:
         with pytest.raises(ValueError, match="max_concurrency"):
             _build(mocker, [], max_concurrency=max_concurrency)
 
+    @pytest.mark.filterwarnings("ignore:run\\(max_records=\\) is deprecated:DeprecationWarning")
     @pytest.mark.parametrize(
         ("limits", "message"),
         [

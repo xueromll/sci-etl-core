@@ -246,7 +246,7 @@ class TestPipelineTwoStageIngestion:
     @pytest.mark.asyncio
     async def test_ingests_full_text_after_relevance_pass(self, mocker):
         pipeline, _, ingestor = _pipeline(mocker, relevant=True)
-        await pipeline.run(query="q", max_records=1, sleep_between=0)
+        await pipeline.run(query="q", page_size=1, total_limit=1, sleep_between=0)
         ingestor.ingest.assert_awaited_once()
         record, text = ingestor.ingest.await_args.args
         assert record.record_id == "1"
@@ -255,7 +255,7 @@ class TestPipelineTwoStageIngestion:
     @pytest.mark.asyncio
     async def test_does_not_ingest_when_irrelevant(self, mocker):
         pipeline, extractor, ingestor = _pipeline(mocker, relevant=False)
-        await pipeline.run(query="q", max_records=1, sleep_between=0)
+        await pipeline.run(query="q", page_size=1, total_limit=1, sleep_between=0)
         extractor.fetch_full_text.assert_not_called()
         ingestor.ingest.assert_not_called()
 
@@ -265,7 +265,7 @@ class TestPipelineTwoStageIngestion:
         ingestor.ingest = mocker.AsyncMock(side_effect=EmbeddingStoreError("db locked"))
         logged: list[str] = []
         pipeline._log = logged.append
-        assert await pipeline.run(query="q", max_records=1, sleep_between=0) == 1
+        assert await pipeline.run(query="q", page_size=1, total_limit=1, sleep_between=0) == 1
         assert any("memory ingest failed" in message.lower() for message in logged)
 
 

@@ -40,6 +40,20 @@ class TokenUsage:
         """The prompt and completion tokens together."""
         return self.prompt_tokens + self.completion_tokens
 
+    def __add__(self, other: "TokenUsage") -> "TokenUsage":
+        return TokenUsage(
+            self.requests + other.requests,
+            self.prompt_tokens + other.prompt_tokens,
+            self.completion_tokens + other.completion_tokens,
+        )
+
+    def __sub__(self, other: "TokenUsage") -> "TokenUsage":
+        return TokenUsage(
+            self.requests - other.requests,
+            self.prompt_tokens - other.prompt_tokens,
+            self.completion_tokens - other.completion_tokens,
+        )
+
     def record(self, usage: Any) -> None:
         """Add one response's ``usage`` object and count the request.
 
@@ -64,10 +78,22 @@ class PipelineMetadata:
 
     ``last_start_index`` is the listing offset the next run resumes from, and
     ``last_run_at`` is the time :meth:`touch` last stamped, or ``None``.
+
+    ``head_ids``, ``head_offset``, and ``tail_ids`` serve runs with
+    ``newest_first=True``, and describe the same listing snapshot as
+    ``last_start_index``. ``head_ids`` are ids seen near the top of the
+    listing, in listing order, the first at position ``head_offset``; a run
+    finds them again to learn how far new submissions have pushed the backlog
+    down. ``tail_ids`` are the ids just before ``last_start_index``, which a
+    run checks for before skipping to the backlog. Other runs leave all three
+    unchanged.
     """
 
     last_run_at: str | None = None
     last_start_index: int = 0
+    head_ids: list[str] = field(default_factory=list)
+    head_offset: int = 0
+    tail_ids: list[str] = field(default_factory=list)
 
     def touch(self) -> None:
         """Stamp the current time as an ISO 8601 string with a UTC offset."""

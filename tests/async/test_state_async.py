@@ -132,3 +132,39 @@ class TestAsyncFileStateManager:
         payload = json.loads(manager._metadata_file.read_text(encoding="utf-8"))
         assert payload["last_start_index"] == 7
         assert "last_run_date" in payload
+
+
+class TestAsyncFileStateManagerHeadIds:
+    @pytest.mark.asyncio
+    async def test_head_ids_and_offset_round_trip(self, manager):
+        await manager.save_metadata(
+            PipelineMetadata(last_start_index=9, head_ids=["b", "a"], head_offset=4, tail_ids=["y", "z"])
+        )
+        reloaded = await manager.load_metadata()
+        assert reloaded.head_ids == ["b", "a"]
+        assert reloaded.head_offset == 4
+        assert reloaded.tail_ids == ["y", "z"]
+
+    @pytest.mark.asyncio
+    async def test_a_file_written_before_head_ids_existed_loads_with_defaults(self, manager):
+        manager._metadata_file.write_text('{"last_start_index": 12, "last_run_date": "x"}', encoding="utf-8")
+        reloaded = await manager.load_metadata()
+        assert reloaded.last_start_index == 12
+        assert reloaded.head_ids == []
+        assert reloaded.head_offset == 0
+
+    @pytest.mark.parametrize(
+        "payload",
+        [
+            '{"head_ids": "abc", "head_offset": "2", "tail_ids": "abc"}',
+            '{"head_ids": [1, 2], "head_offset": -1, "tail_ids": [3]}',
+            '{"head_ids": null, "head_offset": true, "tail_ids": null}',
+        ],
+    )
+    @pytest.mark.asyncio
+    async def test_invalid_head_values_fall_back_to_defaults(self, manager, payload):
+        manager._metadata_file.write_text(payload, encoding="utf-8")
+        reloaded = await manager.load_metadata()
+        assert reloaded.head_ids == []
+        assert reloaded.head_offset == 0
+        assert reloaded.tail_ids == []

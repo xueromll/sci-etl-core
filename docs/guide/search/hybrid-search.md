@@ -25,10 +25,16 @@ runs one or both retrieval legs:
   `fusion=FusionParams(weights=(1.0, 2.0))` to weigh the lexical and semantic
   lists, in that order.
 - **Hits.** A `FusedHit` carries `lexical_rank` and `semantic_rank` (`None`
-  where that leg did not return it), `title`, `metadata`, and the lexical
-  snippet and highlights. Show ranks, never the fused score as a percentage. A
-  record found only by the semantic leg has no snippet; read its abstract with
-  `text_store.get_documents`.
+  where that leg did not return it), `title`, `metadata`, `snippet`,
+  `highlights`, and `snippets`. Show ranks, never the fused score as a
+  percentage.
+- **Snippets.** A record the lexical leg returned keeps its lexical snippets,
+  one per matching field. A record found only by the semantic leg gets a
+  snippet of the chunk that ranked it, with the query's words highlighted
+  where they occur in it, as a single `Snippet` whose field is `"body"`. That
+  passage matched by meaning, so it may highlight nothing; check
+  `lexical_rank is None` to label it, for example "related passage", or read
+  the abstract with `text_store.get_documents` instead.
 - **Candidate pool.** Each leg fetches `HybridParams.candidate_pool` records
   (default 100, and never fewer than `top_k`) before fusion, so a record
   ranked 40th lexically and 3rd semantically can still reach the top 20. The

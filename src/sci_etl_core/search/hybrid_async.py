@@ -6,23 +6,22 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Literal
 
 from sci_etl_core.exceptions import EmbeddingError, SearchQueryError
-from sci_etl_core.search.filters import MetadataFilter, validate_filters
+from sci_etl_core.search.filters import SearchFilter, validate_filters
 from sci_etl_core.search.fusion import FusedHit, FusionParams, FusionStrategy, reciprocal_rank_fusion
 from sci_etl_core.search.parser import parse_ranked_query, parse_semantic_query
 from sci_etl_core.search.query import Node, semantic_text
+from sci_etl_core.search.snippets import passage_snippet
 from sci_etl_core.search.store_base import AsyncTextSearchStore, SearchDocument, TextHit
 
 if TYPE_CHECKING:
     from sci_etl_core.embeddings.finder_async import AsyncSimilarArticleFinder
+    from sci_etl_core.embeddings.store_base import SearchHit
 
 SearchMode = Literal["lexical", "semantic", "hybrid"]
 """Which retrieval legs :meth:`AsyncHybridSearcher.search` runs."""
 
 SEARCH_MODES: tuple[str, ...] = ("lexical", "semantic", "hybrid")
 """Every :data:`SearchMode`, for checking a mode that arrives as plain text."""
-
-_Article = tuple[str, float, dict[str, Any]]
-
 
 @dataclass(frozen=True, slots=True)
 class HybridParams:
@@ -134,17 +133,19 @@ class AsyncHybridSearcher:
         top_k: int = 20,
         *,
         mode: SearchMode = "hybrid",
-        filters: Sequence[MetadataFilter] = (),
+        filters: Sequence[SearchFilter] = (),
     ) -> SearchOutcome:
         """Return the ``top_k`` best records for ``query``, fused across the legs ``mode`` runs.
 
         Every error below except the last two is raised before any I/O. A
         ``top_k`` below 1 returns no hits.
 
-        A hit the lexical leg found carries its snippet and highlights. A hit
+        A hit the lexical leg found carries its snippets and highlights. A hit
         only the semantic leg found takes its title and metadata from the text
         index, or from its best chunk's metadata when the index does not hold
-        the record.
+        the record, and its snippet from that chunk, with the query's words
+        highlighted where they occur in it
+        (:func:`~sci_etl_core.search.snippets.passage_snippet`).
 
         Raises:
             ValueError: ``mode`` is unknown, or ``filters`` holds two filters on
@@ -169,7 +170,7 @@ class AsyncHybridSearcher:
         if mode != "semantic":
             legs["lexical"] = self._text_store.search(node, pool, filters=filters)
         if meaning and self._finder is not None:
-            legs["semantic"] = self._finder.find_similar_articles(
+            legs["semantic"] = self._finder.find_best_chunks(
                 meaning, top_k=pool, chunk_pool=pool * self._params.chunk_pool_factor
             )
             if filters:
@@ -192,10 +193,10 @@ class AsyncHybridSearcher:
 
         lexical_hits: list[TextHit] | None = results.get("lexical")
         allowed: frozenset[str] | None = results.get("allowed")
-        semantic: list[_Article] | None = None
+        semantic: list[SearchHit] | None = None
         if articles is not None:
-            semantic = [article for article in articles if allowed is None or article[0] in allowed]
-        hits = await self._fuse(lexical_hits, semantic, top_k)
+            semantic = [article for article in articles if allowed is None or article.record_id in allowed]
+        hits = await self._fuse(node, lexical_hits, semantic, top_k)
         return SearchOutcome(hits, degraded, skipped)
 
     def _parse(self, query: str, mode: str) -> tuple[Node, str]:
@@ -210,7 +211,7 @@ class AsyncHybridSearcher:
         return node, semantic_text(node) if self._finder is not None else ""
 
     async def _fuse(
-        self, lexical_hits: list[TextHit] | None, semantic: list[_Article] | None, top_k: int
+        self, node: Node, lexical_hits: list[TextHit] | None, semantic: list[SearchHit] | None, top_k: int
     ) -> list[FusedHit]:
         ranked_lists: list[list[tuple[str, float]]] = []
         leg_indexes: list[int] = []
@@ -218,7 +219,7 @@ class AsyncHybridSearcher:
             ranked_lists.append([(hit.record_id, hit.score) for hit in lexical_hits])
             leg_indexes.append(0)
         if semantic is not None:
-            ranked_lists.append([(record_id, score) for record_id, score, _metadata in semantic])
+            ranked_lists.append([(article.record_id, article.score) for article in semantic])
             leg_indexes.append(1)
         fusion = self._fusion
         if fusion.weights is not None:
@@ -226,33 +227,34 @@ class AsyncHybridSearcher:
         fused = self._strategy(ranked_lists, fusion)[:top_k]
 
         lexical = {hit.record_id: (rank, hit) for rank, hit in enumerate(lexical_hits or [], start=1)}
-        semantic_ranks = {article[0]: (rank, article[2]) for rank, article in enumerate(semantic or [], start=1)}
+        semantic_ranks = {article.record_id: (rank, article) for rank, article in enumerate(semantic or [], start=1)}
         missing = [record_id for record_id, _score in fused if record_id not in lexical]
         documents = await self._text_store.get_documents(missing) if missing else {}
-        return [_fused_hit(record_id, score, lexical, semantic_ranks, documents) for record_id, score in fused]
+        return [_fused_hit(node, record_id, score, lexical, semantic_ranks, documents) for record_id, score in fused]
 
 
 def _fused_hit(
+    node: Node,
     record_id: str,
     score: float,
     lexical: dict[str, tuple[int, TextHit]],
-    semantic: dict[str, tuple[int, dict[str, Any]]],
+    semantic: dict[str, tuple[int, SearchHit]],
     documents: dict[str, SearchDocument],
 ) -> FusedHit:
     semantic_rank = semantic[record_id][0] if record_id in semantic else None
     if record_id in lexical:
         rank, hit = lexical[record_id]
-        return FusedHit(record_id, score, rank, semantic_rank, hit.snippet, hit.highlights, hit.metadata, hit.title)
+        return FusedHit(
+            record_id, score, rank, semantic_rank, hit.snippet, hit.highlights, hit.metadata, hit.title, hit.snippets
+        )
+    chunk = semantic[record_id][1]
+    passage = passage_snippet(node, chunk.text)
     document = documents.get(record_id)
     if document is not None:
-        return FusedHit(record_id, score, None, semantic_rank, metadata=document.metadata, title=document.title)
-    chunk_metadata = semantic[record_id][1]
-    title = chunk_metadata.get("title")
+        metadata, title = document.metadata, document.title
+    else:
+        chunk_title = chunk.metadata.get("title")
+        metadata, title = dict(chunk.metadata), chunk_title if isinstance(chunk_title, str) else ""
     return FusedHit(
-        record_id,
-        score,
-        None,
-        semantic_rank,
-        metadata=dict(chunk_metadata),
-        title=title if isinstance(title, str) else "",
+        record_id, score, None, semantic_rank, passage.text, passage.highlights, metadata, title, (passage,)
     )

@@ -22,14 +22,18 @@ pipeline on a background loop.
 - **Pluggable async interfaces** for every stage, with `Sync*Adapter` wrappers
   for existing blocking implementations.
 - **Built-in orchestration** with bounded concurrency, resumable crash-safe
-  state, polite retries that honor `Retry-After`, and explicit failure
-  signaling through `PipelineAborted`.
+  state, graceful shutdown, polite retries that honor `Retry-After`, shared
+  and per-host rate limits, progress events and run metrics, and explicit
+  failure signaling through `PipelineAborted`.
+- **LLM response caching** in memory or SQLite, so a rerun doesn't pay for the
+  same prompt twice.
 - **Semantic memory and local search** — embed full texts into a vector store,
   query a SQLite FTS5 index with Boolean syntax, fuse BM25 with embedding
   similarity, filter by metadata facets, and grow graphs of related papers.
-- **Concrete implementations included** — arXiv extractor; OpenAI-compatible
-  chat and embedding clients; PDF, LaTeX, and HTML parsers; CSV, SQL, and
-  Plotly exporters; dataframe processors and record validators.
+- **Concrete implementations included** — arXiv, PubMed, Semantic Scholar,
+  and OpenAlex extractors; OpenAI-compatible chat and embedding clients; PDF,
+  LaTeX, HTML, DOCX, and JATS XML parsers; CSV, SQL, and Plotly exporters;
+  dataframe processors and record validators.
 - **Typed configuration** from YAML and `.env`, an offline test suite at 100%
   coverage, and PEP 561 type information.
 
@@ -100,7 +104,7 @@ explains what a run does, how it resumes, and what the prompts must ask for.
 | Topic | Where |
 |-------|-------|
 | Installation, quick start, blocking usage, configuration | [Getting started](https://xueromll.github.io/sci-etl-core/latest/getting-started/installation/) |
-| Post-processing, semantic memory, state, retries, rate limiting | [Guide](https://xueromll.github.io/sci-etl-core/latest/guide/sources/) |
+| Sources, post-processing, semantic memory, state, shutdown, retries, rate limiting, events, caching | [Guide](https://xueromll.github.io/sci-etl-core/latest/guide/sources/) |
 | Boolean and hybrid search, facets, discovery graphs | [Local search and discovery](https://xueromll.github.io/sci-etl-core/latest/guide/search/) |
 | Components and how they connect | [Architecture](https://xueromll.github.io/sci-etl-core/latest/guide/architecture/) |
 | Every public class and function | [API reference](https://xueromll.github.io/sci-etl-core/latest/reference/) |

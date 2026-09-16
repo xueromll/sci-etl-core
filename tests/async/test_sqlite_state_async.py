@@ -261,3 +261,44 @@ class TestAsyncSqliteStateManagerCancellation:
         assert not load_overlapped
         assert await load == {"first"}
         assert gate.events == ["first-start", "first-end", "second-start"]
+
+
+class TestAsyncSqliteStateManagerHeadIds:
+    @pytest.mark.asyncio
+    async def test_head_ids_and_offset_round_trip(self, manager):
+        await manager.save_metadata(
+            PipelineMetadata(last_start_index=9, head_ids=["b", "a"], head_offset=4, tail_ids=["y", "z"])
+        )
+        reloaded = await manager.load_metadata()
+        assert reloaded.head_ids == ["b", "a"]
+        assert reloaded.head_offset == 4
+        assert reloaded.tail_ids == ["y", "z"]
+
+    @pytest.mark.asyncio
+    async def test_a_database_created_before_head_ids_existed_gains_the_columns(self, tmp_path):
+        path = tmp_path / "old.db"
+        with closing(sqlite3.connect(path, isolation_level=None)) as connection:
+            connection.execute("CREATE TABLE processed_ids (record_id TEXT PRIMARY KEY)")
+            connection.execute(
+                "CREATE TABLE pipeline_metadata (id INTEGER PRIMARY KEY CHECK (id = 1),"
+                " last_run_at TEXT, last_start_index INTEGER NOT NULL DEFAULT 0)"
+            )
+            connection.execute("INSERT INTO pipeline_metadata VALUES (1, 'then', 17)")
+        upgraded = AsyncSqliteStateManager(path)
+        try:
+            reloaded = await upgraded.load_metadata()
+            assert (reloaded.last_run_at, reloaded.last_start_index) == ("then", 17)
+            assert reloaded.head_ids == []
+            assert reloaded.head_offset == 0
+            assert reloaded.tail_ids == []
+            reloaded.head_ids = ["x"]
+            await upgraded.save_metadata(reloaded)
+            assert (await upgraded.load_metadata()).head_ids == ["x"]
+        finally:
+            await upgraded.aclose()
+
+    @pytest.mark.asyncio
+    async def test_reopening_an_upgraded_database_does_not_add_columns_again(self, manager):
+        await manager.save_metadata(PipelineMetadata(head_ids=["kept"]))
+        await manager.aclose()
+        assert (await manager.load_metadata()).head_ids == ["kept"]

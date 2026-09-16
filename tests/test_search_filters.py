@@ -12,10 +12,12 @@ import pytest
 
 from sci_etl_core.search.filters import (
     MetadataFilter,
+    RangeFilter,
     encode_metadata,
     matches_filters,
     sanitize_text,
     split_markers,
+    tag_in_range,
     tag_rows,
     validate_facet_keys,
     validate_filters,
@@ -85,10 +87,96 @@ class TestValidateFilters:
         ({"year": True}, [MetadataFilter("year", {"True"})], False),
         ({"a": "x", "b": "y"}, [MetadataFilter("a", {"x"}), MetadataFilter("b", {"z"})], False),
         ({"a": "x"}, [], True),
+        ({"year": [2019, 2023]}, [RangeFilter("year", 2020, 2024)], True),
+        ({"year": "2019"}, [RangeFilter("year", 2020, 2024)], False),
+        ({"year": 2021}, [RangeFilter("year", 2020, 2024, negated=True)], False),
+        ({}, [RangeFilter("year", low=2020)], False),
+        ({}, [RangeFilter("year", low=2020, negated=True)], True),
+        ({"published": "2024-06-30T10:00:00Z", "year": 2024}, [RangeFilter("published", high="2024-06")], True),
     ],
 )
 def test_matches_filters(metadata, filters, expected):
     assert matches_filters(metadata, filters) is expected
+
+
+class TestRangeFilter:
+    @pytest.mark.parametrize(
+        "value, expected",
+        [("2020", True), ("2024", True), ("2022", True), ("2019", False), ("2025", False), ("02022", False)],
+    )
+    def test_integer_bounds_are_inclusive_and_compare_canonical_integers(self, value, expected):
+        assert RangeFilter("year", 2020, 2024).contains(value) is expected
+
+    @pytest.mark.parametrize("value", ["", " 5", "+5", "-0", "05", "5.0", "5e0", "٥", "abc"])
+    def test_only_integers_written_as_python_writes_them_can_be_in_an_integer_range(self, value):
+        assert RangeFilter("n", -10, 10).contains(value) is False
+
+    @pytest.mark.parametrize("value, expected", [("0", True), ("-3", True), ("-11", False), ("10", True)])
+    def test_zero_and_negative_integers_compare_numerically(self, value, expected):
+        assert RangeFilter("n", -10, 10).contains(value) is expected
+
+    def test_integer_comparison_is_numeric_not_textual(self):
+        assert RangeFilter("citations", low=9).contains("10") is True
+        assert RangeFilter("citations", high=9).contains("10") is False
+
+    def test_a_large_tag_is_compared_exactly(self):
+        assert RangeFilter("n", low=2**63 - 1).contains(str(2**64)) is True
+
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            ("2024-01-01", True),
+            ("2024-06-30T23:59:59Z", True),
+            ("2024-07-01", False),
+            ("2023-12-31", False),
+            ("2024", True),
+        ],
+    )
+    def test_text_bounds_compare_the_high_bound_with_as_many_leading_characters(self, value, expected):
+        assert RangeFilter("published", "2024", "2024-06").contains(value) is expected
+
+    def test_an_open_bound_matches_everything_on_its_side(self):
+        assert RangeFilter("year", low="2020").contains("9999") is True
+        assert RangeFilter("year", high="2020").contains("") is True
+
+    def test_is_frozen_and_hashable(self):
+        assert hash(RangeFilter("year", 2020)) == hash(RangeFilter("year", 2020))
+        with pytest.raises(dataclasses.FrozenInstanceError):
+            RangeFilter("year", 2020).low = 2021
+
+    @pytest.mark.parametrize(
+        "options, error, message",
+        [
+            ({}, ValueError, "needs a low or a high bound"),
+            ({"low": True}, TypeError, "integers or text, not bool"),
+            ({"low": 2020.0}, TypeError, "integers or text, not float"),
+            ({"low": 2020, "high": "2024"}, TypeError, "must both be integers or both text"),
+            ({"high": ""}, ValueError, "has an empty bound"),
+            ({"low": 2**63}, ValueError, "outside 64-bit integers"),
+            ({"high": -(2**63) - 1}, ValueError, "outside 64-bit integers"),
+            ({"low": 2025, "high": 2024}, ValueError, "can never match"),
+            ({"low": "2024-07", "high": "2024-06"}, ValueError, "can never match"),
+        ],
+    )
+    def test_a_range_that_could_never_be_read_or_matched_is_rejected(self, options, error, message):
+        with pytest.raises(error, match=message):
+            RangeFilter("year", **options)
+
+    def test_a_low_bound_longer_than_the_high_bound_can_still_match(self):
+        assert RangeFilter("published", "2024-06-15", "2024-06").contains("2024-06-20") is True
+
+    def test_tag_in_range_is_the_comparison_contains_uses(self):
+        assert tag_in_range("2021", 2020, None) is RangeFilter("year", 2020).contains("2021") is True
+
+
+class TestValidateRangeFilters:
+    def test_a_range_and_an_exact_filter_on_one_key_are_two_filters(self):
+        with pytest.raises(ValueError, match="Only one filter per key is allowed, and 'year' has two"):
+            validate_filters([MetadataFilter("year", {"2024"}), RangeFilter("year", 2020)])
+
+    def test_a_range_on_a_key_outside_the_allowed_keys_raises(self):
+        with pytest.raises(ValueError, match="'year' is not a facet key"):
+            validate_filters([RangeFilter("year", 2020)], {"categories"})
 
 
 class TestTagRows:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Sequence
+from collections.abc import AsyncIterator, Sequence
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -25,6 +25,21 @@ class SearchHit:
     chunk_index: int
     text: str
     score: float
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True, slots=True)
+class StoredRecord:
+    """The passages a vector memory holds for one record, without their vectors.
+
+    ``passages`` are the chunk texts in ``chunk_index`` order, and ``metadata``
+    is the metadata of the record's first chunk, which for chunks stored by
+    :class:`~sci_etl_core.embeddings.ingest_async.AsyncChunkIngestor` holds the
+    record's ``title`` and ``source_url``.
+    """
+
+    record_id: str
+    passages: tuple[str, ...]
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -67,6 +82,18 @@ class AsyncEmbeddingStore(ABC):
     @abstractmethod
     async def count(self) -> int:
         """Return the number of stored chunks."""
+
+    def iter_records(self, batch_size: int = 100) -> AsyncIterator[StoredRecord]:
+        """Yield every stored record's passages, in ``record_id`` order, without loading vectors.
+
+        ``batch_size`` is how many records are read at a time. A backend that
+        cannot enumerate its chunks keeps this default, which raises; the
+        bundled stores implement it.
+
+        Raises:
+            NotImplementedError: The store cannot enumerate its records.
+        """
+        raise NotImplementedError(f"{type(self).__name__} cannot enumerate its stored records")
 
     async def aclose(self) -> None:
         """Release any held resources. No-op by default."""

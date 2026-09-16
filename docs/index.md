@@ -20,7 +20,8 @@ runs these pipelines from a single YAML file.
 
     ---
 
-    Install the extras you need and run your first pipeline over arXiv.
+    Install the extras you need and run your first pipeline over arXiv, then
+    point it at [PubMed, Semantic Scholar, or OpenAlex](guide/sources.md).
 
     [Installation](getting-started/installation.md) ·
     [Quick start](getting-started/quick-start.md)
@@ -69,12 +70,18 @@ runs these pipelines from a single YAML file.
   stop the run instead of burning through the rest of the listing.
 - **Resumable, crash-safe state** — plain-file or SQLite backends record
   processed ids and the listing offset; CSV and metadata writes use atomic
-  renames.
-- **Polite retries** — the arXiv extractor and the OpenAI-compatible chat and
-  embedding clients wait as long as a throttled response's `Retry-After`
-  header asks, up to a configurable cap.
-- **Token usage** — the OpenAI-compatible clients count the tokens each
-  response reports, so a run's API cost can be shown.
+  renames. Newest-first listings pick up new papers without rescanning.
+- **Graceful shutdown** — Ctrl+C or SIGTERM lets in-flight records finish,
+  flushes state, and raises `PipelineInterrupted`.
+- **Polite retries and rate limits** — every bundled extractor and the
+  OpenAI-compatible chat and embedding clients wait as long as a throttled
+  response's `Retry-After` header asks, up to a configurable cap, and take
+  rate limiters that can be shared and set per host.
+- **Progress events, metrics, and token usage** — typed per-record events,
+  run metrics with counts, durations, and failures, and the tokens each run
+  used.
+- **LLM response caching** — an in-memory or SQLite cache answers repeated
+  prompts without another API call.
 - **Semantic memory (optional)** — chunk and embed full texts into an
   in-memory or SQLite vector store, search for similar articles, or gate
   relevance by embedding similarity instead of an LLM call.
@@ -83,10 +90,11 @@ runs these pipelines from a single YAML file.
   with embedding similarity, metadata facets, and graphs of related papers.
 - **Dependency injection everywhere** — HTTP clients, parsers, models,
   prompts, and destinations are constructor arguments.
-- **Concrete implementations included** — arXiv extractor; OpenAI-compatible
-  chat and embedding clients; local sentence-transformers embedder; PDF / LaTeX
-  / HTML parsers; CSV upsert, SQL table, and 3D Plotly exporters; dataframe
-  processors and record validators.
+- **Concrete implementations included** — arXiv, PubMed, Semantic Scholar,
+  and OpenAlex extractors; OpenAI-compatible chat and embedding clients; local
+  sentence-transformers embedder; PDF / LaTeX / HTML / DOCX / JATS XML parsers;
+  CSV upsert, SQL table, and 3D Plotly exporters; dataframe processors and
+  record validators.
 - **Typed configuration** from YAML + `.env` with Pydantic validation and
   `SecretStr` API keys.
 - **Offline test suite** — pytest with mocks, Hypothesis property tests, and

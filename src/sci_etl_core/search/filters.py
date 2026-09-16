@@ -50,12 +50,90 @@ class MetadataFilter:
             raise ValueError(f"The filter on {self.key!r} needs at least one value")
 
 
-def validate_filters(filters: Iterable[MetadataFilter], allowed_keys: Collection[str] | None = None) -> None:
+@dataclass(frozen=True, slots=True)
+class RangeFilter:
+    """Keep the records with a tag under ``key`` between ``low`` and ``high``, or with ``negated``, drop them.
+
+    Both bounds are inclusive, and a bound left as ``None`` is open, so
+    ``RangeFilter("year", low="2020")`` keeps 2020 and later. A record passes
+    when any of its tags under ``key`` is in range, as a record passes a
+    :class:`MetadataFilter` when any of its tags is among the values.
+
+    The type of the bounds decides how tags compare:
+
+    - **Integer bounds** compare tags numerically. Only a tag written as Python
+      writes an integer, such as ``2024``, ``0``, or ``-3``, can be in range; a
+      tag such as ``"2024-05-01"``, ``"07"``, or ``"+3"`` never is.
+    - **Text bounds** compare tags as text, character by character. ``high`` is
+      compared with as many leading characters of the tag as it has, so
+      ``high="2024-06"`` keeps ``"2024-06-30T23:59:59Z"``. ISO 8601 dates and
+      years of four digits order correctly this way.
+
+    Raises:
+        TypeError: A bound is neither an integer nor text, such as a ``bool`` or
+            a ``float``, or one bound is an integer and the other text.
+        ValueError: Both bounds are ``None``, a text bound is empty, an integer
+            bound does not fit in 64 bits, or no tag could be in range because
+            ``low`` is above ``high``.
+    """
+
+    key: str
+    low: int | str | None = None
+    high: int | str | None = None
+    negated: bool = False
+
+    def __post_init__(self) -> None:
+        bounds = [bound for bound in (self.low, self.high) if bound is not None]
+        if not bounds:
+            raise ValueError(f"The range filter on {self.key!r} needs a low or a high bound")
+        for bound in bounds:
+            if isinstance(bound, bool) or not isinstance(bound, (int, str)):
+                raise TypeError(f"Range bounds must be integers or text, not {type(bound).__name__}")
+            if isinstance(bound, str) and not bound:
+                raise ValueError(f"The range filter on {self.key!r} has an empty bound")
+            if isinstance(bound, int) and not _INT64_MIN <= bound <= _INT64_MAX:
+                raise ValueError(f"The range filter on {self.key!r} has a bound outside 64-bit integers")
+        if len({type(bound) for bound in bounds}) > 1:
+            raise TypeError(f"The bounds of the range filter on {self.key!r} must both be integers or both text")
+        if self.low is not None and self.high is not None and not tag_in_range(str(self.low), self.low, self.high):
+            raise ValueError(f"The range filter on {self.key!r} can never match, since its low bound is above its high")
+
+    def contains(self, value: str) -> bool:
+        """Report whether the tag ``value`` is in range, ignoring ``negated``."""
+        return tag_in_range(value, self.low, self.high)
+
+
+SearchFilter = MetadataFilter | RangeFilter
+"""A filter a text search store accepts beside a query."""
+
+_INT64_MIN = -(2**63)
+_INT64_MAX = 2**63 - 1
+_CANONICAL_INTEGER = re.compile(r"0|-?[1-9][0-9]*")
+
+
+def tag_in_range(value: str, low: int | str | None, high: int | str | None) -> bool:
+    """Report whether the tag ``value`` lies between ``low`` and ``high``, as :class:`RangeFilter` defines it.
+
+    The bounds are those of a valid :class:`RangeFilter`. The SQLite store
+    registers this function with its connection, so both stores compare tags
+    with the same code.
+    """
+    bound = low if low is not None else high
+    if isinstance(bound, int):
+        if not _CANONICAL_INTEGER.fullmatch(value):
+            return False
+        number = int(value)
+        return (low is None or int(low) <= number) and (high is None or number <= int(high))
+    return (low is None or str(low) <= value) and (high is None or value[: len(str(high))] <= str(high))
+
+
+def validate_filters(filters: Iterable[SearchFilter], allowed_keys: Collection[str] | None = None) -> None:
     """Raise unless ``filters`` holds at most one filter per key, each on an allowed key.
 
     Several values of one key belong in a single filter's ``values``, whatever
-    the filters' ``negated`` flags. ``allowed_keys`` is ``None`` when any key is
-    allowed.
+    the filters' ``negated`` flags, and a :class:`MetadataFilter` and a
+    :class:`RangeFilter` on one key are two filters too. ``allowed_keys`` is
+    ``None`` when any key is allowed.
 
     Raises:
         ValueError: Two filters share a key, or a key is not in ``allowed_keys``.
@@ -84,11 +162,15 @@ def validate_facet_keys(keys: Iterable[str], allowed_keys: Collection[str]) -> N
             raise ValueError(f"{key!r} is not a facet key of this store; facet keys: {expected}")
 
 
-def matches_filters(metadata: Mapping[str, Any], filters: Iterable[MetadataFilter]) -> bool:
+def matches_filters(metadata: Mapping[str, Any], filters: Iterable[SearchFilter]) -> bool:
     """Report whether a record with ``metadata`` passes every filter in ``filters``."""
-    for metadata_filter in filters:
-        tagged = not metadata_filter.values.isdisjoint(_tag_values(metadata.get(metadata_filter.key)))
-        if tagged is metadata_filter.negated:
+    for search_filter in filters:
+        tags = _tag_values(metadata.get(search_filter.key))
+        if isinstance(search_filter, RangeFilter):
+            tagged = any(search_filter.contains(tag) for tag in tags)
+        else:
+            tagged = not search_filter.values.isdisjoint(tags)
+        if tagged is search_filter.negated:
             return False
     return True
 

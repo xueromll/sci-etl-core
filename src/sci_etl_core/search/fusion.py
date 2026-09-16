@@ -3,7 +3,10 @@ from __future__ import annotations
 import math
 from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
+
+if TYPE_CHECKING:
+    from sci_etl_core.search.store_base import Snippet
 
 ScoredList = Sequence[tuple[str, float]]
 
@@ -13,9 +16,11 @@ class FusedHit:
     """One record of a fused result list, with where each retrieval leg ranked it.
 
     ``lexical_rank`` and ``semantic_rank`` are 1-based, and ``None`` when that
-    leg did not return the record. A record found only by the semantic leg has
-    no snippet and no highlights, so a UI shows its abstract instead, read with
-    the text store's ``get_documents``. ``score``
+    leg did not return the record. ``snippet``, ``highlights``, and
+    ``snippets`` are the lexical hit's when the lexical leg returned the
+    record. A record found only by the semantic leg gets a snippet of the
+    passage that ranked it, with the query's words highlighted where they occur
+    in it, as its only entry in ``snippets``, whose field is ``"body"``. ``score``
     comes from the fusion strategy and is comparable only within one result
     list; render the rank, never the score as a percentage.
     """
@@ -28,6 +33,7 @@ class FusedHit:
     highlights: tuple[tuple[int, int], ...] = ()
     metadata: dict[str, Any] = field(default_factory=dict)
     title: str = ""
+    snippets: tuple[Snippet, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

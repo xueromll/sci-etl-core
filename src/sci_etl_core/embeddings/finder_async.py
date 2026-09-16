@@ -46,12 +46,30 @@ class AsyncSimilarArticleFinder:
         at most ``chunk_pool`` records come back, and often far fewer when long
         articles own many of those chunks; raise ``chunk_pool`` along with
         ``top_k``. Each entry is ``(record_id, score, metadata)``, where
-        ``metadata`` is the best chunk's; the chunk's text is not returned.
+        ``metadata`` is the best chunk's; :meth:`find_best_chunks` also returns
+        the chunk's text.
+        """
+        hits = await self.find_best_chunks(text, top_k, min_score, exclude_record_id, chunk_pool)
+        return [(hit.record_id, hit.score, hit.metadata) for hit in hits]
+
+    async def find_best_chunks(
+        self,
+        text: str,
+        top_k: int = 5,
+        min_score: float = 0.0,
+        exclude_record_id: str | None = None,
+        chunk_pool: int = 50,
+    ) -> list[SearchHit]:
+        """Rank whole articles as :meth:`find_similar_articles` does, returning each one's best chunk.
+
+        Each hit is the chunk that scored its record, text included, so a
+        result can show the passage that made it similar. When two chunks of a
+        record score the same, the one ranked first by the store is kept.
         """
         hits = await self.find_similar_chunks(text, chunk_pool, min_score, exclude_record_id)
-        best: dict[str, tuple[float, dict[str, Any]]] = {}
+        best: dict[str, SearchHit] = {}
         for hit in hits:
-            if hit.record_id not in best or hit.score > best[hit.record_id][0]:
-                best[hit.record_id] = (hit.score, hit.metadata)
-        ranked = sorted(best.items(), key=lambda item: item[1][0], reverse=True)
-        return [(record_id, score, metadata) for record_id, (score, metadata) in ranked[:top_k]]
+            if hit.record_id not in best or hit.score > best[hit.record_id].score:
+                best[hit.record_id] = hit
+        ranked = sorted(best.values(), key=lambda hit: hit.score, reverse=True)
+        return ranked[:top_k]

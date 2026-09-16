@@ -31,13 +31,47 @@ back unchanged. Metadata content that isn't valid falls back to offset 0, which
 only costs a rescan. Both backends record `last_run_at` as an ISO 8601
 timestamp in UTC.
 
-!!! note "Newest-first listings"
-    The arXiv extractor lists the newest submissions first, so new papers push
-    older ones to higher offsets. A run that resumes from the saved offset keeps
-    working backwards through older papers and does not revisit the new ones.
-    To pick those up, pass `start_index=0`: processed records are skipped by id,
-    so a rescan costs listing requests (each preceded by the extractor's
-    `sleep_before_search` delay) but reprocesses nothing.
+## Newest-first listings
+
+The arXiv extractor lists the newest submissions first, and the PubMed and
+OpenAlex extractors sort newest first by default, so new papers push older
+ones to higher offsets. A run that resumes from the saved offset keeps
+working backwards through older papers and never sees the new ones. Pass
+`newest_first=True` to pick up both:
+
+```python
+await pipeline.run(query="all:galaxy", total_limit=500, newest_first=True)
+```
+
+Such a run pages from offset 0 until it has passed the records the previous
+run saw at the top of the listing. How far those records have moved is the
+number of new submissions, so the saved offset has moved down by the same
+number. The run jumps to the page just before that offset and checks that the
+records last seen there are still on it. If they are, the papers in between
+were settled by earlier runs and aren't listed again, and paging continues.
+
+- **First run in this mode:** there is nothing saved to look for yet, so it
+  scans from offset 0, skipping processed records by id, and saves the head of
+  the listing for the next run.
+- **Failures near the top:** the head the next run looks for is taken from the
+  page where a record failed, so that run pages at least that far and revisits
+  it.
+- **Entries removed or reordered:** when the records before the saved offset
+  aren't where they should be, the run pages on from the top instead of
+  skipping, and logs `Records last seen before the saved offset have moved`.
+- **Saved head no longer listed:** the run keeps paging to the end of the
+  listing, which is a full rescan, and saves the new head.
+
+A typical run with new papers costs two or three listing requests at the top,
+one to check the saved offset, and the requests for the backlog. The records
+it relies on are saved as `head_ids`, `head_offset`, and `tail_ids` in
+`PipelineMetadata`, by both state backends. `start_index` can't be combined
+with `newest_first`.
+
+Without `newest_first`, pass `start_index=0` to rescan a listing whose order
+has shifted: processed records are skipped by id, so a rescan costs listing
+requests (each preceded by the extractor's `sleep_before_search` delay) but
+reprocesses nothing.
 
 ## What happens when something fails
 
@@ -50,7 +84,8 @@ timestamp in UTC.
 | Listing page holds only already-processed records | paging continues with the next page |
 | One record raises, e.g. a transient full-text failure | logged through `logger`; record left unmarked; saved offset held at its page; other records continue |
 | Records on one page fail and none on it is processed, but a later page processes a record | paging continues; the failed records stay unmarked for the next run |
-| Records fail with none processed on a second page before any progress, or on the last page of the listing, e.g. a rejected API key or an unreadable CSV | `run()` raises `PipelineAborted` (cause: the last record's error) |
+| Records fail with none processed on a second page since the last page that processed a record, or on the last page of the listing, e.g. a rejected API key or an unreadable CSV | `run()` raises `PipelineAborted` (cause: the last record's error) |
+| A shutdown is requested through `shutdown` | `run()` raises `PipelineInterrupted`; see [Graceful shutdown](shutdown.md) |
 | arXiv reports the LaTeX and PDF as unavailable (e.g. 404), or neither can be parsed | full text falls back to the abstract |
 | arXiv serves a single gzipped `.tex` file or a PDF as the e-print | the TeX is read, or the PDF is used instead |
 | LLM call fails inside `AsyncLLMRelevanceFilter`, or its verdict is unclear | returns `default_on_error` (**`True`**) |
@@ -62,9 +97,10 @@ timestamp in UTC.
 
 All library exceptions derive from `SciEtlError`: `ExtractionError`
 (`UpstreamError`, `MalformedResponseError`), `ParsingError`, `LLMError`,
-`EmbeddingError`, `EmbeddingStoreError`, `SearchError` (`SearchQueryError`,
-`SearchStoreError`), `ConfigurationError`, and `PipelineAborted`. All of them
-can be imported from `sci_etl_core`. The bundled parsers raise `ParsingError`
+`LLMCacheError`, `EmbeddingError`, `EmbeddingStoreError`, `SearchError`
+(`SearchQueryError`, `SearchStoreError`), `ConfigurationError`, and
+`PipelineAborted` (`PipelineInterrupted`). All of them can be imported from
+`sci_etl_core`. The bundled parsers raise `ParsingError`
 for bytes they can't read; a custom `Parser` should do the same, so
 `AsyncArxivExtractor` moves on to its next source instead of failing the
 record.

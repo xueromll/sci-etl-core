@@ -13,3 +13,5 @@ Every name on this page is importable from `sci_etl_core.processors`.
 ::: sci_etl_core.processors.quality
 
 ::: sci_etl_core.processors.validation
+
+::: sci_etl_core.processors.shaping

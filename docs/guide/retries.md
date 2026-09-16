@@ -1,8 +1,10 @@
 # Retries
 
-`AsyncArxivExtractor`, `AsyncOpenAICompatibleClient`, and `AsyncOpenAIEmbedder`
+`AsyncArxivExtractor`, `AsyncPubMedExtractor`, `AsyncSemanticScholarExtractor`,
+`AsyncOpenAlexExtractor`, `AsyncOpenAICompatibleClient`, and `AsyncOpenAIEmbedder`
 retry throttling (`429`), server errors, and transport faults, making at most
-`max_retries` attempts per request (default 3):
+`max_retries` attempts per request (default 3). The PubMed, Semantic Scholar,
+and OpenAlex extractors retry a `408` request timeout too:
 
 - **Backoff.** Between attempts they wait `backoff_factor ** attempt` seconds:
   1 s, then 2 s with the default factor of 2.
@@ -12,7 +14,7 @@ retry throttling (`429`), server errors, and transport faults, making at most
   seconds (default 60).
 - **One retry layer.** The OpenAI SDK's own retries are turned off, so
   `max_retries` is the total number of attempts.
-- **Visibility.** The arXiv extractor logs each retry and its wait through
+- **Visibility.** The extractors log each retry and its wait through
   `logger`.
 
 The client from `build_async_client` also retries failed connections at the

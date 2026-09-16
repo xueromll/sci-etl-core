@@ -6,7 +6,11 @@ from sci_etl_core._lazy import lazy_exports
 
 _EXPORTS: dict[str, str] = {
     "DEFAULT_TRIM_PATTERNS": "sci_etl_core.parsers.reference_trimmer",
+    "DocxParser": "sci_etl_core.parsers.docx",
     "HtmlTextParser": "sci_etl_core.parsers.html",
+    "JatsArticle": "sci_etl_core.parsers.jats",
+    "JatsSection": "sci_etl_core.parsers.jats",
+    "JatsXmlParser": "sci_etl_core.parsers.jats",
     "LatexTarballParser": "sci_etl_core.parsers.latex",
     "Parser": "sci_etl_core.parsers.base",
     "PdfPlumberParser": "sci_etl_core.parsers.pdf",
@@ -19,7 +23,9 @@ __getattr__, __dir__ = lazy_exports(__name__, globals(), _EXPORTS)
 
 if TYPE_CHECKING:
     from sci_etl_core.parsers.base import Parser, TableParser
+    from sci_etl_core.parsers.docx import DocxParser
     from sci_etl_core.parsers.html import HtmlTextParser
+    from sci_etl_core.parsers.jats import JatsArticle, JatsSection, JatsXmlParser
     from sci_etl_core.parsers.latex import LatexTarballParser
     from sci_etl_core.parsers.pdf import PdfPlumberParser
     from sci_etl_core.parsers.reference_trimmer import DEFAULT_TRIM_PATTERNS, trim_after_references

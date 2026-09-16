@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import asyncio
+import concurrent.futures
+import threading
 
 import pytest
 
@@ -51,3 +53,82 @@ class TestShutdown:
         assert loop.is_closed()
         _sync_bridge.shutdown_bridge()
         assert _sync_bridge.run_sync(_echo("restarted")) == "restarted"
+
+
+class TestWaiting:
+    def test_bridge_loop_is_the_loop_run_sync_uses(self):
+        async def running_loop():
+            return asyncio.get_running_loop()
+
+        assert _sync_bridge.run_sync(running_loop()) is _sync_bridge.bridge_loop()
+
+    def test_a_timeout_error_raised_by_the_coroutine_is_not_reported_as_a_bridge_timeout(self):
+        async def times_out():
+            raise TimeoutError("inner")
+
+        with pytest.raises(TimeoutError, match="inner"):
+            _sync_bridge.run_sync(times_out(), timeout=5)
+
+    def test_a_settled_future_holding_a_futures_timeout_error_is_not_reported_as_a_bridge_timeout(self, mocker):
+        settled: concurrent.futures.Future[None] = concurrent.futures.Future()
+        settled.set_exception(concurrent.futures.TimeoutError("inner"))
+        mocker.patch.object(_sync_bridge.asyncio, "run_coroutine_threadsafe", return_value=settled)
+
+        async def never_scheduled():
+            return None
+
+        coroutine = never_scheduled()
+        try:
+            with pytest.raises(concurrent.futures.TimeoutError, match="inner"):
+                _sync_bridge.run_sync(coroutine, timeout=5)
+        finally:
+            coroutine.close()
+
+    def test_a_slow_call_times_out_across_several_wait_slices(self, mocker):
+        mocker.patch.object(_sync_bridge, "_WAIT_SLICE", 0.01)
+        started = threading.Event()
+        cancelled = threading.Event()
+
+        async def slow():
+            started.set()
+            try:
+                await asyncio.sleep(30)
+            except asyncio.CancelledError:
+                cancelled.set()
+                raise
+
+        with pytest.raises(TimeoutError, match="did not complete within 0.05 seconds"):
+            _sync_bridge.run_sync(slow(), timeout=0.05)
+        assert cancelled.wait(timeout=2)
+
+    def test_an_interrupt_of_the_waiting_thread_cancels_the_bridge_task(self, mocker):
+        cancelled = threading.Event()
+        started = threading.Event()
+
+        async def slow():
+            started.set()
+            try:
+                await asyncio.sleep(30)
+            except asyncio.CancelledError:
+                cancelled.set()
+                raise
+
+        real_future = asyncio.run_coroutine_threadsafe
+
+        def interrupting(coro, loop):
+            future = real_future(coro, loop)
+            original_result = future.result
+
+            def result(timeout=None):
+                started.wait(timeout=2)
+                if not future.done():
+                    raise KeyboardInterrupt
+                return original_result(timeout)
+
+            future.result = result
+            return future
+
+        mocker.patch.object(_sync_bridge.asyncio, "run_coroutine_threadsafe", side_effect=interrupting)
+        with pytest.raises(KeyboardInterrupt):
+            _sync_bridge.run_sync(slow(), timeout=5)
+        assert cancelled.wait(timeout=2)

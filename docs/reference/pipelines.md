@@ -15,3 +15,5 @@ The pipelines, memory ingestion, sync adapters, and shutdown handling. The pipel
 ::: sci_etl_core.llm._adapters
 
 ::: sci_etl_core.signals
+
+::: sci_etl_core.observability

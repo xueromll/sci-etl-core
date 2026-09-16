@@ -208,3 +208,44 @@ class TestShutdownSignalEscalation:
         shutdown.request()
         shutdown._on_loop_signal(TEST_SIGNAL)
         assert any("again" in message for message in logged)
+
+
+class TestShutdownSignalNestingAndForeignLoops:
+    @pytest.mark.asyncio
+    async def test_nested_guards_install_once_and_restore_on_the_outermost_exit(self, mocker):
+        original = signal.getsignal(TEST_SIGNAL)
+        shutdown = ShutdownSignal(signals=(TEST_SIGNAL,))
+        install = mocker.spy(shutdown, "install")
+        with shutdown.guard():
+            installed = signal.getsignal(TEST_SIGNAL)
+            with shutdown.guard():
+                assert signal.getsignal(TEST_SIGNAL) is installed
+            assert signal.getsignal(TEST_SIGNAL) is installed
+        assert install.call_count == 1
+        assert signal.getsignal(TEST_SIGNAL) is original
+
+    def test_a_failed_install_leaves_the_guard_reusable(self):
+        shutdown = ShutdownSignal(signals=(TEST_SIGNAL,))
+        with pytest.raises(RuntimeError):
+            with shutdown.guard():
+                pass
+        assert shutdown._depth == 0
+
+    def test_a_foreign_loop_gets_os_handlers_that_set_the_flag_on_it(self):
+        original = signal.getsignal(TEST_SIGNAL)
+        loop = asyncio.new_event_loop()
+        thread = threading.Thread(target=loop.run_forever, daemon=True)
+        thread.start()
+        try:
+            shutdown = ShutdownSignal(signals=(TEST_SIGNAL,))
+            waiter = asyncio.run_coroutine_threadsafe(shutdown.wait(), loop)
+            with shutdown.guard(loop=loop):
+                assert signal.getsignal(TEST_SIGNAL) == shutdown._on_os_signal
+                signal.raise_signal(TEST_SIGNAL)
+                waiter.result(timeout=2)
+            assert shutdown.triggered
+            assert signal.getsignal(TEST_SIGNAL) is original
+        finally:
+            loop.call_soon_threadsafe(loop.stop)
+            thread.join(timeout=2)
+            loop.close()

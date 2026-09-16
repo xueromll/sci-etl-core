@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 from dataclasses import replace
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from openai import APIConnectionError, APITimeoutError, AsyncOpenAI, InternalServerError, RateLimitError
 from pydantic import SecretStr
@@ -13,6 +13,10 @@ from sci_etl_core.exceptions import LLMError
 from sci_etl_core.llm._utils import reveal_secret
 from sci_etl_core.llm.async_base import AsyncLLMClient
 from sci_etl_core.models import TokenUsage
+from sci_etl_core.rate_limiter import RateLimiting, limiter_for
+
+if TYPE_CHECKING:
+    from sci_etl_core.config import LLMConfig
 
 _RETRYABLE = (APITimeoutError, APIConnectionError, RateLimitError, InternalServerError)
 
@@ -29,6 +33,7 @@ class AsyncOpenAICompatibleClient(AsyncLLMClient):
         backoff_factor: float = 2.0,
         sleep: Any = asyncio.sleep,
         max_retry_after: float = 60.0,
+        rate_limiter: RateLimiting | None = None,
     ) -> None:
         """Configure the client.
 
@@ -37,6 +42,13 @@ class AsyncOpenAICompatibleClient(AsyncLLMClient):
         attempts it waits ``backoff_factor ** attempt`` seconds, or longer when
         the server's ``retry-after-ms`` or ``Retry-After`` header asks for it,
         up to ``max_retry_after`` seconds.
+
+        Every attempt first enters ``rate_limiter``, an
+        :class:`~sci_etl_core.rate_limiter.AsyncRateLimiter` or a
+        :class:`~sci_etl_core.rate_limiter.HostRateLimiter` matched against
+        ``base_url``, and releases it once the response arrives. Share one
+        limiter between a chat client and an embedder that call the same
+        provider to keep both inside one budget.
 
         Raises:
             ValueError: ``max_retries`` is less than 1, which would fail every
@@ -56,6 +68,31 @@ class AsyncOpenAICompatibleClient(AsyncLLMClient):
         self._sleep = sleep
         self._max_retry_after = max_retry_after
         self._usage = TokenUsage()
+        self._base_url = base_url
+        self._rate_limiter = rate_limiter
+
+    @classmethod
+    def from_config(cls, llm: LLMConfig, **options: Any) -> "AsyncOpenAICompatibleClient":
+        """Build a client from the ``llm`` config section.
+
+        The section supplies ``api_key``, ``base_url``, ``model``, and
+        ``timeout`` as ``default_timeout``. ``options`` pass any other
+        constructor argument, such as ``rate_limiter``, and override a value
+        taken from the config.
+        """
+        settings: dict[str, Any] = {
+            "api_key": llm.api_key,
+            "base_url": llm.base_url,
+            "model": llm.model,
+            "default_timeout": llm.timeout,
+        }
+        settings.update(options)
+        return cls(**settings)
+
+    @property
+    def model(self) -> str:
+        """The model completions are requested from."""
+        return self._model
 
     @property
     def usage(self) -> TokenUsage:
@@ -75,16 +112,17 @@ class AsyncOpenAICompatibleClient(AsyncLLMClient):
         last_error: Exception | None = None
         for attempt in range(self._max_retries):
             try:
-                response = await self._client.chat.completions.create(
-                    model=self._model,
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_content},
-                    ],
-                    temperature=self._temperature,
-                    response_format={"type": "json_object"},
-                    timeout=timeout or self._default_timeout,
-                )
+                async with limiter_for(self._rate_limiter, self._base_url):
+                    response = await self._client.chat.completions.create(
+                        model=self._model,
+                        messages=[
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": user_content},
+                        ],
+                        temperature=self._temperature,
+                        response_format={"type": "json_object"},
+                        timeout=timeout or self._default_timeout,
+                    )
                 self._usage.record(getattr(response, "usage", None))
                 return self._parse(response)
             except _RETRYABLE as exc:

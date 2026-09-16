@@ -5,6 +5,88 @@ All notable changes to sci-etl-core are recorded here. The format follows
 [Semantic Versioning](https://semver.org/). Until 1.0, a minor release may
 change behavior; each such change is listed under **Changed**.
 
+## [0.4.0] - 2026-09-16
+
+### Added
+
+- `AsyncPubMedExtractor`, `AsyncSemanticScholarExtractor`, and
+  `AsyncOpenAlexExtractor`. Each fills `RawRecord.metadata` with `authors` and
+  `categories`, and `published` and `year` when the source has a date, and
+  retries transport faults, `408`, `429`, and server errors, honoring
+  `Retry-After`. `AsyncOpenAlexExtractor` also stores the works a paper cites
+  under `references`.
+- `DocxParser` for Word `.docx` files, and `JatsXmlParser` for JATS XML, whose
+  `parse_article` returns a `JatsArticle` with sections, authors, keywords,
+  identifiers, and references.
+- LLM response caching: `CachingLLMClient` wraps any `AsyncLLMClient` and
+  answers repeated requests from an `AsyncLLMResponseCache`, either
+  `InMemoryLLMResponseCache` or `AsyncSqliteLLMResponseCache`. A cache fault is
+  logged and counted in `CacheStats`, raised as `LLMCacheError` by the stores,
+  and never fails a completion.
+- Graceful shutdown: `AsyncETLPipeline(shutdown=)` and
+  `ETLPipeline(shutdown=)` take a `ShutdownSignal`, so SIGINT, SIGTERM, or
+  `request()` lets in-flight records finish and raises `PipelineInterrupted`,
+  a subclass of `PipelineAborted`. Every run now ends with the state manager's
+  `flush()`, however it ends.
+- Progress events and run metrics: `on_event` receives `RunStarted`,
+  `PageFetched`, `RecordFinished`, `PageFinished`, and `RunFinished` from
+  `sci_etl_core.observability`, and `last_run_metrics` returns `RunMetrics`
+  with counts, durations, the run's outcome, and the tokens the
+  `usage_sources` used. `TokenUsage` supports `+` and `-`.
+- `run(newest_first=True)` picks up new submissions in a newest-first listing
+  without rescanning from offset 0. `PipelineMetadata` gains `head_ids`,
+  `head_offset`, and `tail_ids`, which both state backends save.
+- `rate_limiter` on every bundled extractor, `AsyncOpenAICompatibleClient`,
+  and `AsyncOpenAIEmbedder`, and `HostRateLimiter` for limits per host.
+- Components built from the config: `AsyncArxivExtractor.from_config`,
+  `AsyncOpenAICompatibleClient.from_config`, `AsyncETLPipeline.from_config`,
+  and `ETLPipeline.from_config`, plus `HttpConfig.build_client()`,
+  `RateLimitConfig.build_limiter()`, and `PipelineConfig.run_arguments()`. A
+  `search` config section builds `BM25Weights`, `FusionParams`,
+  `HybridParams`, and `GraphParams`. `PipelineConfig` gains `newest_first`, and
+  `AsyncOpenAICompatibleClient` a `model` property.
+- `AsyncLLMEntityExtractor(validator=, logger=, label_field=)` drops and logs
+  the entities a `RecordValidator` rejects.
+- `ScatterPlotConfig` takes `hover_data_columns`, `hover_template`,
+  `color_continuous_scale`, `color_range`, `color_label`, `marker`, and
+  `layout`.
+- `ValueClipStep` clamps numeric columns during post-processing, and
+  `TableLayoutStep` sorts rows and orders columns.
+- `NEAR(...)` proximity queries in the query language, as the `Near` node with
+  `NEAR_DISTANCE`, supported by both text stores, and `QueryChip.near`.
+- Range filters: `RangeFilter` keeps records whose tags lie between integer or
+  text bounds, such as years or ISO 8601 dates, in both text stores, hybrid
+  search, and `filter_graph`. `AsyncTextSearchStore.range_counts` counts the
+  matches in each of several ranges. `SearchFilter` names either filter type.
+- Richer snippets: `TextHit.snippets` and `FusedHit.snippets` hold a `Snippet`
+  for every field with a highlighted match. `passage_snippet` and
+  `snippet_window` build snippets of other text.
+- `backfill_text_index` builds a text index from the chunks in the vector
+  memory, removing the words overlapping chunks share (`merge_passages`), and
+  reports what it did in a `BackfillReport`. `AsyncEmbeddingStore.iter_records`
+  yields each record's passages as a `StoredRecord` without loading vectors,
+  implemented by both bundled stores.
+- `AsyncSimilarArticleFinder.find_best_chunks` returns each article's best
+  chunk, text included. `SlidingWindowChunker` exposes `chunk_words` and
+  `overlap_words`.
+
+### Changed
+
+- `PipelineConfig.max_records` is now `total_limit`, and `max_workers` is
+  `max_concurrency`. The old YAML keys and attributes still work with a
+  `DeprecationWarning` until 0.5.0, and loading a config that sets an old and
+  a new key to different values raises `ConfigurationError`. `run(max_records=)` is
+  deprecated the same way.
+- `build_retrying_session` is deprecated and will be removed in 0.5.0, along
+  with `requests` in the `full` extra.
+- A hybrid search hit found only by the semantic leg now carries a snippet of
+  its best chunk in `snippet`, `highlights`, and `snippets`, where these used to
+  be empty. Code that showed the abstract whenever `snippet` was empty should
+  check `lexical_rank is None` instead.
+- `ETLPipeline.run` waits for the background loop in short slices, so a
+  signal handler on the calling thread runs promptly, and a
+  `KeyboardInterrupt` cancels the run on the background loop.
+
 ## [0.3.0] - 2026-09-15
 
 ### Added
@@ -159,6 +241,7 @@ extractor, OpenAI-compatible chat and embedding clients, PDF, LaTeX, and HTML
 parsers, CSV, SQL, and Plotly exporters, dataframe processors and validators,
 file and SQLite state, semantic memory, and the udg-catalogue migration guide.
 
+[0.4.0]: https://github.com/xueromll/sci-etl-core/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/xueromll/sci-etl-core/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/xueromll/sci-etl-core/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/xueromll/sci-etl-core/compare/v0.1.1...v0.1.2

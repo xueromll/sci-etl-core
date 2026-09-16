@@ -21,8 +21,8 @@ class TestLoadYaml:
     def test_reads_and_parses_existing_file(self, mocker):
         path = mocker.Mock(spec=Path)
         path.is_file.return_value = True
-        path.open = mocker.mock_open(read_data="pipeline:\n  max_records: 5\n")
-        assert load_yaml(path)["pipeline"]["max_records"] == 5
+        path.open = mocker.mock_open(read_data="pipeline:\n  total_limit: 5\n")
+        assert load_yaml(path)["pipeline"]["total_limit"] == 5
 
     def test_empty_file_returns_empty_dict(self, mocker):
         path = mocker.Mock(spec=Path)
@@ -38,7 +38,7 @@ class TestLoadConfig:
         mocker.patch.object(config_module, "load_yaml", return_value={})
         mocker.patch.object(config_module.os, "getenv", return_value="")
         cfg = load_config(BaseAppConfig, Path("missing.yaml"))
-        assert cfg.pipeline.max_records == 100
+        assert cfg.pipeline.total_limit == 100
         assert cfg.llm.model == "gpt-4o-mini"
         assert cfg.llm.api_key.get_secret_value() == ""
         config_module.find_dotenv.assert_called_once_with(usecwd=True)
@@ -113,7 +113,7 @@ class TestLoadConfig:
 
     def test_invalid_configuration_raises(self, mocker):
         mocker.patch.object(config_module, "load_dotenv")
-        mocker.patch.object(config_module, "load_yaml", return_value={"pipeline": {"max_records": "not-an-int"}})
+        mocker.patch.object(config_module, "load_yaml", return_value={"pipeline": {"total_limit": "not-an-int"}})
         mocker.patch.object(config_module.os, "getenv", return_value="")
         with pytest.raises(ConfigurationError, match="Invalid configuration"):
             load_config(BaseAppConfig, Path("c.yaml"))
@@ -158,9 +158,9 @@ class TestLoadConfig:
     @pytest.mark.parametrize(
         "raw",
         [
-            {"pipeline": {"max_workers": 0}},
+            {"pipeline": {"max_concurrency": 0}},
             {"pipeline": {"page_size": 0}},
-            {"pipeline": {"max_records": -1}},
+            {"pipeline": {"total_limit": -1}},
             {"pipeline": {"sleep_between": -1}},
             {"pipeline": {"search_delay": -0.5}},
             {"http": {"max_retries": 0}},

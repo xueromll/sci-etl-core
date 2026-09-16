@@ -188,6 +188,8 @@ class TestSemanticText:
             ('title:quasar abstract:"dwarf galaxy"', "quasar dwarf galaxy"),
             ("NOT NOT a", "a"),
             ("(a OR photometr*) title:b*", "a"),
+            ('title:NEAR(dwarf "dark matter" halo*, 3)', "dwarf dark matter"),
+            ("x -NEAR(a b)", "x"),
         ],
     )
     def test_keeps_whole_words_that_are_not_negated_in_source_order(self, query, expected):

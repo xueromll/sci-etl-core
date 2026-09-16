@@ -2,10 +2,14 @@ from __future__ import annotations
 
 import math
 from contextlib import suppress
-from typing import Any, Coroutine
+from typing import TYPE_CHECKING, Any, Coroutine
 
-from sci_etl_core._sync_bridge import run_sync
+from sci_etl_core._sync_bridge import bridge_loop, run_sync
 from sci_etl_core.pipeline_async import AsyncETLPipeline
+
+if TYPE_CHECKING:
+    from sci_etl_core.config import PipelineConfig
+    from sci_etl_core.observability import RunMetrics
 
 _CLOSE_TIMEOUT = 30.0
 
@@ -22,8 +26,30 @@ class ETLPipeline:
         self._async = AsyncETLPipeline(*args, **kwargs)
         self._run_timeout = run_timeout
 
+    @classmethod
+    def from_config(cls, pipeline: PipelineConfig, **arguments: Any) -> "ETLPipeline":
+        """Build a pipeline configured as :meth:`AsyncETLPipeline.from_config` describes."""
+        arguments.setdefault("max_concurrency", pipeline.max_concurrency)
+        return cls(**arguments)
+
     def run(self, *args: Any, **kwargs: Any) -> int:
-        return run_sync(self._async.run(*args, **kwargs), timeout=self._run_timeout)
+        """Run :meth:`AsyncETLPipeline.run` and block until it ends.
+
+        With a ``shutdown`` signal, its handlers are installed on the calling
+        thread, which must be the main thread for signals to reach them, and
+        set the flag on the background loop, so Ctrl+C stops the run as
+        described for the async pipeline.
+        """
+        shutdown = self._async.shutdown
+        if shutdown is None:
+            return run_sync(self._async.run(*args, **kwargs), timeout=self._run_timeout)
+        with shutdown.guard(loop=bridge_loop()):
+            return run_sync(self._async.run(*args, **kwargs), timeout=self._run_timeout)
+
+    @property
+    def last_run_metrics(self) -> RunMetrics | None:
+        """Metrics of the most recent run, as :attr:`AsyncETLPipeline.last_run_metrics`."""
+        return self._async.last_run_metrics
 
     def __enter__(self) -> "ETLPipeline":
         return self

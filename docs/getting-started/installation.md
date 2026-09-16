@@ -13,15 +13,17 @@ From a clone:
 pip install -e ".[full]"
 ```
 
-The base install covers configuration, both pipelines, the state backends, the
-sync adapters, HTML and LaTeX parsing, text chunking, Boolean text search,
-rank fusion, discovery graphs, and the pandas processor steps. Components load
+The base install covers configuration, both pipelines, graceful shutdown,
+progress events and run metrics, the state backends, the sync adapters, HTML,
+LaTeX, DOCX, and JATS XML parsing, LLM response caching, text chunking,
+Boolean text search, rank fusion, discovery graphs, and the pandas processor
+steps. Components load
 their optional dependencies only when you import them, so add the extras for
 the components you use:
 
 | Extra | Adds | Needed for |
 |-------|------|------------|
-| `async` | `httpx`, `aiofiles`, `aiolimiter` | `AsyncArxivExtractor`, `build_async_client`, `AsyncCsvUpsertExporter`, `load_config_async`, `AioLimiterRateLimiter` |
+| `async` | `httpx`, `aiofiles`, `aiolimiter` | `AsyncArxivExtractor`, `AsyncPubMedExtractor`, `AsyncSemanticScholarExtractor`, `AsyncOpenAlexExtractor`, `build_async_client`, `AsyncCsvUpsertExporter`, `load_config_async`, `AioLimiterRateLimiter` |
 | `llm` | `openai`, `tiktoken` | `AsyncOpenAICompatibleClient`, token-based truncation |
 | `pdf` | `pdfplumber` | `PdfPlumberParser` |
 | `sql` | `sqlalchemy`, `aiosqlite` | `AsyncSqlTableExporter` |
@@ -32,7 +34,7 @@ the components you use:
 | `search` | nothing | nothing extra: `sci_etl_core.search` needs only the standard library, so this extra just records why the package is installed |
 | `dev` | pytest and plugins, `hypothesis` | running the test suite |
 | `lint` | `ruff`, `mypy`, type stubs | linting and type-checking the source |
-| `docs` | MkDocs, Material for MkDocs, mkdocstrings, mkdocs-click, mike | building this documentation site |
+| `docs` | MkDocs, Material for MkDocs, mkdocstrings, mkdocs-click, mike, `ruff` | building this documentation site |
 
 Importing a component whose extra is missing raises `ModuleNotFoundError`
 naming the package to install.

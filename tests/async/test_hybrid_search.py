@@ -8,10 +8,10 @@ from sci_etl_core.embeddings.finder_async import AsyncSimilarArticleFinder
 from sci_etl_core.embeddings.store_base import EmbeddingChunk
 from sci_etl_core.embeddings.store_memory import InMemoryEmbeddingStore
 from sci_etl_core.exceptions import EmbeddingError, SearchQueryError, SearchStoreError
-from sci_etl_core.search.filters import MetadataFilter
+from sci_etl_core.search.filters import MetadataFilter, RangeFilter
 from sci_etl_core.search.fusion import FusionParams, normalized_score_fusion
 from sci_etl_core.search.hybrid_async import AsyncHybridSearcher, HybridParams, SearchOutcome
-from sci_etl_core.search.store_base import SearchDocument
+from sci_etl_core.search.store_base import SearchDocument, Snippet
 from sci_etl_core.search.store_memory import InMemoryTextSearchStore
 
 NOT_RANKABLE = "A ranked search needs at least one term that is not negated"
@@ -68,8 +68,10 @@ class TestModes:
         lexical = outcome.hits[0]
         assert lexical.title == "Dwarf galaxies"
         assert [lexical.snippet[start:end] for start, end in lexical.highlights] == ["Dwarf", "galaxies"]
+        assert [snippet.field for snippet in lexical.snippets] == ["title", "abstract"]
         semantic_only = outcome.hits[1]
-        assert (semantic_only.snippet, semantic_only.highlights) == ("", ())
+        assert (semantic_only.snippet, semantic_only.highlights) == ("chunk", ())
+        assert semantic_only.snippets == (Snippet("body", "chunk"),)
         assert (semantic_only.title, semantic_only.metadata) == ("Stellar streams", {"year": "2025"})
 
     @pytest.mark.asyncio
@@ -225,6 +227,12 @@ class TestFiltersAndLimits:
         assert ranks(outcome) == [("streams", None, 1), ("quasar", None, 2)]
 
     @pytest.mark.asyncio
+    async def test_range_filters_narrow_both_legs_before_fusion(self):
+        searcher, _, _ = await build()
+        outcome = await searcher.search("dwarf galaxies", filters=[RangeFilter("year", low="2025")])
+        assert ranks(outcome) == [("streams", None, 1), ("quasar", None, 2)]
+
+    @pytest.mark.asyncio
     async def test_invalid_filters_raise_before_any_io(self, mocker):
         searcher, text_store, embedder = await build()
         search = mocker.spy(text_store, "search")
@@ -253,6 +261,35 @@ class TestFiltersAndLimits:
         by_id = {hit.record_id: hit for hit in outcome.hits}
         assert (by_id["streams"].title, by_id["streams"].metadata) == ("Stellar streams", {"title": "Stellar streams"})
         assert (by_id["vectors-only"].title, by_id["vectors-only"].metadata) == ("", {"title": 7})
+
+
+class TestSemanticSnippets:
+    @pytest.mark.asyncio
+    async def test_a_semantic_only_hit_shows_its_best_passage_with_the_query_words_highlighted(self):
+        long_passage = " ".join([*(f"w{index}" for index in range(30)), "dwarf", "satellites"])
+        chunks = [
+            *CHUNKS[:2],
+            EmbeddingChunk("quasar", 0, "Quasar hosts with dwarf companions", [0.0, 1.0], {"title": "Quasar hosts"}),
+            EmbeddingChunk("vectors-only", 0, long_passage, [0.9, 0.1], {"title": "Satellites"}),
+        ]
+        searcher, _, _ = await build(chunks=chunks)
+        outcome = await searcher.search("dwarf -galaxies", mode="semantic")
+        by_id = {hit.record_id: hit for hit in outcome.hits}
+        quasar = by_id["quasar"]
+        assert quasar.snippet == "Quasar hosts with dwarf companions"
+        assert [quasar.snippet[start:end] for start, end in quasar.highlights] == ["dwarf"]
+        assert quasar.snippets == (Snippet("body", quasar.snippet, quasar.highlights),)
+        satellites = by_id["vectors-only"]
+        assert satellites.snippet.startswith("…") and satellites.snippet.endswith("dwarf satellites")
+        assert [satellites.snippet[start:end] for start, end in satellites.highlights] == ["dwarf"]
+
+    @pytest.mark.asyncio
+    async def test_a_hit_both_legs_found_keeps_the_lexical_snippets(self):
+        searcher, _, _ = await build()
+        outcome = await searcher.search("photometry")
+        (hit, *_) = outcome.hits
+        assert (hit.record_id, hit.lexical_rank, hit.semantic_rank) == ("dwarf", 1, 1)
+        assert hit.snippets == (Snippet("abstract", "Photometry of dwarf galaxies", ((0, 10),)),)
 
 
 class TestFusionConfiguration:
@@ -295,7 +332,7 @@ class TestCandidatePool:
         records = [f"r{index:02d}" for index in range(15)]
         chunks = _article_chunks(records, 3, lambda record_id, index: [1.0, int(record_id[1:]) * 0.1 + index * 0.01])
         searcher, _, _ = await build(chunks=chunks, params=HybridParams(candidate_pool=10, chunk_pool_factor=3))
-        find = mocker.spy(AsyncSimilarArticleFinder, "find_similar_articles")
+        find = mocker.spy(AsyncSimilarArticleFinder, "find_best_chunks")
         outcome = await searcher.search("galaxies", top_k=10, mode="semantic")
         assert len(outcome.hits) >= min(10, len(records))
         assert find.call_args.kwargs == {"top_k": 10, "chunk_pool": 30}

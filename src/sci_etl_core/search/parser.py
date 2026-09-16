@@ -7,7 +7,19 @@ from enum import Enum
 
 from sci_etl_core.exceptions import SearchQueryError
 from sci_etl_core.search.compile_fts5 import require_rankable
-from sci_etl_core.search.query import FIELDS, And, Node, Not, Or, Phrase, Term, normalize, semantic_text
+from sci_etl_core.search.query import (
+    FIELDS,
+    NEAR_DISTANCE,
+    And,
+    Near,
+    Node,
+    Not,
+    Or,
+    Phrase,
+    Term,
+    normalize,
+    semantic_text,
+)
 from sci_etl_core.search.tokenize import Token, Unicode61Tokenizer
 
 MAX_GROUP_DEPTH = 32
@@ -16,6 +28,8 @@ MAX_GROUP_DEPTH = 32
 _TOKENIZER = Unicode61Tokenizer()
 _FIELD_SCOPE = re.compile(r"[A-Za-z]+(?:,[A-Za-z]+)*:")
 _WORD_BREAKS = frozenset('()"')
+_NEAR_KEYWORD = "NEAR"
+_DISTANCE = re.compile(r"\s*,\s*([0-9]+)\s*\)")
 _SYMBOL_OPERATORS = ("&&", "||")
 
 
@@ -53,6 +67,13 @@ def parse_query(text: str, *, default_fields: Sequence[str] = ()) -> Node:
     - ``photometr*`` is a prefix term. The ``*`` must directly follow one word.
     - ``title:quasar`` and ``title,abstract:"dwarf galaxy"`` scope a term or a
       phrase to fields, named case-insensitively from :data:`FIELDS`.
+    - ``NEAR(dwarf "dark matter" halo*, 5)`` matches when its terms and phrases
+      all occur in one field within 5 tokens of each other, in any order
+      (:class:`~sci_etl_core.search.query.Near`). The distance defaults to 10,
+      as in ``NEAR(dwarf halo)``. A group holding one quoted phrase, such as
+      ``NEAR("dwarf halo", 3)``, searches for its words near each other. The
+      group can be scoped as a whole, as in ``title:NEAR(dwarf halo)``, but
+      nothing inside it can, and it holds no operators such as ``-`` or ``OR``.
     - ``a AND b``, ``a && b``, and ``a b`` are conjunctions; ``a OR b`` and
       ``a || b`` are disjunctions; ``NOT a`` and ``-a`` are negations.
     - Parentheses group, nesting at most :data:`MAX_GROUP_DEPTH` deep.
@@ -106,12 +127,13 @@ def parse_semantic_query(text: str, *, default_fields: Sequence[str] = ()) -> tu
         SearchQueryError: The query is malformed or cannot be ranked, as for
             :func:`parse_ranked_query`, or every term that is not negated is a
             prefix term, so there is nothing to embed. That last error is
-            located at the first prefix term.
+            located at the first prefix term, or ``NEAR`` group of prefix
+            terms.
     """
     node = parse_ranked_query(text, default_fields=default_fields)
     meaning = semantic_text(node)
     if not meaning:
-        position, token = _locate(text, _is_prefix_term)
+        position, token = _locate(text, _lacks_whole_word)
         raise SearchQueryError(
             "A semantic search needs at least one whole word; prefix terms match lexically only",
             position=position,
@@ -134,6 +156,20 @@ def _is_negation(lexeme: _Lexeme) -> bool:
 
 def _is_prefix_term(lexeme: _Lexeme) -> bool:
     return isinstance(lexeme.node, Term) and lexeme.node.prefix
+
+
+def _lacks_whole_word(lexeme: _Lexeme) -> bool:
+    if isinstance(lexeme.node, Near):
+        return all(isinstance(operand, Term) and operand.prefix for operand in lexeme.node.operands)
+    return _is_prefix_term(lexeme)
+
+
+def _not_near_operand(position: int, token: str) -> SearchQueryError:
+    return SearchQueryError(
+        "Only terms and phrases can go inside NEAR(), without operators or field scopes; scope the whole group instead",
+        position=position,
+        token=token,
+    )
 
 
 def _unknown_field(name: str, position: int | None) -> SearchQueryError:
@@ -174,9 +210,13 @@ class _Scanner:
             return _Lexeme(_KEYWORDS[raw], raw, start)
         scope = _FIELD_SCOPE.match(raw)
         if scope is None:
+            if raw == _NEAR_KEYWORD and text.startswith("(", end):
+                return self._near(start, end, self._default_fields)
             return _Lexeme(_Kind.OPERAND, raw, start, _word_node(raw, start, self._default_fields))
         fields = _scoped_fields(scope.group()[:-1], start)
         body_start = start + scope.end()
+        if text[body_start:end] == _NEAR_KEYWORD and text.startswith("(", end):
+            return self._near(start, end, fields)
         if body_start < end:
             return _Lexeme(_Kind.OPERAND, raw, start, _word_node(text[body_start:end], body_start, fields))
         if text.startswith('"', end):
@@ -184,6 +224,64 @@ class _Scanner:
         raise SearchQueryError(
             f"Field scope {raw!r} must be directly followed by a word or a quoted phrase", position=start, token=raw
         )
+
+    def _near(self, start: int, opening: int, fields: tuple[str, ...]) -> _Lexeme:
+        text = self._text
+        index = opening + 1
+        operands: list[Term | Phrase] = []
+        quoted: list[bool] = []
+        while True:
+            while index < len(text) and text[index].isspace():
+                index += 1
+            if index == len(text):
+                raise SearchQueryError("NEAR( is never closed", position=opening, token="(")
+            if text[index] in ",)":
+                break
+            if text[index] == '"':
+                closing = text.find('"', index + 1)
+                if closing < 0:
+                    raise SearchQueryError("Quoted phrase is never closed", position=index, token='"')
+                source = text[index : closing + 1]
+                operands.append(_leaf(_TOKENIZER.tokens(source[1:-1]), (), source, index))
+                quoted.append(True)
+                index = closing + 1
+                continue
+            if text.startswith(_SYMBOL_OPERATORS, index):
+                raise _not_near_operand(index, text[index : index + 2])
+            word_end = index
+            while word_end < len(text) and text[word_end] != "," and not self._breaks_word(word_end):
+                word_end += 1
+            word = text[index:word_end]
+            if _FIELD_SCOPE.match(word) or word in _KEYWORDS or word.startswith("-"):
+                raise _not_near_operand(index, word)
+            if not word:
+                raise SearchQueryError(
+                    f"Unexpected {text[index]!r} inside NEAR()", position=index, token=text[index]
+                )
+            operands.append(_word_node(word, index, ()))
+            quoted.append(False)
+            index = word_end
+        distance = NEAR_DISTANCE
+        closing = index
+        if text[index] == ",":
+            match = _DISTANCE.match(text, index)
+            if match is None:
+                raise SearchQueryError(
+                    "NEAR() takes a whole number of tokens after its comma, then ')'", position=index, token=","
+                )
+            distance = int(match.group(1))
+            closing = match.end() - 1
+        self._index = closing + 1
+        source = text[start : closing + 1]
+        if len(operands) == 1 and quoted[0] and isinstance(operands[0], Phrase):
+            operands = [Term(word) for word in operands[0].words]
+        if not operands:
+            raise SearchQueryError("NEAR() needs at least one term or phrase", position=start, token=source)
+        if len(operands) == 1:
+            node: Node = _scoped_leaf(operands[0], fields)
+        else:
+            node = Near(tuple(operands), distance, fields)
+        return _Lexeme(_Kind.OPERAND, source, start, node)
 
     def _breaks_word(self, index: int) -> bool:
         text = self._text
@@ -211,7 +309,7 @@ def _scoped_fields(names: str, position: int) -> tuple[str, ...]:
     return tuple(field for field in FIELDS if field in requested)
 
 
-def _word_node(word: str, position: int, fields: tuple[str, ...]) -> Node:
+def _word_node(word: str, position: int, fields: tuple[str, ...]) -> Term | Phrase:
     if not word.endswith("*"):
         return _leaf(_TOKENIZER.tokens(word), fields, word, position)
     stem = word[:-1]
@@ -221,7 +319,13 @@ def _word_node(word: str, position: int, fields: tuple[str, ...]) -> Node:
     return Term(tokens[0].text, fields, prefix=True)
 
 
-def _leaf(tokens: list[Token], fields: tuple[str, ...], source: str, position: int) -> Node:
+def _scoped_leaf(node: Term | Phrase, fields: tuple[str, ...]) -> Node:
+    if isinstance(node, Term):
+        return Term(node.text, fields, node.prefix)
+    return Phrase(node.words, fields)
+
+
+def _leaf(tokens: list[Token], fields: tuple[str, ...], source: str, position: int) -> Term | Phrase:
     if not tokens:
         raise SearchQueryError(f"{source!r} contains no word to search for", position=position, token=source)
     if len(tokens) == 1:

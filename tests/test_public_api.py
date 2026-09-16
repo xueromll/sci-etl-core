@@ -131,17 +131,29 @@ class TestInstallFootprint:
             from sci_etl_core import (
                 AsyncETLPipeline,
                 AsyncFileStateManager,
+                AsyncSqliteLLMResponseCache,
                 AsyncSqliteStateManager,
                 BaseAppConfig,
+                CachingLLMClient,
                 ETLPipeline,
+                InMemoryLLMResponseCache,
                 PipelineAborted,
+                PipelineInterrupted,
+                SearchConfig,
                 ShutdownSignal,
                 SyncExporterAdapter,
                 load_config,
             )
             from sci_etl_core.embeddings import AsyncChunkIngestor, SlidingWindowChunker
             from sci_etl_core.parsers import HtmlTextParser, LatexTarballParser
-            from sci_etl_core.processors import DeduplicationStep, NormalizationStep, QualityFlagStep
+            from sci_etl_core.processors import (
+                DeduplicationStep,
+                NormalizationStep,
+                QualityFlagStep,
+                TableLayoutStep,
+                ValueClipStep,
+            )
+            from sci_etl_core.rate_limiter import HostRateLimiter
             from sci_etl_core.search import parse_query
             dir(sci_etl_core)
             """,

@@ -19,6 +19,7 @@ from sci_etl_core.embeddings.async_base import AsyncEmbedder
 from sci_etl_core.exceptions import EmbeddingError
 from sci_etl_core.llm._utils import reveal_secret
 from sci_etl_core.models import TokenUsage
+from sci_etl_core.rate_limiter import RateLimiting, limiter_for
 
 _RETRYABLE = (APITimeoutError, APIConnectionError, RateLimitError, InternalServerError)
 
@@ -36,6 +37,7 @@ class AsyncOpenAIEmbedder(AsyncEmbedder):
         backoff_factor: float = 2.0,
         sleep: Any = asyncio.sleep,
         max_retry_after: float = 60.0,
+        rate_limiter: RateLimiting | None = None,
     ) -> None:
         """Configure the embedder.
 
@@ -44,6 +46,13 @@ class AsyncOpenAIEmbedder(AsyncEmbedder):
         batch. Between attempts it waits ``backoff_factor ** attempt`` seconds,
         or longer when the server's ``retry-after-ms`` or ``Retry-After`` header
         asks for it, up to ``max_retry_after`` seconds.
+
+        Every attempt first enters ``rate_limiter``, an
+        :class:`~sci_etl_core.rate_limiter.AsyncRateLimiter` or a
+        :class:`~sci_etl_core.rate_limiter.HostRateLimiter` matched against
+        ``base_url``, and releases it once the response arrives. Share one
+        limiter between a chat client and an embedder that call the same
+        provider to keep both inside one budget.
 
         Raises:
             ValueError: ``max_retries`` is less than 1, which would fail every
@@ -62,6 +71,8 @@ class AsyncOpenAIEmbedder(AsyncEmbedder):
         self._sleep = sleep
         self._max_retry_after = max_retry_after
         self._usage = TokenUsage()
+        self._base_url = base_url
+        self._rate_limiter = rate_limiter
 
     @property
     def usage(self) -> TokenUsage:
@@ -81,7 +92,8 @@ class AsyncOpenAIEmbedder(AsyncEmbedder):
         last_error: Exception | None = None
         for attempt in range(self._max_retries):
             try:
-                response = await self._client.embeddings.create(model=self._model, input=batch)
+                async with limiter_for(self._rate_limiter, self._base_url):
+                    response = await self._client.embeddings.create(model=self._model, input=batch)
                 self._usage.record(getattr(response, "usage", None))
                 return [list(item.embedding) for item in response.data]
             except _RETRYABLE as exc:

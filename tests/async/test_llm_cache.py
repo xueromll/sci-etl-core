@@ -1,0 +1,247 @@
+from __future__ import annotations
+
+import asyncio
+import sqlite3
+from contextlib import closing
+from datetime import datetime, timezone
+
+import pytest
+from hypothesis import given
+from hypothesis import strategies as st
+
+from sci_etl_core.exceptions import LLMCacheError, LLMError
+from sci_etl_core.llm import (
+    AsyncLLMClient,
+    AsyncLLMResponseCache,
+    AsyncSqliteLLMResponseCache,
+    CacheStats,
+    CachingLLMClient,
+    InMemoryLLMResponseCache,
+    response_cache_key,
+)
+from sci_etl_core.models import TokenUsage
+
+
+class CountingClient(AsyncLLMClient):
+    def __init__(self, response=None, error=None, model="m-1") -> None:
+        self.model = model
+        self.calls: list[tuple[str, str, int | None]] = []
+        self._response = response if response is not None else {"items": [{"name": "A"}]}
+        self._error = error
+        self._usage = TokenUsage()
+
+    @property
+    def usage(self) -> TokenUsage:
+        return self._usage
+
+    async def complete_json(self, system_prompt, user_content, timeout=None):
+        self.calls.append((system_prompt, user_content, timeout))
+        self._usage.requests += 1
+        if self._error is not None:
+            raise self._error
+        return dict(self._response)
+
+
+class BrokenCache(AsyncLLMResponseCache):
+    def __init__(self, failing: set[str]) -> None:
+        self.failing = failing
+        self.inner = InMemoryLLMResponseCache()
+
+    async def get(self, key):
+        if "get" in self.failing:
+            raise LLMCacheError("unreadable")
+        return await self.inner.get(key)
+
+    async def set(self, key, response):
+        if "set" in self.failing:
+            raise OSError("disk full")
+        await self.inner.set(key, response)
+
+    async def clear(self):
+        await self.inner.clear()
+
+
+class TestResponseCacheKey:
+    def test_is_a_sha256_hex_digest(self):
+        key = response_cache_key("m", "system", "user")
+        assert len(key) == 64
+        assert int(key, 16) >= 0
+
+    @given(st.text(), st.text(min_size=1), st.text(min_size=1))
+    def test_moving_text_between_the_prompts_changes_the_key(self, model, first, second):
+        assert response_cache_key(model, first + second, "") != response_cache_key(model, first, second)
+
+    def test_model_and_each_prompt_change_the_key(self):
+        keys = {
+            response_cache_key("m", "s", "u"),
+            response_cache_key("n", "s", "u"),
+            response_cache_key("m", "t", "u"),
+            response_cache_key("m", "s", "v"),
+        }
+        assert len(keys) == 4
+
+
+class TestInMemoryLLMResponseCache:
+    @pytest.mark.asyncio
+    async def test_round_trip_and_miss(self):
+        cache = InMemoryLLMResponseCache()
+        assert await cache.get("k") is None
+        await cache.set("k", {"relevant": True})
+        assert await cache.get("k") == {"relevant": True}
+
+    @pytest.mark.asyncio
+    async def test_returned_responses_are_copies(self):
+        cache = InMemoryLLMResponseCache()
+        original = {"items": [1]}
+        await cache.set("k", original)
+        original["items"].append(2)
+        (await cache.get("k"))["items"].append(3)
+        assert await cache.get("k") == {"items": [1]}
+
+    @pytest.mark.asyncio
+    async def test_evicts_the_least_recently_used_entry(self):
+        cache = InMemoryLLMResponseCache(max_entries=2)
+        await cache.set("a", {"n": 1})
+        await cache.set("b", {"n": 2})
+        await cache.get("a")
+        await cache.set("c", {"n": 3})
+        assert await cache.get("b") is None
+        assert await cache.get("a") == {"n": 1}
+        assert len(cache) == 2
+
+    @pytest.mark.asyncio
+    async def test_clear_empties_the_cache(self):
+        cache = InMemoryLLMResponseCache()
+        await cache.set("a", {})
+        await cache.clear()
+        assert len(cache) == 0
+
+    @pytest.mark.parametrize("max_entries", [0, -1])
+    def test_rejects_a_non_positive_bound(self, max_entries):
+        with pytest.raises(ValueError, match="positive"):
+            InMemoryLLMResponseCache(max_entries=max_entries)
+
+
+class TestAsyncSqliteLLMResponseCache:
+    @pytest.mark.asyncio
+    async def test_responses_survive_a_new_instance(self, tmp_path):
+        path = tmp_path / "nested" / "cache.db"
+        stamp = datetime(2026, 9, 16, tzinfo=timezone.utc)
+        first = AsyncSqliteLLMResponseCache(path, now=lambda: stamp)
+        await first.set("k", {"relevant": False})
+        await first.set("k", {"relevant": True})
+        await first.aclose()
+        second = AsyncSqliteLLMResponseCache(path)
+        try:
+            assert await second.get("k") == {"relevant": True}
+            assert await second.get("missing") is None
+            assert await second.count() == 1
+        finally:
+            await second.aclose()
+        with closing(sqlite3.connect(path)) as reader:
+            assert reader.execute("SELECT created_at FROM llm_responses").fetchone()[0] == stamp.isoformat()
+
+    @pytest.mark.asyncio
+    async def test_clear_removes_every_response(self, tmp_path):
+        cache = AsyncSqliteLLMResponseCache(tmp_path / "cache.db")
+        try:
+            await cache.set("a", {})
+            await cache.set("b", {})
+            await cache.clear()
+            assert await cache.count() == 0
+        finally:
+            await cache.aclose()
+
+    @pytest.mark.asyncio
+    async def test_a_file_that_is_not_a_database_raises_a_cache_error(self, tmp_path):
+        path = tmp_path / "cache.db"
+        path.write_bytes(b"not a database, just some bytes that are long enough to matter" * 4)
+        cache = AsyncSqliteLLMResponseCache(path)
+        try:
+            with pytest.raises(LLMCacheError, match="Failed to"):
+                await cache.get("k")
+        finally:
+            await cache.aclose()
+
+    @pytest.mark.parametrize(("stored", "message"), [("{not json", "not valid JSON"), ("[1]", "not a JSON object")])
+    @pytest.mark.asyncio
+    async def test_a_corrupt_entry_raises_a_cache_error(self, tmp_path, stored, message):
+        path = tmp_path / "cache.db"
+        cache = AsyncSqliteLLMResponseCache(path)
+        try:
+            await cache.set("k", {})
+            await cache.aclose()
+            with closing(sqlite3.connect(path, isolation_level=None)) as writer:
+                writer.execute("UPDATE llm_responses SET response = ?", (stored,))
+            with pytest.raises(LLMCacheError, match=message):
+                await cache.get("k")
+        finally:
+            await cache.aclose()
+
+
+class TestCachingLLMClient:
+    @pytest.mark.asyncio
+    async def test_a_repeated_request_is_served_from_the_cache(self):
+        inner = CountingClient()
+        client = CachingLLMClient(inner, InMemoryLLMResponseCache())
+        first = await client.complete_json("s", "u", timeout=5)
+        second = await client.complete_json("s", "u", timeout=99)
+        assert first == second == {"items": [{"name": "A"}]}
+        assert inner.calls == [("s", "u", 5)]
+        assert client.stats == CacheStats(hits=1, misses=1, faults=0)
+        assert client.usage.requests == 1
+
+    @pytest.mark.asyncio
+    async def test_different_prompts_or_models_miss(self):
+        inner = CountingClient()
+        cache = InMemoryLLMResponseCache()
+        await CachingLLMClient(inner, cache).complete_json("s", "u")
+        await CachingLLMClient(inner, cache).complete_json("s", "other")
+        await CachingLLMClient(inner, cache, model="m-1@t0.7").complete_json("s", "u")
+        assert len(inner.calls) == 3
+
+    @pytest.mark.asyncio
+    async def test_a_failed_completion_is_not_cached(self):
+        cache = InMemoryLLMResponseCache()
+        failing = CachingLLMClient(CountingClient(error=LLMError("down")), cache)
+        with pytest.raises(LLMError):
+            await failing.complete_json("s", "u")
+        assert len(cache) == 0
+
+    @pytest.mark.parametrize(
+        ("failing", "message"),
+        [({"get"}, "LLM cache get failed: LLMCacheError('unreadable')"), ({"set"}, "LLM cache set failed: OSError")],
+    )
+    @pytest.mark.asyncio
+    async def test_a_cache_fault_is_logged_and_the_llm_answers(self, failing, message):
+        lines: list[str] = []
+        inner = CountingClient()
+        client = CachingLLMClient(inner, BrokenCache(failing), logger=lines.append)
+        assert await client.complete_json("s", "u") == {"items": [{"name": "A"}]}
+        assert lines[0].startswith(message)
+        assert client.stats.faults == 1
+        assert len(inner.calls) == 1
+
+    @pytest.mark.parametrize("operation", ["get", "set"])
+    @pytest.mark.asyncio
+    async def test_cancellation_inside_the_cache_propagates(self, mocker, operation):
+        cache = InMemoryLLMResponseCache()
+        mocker.patch.object(cache, operation, side_effect=asyncio.CancelledError)
+        client = CachingLLMClient(CountingClient(), cache)
+        with pytest.raises(asyncio.CancelledError):
+            await client.complete_json("s", "u")
+
+    def test_the_model_defaults_to_the_wrapped_clients(self):
+        assert CachingLLMClient(CountingClient(model="gpt-x"), InMemoryLLMResponseCache()).model == "gpt-x"
+
+    @pytest.mark.parametrize("model", [None, ""])
+    def test_a_client_without_a_model_name_needs_one(self, model):
+        with pytest.raises(ValueError, match="Pass model="):
+            CachingLLMClient(CountingClient(model=model), InMemoryLLMResponseCache())
+
+    def test_the_openai_client_exposes_its_model(self, mocker):
+        from sci_etl_core.llm.openai_compatible_async import AsyncOpenAICompatibleClient
+
+        mocker.patch("sci_etl_core.llm.openai_compatible_async.AsyncOpenAI")
+        client = AsyncOpenAICompatibleClient(api_key="k", base_url="https://x", model="gpt-y")
+        assert CachingLLMClient(client, InMemoryLLMResponseCache()).model == "gpt-y"

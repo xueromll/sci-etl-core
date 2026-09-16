@@ -33,6 +33,14 @@ class LLMError(SciEtlError):
     """Raised when an LLM client call fails irrecoverably."""
 
 
+class LLMCacheError(SciEtlError):
+    """Raised when an LLM response cache cannot be read or written.
+
+    Kept distinct from :class:`LLMError` so a cache fault is never mistaken for
+    a failed completion; a caching client logs it and calls the LLM instead.
+    """
+
+
 class EmbeddingError(SciEtlError):
     """Raised when an embedding backend fails to vectorize text.
 
@@ -91,3 +99,13 @@ class PipelineAborted(SciEtlError):
     def __init__(self, message: str, partial_count: int = 0) -> None:
         super().__init__(f"{message} (records processed before abort: {partial_count})")
         self.partial_count = partial_count
+
+
+class PipelineInterrupted(PipelineAborted):
+    """Raised when a pipeline run stops early because a shutdown was requested.
+
+    A subclass of :class:`PipelineAborted`, so code that already handles an
+    abort keeps working. The records in flight when the request arrived were
+    finished, the rest of their page is left for the next run, and state was
+    flushed before this was raised.
+    """

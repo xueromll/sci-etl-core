@@ -136,6 +136,13 @@ jobs:
           ref: ${{ matrix.target.cli_ref != 'HEAD' && matrix.target.cli_ref || '' }}
           path: .sci-etl-cli
 
+      - name: Fall back to the CLI default branch when the release has no documentation
+        if: hashFiles('.sci-etl-cli/mkdocs.yml') == ''
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ env.CLI_REPOSITORY }}
+          path: .sci-etl-cli
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:

@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import asyncio
 from abc import ABC, abstractmethod
+from collections.abc import Mapping
 from types import TracebackType
+from typing import TypeAlias
+from urllib.parse import urlsplit
 
 
 class AsyncRateLimiter(ABC):
@@ -106,3 +109,62 @@ def build_rate_limiter(
     if max_rate is not None:
         return AioLimiterRateLimiter(max_rate=max_rate, time_period=time_period)
     return SemaphoreRateLimiter(max_concurrency=max_concurrency)
+
+
+class HostRateLimiter:
+    """Pick a limiter by the host a request goes to.
+
+    A request's host is matched against the configured hosts from the most
+    specific name down, so ``"arxiv.org"`` also covers ``export.arxiv.org``
+    unless that host has a limiter of its own. Host names match without regard
+    to case. A request to a host with no match uses ``default``, which imposes
+    no limit when omitted. Pass one instance to several components to have
+    them share each host's budget.
+    """
+
+    def __init__(
+        self,
+        limiters: Mapping[str, AsyncRateLimiter],
+        default: AsyncRateLimiter | None = None,
+    ) -> None:
+        """Store the limiter for each host.
+
+        Raises:
+            ValueError: A host is blank, or two hosts differ only in case or
+                surrounding dots.
+        """
+        normalized: dict[str, AsyncRateLimiter] = {}
+        for host, limiter in limiters.items():
+            key = host.strip().strip(".").lower()
+            if not key:
+                raise ValueError("Rate-limited host names must not be blank")
+            if key in normalized:
+                raise ValueError(f"Host {key!r} is configured more than once")
+            normalized[key] = limiter
+        self._limiters = normalized
+        self._default = default or NullRateLimiter()
+
+    def for_url(self, url: str) -> AsyncRateLimiter:
+        """Return the limiter governing requests to ``url``."""
+        host = (urlsplit(url).hostname or "").rstrip(".")
+        labels = host.split(".")
+        for start in range(len(labels)):
+            limiter = self._limiters.get(".".join(labels[start:]))
+            if limiter is not None:
+                return limiter
+        return self._default
+
+
+RateLimiting: TypeAlias = AsyncRateLimiter | HostRateLimiter
+
+
+def limiter_for(rate_limiter: RateLimiting | None, url: str) -> AsyncRateLimiter:
+    """Resolve the limiter a component applies to a request for ``url``."""
+    if rate_limiter is None:
+        return _UNLIMITED
+    if isinstance(rate_limiter, HostRateLimiter):
+        return rate_limiter.for_url(url)
+    return rate_limiter
+
+
+_UNLIMITED = NullRateLimiter()

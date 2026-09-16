@@ -56,7 +56,7 @@ class TestPipelineEmptyRecordId:
         pipeline, state = _pipeline(
             mocker, [RawRecord(record_id="", title="t", abstract="a")]
         )
-        assert pipeline.run(query="q", max_records=1, sleep_between=0) == 0
+        assert pipeline.run(query="q", page_size=1, total_limit=1, sleep_between=0) == 0
         state.mark_processed.assert_not_called()
 
 

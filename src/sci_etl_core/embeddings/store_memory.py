@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import AsyncIterator, Sequence
 
 import numpy as np
 
@@ -9,6 +9,7 @@ from sci_etl_core.embeddings.store_base import (
     AsyncEmbeddingStore,
     EmbeddingChunk,
     SearchHit,
+    StoredRecord,
 )
 
 
@@ -81,3 +82,17 @@ class InMemoryEmbeddingStore(AsyncEmbeddingStore):
 
     async def count(self) -> int:
         return len(self._rows)
+
+    async def iter_records(self, batch_size: int = 100) -> AsyncIterator[StoredRecord]:
+        """Yield every stored record's passages, from a snapshot taken when iteration starts.
+
+        Raises:
+            ValueError: ``batch_size`` is less than 1.
+        """
+        if batch_size < 1:
+            raise ValueError("batch_size must be a positive integer")
+        grouped: dict[str, list[_Row]] = {}
+        for key in sorted(self._rows):
+            grouped.setdefault(key[0], []).append(self._rows[key])
+        for record_id, rows in grouped.items():
+            yield StoredRecord(record_id, tuple(row.text for row in rows), dict(rows[0].metadata))

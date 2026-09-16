@@ -1,8 +1,8 @@
 # Rate limiting
 
 `AsyncETLPipeline(max_concurrency=...)` bounds how many records are processed
-at once. For finer control, `sci_etl_core.rate_limiter` provides standalone
-async context managers:
+at once. For finer control, `sci_etl_core.rate_limiter` provides async
+limiters:
 
 - `SemaphoreRateLimiter` — concurrency cap
 - `AioLimiterRateLimiter` — token bucket; needs the `async` extra
@@ -11,38 +11,73 @@ async context managers:
 `build_rate_limiter(max_concurrency, max_rate, time_period)` returns a token
 bucket when `max_rate` is set and a semaphore otherwise. Its parameters match
 the `full_text` [config section](../getting-started/configuration.md).
-Components don't take a limiter argument, so apply one by wrapping a
-component:
+
+## Giving a limiter to a component
+
+Every bundled extractor (`AsyncArxivExtractor`, `AsyncPubMedExtractor`,
+`AsyncSemanticScholarExtractor`, and `AsyncOpenAlexExtractor`),
+`AsyncOpenAICompatibleClient`, and `AsyncOpenAIEmbedder` take a
+`rate_limiter`. Every HTTP request, retries included, waits for a slot
+first and gives it back when the response arrives, so no slot is held while a
+component waits to retry:
 
 ```python
-from sci_etl_core.extractors import AsyncExtractor
-from sci_etl_core.rate_limiter import AsyncRateLimiter, build_rate_limiter
+from sci_etl_core import AsyncArxivExtractor
+from sci_etl_core.parsers import LatexTarballParser, PdfPlumberParser
+from sci_etl_core.rate_limiter import build_rate_limiter
 
-
-class RateLimitedExtractor(AsyncExtractor):
-    """Route an extractor's network calls through one shared limiter."""
-
-    def __init__(self, inner: AsyncExtractor, limiter: AsyncRateLimiter) -> None:
-        self._inner = inner
-        self._limiter = limiter
-
-    async def search(self, query, max_results, start_index):
-        async with self._limiter:
-            return await self._inner.search(query, max_results, start_index)
-
-    def parse_listing(self, raw_listing, seen_ids):
-        return self._inner.parse_listing(raw_listing, seen_ids)
-
-    async def fetch_full_text(self, record):
-        async with self._limiter:
-            return await self._inner.fetch_full_text(record)
-```
-
-Wrap the extractor with a limiter built from the config:
-
-```python
-extractor = RateLimitedExtractor(
-    AsyncArxivExtractor(...),
-    build_rate_limiter(**config.full_text.model_dump()),
+extractor = AsyncArxivExtractor(
+    client=client,
+    pdf_parser=PdfPlumberParser(),
+    latex_parser=LatexTarballParser(),
+    rate_limiter=build_rate_limiter(max_rate=1, time_period=3.0),
 )
 ```
+
+## Limits per host
+
+`HostRateLimiter` picks a limiter by the host a request goes to. A host also
+covers its subdomains, unless a subdomain has a limiter of its own, and hosts
+with no match use `default`, which is no limit when you leave it out. The arXiv
+extractor calls two hosts, `export.arxiv.org` for listings and `arxiv.org` for
+full text, so each can get its own budget:
+
+```python
+from sci_etl_core.rate_limiter import HostRateLimiter, SemaphoreRateLimiter, build_rate_limiter
+
+arxiv_limits = HostRateLimiter(
+    {
+        "export.arxiv.org": build_rate_limiter(max_rate=1, time_period=3.0),
+        "arxiv.org": SemaphoreRateLimiter(max_concurrency=4),
+    }
+)
+```
+
+## Sharing a limit between components
+
+Pass the same limiter to several components to have them share one budget. A
+chat client and an embedder that call the same provider count against the same
+quota:
+
+```python
+from sci_etl_core import AsyncOpenAICompatibleClient, AsyncOpenAIEmbedder
+from sci_etl_core.rate_limiter import build_rate_limiter
+
+provider_limit = build_rate_limiter(max_rate=50, time_period=60.0)
+llm = AsyncOpenAICompatibleClient(
+    api_key=config.llm.api_key,
+    base_url=config.llm.base_url,
+    model=config.llm.model,
+    rate_limiter=provider_limit,
+)
+embedder = AsyncOpenAIEmbedder(
+    api_key=config.llm.api_key,
+    base_url=config.llm.base_url,
+    model="text-embedding-3-small",
+    rate_limiter=provider_limit,
+)
+```
+
+A `HostRateLimiter` can be shared the same way, for example one instance whose
+hosts cover every service a run calls. The OpenAI-compatible clients match it
+against their `base_url`.

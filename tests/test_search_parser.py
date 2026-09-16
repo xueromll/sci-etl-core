@@ -6,7 +6,7 @@ import pytest
 
 from sci_etl_core.exceptions import SearchQueryError
 from sci_etl_core.search.parser import MAX_GROUP_DEPTH, parse_query, parse_ranked_query, parse_semantic_query
-from sci_etl_core.search.query import And, Not, Or, Phrase, QueryChip, Term, describe
+from sci_etl_core.search.query import And, Near, Not, Or, Phrase, QueryChip, Term, describe
 
 A, B, C = Term("a"), Term("b"), Term("c")
 NOT_RANKABLE = "A ranked search needs at least one term that is not negated"
@@ -167,6 +167,65 @@ def test_a_malformed_query_names_the_first_fault(query, position, token, message
     assert query[position : position + len(token)] == token
 
 
+class TestNear:
+    @pytest.mark.parametrize(
+        "query, expected",
+        [
+            ("NEAR(a b)", Near((A, B))),
+            ("NEAR(a b, 5)", Near((A, B), 5)),
+            ('NEAR( a  "b c" d* , 0 )', Near((A, Phrase(("b", "c")), Term("d", prefix=True)), 0)),
+            ("title,body:NEAR(a b, 2)", Near((A, B), 2, ("title", "body"))),
+            ('NEAR("a b", 3)', Near((A, B), 3)),
+            ('NEAR(a"b c")', Near((A, Phrase(("b", "c"))))),
+            ("NEAR(a-b c)", Near((Phrase(("a", "b")), C))),
+            ("NEAR(a)", A),
+            ('NEAR("a")', A),
+            ("title:NEAR(a)", Term("a", fields=("title",))),
+            ('abstract:NEAR("a b" , 4)', Near((A, B), 4, ("abstract",))),
+            ("title:NEAR(a-b)", Phrase(("a", "b"), fields=("title",))),
+            ("x NEAR(a b)c", And((Term("x"), Near((A, B)), C))),
+            ("-NEAR(a b)", Not(Near((A, B)))),
+            ("NEAR (a b)", And((Term("near"), A, B))),
+            ("near(a b)", And((Term("near"), A, B))),
+        ],
+    )
+    def test_groups(self, query, expected):
+        assert parse_query(query) == expected
+
+    def test_default_fields_scope_the_group_not_its_operands(self):
+        assert parse_query("NEAR(a b)", default_fields=["title"]) == Near((A, B), fields=("title",))
+
+    @pytest.mark.parametrize(
+        "query, position, token, message",
+        [
+            ("NEAR(a b", 4, "(", "NEAR( is never closed"),
+            ("NEAR(", 4, "(", "NEAR( is never closed"),
+            ('NEAR(a "b', 7, '"', "Quoted phrase is never closed"),
+            ('NEAR("" a)', 5, '""', "'\"\"' contains no word to search for"),
+            ("NEAR()", 0, "NEAR()", "NEAR() needs at least one term or phrase"),
+            ("title:NEAR(, 3)", 0, "title:NEAR(, 3)", "NEAR() needs at least one term or phrase"),
+            ("NEAR(a b, 5", 8, ",", "NEAR() takes a whole number of tokens after its comma"),
+            ("NEAR(a b, x)", 8, ",", "NEAR() takes a whole number of tokens after its comma"),
+            ("NEAR(a b,)", 8, ",", "NEAR() takes a whole number of tokens after its comma"),
+            ("NEAR(a b, -1)", 8, ",", "NEAR() takes a whole number of tokens after its comma"),
+            ("NEAR(a (b))", 7, "(", "Unexpected '(' inside NEAR()"),
+            ("NEAR(title:a b)", 5, "title:a", "Only terms and phrases can go inside NEAR()"),
+            ('NEAR(title:"a b")', 5, "title:", "Only terms and phrases can go inside NEAR()"),
+            ("NEAR(a AND b)", 7, "AND", "Only terms and phrases can go inside NEAR()"),
+            ("NEAR(a -b)", 7, "-b", "Only terms and phrases can go inside NEAR()"),
+            ("NEAR(- a)", 5, "-", "Only terms and phrases can go inside NEAR()"),
+            ("NEAR(a && b)", 7, "&&", "Only terms and phrases can go inside NEAR()"),
+            ("NEAR(a||b)", 6, "||", "Only terms and phrases can go inside NEAR()"),
+            ("NEAR(a**)", 7, "*", "'*' must directly follow a single word"),
+        ],
+    )
+    def test_a_malformed_group_names_the_first_fault(self, query, position, token, message):
+        with pytest.raises(SearchQueryError, match=re.escape(message)) as raised:
+            parse_query(query)
+        assert (raised.value.position, raised.value.token) == (position, token)
+        assert query[position : position + len(token)] == token
+
+
 class TestNestingLimits:
     def test_parentheses_nest_up_to_the_limit(self):
         assert parse_query("(" * MAX_GROUP_DEPTH + "a" + ")" * MAX_GROUP_DEPTH) == A
@@ -227,6 +286,7 @@ class TestParseSemanticQuery:
             ("a* title:b*", 0, "a*"),
             ("-quasar title:photometr*", 8, "title:photometr*"),
             ("gal* -dwarf", 0, "gal*"),
+            ("-y NEAR(a* b*, 2)", 3, "NEAR(a* b*, 2)"),
         ],
     )
     def test_a_query_with_only_prefix_terms_is_located_at_its_first_prefix_term(self, query, position, token):
@@ -256,6 +316,12 @@ class TestDescribe:
         assert describe(parse_query("NOT (a OR b)")) == [
             QueryChip("a", operator="OR", negated=True),
             QueryChip("b", operator="OR", negated=True),
+        ]
+
+    def test_a_near_group_is_one_chip_carrying_its_distance(self):
+        assert describe(parse_query('x OR -title:NEAR(a* "b c", 4)')) == [
+            QueryChip("x", operator="OR"),
+            QueryChip('a* "b c"', fields=("title",), operator="OR", negated=True, near=4),
         ]
 
     def test_a_hand_built_ast_is_normalized_first(self):

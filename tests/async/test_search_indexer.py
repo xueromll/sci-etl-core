@@ -251,7 +251,7 @@ class TestPipelineFanOut:
             logger=logged.append,
         )
         pipeline, exporter = _arxiv_pipeline(mocker, ingestor, logged)
-        assert await pipeline.run(query="cat:astro-ph.GA", max_records=10, sleep_between=0) == 2
+        assert await pipeline.run(query="cat:astro-ph.GA", page_size=10, total_limit=10, sleep_between=0) == 2
         assert exporter.export.await_count == 2
         assert await vectors.count() == 2
         assert await text_store.count() == 2
@@ -275,7 +275,7 @@ class TestPipelineFanOut:
             logger=logged.append,
         )
         pipeline, exporter = _arxiv_pipeline(mocker, ingestor, logged)
-        assert await pipeline.run(query="cat:astro-ph.GA", max_records=10, sleep_between=0) == 2
+        assert await pipeline.run(query="cat:astro-ph.GA", page_size=10, total_limit=10, sleep_between=0) == 2
         assert exporter.export.await_count == 2
         assert await vectors.count() == 2
         assert sorted(logged) == [

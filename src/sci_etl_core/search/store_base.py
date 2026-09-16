@@ -6,8 +6,10 @@ from collections.abc import Collection, Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
+from sci_etl_core.search.filters import validate_facet_keys, validate_filters
+
 if TYPE_CHECKING:
-    from sci_etl_core.search.filters import MetadataFilter
+    from sci_etl_core.search.filters import RangeFilter, SearchFilter
     from sci_etl_core.search.query import Node
 
 
@@ -22,8 +24,9 @@ class SearchDocument:
 
     ``metadata`` is stored as JSON and reads back as JSON: a ``datetime`` put in
     comes back as its ISO 8601 string. Field types are not enforced.
-    :class:`~sci_etl_core.search.filters.MetadataFilter` matches exact values;
-    range or comparison filters over dates or years are not supported.
+    :class:`~sci_etl_core.search.filters.MetadataFilter` matches exact values,
+    and :class:`~sci_etl_core.search.filters.RangeFilter` ranges of integers or
+    of text such as ISO 8601 dates.
     """
 
     record_id: str
@@ -33,16 +36,36 @@ class SearchDocument:
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
+@dataclass(frozen=True, slots=True)
+class Snippet:
+    """A passage of one field, with the matched words marked.
+
+    ``field`` is one of :data:`~sci_etl_core.search.query.FIELDS`. ``text`` is
+    plain text of at most :data:`~sci_etl_core.search.filters.SNIPPET_TOKENS`
+    tokens, starting or ending with
+    :data:`~sci_etl_core.search.filters.SNIPPET_ELLIPSIS` where the field goes
+    on, and ``highlights`` are half-open ``[start, end)`` character offsets into
+    ``text``.
+    """
+
+    field: str
+    text: str
+    highlights: tuple[tuple[int, int], ...] = ()
+
+
 @dataclass(slots=True)
 class TextHit:
     """A document returned from a Boolean query, with its lexical score.
 
     ``score`` is higher for a better match, and is never the raw negative value
     SQLite's ``bm25()`` returns. Its scale depends on the corpus, so compare
-    scores only within one result list. ``snippet`` is plain text from one
-    field, and ``highlights`` are half-open ``[start, end)`` character offsets
-    into it covering the matched words, so a UI applies its own markup.
-    ``title`` and ``metadata`` are the document's, as the store reads them back.
+    scores only within one result list. ``snippet`` is plain text from the
+    field matching best, and ``highlights`` are half-open ``[start, end)``
+    character offsets into it covering the matched words, so a UI applies its
+    own markup. ``snippets`` holds one :class:`Snippet` for every field with a
+    highlighted match, in :data:`~sci_etl_core.search.query.FIELDS` order, so a
+    UI can show a match in the title and one in the body together. ``title``
+    and ``metadata`` are the document's, as the store reads them back.
     """
 
     record_id: str
@@ -51,6 +74,7 @@ class TextHit:
     highlights: tuple[tuple[int, int], ...] = ()
     metadata: dict[str, Any] = field(default_factory=dict)
     title: str = ""
+    snippets: tuple[Snippet, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -117,7 +141,7 @@ class AsyncTextSearchStore(ABC):
         query: Node,
         limit: int = 20,
         exclude_record_id: str | None = None,
-        filters: Sequence[MetadataFilter] = (),
+        filters: Sequence[SearchFilter] = (),
     ) -> list[TextHit]:
         """Rank the documents matching ``query`` and ``filters`` by BM25, best first.
 
@@ -136,7 +160,7 @@ class AsyncTextSearchStore(ABC):
 
     @abstractmethod
     async def filter_ids(
-        self, query: Node | None = None, filters: Sequence[MetadataFilter] = ()
+        self, query: Node | None = None, filters: Sequence[SearchFilter] = ()
     ) -> frozenset[str]:
         """Return every record satisfying ``query`` and ``filters``, in no order.
 
@@ -160,7 +184,7 @@ class AsyncTextSearchStore(ABC):
         keys: Sequence[str],
         *,
         query: Node | None = None,
-        filters: Sequence[MetadataFilter] = (),
+        filters: Sequence[SearchFilter] = (),
     ) -> dict[str, tuple[tuple[str, int], ...]]:
         """Count matching documents per value of each facet key.
 
@@ -181,6 +205,39 @@ class AsyncTextSearchStore(ABC):
                 ``filters`` has no built tags yet (see
                 ``AsyncSqliteFts5Store.rebuild_tags``).
         """
+
+    async def range_counts(
+        self,
+        ranges: Sequence[RangeFilter],
+        *,
+        query: Node | None = None,
+        filters: Sequence[SearchFilter] = (),
+    ) -> tuple[int, ...]:
+        """Count matching documents inside each of ``ranges``, in the order given.
+
+        Each count is of the documents satisfying ``query``, the range, and every
+        filter whose key is not the range's key, so a count answers "how many
+        results would this range give if it were selected instead", as
+        :meth:`facet_counts` does for exact values. Ranges may share a key and
+        overlap, as buckets of a histogram or presets such as "last 5 years" do,
+        and a negated range counts the documents outside it.
+
+        The default runs :meth:`filter_ids` once per range; a backend that can
+        count in one read should override it.
+
+        Raises:
+            ValueError: A key in ``ranges`` or ``filters`` is not in
+                :attr:`facet_keys`, or two filters in ``filters`` share a key.
+            SearchStoreError: The index cannot be read, or a key has no built
+                tags yet (see ``AsyncSqliteFts5Store.rebuild_tags``).
+        """
+        validate_filters(filters, self.facet_keys)
+        validate_facet_keys([search_range.key for search_range in ranges], self.facet_keys)
+        counts: list[int] = []
+        for search_range in ranges:
+            others = [search_filter for search_filter in filters if search_filter.key != search_range.key]
+            counts.append(len(await self.filter_ids(query, [*others, search_range])))
+        return tuple(counts)
 
     @abstractmethod
     async def count(self) -> int:

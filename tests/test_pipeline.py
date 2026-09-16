@@ -63,7 +63,7 @@ def _build(mocker, records, *, relevant=True, entities=None, max_workers=6):
 class TestPipelineHappyPath:
     def test_processes_relevant_records_and_exports(self, mocker):
         pipeline, _, _, _, exporter, state = _build(mocker, _records(3))
-        assert pipeline.run(query="q", max_records=3, sleep_between=0) == 3
+        assert pipeline.run(query="q", page_size=3, total_limit=3, sleep_between=0) == 3
         assert exporter.export.call_count == 3
         assert state.mark_processed.call_count == 3
 
@@ -71,31 +71,31 @@ class TestPipelineHappyPath:
         pipeline, extractor, _, _, exporter, state = _build(
             mocker, _records(2), relevant=False
         )
-        assert pipeline.run(query="q", max_records=2, sleep_between=0) == 0
+        assert pipeline.run(query="q", page_size=2, total_limit=2, sleep_between=0) == 0
         extractor.fetch_full_text.assert_not_called()
         exporter.export.assert_not_called()
         assert state.mark_processed.call_count == 2
 
     def test_no_export_when_extraction_yields_nothing(self, mocker):
         pipeline, _, _, _, exporter, _ = _build(mocker, _records(2), entities=[])
-        assert pipeline.run(query="q", max_records=2, sleep_between=0) == 2
+        assert pipeline.run(query="q", page_size=2, total_limit=2, sleep_between=0) == 2
         exporter.export.assert_not_called()
 
     def test_stops_when_listing_is_exhausted(self, mocker):
         pipeline, extractor, *_ = _build(mocker, _records(1))
-        pipeline.run(query="q", max_records=100, sleep_between=0)
+        pipeline.run(query="q", page_size=100, total_limit=100, sleep_between=0)
         assert extractor.parse_listing.call_count >= 2
 
     def test_aborts_when_search_returns_no_payload(self, mocker):
         pipeline, extractor, *_ = _build(mocker, _records(1))
         extractor.search = mocker.AsyncMock(return_value=None)
         with pytest.raises(PipelineAborted) as excinfo:
-            pipeline.run(query="q", max_records=10, sleep_between=0)
+            pipeline.run(query="q", page_size=10, total_limit=10, sleep_between=0)
         assert excinfo.value.partial_count == 0
 
     def test_persists_metadata_each_page(self, mocker):
         pipeline, _, _, _, _, state = _build(mocker, _records(2))
-        pipeline.run(query="q", max_records=2, sleep_between=0)
+        pipeline.run(query="q", page_size=2, total_limit=2, sleep_between=0)
         assert state.save_metadata.called
 
 
@@ -106,7 +106,7 @@ class TestPipelineFailureSignaling:
             side_effect=[b"<feed/>", UpstreamError("gateway down")]
         )
         with pytest.raises(PipelineAborted) as excinfo:
-            pipeline.run(query="q", max_records=10, sleep_between=0)
+            pipeline.run(query="q", page_size=10, total_limit=10, sleep_between=0)
         assert excinfo.value.partial_count == 3
         assert isinstance(excinfo.value.__cause__, UpstreamError)
 
@@ -116,7 +116,7 @@ class TestPipelineFailureSignaling:
             side_effect=[(_records(2), 2), MalformedResponseError("bad xml")]
         )
         with pytest.raises(PipelineAborted) as excinfo:
-            pipeline.run(query="q", max_records=10, sleep_between=0)
+            pipeline.run(query="q", page_size=10, total_limit=10, sleep_between=0)
         assert excinfo.value.partial_count == 2
         assert isinstance(excinfo.value.__cause__, MalformedResponseError)
 
@@ -138,7 +138,7 @@ class TestPipelineResilience:
         entity_extractor.extract = mocker.AsyncMock(side_effect=flaky)
         logged: list[str] = []
         pipeline._async._log = logged.append
-        assert pipeline.run(query="q", max_records=3, sleep_between=0) >= 2
+        assert pipeline.run(query="q", page_size=3, total_limit=3, sleep_between=0) >= 2
         assert any("failed" in m.lower() for m in logged)
 
 
@@ -149,16 +149,16 @@ class TestPipelineConcurrency:
             mocker, _records(record_count), max_workers=16
         )
         assert (
-            pipeline.run(query="q", max_records=record_count, sleep_between=0)
+            pipeline.run(query="q", page_size=record_count, total_limit=record_count, sleep_between=0)
             == record_count
         )
         marked = [call.args[0] for call in state.mark_processed.call_args_list]
         assert len(marked) == record_count
         assert len(set(marked)) == record_count
 
-    def test_respects_max_records_ceiling_under_concurrency(self, mocker):
+    def test_respects_total_limit_under_concurrency(self, mocker):
         pipeline, *_ = _build(mocker, _records(50), max_workers=8)
-        processed = pipeline.run(query="q", max_records=10, sleep_between=0)
+        processed = pipeline.run(query="q", page_size=10, total_limit=10, sleep_between=0)
         assert 10 <= processed <= 50
 
 

@@ -72,13 +72,78 @@ asyncio.run(plot.export(clean, "overview.html"))
 
 The Plotly exporter drops rows that are missing any axis value.
 
+### Styling the plot
+
+`ScatterPlotConfig` also controls hover text and colors:
+
+```python
+from sci_etl_core import ScatterPlotConfig
+
+config = ScatterPlotConfig(
+    x_column="x",
+    y_column="y",
+    z_column="z",
+    color_column="dark_matter_fraction",
+    size_column="radius",
+    hover_name_column="name",
+    hover_data_columns=["constellation", "distance"],
+    hover_template=(
+        "<b>%{hovertext}</b><br>Constellation: %{customdata[0]}<br>"
+        "Distance: %{customdata[1]} Mpc<extra></extra>"
+    ),
+    color_continuous_scale="Viridis",
+    color_range=(0.0, 1.0),
+    color_label="DM fraction",
+    marker={"sizemode": "diameter", "sizemin": 3},
+    layout={"paper_bgcolor": "#0b0f19", "scene": {"aspectmode": "cube"}},
+)
+```
+
+- **`hover_data_columns`** become `%{customdata[0]}`, `%{customdata[1]}`, and
+  so on in `hover_template`, in the order listed; the hover name is
+  `%{hovertext}`.
+- **`color_continuous_scale`** and **`color_range`** fix the colors of a
+  numeric color column, so a value has the same color in every export.
+  `color_label` titles the color bar, or the legend for a categorical color
+  column.
+- **`marker`** updates every trace's markers, and **`layout`** is applied to
+  the figure layout last, so it overrides `template` and the default margins.
+
 ## Other building blocks
 
 - **`ClusteringStep(feature_extractor)`** runs DBSCAN over features returned by
   your own `FeatureExtractor`.
+- **`ValueClipStep(bounds)`** clamps numeric columns into ranges, such as
+  `{"fraction": (0.0, 1.0)}`, turning values that aren't numbers into empty
+  cells. It does during post-processing what the CSV exporter's `numeric_clip`
+  does during export.
+- **`TableLayoutStep(sort_by, leading_columns, hidden_prefixes)`** prepares a
+  table for publishing: it sorts rows by `(column, ascending)` pairs with
+  missing values last, drops helper columns such as `_norm_key` by prefix, and
+  moves the `leading_columns` to the front.
 - **Record validators** check individual entity dicts: `NumericRangeValidator`,
-  `KeywordExclusionValidator`, and `CompositeValidator`. The pipeline doesn't
-  call them, so apply them in your own entity extractor or before export.
+  `KeywordExclusionValidator`, and `CompositeValidator`. Pass one to
+  `AsyncLLMEntityExtractor(validator=...)` to drop invalid entities before
+  export; each rejection is logged through its `logger`, labelled by the
+  `label_field` value when you name one:
+
+  ```python
+  from sci_etl_core import AsyncLLMEntityExtractor
+  from sci_etl_core.processors import CompositeValidator, KeywordExclusionValidator, NumericRangeValidator
+
+  extractor = AsyncLLMEntityExtractor(
+      llm_client,
+      system_prompt,
+      validator=CompositeValidator(
+          [
+              KeywordExclusionValidator("name", ["simulation", "mock"]),
+              NumericRangeValidator({"ra": (0.0, 360.0)}),
+          ]
+      ),
+      logger=print,
+      label_field="name",
+  )
+  ```
 - **`AsyncSqlTableExporter(table_name)`** writes a DataFrame to a SQLAlchemy
   async URL, e.g.
   `await AsyncSqlTableExporter("entities").export(clean, "sqlite+aiosqlite:///results.db")`.

@@ -4,6 +4,7 @@ import asyncio
 import atexit
 import math
 import threading
+import time
 from concurrent.futures import TimeoutError as FutureTimeoutError
 from typing import Any, Awaitable, Callable, Coroutine, TypeVar
 
@@ -12,6 +13,7 @@ T = TypeVar("T")
 _THREAD_NAME = "sci-etl-sync-bridge"
 _SHUTDOWN_TIMEOUT = 5.0
 _DEFAULT_CALL_TIMEOUT: float | None = 300.0
+_WAIT_SLICE = 0.2
 
 
 class _BridgeLoop:
@@ -69,7 +71,10 @@ def run_sync(coro: Coroutine[Any, Any, T], timeout: float | None = None) -> T:
     """Run a coroutine on the shared bridge loop and block until it resolves.
 
     ``timeout`` falls back to the module default when omitted; pass ``math.inf``
-    to wait indefinitely.
+    to wait indefinitely. The caller waits in short slices, so a signal handler
+    on the calling thread runs promptly even on Windows. When the wait ends
+    with an exception of the caller's own, such as ``KeyboardInterrupt``, the
+    task on the bridge loop is cancelled before it propagates.
 
     Raises:
         TimeoutError: The coroutine did not settle within the ceiling. The
@@ -77,12 +82,26 @@ def run_sync(coro: Coroutine[Any, Any, T], timeout: float | None = None) -> T:
             wedged call can never pin the caller forever.
     """
     limit = _default_timeout if timeout is None else timeout
+    deadline = None if limit is None or math.isinf(limit) else time.monotonic() + limit
     future = asyncio.run_coroutine_threadsafe(coro, _BRIDGE.loop())
     try:
-        return future.result(None if limit is None or math.isinf(limit) else limit)
-    except FutureTimeoutError as exc:
+        while True:
+            remaining = _WAIT_SLICE if deadline is None else min(_WAIT_SLICE, deadline - time.monotonic())
+            try:
+                return future.result(max(remaining, 0.0))
+            except FutureTimeoutError:
+                if future.done():
+                    raise
+            if deadline is not None and time.monotonic() >= deadline:
+                raise TimeoutError(f"Bridge call did not complete within {limit} seconds")
+    except BaseException:
         future.cancel()
-        raise TimeoutError(f"Bridge call did not complete within {limit} seconds") from exc
+        raise
+
+
+def bridge_loop() -> asyncio.AbstractEventLoop:
+    """Return the shared bridge loop, starting it if needed."""
+    return _BRIDGE.loop()
 
 
 def to_async(func: Callable[..., T]) -> Callable[..., Awaitable[T]]:

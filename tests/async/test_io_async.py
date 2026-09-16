@@ -17,9 +17,9 @@ class TestAsyncConfig:
         mocker.patch.object(ca, "load_dotenv")
         mocker.patch.dict("os.environ", {"LLM_API_KEY": ""})
         path = tmp_path / "c.yaml"
-        path.write_text("pipeline:\n  max_records: 5\n", encoding="utf-8")
+        path.write_text("pipeline:\n  total_limit: 5\n", encoding="utf-8")
         cfg = await ca.load_config_async(BaseAppConfig, path)
-        assert cfg.pipeline.max_records == 5
+        assert cfg.pipeline.total_limit == 5
         assert cfg.llm.model == "gpt-4o-mini"
 
     @pytest.mark.asyncio
@@ -48,7 +48,7 @@ class TestAsyncConfig:
         mocker.patch.object(ca, "load_dotenv")
         mocker.patch.dict("os.environ", {"LLM_API_KEY": ""})
         path = tmp_path / "c.yaml"
-        path.write_text("pipeline:\n  max_records: not-an-int\n", encoding="utf-8")
+        path.write_text("pipeline:\n  total_limit: not-an-int\n", encoding="utf-8")
         with pytest.raises(ConfigurationError, match="Invalid configuration"):
             await ca.load_config_async(BaseAppConfig, path)
 
@@ -112,3 +112,82 @@ class TestAsyncSqlExporter:
         create.assert_called_once_with("sqlite+aiosqlite:///:memory:")
         connection.run_sync.assert_awaited_once()
         engine.dispose.assert_awaited_once()
+
+
+class TestAsyncPlotlyExporterStyling:
+    @staticmethod
+    def _frame():
+        return pd.DataFrame(
+            {
+                "x": [1.0, 2.0],
+                "y": [2.0, 3.0],
+                "z": [3.0, 4.0],
+                "fraction": [0.2, 0.9],
+                "name": ["A", "B"],
+                "note": ["first", "second"],
+                "radius": [1.0, 4.0],
+            }
+        )
+
+    @pytest.mark.asyncio
+    async def test_real_figure_carries_hover_data_template_scale_range_and_label(self, mocker, tmp_path):
+        from sci_etl_core.exporters import plotly_async
+
+        config = ScatterPlotConfig(
+            x_column="x",
+            y_column="y",
+            z_column="z",
+            color_column="fraction",
+            size_column="radius",
+            hover_name_column="name",
+            hover_data_columns=["note", "radius"],
+            hover_template="<b>%{hovertext}</b> %{customdata[0]}<extra></extra>",
+            color_continuous_scale="Viridis",
+            color_range=(0.0, 1.0),
+            color_label="DM Fraction",
+            marker={"sizemode": "diameter", "sizemin": 3},
+            layout={"paper_bgcolor": "#0b0f19", "scene": {"aspectmode": "cube"}},
+        )
+        scatter = mocker.spy(plotly_async.px, "scatter_3d")
+        destination = tmp_path / "map.html"
+        await plotly_async.AsyncPlotly3DExporter(config).export(self._frame(), str(destination))
+        figure = scatter.spy_return
+        trace = figure.data[0]
+        assert [list(row) for row in trace.customdata] == [["first", 1.0], ["second", 4.0]]
+        assert trace.hovertemplate == "<b>%{hovertext}</b> %{customdata[0]}<extra></extra>"
+        assert trace.marker.sizemode == "diameter"
+        assert trace.marker.sizemin == 3
+        assert (figure.layout.coloraxis.cmin, figure.layout.coloraxis.cmax) == (0.0, 1.0)
+        assert figure.layout.coloraxis.colorbar.title.text == "DM Fraction"
+        assert figure.layout.coloraxis.colorscale[0][1] == "#440154"
+        assert figure.layout.paper_bgcolor == "#0b0f19"
+        assert figure.layout.scene.aspectmode == "cube"
+        html = destination.read_text(encoding="utf-8").lstrip().lower()
+        assert html.startswith(("<!doctype html>", "<html>"))
+        assert html.rstrip().endswith("</html>")
+
+    @pytest.mark.asyncio
+    async def test_defaults_pass_no_styling_options(self, mocker, tmp_path):
+        from sci_etl_core.exporters.plotly_async import AsyncPlotly3DExporter
+
+        fig = mocker.MagicMock()
+        fig.to_html.return_value = "<html></html>"
+        scatter = mocker.patch("sci_etl_core.exporters.plotly_async.px.scatter_3d", return_value=fig)
+        await AsyncPlotly3DExporter(_plotly_config()).export(self._frame().assign(c="a"), str(tmp_path / "o.html"))
+        assert set(scatter.call_args.kwargs) == {"x", "y", "z", "color", "size", "hover_name", "title"}
+        fig.update_traces.assert_not_called()
+        fig.update_layout.assert_called_once()
+
+    @pytest.mark.parametrize(
+        ("kwargs", "message"),
+        [
+            ({"color_range": (1.0, 0.0)}, "must be increasing"),
+            ({"color_range": (0.0, 0.0)}, "must be increasing"),
+            ({"color_range": (0.0, float("inf"))}, "two finite numbers"),
+            ({"color_range": (0.0,)}, "two finite numbers"),
+            ({"hover_data_columns": ["a", "a"]}, "repeats a column"),
+        ],
+    )
+    def test_rejects_invalid_styling(self, kwargs, message):
+        with pytest.raises(ValueError, match=message):
+            ScatterPlotConfig(x_column="x", y_column="y", z_column="z", color_column="c", **kwargs)

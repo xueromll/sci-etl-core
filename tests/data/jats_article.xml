@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pmc-articleset>
+<article xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:mml="http://www.w3.org/1998/Math/MathML"
+         article-type="research-article">
+  <front>
+    <journal-meta><journal-title-group><journal-title>The Astrophysical Journal</journal-title></journal-title-group>
+    </journal-meta>
+    <article-meta>
+      <article-id pub-id-type="pmcid">PMC123</article-id>
+      <article-id pub-id-type="doi">10.1000/xyz</article-id>
+      <article-id pub-id-type="doi">10.1000/duplicate</article-id>
+      <title-group><article-title>Dark matter <!-- working title -->in <italic>ultra-diffuse</italic> galaxies</article-title></title-group>
+      <contrib-group>
+        <contrib contrib-type="author"><name><surname>van Dokkum</surname><given-names>Pieter</given-names></name></contrib>
+        <contrib contrib-type="author"><collab>The Dragonfly Team</collab></contrib>
+        <contrib contrib-type="editor"><name><surname>Editor</surname><given-names>An</given-names></name></contrib>
+        <contrib><string-name>Solo Author</string-name></contrib>
+        <contrib contrib-type="author"><name><surname>   </surname></name></contrib>
+      </contrib-group>
+      <pub-date pub-type="epub"><day>07</day><month>03</month><year>2024</year></pub-date>
+      <pub-date pub-type="ppub"><month>Jun</month><year>2024</year></pub-date>
+      <pub-date pub-type="collection"><year>unknown</year></pub-date>
+      <abstract abstract-type="graphical"><p>Graphical abstract.</p></abstract>
+      <abstract>
+        <sec><title>Background</title><p>UDGs are <bold>large</bold> but faint.</p></sec>
+        <sec><title>Results</title><p>DF44 has <inline-formula><mml:math><mml:mi>M</mml:mi></mml:math></inline-formula> mass.</p></sec>
+      </abstract>
+      <kwd-group><kwd>galaxies</kwd><kwd>dark matter</kwd><kwd> </kwd></kwd-group>
+    </article-meta>
+  </front>
+  <body>
+    <p>An unnumbered lead paragraph.</p>
+    <sec>
+      <label>1.</label>
+      <title>Introduction</title>
+      <p>Ultra-diffuse galaxies were found <xref ref-type="bibr" rid="r1">[1]</xref>.<fn-group><fn><p>A footnote.</p></fn></fn-group></p>
+      <p>Text before a list<list><list-item><p>first item</p></list-item><list-item><p>second item</p></list-item></list>and after it.</p>
+      <sec>
+        <title>Sample</title>
+        <fig id="f1"><label>Figure 1</label><caption><p>Images of DF44.</p></caption><graphic xlink:href="f1.jpg"/></fig>
+        <table-wrap>
+          <caption><title>Table 1</title></caption>
+          <table><thead><tr><th>Name</th><th>Distance</th></tr></thead>
+          <tbody><tr><td>DF44</td><td>100 Mpc</td></tr><tr><td> </td><td> </td></tr></tbody></table>
+          <table-wrap-foot><p>Table note.</p></table-wrap-foot>
+        </table-wrap>
+      </sec>
+    </sec>
+    <sec><p>A section without a title.</p></sec>
+  </body>
+  <back>
+    <ref-list>
+      <ref id="r1"><mixed-citation>van Dokkum P. et al. 2015, <italic>ApJL</italic>, 798, L45</mixed-citation></ref>
+      <ref id="r2"><element-citation><person-group><name><surname>Koda</surname></name></person-group><year>2015</year></element-citation></ref>
+      <ref id="r3"><note>no citation</note></ref>
+    </ref-list>
+  </back>
+</article>
+</pmc-articleset>

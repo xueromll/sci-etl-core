@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sci-etl-core"
-version = "0.3.0"
+version = "0.4.0"
 description = "Reusable, domain-agnostic ETL core for scientific text mining."
 readme = "README.md"
 license = "MIT"
@@ -106,6 +106,7 @@ warn_redundant_casts = true
 [[tool.mypy.overrides]]
 module = [
     "aiolimiter.*",
+    "lxml.*",
     "pandas.*",
     "pdfplumber.*",
     "plotly.*",

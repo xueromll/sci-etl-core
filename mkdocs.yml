@@ -126,6 +126,7 @@ nav:
           - Hybrid search: guide/search/hybrid-search.md
           - Filters and facets: guide/search/filters-and-facets.md
           - Text stores: guide/search/text-stores.md
+          - Backfilling from vector memory: guide/search/backfill.md
           - Discovery graphs: guide/search/discovery-graphs.md
           - Building a user interface: guide/search/user-interfaces.md
           - Store ownership: guide/search/store-ownership.md
@@ -136,7 +137,9 @@ nav:
           - Rate limiting: guide/rate-limiting.md
           - Synchronous components: guide/sync-components.md
           - Logging: guide/logging.md
+          - Progress events and metrics: guide/observability.md
           - Token usage: guide/token-usage.md
+          - LLM response caching: guide/llm-caching.md
       - Architecture: guide/architecture.md
   - CLI: cli/index.md
   - API reference:
