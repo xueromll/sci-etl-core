@@ -656,10 +656,21 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#passing-settings-to-components" class="md-nav__link">
+  <a href="#building-components-from-the-config" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Passing settings to components
+        Building components from the config
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#renamed-pipeline-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Renamed pipeline settings
       
     </span>
   </a>
@@ -854,6 +865,8 @@
       
         
           
+        
+      
         
       
         
@@ -1073,6 +1086,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guide/search/backfill/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backfilling from vector memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guide/search/discovery-graphs/" class="md-nav__link">
         
   
@@ -1166,6 +1207,10 @@
   
     
     
+      
+        
+      
+        
       
         
       
@@ -1401,6 +1446,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guide/observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Progress events and metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guide/token-usage/" class="md-nav__link">
         
   
@@ -1409,6 +1482,34 @@
     
   
     Token usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/llm-caching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM response caching
   
 
     
@@ -2391,10 +2492,21 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#passing-settings-to-components" class="md-nav__link">
+  <a href="#building-components-from-the-config" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Passing settings to components
+        Building components from the config
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#renamed-pipeline-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Renamed pipeline settings
       
     </span>
   </a>
@@ -2436,7 +2548,7 @@
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseAppConfig</span><span class="p">,</span> <span class="n">load_config</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">config</span> <span class="o">=</span> <span class="n">load_config</span><span class="p">(</span><span class="n">BaseAppConfig</span><span class="p">,</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"config.yaml"</span><span class="p">),</span> <span class="n">Path</span><span class="p">(</span><span class="s2">".env"</span><span class="p">))</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nb">print</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">max_records</span><span class="p">)</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nb">print</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">total_limit</span><span class="p">)</span>
 </code></pre></div>
 <div class="highlight"><span class="filename">config.yaml</span><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">llm</span><span class="p">:</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">base_url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://api.openai.com/v1</span>
@@ -2450,11 +2562,17 @@
 <a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="nt">max_concurrency</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
 <a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="nt">pipeline</span><span class="p">:</span>
 <a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span><span class="nt">search_query</span><span class="p">:</span><span class="w"> </span><span class="s">"all:galaxy"</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">  </span><span class="nt">max_records</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">  </span><span class="nt">total_limit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
 <a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">  </span><span class="nt">page_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
 <a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">  </span><span class="nt">search_delay</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3.0</span>
 <a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">  </span><span class="nt">sleep_between</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5.0</span>
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">  </span><span class="nt">max_workers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">6</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">  </span><span class="nt">max_concurrency</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">6</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">  </span><span class="nt">newest_first</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="nt">search</span><span class="p">:</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">  </span><span class="nt">bm25</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="nv">10</span><span class="p p-Indicator">,</span><span class="nt"> abstract</span><span class="p">:</span><span class="w"> </span><span class="nv">4</span><span class="p p-Indicator">,</span><span class="nt"> body</span><span class="p">:</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">}</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">  </span><span class="nt">fusion</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">k</span><span class="p">:</span><span class="w"> </span><span class="nv">60</span><span class="p p-Indicator">}</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">  </span><span class="nt">hybrid</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">candidate_pool</span><span class="p">:</span><span class="w"> </span><span class="nv">100</span><span class="p p-Indicator">,</span><span class="nt"> chunk_pool_factor</span><span class="p">:</span><span class="w"> </span><span class="nv">5</span><span class="p p-Indicator">}</span>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">  </span><span class="nt">graph</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">depth</span><span class="p">:</span><span class="w"> </span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="nt"> fanout</span><span class="p">:</span><span class="w"> </span><span class="nv">8</span><span class="p p-Indicator">,</span><span class="nt"> min_weight</span><span class="p">:</span><span class="w"> </span><span class="nv">0.35</span><span class="p p-Indicator">}</span>
 </code></pre></div>
 <table>
 <thead>
@@ -2462,7 +2580,7 @@
 <th>Section</th>
 <th>Model</th>
 <th>Fields (defaults)</th>
-<th>Pass to</th>
+<th>Builds</th>
 </tr>
 </thead>
 <tbody>
@@ -2470,61 +2588,87 @@
 <td><code>llm</code></td>
 <td><code>LLMConfig</code></td>
 <td><code>api_key</code>, <code>base_url</code> (<code>https://api.openai.com/v1</code>), <code>model</code> (<code>gpt-4o-mini</code>), <code>timeout</code> (120)</td>
-<td><code>AsyncOpenAICompatibleClient</code></td>
+<td><code>AsyncOpenAICompatibleClient.from_config</code></td>
 </tr>
 <tr>
 <td><code>http</code></td>
 <td><code>HttpConfig</code></td>
 <td><code>user_agent</code> (<code>sci-etl-core/0.1</code>), <code>max_retries</code> (3), <code>backoff_factor</code> (2.0), <code>timeout</code> (25)</td>
-<td><code>build_async_client</code>, <code>AsyncArxivExtractor</code></td>
+<td><code>build_client()</code>, <code>AsyncArxivExtractor.from_config</code></td>
 </tr>
 <tr>
 <td><code>full_text</code></td>
 <td><code>RateLimitConfig</code></td>
 <td><code>max_concurrency</code> (4), <code>max_rate</code> (unset), <code>time_period</code> (1.0)</td>
-<td><code>build_rate_limiter</code></td>
+<td><code>build_limiter()</code></td>
 </tr>
 <tr>
 <td><code>pipeline</code></td>
 <td><code>PipelineConfig</code></td>
-<td><code>search_query</code> (<code>""</code>), <code>max_records</code> (100), <code>page_size</code> (100), <code>search_delay</code> (3.0), <code>sleep_between</code> (5.0), <code>max_workers</code> (6)</td>
-<td><code>AsyncETLPipeline</code>, <code>AsyncArxivExtractor</code>, <code>run()</code></td>
+<td><code>search_query</code> (<code>""</code>), <code>total_limit</code> (100), <code>page_size</code> (100), <code>search_delay</code> (3.0), <code>sleep_between</code> (5.0), <code>max_concurrency</code> (6), <code>newest_first</code> (false)</td>
+<td><code>AsyncETLPipeline.from_config</code>, <code>run_arguments()</code>, <code>AsyncArxivExtractor.from_config</code></td>
+</tr>
+<tr>
+<td><code>search</code></td>
+<td><code>SearchConfig</code></td>
+<td><code>bm25</code>, <code>fusion</code>, <code>hybrid</code>, <code>graph</code>, with the defaults of the dataclasses they build</td>
+<td><code>bm25.to_weights()</code>, <code>fusion.to_params()</code>, <code>hybrid.to_params()</code>, <code>graph.to_params()</code></td>
 </tr>
 </tbody>
 </table>
-<h2 id="passing-settings-to-components">Passing settings to components<a class="headerlink" href="#passing-settings-to-components" title="Permanent link">&para;</a></h2>
-<p><strong>Components don't read the config on their own</strong> — copy the values into the
-constructors:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncArxivExtractor</span><span class="p">,</span> <span class="n">AsyncOpenAICompatibleClient</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.http_async</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_async_client</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.parsers</span><span class="w"> </span><span class="kn">import</span> <span class="n">LatexTarballParser</span><span class="p">,</span> <span class="n">PdfPlumberParser</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">client</span> <span class="o">=</span> <span class="n">build_async_client</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">timeout</span><span class="p">,</span> <span class="n">user_agent</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">user_agent</span><span class="p">)</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">extractor</span> <span class="o">=</span> <span class="n">AsyncArxivExtractor</span><span class="p">(</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
+<h2 id="building-components-from-the-config">Building components from the config<a class="headerlink" href="#building-components-from-the-config" title="Permanent link">&para;</a></h2>
+<p>Each section builds, or is passed to, the components it configures. Values you
+pass yourself override the config:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncArxivExtractor</span><span class="p">,</span> <span class="n">AsyncETLPipeline</span><span class="p">,</span> <span class="n">AsyncOpenAICompatibleClient</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.parsers</span><span class="w"> </span><span class="kn">import</span> <span class="n">LatexTarballParser</span><span class="p">,</span> <span class="n">PdfPlumberParser</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">extractor</span> <span class="o">=</span> <span class="n">AsyncArxivExtractor</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">config</span><span class="o">.</span><span class="n">http</span><span class="p">,</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">config</span><span class="o">.</span><span class="n">pipeline</span><span class="p">,</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">client</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">build_client</span><span class="p">(),</span>
 <a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">pdf_parser</span><span class="o">=</span><span class="n">PdfPlumberParser</span><span class="p">(),</span>
 <a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="n">latex_parser</span><span class="o">=</span><span class="n">LatexTarballParser</span><span class="p">(),</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    <span class="n">max_retries</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">max_retries</span><span class="p">,</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>    <span class="n">backoff_factor</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">backoff_factor</span><span class="p">,</span>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>    <span class="n">sleep_before_search</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">search_delay</span><span class="p">,</span>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="p">)</span>
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="n">llm</span> <span class="o">=</span> <span class="n">AsyncOpenAICompatibleClient</span><span class="p">(</span>
-<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>    <span class="n">api_key</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">api_key</span><span class="p">,</span>
-<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>    <span class="n">base_url</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span>
-<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>    <span class="n">model</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
-<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>    <span class="n">default_timeout</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">timeout</span><span class="p">,</span>
-<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="p">)</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    <span class="n">rate_limiter</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">full_text</span><span class="o">.</span><span class="n">build_limiter</span><span class="p">(),</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="p">)</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="n">llm</span> <span class="o">=</span> <span class="n">AsyncOpenAICompatibleClient</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="p">)</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">AsyncETLPipeline</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    <span class="n">config</span><span class="o">.</span><span class="n">pipeline</span><span class="p">,</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>    <span class="n">extractor</span><span class="o">=</span><span class="n">extractor</span><span class="p">,</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>    <span class="n">relevance_filter</span><span class="o">=</span><span class="n">relevance_filter</span><span class="p">,</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>    <span class="n">entity_extractor</span><span class="o">=</span><span class="n">entity_extractor</span><span class="p">,</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>    <span class="n">exporter</span><span class="o">=</span><span class="n">exporter</span><span class="p">,</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>    <span class="n">state_manager</span><span class="o">=</span><span class="n">state_manager</span><span class="p">,</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>    <span class="n">destination</span><span class="o">=</span><span class="s2">"results.csv"</span><span class="p">,</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="p">)</span>
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">run_arguments</span><span class="p">())</span>
 </code></pre></div>
-<p><code>api_key</code> accepts the loaded <code>SecretStr</code> as-is. The pipeline settings go to the
-pipeline and its <code>run</code> call:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">AsyncETLPipeline</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">max_concurrency</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">max_workers</span><span class="p">)</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="n">query</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">search_query</span><span class="p">,</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="n">page_size</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">page_size</span><span class="p">,</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="n">total_limit</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">max_records</span><span class="p">,</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="n">sleep_between</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">sleep_between</span><span class="p">,</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="p">)</span>
+<p><code>AsyncArxivExtractor.from_config</code> takes <code>max_retries</code> and <code>backoff_factor</code>
+from <code>http</code> and <code>search_delay</code> from <code>pipeline</code>. <code>AsyncOpenAICompatibleClient</code>
+takes <code>api_key</code> (the loaded <code>SecretStr</code> as-is), <code>base_url</code>, <code>model</code>, and
+<code>timeout</code> as <code>default_timeout</code>. Both accept any other constructor argument,
+such as <code>logger</code> or <code>rate_limiter</code>, as a keyword. The PubMed, Semantic
+Scholar, and OpenAlex extractors have no <code>from_config</code>; pass
+<code>config.http.max_retries</code> and <code>config.http.backoff_factor</code> to their
+constructors yourself. The pipeline takes <code>max_concurrency</code>, and <code>run_arguments()</code> returns
+<code>query</code>, <code>page_size</code>, <code>total_limit</code>, <code>sleep_between</code>, and <code>newest_first</code> for
+<code>run()</code>. <code>ETLPipeline.from_config</code> works the same way.</p>
+<p>The search section builds the parameter dataclasses for
+<a href="../../guide/search/">local search</a>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.search</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncHybridSearcher</span><span class="p">,</span> <span class="n">AsyncSqliteFts5Store</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">store</span> <span class="o">=</span> <span class="n">AsyncSqliteFts5Store</span><span class="p">(</span><span class="s2">"search.db"</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">search</span><span class="o">.</span><span class="n">bm25</span><span class="o">.</span><span class="n">to_weights</span><span class="p">())</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">searcher</span> <span class="o">=</span> <span class="n">AsyncHybridSearcher</span><span class="p">(</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="n">store</span><span class="p">,</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="n">finder</span><span class="p">,</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="n">fusion</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">search</span><span class="o">.</span><span class="n">fusion</span><span class="o">.</span><span class="n">to_params</span><span class="p">(),</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>    <span class="n">params</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">search</span><span class="o">.</span><span class="n">hybrid</span><span class="o">.</span><span class="n">to_params</span><span class="p">(),</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="p">)</span>
 </code></pre></div>
+<h2 id="renamed-pipeline-settings">Renamed pipeline settings<a class="headerlink" href="#renamed-pipeline-settings" title="Permanent link">&para;</a></h2>
+<p>In 0.4, <code>pipeline.max_records</code> became <code>total_limit</code> and <code>pipeline.max_workers</code>
+became <code>max_concurrency</code>, the names <code>run()</code> and the pipeline use. The old keys
+still load, with a <code>DeprecationWarning</code>, until 0.5. Setting an old and a new key
+to different values is a <code>ConfigurationError</code>.</p>
 <h2 id="details">Details<a class="headerlink" href="#details" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>API key.</strong> The key comes from the <code>LLM_API_KEY</code> environment variable
@@ -2541,12 +2685,15 @@ pipeline and its <code>run</code> call:</p>
 <li><strong>Async loading.</strong> <code>load_config_async</code> takes the same arguments.</li>
 <li><strong>Errors.</strong> A missing or unparseable YAML file, a file whose top level isn't
   a mapping, and a validation failure all raise <code>ConfigurationError</code>.
-  Validation checks ranges too: counts such as <code>max_workers</code>, <code>page_size</code>,
-  <code>max_retries</code>, and <code>max_concurrency</code> must be at least 1, timeouts and
-  <code>time_period</code> must be positive, and delays and <code>max_records</code> must not be
-  negative. A validation message lists each failing key and the reason on its
-  own line but never the value, so an API key can't reach a log through it.
-  <code>validate_config(config_cls, raw, source)</code> applies the same checks to
+  Validation checks ranges too: counts such as <code>max_concurrency</code>, <code>page_size</code>,
+  and <code>max_retries</code> must be at least 1, timeouts and <code>time_period</code> must be
+  positive, delays and <code>total_limit</code> must not be negative, BM25 weights must
+  be finite and not negative, and <code>graph.min_weight</code> must be finite.
+  <code>fusion.weights</code> is checked only when <code>fusion.to_params()</code> builds
+  the parameters, which raises <code>ValueError</code> for a negative or non-finite
+  weight. A validation message lists each failing key and the reason
+  on its own line but never the value, so an API key can't reach a log through
+  it. <code>validate_config(config_cls, raw, source)</code> applies the same checks to
   settings loaded some other way.</li>
 </ul>
 

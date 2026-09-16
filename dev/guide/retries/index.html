@@ -803,6 +803,8 @@
       
         
       
+        
+      
     
     
     
@@ -1007,6 +1009,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../search/backfill/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backfilling from vector memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../search/discovery-graphs/" class="md-nav__link">
         
   
@@ -1102,6 +1132,10 @@
   
     
     
+      
+        
+      
+        
       
         
       
@@ -1350,6 +1384,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Progress events and metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../token-usage/" class="md-nav__link">
         
   
@@ -1358,6 +1420,34 @@
     
   
     Token usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../llm-caching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM response caching
   
 
     
@@ -2349,9 +2439,11 @@
 
 
 <h1 id="retries">Retries<a class="headerlink" href="#retries" title="Permanent link">&para;</a></h1>
-<p><code>AsyncArxivExtractor</code>, <code>AsyncOpenAICompatibleClient</code>, and <code>AsyncOpenAIEmbedder</code>
+<p><code>AsyncArxivExtractor</code>, <code>AsyncPubMedExtractor</code>, <code>AsyncSemanticScholarExtractor</code>,
+<code>AsyncOpenAlexExtractor</code>, <code>AsyncOpenAICompatibleClient</code>, and <code>AsyncOpenAIEmbedder</code>
 retry throttling (<code>429</code>), server errors, and transport faults, making at most
-<code>max_retries</code> attempts per request (default 3):</p>
+<code>max_retries</code> attempts per request (default 3). The PubMed, Semantic Scholar,
+and OpenAlex extractors retry a <code>408</code> request timeout too:</p>
 <ul>
 <li><strong>Backoff.</strong> Between attempts they wait <code>backoff_factor ** attempt</code> seconds:
   1 s, then 2 s with the default factor of 2.</li>
@@ -2361,7 +2453,7 @@ retry throttling (<code>429</code>), server errors, and transport faults, making
   seconds (default 60).</li>
 <li><strong>One retry layer.</strong> The OpenAI SDK's own retries are turned off, so
   <code>max_retries</code> is the total number of attempts.</li>
-<li><strong>Visibility.</strong> The arXiv extractor logs each retry and its wait through
+<li><strong>Visibility.</strong> The extractors log each retry and its wait through
   <code>logger</code>.</li>
 </ul>
 <p>The client from <code>build_async_client</code> also retries failed connections at the

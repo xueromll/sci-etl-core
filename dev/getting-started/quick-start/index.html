@@ -883,6 +883,8 @@
       
         
       
+        
+      
     
     
     
@@ -1084,6 +1086,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guide/search/backfill/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backfilling from vector memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guide/search/discovery-graphs/" class="md-nav__link">
         
   
@@ -1177,6 +1207,10 @@
   
     
     
+      
+        
+      
+        
       
         
       
@@ -1412,6 +1446,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guide/observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Progress events and metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guide/token-usage/" class="md-nav__link">
         
   
@@ -1420,6 +1482,34 @@
     
   
     Token usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/llm-caching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM response caching
   
 
     
@@ -2547,7 +2637,8 @@ a <code>.env</code> file instead, see <a href="../configuration/">Configuration<
 <p><code>total_limit</code> counts <strong>relevant</strong> records only, is never exceeded, and defaults
 to <code>page_size</code>. <code>max_concurrency</code> and <code>page_size</code> must be at least 1 and
 <code>total_limit</code> must not be negative; other values raise <code>ValueError</code> before any
-request is made. The legacy <code>max_records=</code> argument sets both values.
+request is made. The deprecated <code>max_records=</code> argument sets both values
+and will be removed in 0.5.
 <code>AsyncArxivExtractor</code> also waits <code>sleep_before_search</code> seconds (default 3)
 before every listing request, to respect arXiv's rate limits.</p>
 <p>On exit, <code>async with pipeline</code> awaits <code>aclose()</code> on every entry in
@@ -2567,7 +2658,9 @@ reads:</p>
 <li><code>AsyncLLMEntityExtractor</code> reads the list under <code>result_key</code> (default
   <code>"items"</code>), or the only value if the response has exactly one key. The list
   must hold objects; <code>null</code> means no entities and a lone object counts as one.
-  Any other shape raises <code>LLMError</code>, so the record is retried.</li>
+  Any other value there raises <code>LLMError</code>, so the record is retried. A
+  response with several keys but no <code>result_key</code> yields no entities, and the
+  record is marked processed, so name the key in the prompt.</li>
 <li><code>AsyncCsvUpsertExporter</code> takes each item's <code>key_column</code> value as the row key,
   so the extraction prompt must ask for that field.</li>
 </ul>

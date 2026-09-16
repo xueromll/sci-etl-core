@@ -798,6 +798,8 @@
       
         
       
+        
+      
     
     
     
@@ -999,6 +1001,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guide/search/backfill/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backfilling from vector memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guide/search/discovery-graphs/" class="md-nav__link">
         
   
@@ -1092,6 +1122,10 @@
   
     
     
+      
+        
+      
+        
       
         
       
@@ -1327,6 +1361,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guide/observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Progress events and metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guide/token-usage/" class="md-nav__link">
         
   
@@ -1335,6 +1397,34 @@
     
   
     Token usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/llm-caching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM response caching
   
 
     
@@ -2243,10 +2333,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#current-status-v03" class="md-nav__link">
+  <a href="#current-status-v04" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Current Status — v0.3
+        Current Status — v0.4
       
     </span>
   </a>
@@ -2254,15 +2344,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#next-up-v04" class="md-nav__link">
+  <a href="#released-v04" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Next Up — v0.4
+        Released — v0.4
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Next Up — v0.4">
+    <nav class="md-nav" aria-label="Released — v0.4">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2474,10 +2564,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#current-status-v03" class="md-nav__link">
+  <a href="#current-status-v04" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Current Status — v0.3
+        Current Status — v0.4
       
     </span>
   </a>
@@ -2485,15 +2575,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#next-up-v04" class="md-nav__link">
+  <a href="#released-v04" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Next Up — v0.4
+        Released — v0.4
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Next Up — v0.4">
+    <nav class="md-nav" aria-label="Released — v0.4">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2600,7 +2690,7 @@
 shift with community feedback. Want to help with any item? Comment on the
 matching issue or open one. Items marked <strong>good first issue</strong> are approachable
 for newcomers.</p>
-<h2 id="current-status-v03">Current Status — v0.3<a class="headerlink" href="#current-status-v03" title="Permanent link">&para;</a></h2>
+<h2 id="current-status-v04">Current Status — v0.4<a class="headerlink" href="#current-status-v04" title="Permanent link">&para;</a></h2>
 <p><code>sci-etl-core</code> is functional and used in production for scientific corpus ETL,
 including <a href="https://github.com/xueromll/udg-catalogue">udg-catalogue</a>.</p>
 <p><strong>Shipped</strong></p>
@@ -2675,22 +2765,22 @@ including <a href="https://github.com/xueromll/udg-catalogue">udg-catalogue</a>.
   udg-catalogue onto the library, including parity checks against the old
   code.</li>
 </ul>
-<h2 id="next-up-v04">Next Up — v0.4<a class="headerlink" href="#next-up-v04" title="Permanent link">&para;</a></h2>
+<h2 id="released-v04">Released — v0.4<a class="headerlink" href="#released-v04" title="Permanent link">&para;</a></h2>
 <h3 id="reliability">Reliability<a class="headerlink" href="#reliability" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Graceful shutdown built in.</strong> Wire <code>ShutdownSignal</code> and
   <code>AsyncStateManager.flush()</code> into <code>AsyncETLPipeline</code>, so an interrupt drains
   in-flight work without user-side task management. It should also work
   through <code>ETLPipeline</code>, whose background event loop can't install signal
-  handlers today.</li>
+  handlers today. <em>Shipped in 0.4.</em></li>
 <li><strong>Incremental resume for shifting listings.</strong> Pick up new submissions in a
   newest-first listing without rescanning from offset 0, for example by
   tracking the newest submission already seen. udg-catalogue rescans from 0
   on every run, paying a listing request and the search delay for every page
-  it has already seen.</li>
+  it has already seen. <em>Shipped in 0.4.</em></li>
 <li><strong>Rate-limiter injection.</strong> Accept an <code>AsyncRateLimiter</code> in extractors and in
   LLM and embedding clients, with per-host limits and limiters shared across
-  components, replacing the wrapper class the rate limiting guide currently shows.</li>
+  components, replacing the wrapper class the rate limiting guide currently shows. <em>Shipped in 0.4.</em></li>
 </ul>
 <h3 id="found-in-the-udg-catalogue-migration">Found in the udg-catalogue migration<a class="headerlink" href="#found-in-the-udg-catalogue-migration" title="Permanent link">&para;</a></h3>
 <p>Each of these is code udg-catalogue still carries on top of the library (see
@@ -2698,61 +2788,61 @@ including <a href="https://github.com/xueromll/udg-catalogue">udg-catalogue</a>.
 <ul>
 <li><strong>Record validation in the pipeline.</strong> Accept a <code>RecordValidator</code> on
   <code>AsyncLLMEntityExtractor</code>, logging what it rejects, so projects no longer
-  need a wrapper extractor to drop invalid entities before export.</li>
+  need a wrapper extractor to drop invalid entities before export. <em>Shipped in 0.4.</em></li>
 <li><strong>Config-driven components.</strong> Let <code>HttpConfig</code>, <code>RateLimitConfig</code>, and
   <code>PipelineConfig</code> configure components directly, instead of being copied into
   constructors by hand. Finish aligning <code>PipelineConfig</code> with <code>run()</code> at the
   same time: <code>page_size</code> and <code>search_delay</code> are already config fields, but
   <code>max_records</code> and <code>max_workers</code> still need reconciling with <code>total_limit</code>
   and <code>max_concurrency</code>. Include the search and discovery parameter
-  dataclasses (<code>BM25Weights</code>, <code>FusionParams</code>, <code>HybridParams</code>, <code>GraphParams</code>).</li>
+  dataclasses (<code>BM25Weights</code>, <code>FusionParams</code>, <code>HybridParams</code>, <code>GraphParams</code>). <em>Shipped in 0.4.</em></li>
 <li><strong>Richer 3D plots.</strong> Let <code>ScatterPlotConfig</code> take hover data, a hover
   template, a continuous color scale, and a fixed color range, so
-  <code>AsyncPlotly3DExporter</code> can replace project-specific Plotly figures.</li>
+  <code>AsyncPlotly3DExporter</code> can replace project-specific Plotly figures. <em>Shipped in 0.4.</em></li>
 <li><strong>More processor steps.</strong> A <code>ValueClipStep</code> that clamps numeric columns
   during post-processing, as the CSV exporter's <code>numeric_clip</code> does during
-  export, and a step that sorts rows and orders columns.
-  <em>(good first issue: <code>ValueClipStep</code>)</em></li>
+  export, and a step that sorts rows and orders columns. <em>Shipped in 0.4.</em></li>
 </ul>
 <h3 id="new-capabilities">New capabilities<a class="headerlink" href="#new-capabilities" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>LLM response caching.</strong> Pluggable cache (in-memory + on-disk) keyed on
   prompt and model, to cut cost and speed up re-runs. Injected like every other
-  collaborator, so custom backends (e.g. Redis) are simple to add.
-  <em>(good first issue: in-memory backend)</em></li>
+  collaborator, so custom backends (e.g. Redis) are simple to add. <em>Shipped in 0.4.</em></li>
 <li><strong>New extractors.</strong> PubMed, Semantic Scholar, and OpenAlex, all behind the
-  existing <code>AsyncExtractor</code> interface. Semantic Scholar and OpenAlex return
-  reference lists, which citation edges in discovery graphs could use (see
-  v0.5+). <em>(good first issue: pick one source)</em></li>
-<li><strong>New parsers.</strong> DOCX and structured JATS/XML parsing.</li>
+  existing <code>AsyncExtractor</code> interface. <code>AsyncOpenAlexExtractor</code> stores each
+  paper's reference list under <code>references</code>, which citation edges in
+  discovery graphs could use (see v0.5+). <em>Shipped in 0.4.</em></li>
+<li><strong>New parsers.</strong> DOCX and structured JATS/XML parsing. <em>Shipped in 0.4.</em></li>
 <li><strong>Pipeline observability.</strong> Structured, per-record progress events and simple
   run metrics (counts, durations, failures), beyond the current <code>logger</code>
   callback. The clients already count token usage; fold it into those
-  metrics.</li>
+  metrics. <em>Shipped in 0.4.</em></li>
 </ul>
 <h3 id="local-search">Local search<a class="headerlink" href="#local-search" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Proximity queries.</strong> <code>NEAR("a b", 10)</code> in the query language.</li>
+<li><strong>Proximity queries.</strong> <code>NEAR("a b", 10)</code> in the query language. <em>Shipped in 0.4.</em></li>
 <li><strong>Backfill from vector memory.</strong> Rebuild a text index from the chunk text
   already in an <code>AsyncSqliteEmbeddingStore</code>, so existing deployments don't
   have to fetch full texts again. Overlapping chunk windows must be merged
-  without repeating words, or BM25 over-counts words at window boundaries.</li>
+  without repeating words, or BM25 over-counts words at window boundaries. <em>Shipped in 0.4.</em></li>
 <li><strong>Tune the semantic candidate pool.</strong> Measure how many distinct records the
   top chunks span on a real memory database, such as udg-catalogue's, and
-  adjust the <code>chunk_pool_factor</code> default of 5 if it is too small.</li>
+  adjust the <code>chunk_pool_factor</code> default of 5 if it is too small. <em>Not in 0.4;
+  still open.</em></li>
 <li><strong>Richer snippets.</strong> Highlights from every matching field instead of the one
   FTS5 picks, and a snippet for hits found only by the semantic leg, which
-  needs <code>find_similar_articles</code> to return each record's best chunk.</li>
+  needs <code>find_similar_articles</code> to return each record's best chunk. <em>Shipped in 0.4.</em></li>
 <li><strong>Range filters.</strong> Filter and count dates and years by range, not only by
-  exact value.</li>
+  exact value. <em>Shipped in 0.4.</em></li>
 <li><strong>Substring and CJK matching.</strong> An optional trigram index, if corpora need
-  it. It roughly doubles the index size.</li>
+  it. It roughly doubles the index size. <em>Not in 0.4; still open.</em></li>
 </ul>
 <h3 id="project-health">Project health<a class="headerlink" href="#project-health" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Retire the <code>requests</code> session helper.</strong> <code>sci_etl_core.http.build_retrying_session</code>
   is a synchronous leftover that no component uses. Deprecate it, and drop
-  <code>requests</code> from the <code>full</code> extra once it's removed.</li>
+  <code>requests</code> from the <code>full</code> extra once it's removed. <em>Deprecated in 0.4;
+  removal in 0.5.</em></li>
 </ul>
 <h2 id="later-v05">Later — v0.5+<a class="headerlink" href="#later-v05" title="Permanent link">&para;</a></h2>
 <ul>
@@ -2777,9 +2867,8 @@ including <a href="https://github.com/xueromll/udg-catalogue">udg-catalogue</a>.
   <code>AsyncEmbeddingStore</code> for corpora larger than the exact linear-scan SQLite
   store handles comfortably.</li>
 <li><strong>Citation edges.</strong> An edge source for co-citation and bibliographic
-  coupling, once an extractor supplies reference lists (see <strong>New
-  extractors</strong> in v0.4). Where references live on a record still has to be
-  agreed with that work.</li>
+  coupling, now that <code>AsyncOpenAlexExtractor</code> supplies reference lists under
+  <code>metadata["references"]</code> (see <strong>New extractors</strong> in v0.4).</li>
 <li><strong>Discovery interface.</strong> An interactive search and graph view built on the
   <code>sci_etl_core.discovery</code> read-model, outside this repository: either a
   subcommand of <a href="https://github.com/xueromll/sci-etl-cli">sci-etl-cli</a> or an
