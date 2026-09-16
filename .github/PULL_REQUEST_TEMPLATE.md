@@ -24,7 +24,7 @@ Closes #
 - [ ] PEP 8 naming; American English identifiers and docstrings
 - [ ] No domain-specific constants added to the core
 - [ ] Public API changes reflected in the relevant `__init__.py` and `__all__`
-- [ ] Docs updated (README / MIGRATION / ROADMAP) if user-facing
+- [ ] Docs updated (`docs/` pages / MIGRATION / ROADMAP) if user-facing, and `mkdocs build --strict` passes
 
 ## How Was This Tested?
 

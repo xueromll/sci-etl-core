@@ -5,6 +5,7 @@ dist/
 *.egg-info/
 
 code.txt
+site/
 .coverage
 coverage.txt
 

@@ -98,7 +98,7 @@ including [udg-catalogue](https://github.com/xueromll/udg-catalogue).
   it has already seen.
 - **Rate-limiter injection.** Accept an `AsyncRateLimiter` in extractors and in
   LLM and embedding clients, with per-host limits and limiters shared across
-  components, replacing the wrapper class the README currently shows.
+  components, replacing the wrapper class the rate limiting guide currently shows.
 
 ### Found in the udg-catalogue migration
 

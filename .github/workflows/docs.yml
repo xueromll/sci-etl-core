@@ -1,0 +1,168 @@
+name: Docs
+
+on:
+  push:
+    branches: [master]
+    tags: ["v*"]
+  pull_request:
+  repository_dispatch:
+    types: [cli-docs-updated]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Publish the selected branch or tag as this version, e.g. 0.3. Leave empty to rebuild dev and the latest release."
+        required: false
+        default: ""
+      alias:
+        description: "Alias to point at that version, e.g. latest."
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('docs-{0}', github.ref) || 'docs-publish' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  CLI_REPOSITORY: xueromll/sci-etl-cli
+
+jobs:
+  plan:
+    name: Choose the versions to build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      targets: ${{ steps.targets.outputs.targets }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: List the builds
+        id: targets
+        shell: python
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_ALIAS: ${{ inputs.alias }}
+        run: |
+          import json
+          import os
+          import re
+          import subprocess
+
+          RELEASE = re.compile(r"v(\d+)\.(\d+)\.(\d+)")
+
+
+          def release_tags(*git_args):
+              output = subprocess.run(["git", *git_args], check=True, capture_output=True, text=True).stdout
+              names = {line.rsplit("refs/tags/", 1)[-1].strip() for line in output.splitlines()}
+              releases = [name for name in names if RELEASE.fullmatch(name)]
+              return sorted(releases, key=lambda name: tuple(map(int, RELEASE.fullmatch(name).groups())))
+
+
+          def docs_version(tag):
+              match = RELEASE.fullmatch(tag)
+              return f"{match[1]}.{match[2]}" if match else tag.removeprefix("v")
+
+
+          def has_docs(ref):
+              return subprocess.run(["git", "cat-file", "-e", f"{ref}:mkdocs.yml"], capture_output=True).returncode == 0
+
+
+          def target(ref, cli_ref, version="", alias=""):
+              return {"ref": ref, "cli_ref": cli_ref, "version": version, "alias": alias}
+
+
+          event = os.environ["EVENT_NAME"]
+          ref_name = os.environ["REF_NAME"]
+          default_branch = os.environ["DEFAULT_BRANCH"]
+          core_releases = release_tags("tag", "--list", "v*")
+          cli_releases = release_tags("ls-remote", "--tags", f"https://github.com/{os.environ['CLI_REPOSITORY']}.git")
+          cli_release = cli_releases[-1] if cli_releases else "HEAD"
+
+          if event == "pull_request":
+              targets = [target("", "HEAD")]
+          elif event == "workflow_dispatch" and os.environ["INPUT_VERSION"]:
+              cli_ref = cli_release if os.environ["REF_TYPE"] == "tag" else "HEAD"
+              targets = [target(ref_name, cli_ref, os.environ["INPUT_VERSION"], os.environ["INPUT_ALIAS"])]
+          elif event == "push" and os.environ["REF_TYPE"] == "tag":
+              newest = bool(core_releases) and ref_name == core_releases[-1]
+              targets = [target(ref_name, cli_release, docs_version(ref_name), "latest" if newest else "")]
+          elif event == "push":
+              targets = [target(ref_name, "HEAD", "dev")]
+          else:
+              targets = [target(default_branch, "HEAD", "dev")]
+              if core_releases and has_docs(core_releases[-1]):
+                  newest = core_releases[-1]
+                  targets.append(target(newest, cli_release, docs_version(newest), "latest"))
+
+          print(json.dumps(targets, indent=2))
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as handle:
+              handle.write(f"targets={json.dumps(targets)}\n")
+
+  build:
+    name: ${{ matrix.target.version && format('Publish {0}', matrix.target.version) || 'Build the site' }}
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        target: ${{ fromJSON(needs.plan.outputs.targets) }}
+    env:
+      SCI_ETL_CLI_DIR: .sci-etl-cli
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ matrix.target.ref }}
+          fetch-depth: 0
+
+      - name: Check out the CLI documentation
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ env.CLI_REPOSITORY }}
+          ref: ${{ matrix.target.cli_ref != 'HEAD' && matrix.target.cli_ref || '' }}
+          path: .sci-etl-cli
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install the documentation tools
+        run: |
+          python -m pip install -e ".[docs,async,llm,pdf]" click rich
+          python -m pip install --no-deps ./.sci-etl-cli
+
+      - name: Build the site
+        if: matrix.target.version == ''
+        run: python -m mkdocs build --strict
+
+      - name: Publish the version
+        if: matrix.target.version != ''
+        env:
+          VERSION: ${{ matrix.target.version }}
+          ALIAS: ${{ matrix.target.alias }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -n "$ALIAS" ]; then
+            mike deploy --push --update-aliases "$VERSION" "$ALIAS"
+            mike set-default --push "$ALIAS"
+          else
+            mike deploy --push "$VERSION"
+          fi

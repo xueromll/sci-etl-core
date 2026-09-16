@@ -1,0 +1,162 @@
+site_name: sci-etl-core
+site_description: Domain-agnostic ETL building blocks for scientific text mining, and the sci-etl CLI that runs them from YAML.
+site_url: https://xueromll.github.io/sci-etl-core/
+repo_url: https://github.com/xueromll/sci-etl-core
+repo_name: xueromll/sci-etl-core
+edit_uri: ""
+copyright: Released under the MIT License.
+
+strict: true
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+exclude_docs: |
+  /hooks.py
+  __pycache__/
+
+hooks:
+  - docs/hooks.py
+
+theme:
+  name: material
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - content.code.copy
+    - navigation.footer
+    - navigation.indexes
+    - navigation.sections
+    - navigation.tabs
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+
+extra:
+  version:
+    provider: mike
+    default: latest
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/xueromll/sci-etl-core
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/sci-etl-core/
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          inventories:
+            - https://docs.python.org/3/objects.inv
+          options:
+            docstring_style: google
+            filters: ["!^_"]
+            heading_level: 2
+            members_order: source
+            merge_init_into_class: true
+            separate_signature: true
+            show_if_no_docstring: true
+            show_root_heading: true
+            show_root_full_path: true
+            show_signature_annotations: true
+            show_source: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            signature_crossrefs: true
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      base_path: ["."]
+      check_paths: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - mkdocs-click
+
+nav:
+  - Home: index.md
+  - Getting started:
+      - Installation: getting-started/installation.md
+      - Quick start: getting-started/quick-start.md
+      - Blocking usage: getting-started/blocking-usage.md
+      - Configuration: getting-started/configuration.md
+  - Guide:
+      - Supported sources: guide/sources.md
+      - Post-processing and visualization: guide/post-processing.md
+      - Semantic memory: guide/semantic-memory.md
+      - Local search and discovery:
+          - guide/search/index.md
+          - Query syntax: guide/search/query-syntax.md
+          - Ranked search and filtering: guide/search/ranked-search.md
+          - Hybrid search: guide/search/hybrid-search.md
+          - Filters and facets: guide/search/filters-and-facets.md
+          - Text stores: guide/search/text-stores.md
+          - Discovery graphs: guide/search/discovery-graphs.md
+          - Building a user interface: guide/search/user-interfaces.md
+          - Store ownership: guide/search/store-ownership.md
+      - Running pipelines:
+          - State, resuming, and errors: guide/state.md
+          - Graceful shutdown: guide/shutdown.md
+          - Retries: guide/retries.md
+          - Rate limiting: guide/rate-limiting.md
+          - Synchronous components: guide/sync-components.md
+          - Logging: guide/logging.md
+          - Token usage: guide/token-usage.md
+      - Architecture: guide/architecture.md
+  - CLI: cli/index.md
+  - API reference:
+      - reference/index.md
+      - Pipelines: reference/pipelines.md
+      - Configuration: reference/configuration.md
+      - Models and exceptions: reference/models.md
+      - Extractors: reference/extractors.md
+      - Parsers: reference/parsers.md
+      - LLM: reference/llm.md
+      - Embeddings: reference/embeddings.md
+      - Search: reference/search.md
+      - Exporters: reference/exporters.md
+      - Processors: reference/processors.md
+      - State: reference/state.md
+      - Utilities: reference/utilities.md
+  - Project:
+      - Changelog: project/changelog.md
+      - Migration guide: project/migration.md
+      - Roadmap: project/roadmap.md
+      - Contributing: project/contributing.md
+      - Security: project/security.md
+      - Code of conduct: project/code-of-conduct.md

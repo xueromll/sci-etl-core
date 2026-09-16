@@ -111,6 +111,39 @@ Formatting isn't enforced, so keep unrelated reformatting out of your PR.
 Record user-facing changes under the unreleased version in
 [CHANGELOG.md](CHANGELOG.md).
 
+## Documentation
+
+The documentation site is built with [MkDocs](https://www.mkdocs.org/) and
+[Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) from
+`mkdocs.yml` and the `docs/` folder, and published to GitHub Pages.
+
+```bash
+pip install -e ".[docs]"
+git clone https://github.com/xueromll/sci-etl-cli.git ../sci-etl-cli
+pip install --no-deps -e ../sci-etl-cli
+mkdocs serve                                          # preview at http://127.0.0.1:8000
+mkdocs build --strict                                 # the check CI runs
+```
+
+- **Where pages live.** Guides are Markdown files under `docs/`, listed in the
+  `nav` of `mkdocs.yml`. `CHANGELOG.md`, `MIGRATION.md`, `ROADMAP.md`, this
+  guide, `SECURITY.md`, and `CODE_OF_CONDUCT.md` stay at the repository root;
+  the pages under `docs/project/` render them, and links between them are
+  rewritten for the site.
+- **The CLI section** comes from the `docs/` folder and `nav` of the
+  sci-etl-cli repository. The build looks for a checkout beside this one, or at
+  the path in `SCI_ETL_CLI_DIR`; without one it leaves the section out, which
+  `--strict` reports as a failure. Change CLI pages in that repository.
+- **API reference.** The pages under `docs/reference/` are generated from
+  docstrings. A new public module needs a `::: module.path` entry on one of
+  them; `tests/test_docs.py` fails until it has one.
+- **Code examples.** `tests/test_docs.py` also checks that every Python example
+  under `docs/` compiles and that every name it imports from `sci_etl_core`
+  exists, so renaming a public name means updating the examples too.
+- **Publishing.** The docs workflow deploys `master` as the `dev` version and
+  each `v*` tag as its minor version, for example `0.3`, with the `latest`
+  alias. Nothing needs to be published by hand.
+
 ## Commit Format
 
 Use [Conventional Commits](https://www.conventionalcommits.org/):
@@ -141,7 +174,7 @@ body (`Closes #123`).
 3. **Write tests** alongside your change; keep coverage at 100%.
 4. **Run** the test suite locally (plus lint and type checks if you use them).
 5. **Update the docs** for user-facing changes:
-   - `README.md` for usage
+   - the pages under `docs/` for usage; keep `README.md` a short overview
    - `MIGRATION.md` when the change affects moving an existing pipeline onto
      the library
    - `ROADMAP.md` when you ship a listed item
@@ -175,7 +208,7 @@ Most contributions plug into an existing abstract base class:
 | Validator | `RecordValidator` | `is_valid(record) -> bool` | Operates on one entity dict. |
 
 Register the new class in its subpackage's `_EXPORTS` map and `TYPE_CHECKING`
-imports. If it's a primary user-facing class, add it to
+imports. A new module also needs an entry on its page under `docs/reference/`. If it's a primary user-facing class, add it to
 `sci_etl_core/__init__.py` the same way. Add a case for it to
 `tests/contract/test_abc_conformance.py`.
 

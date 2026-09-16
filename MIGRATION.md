@@ -858,7 +858,7 @@ notice ([CHANGELOG.md](CHANGELOG.md) lists everything):
   index; udg-catalogue's `build_pipeline` passes no `memory_ingestor` at all.
   To add one, pass an `AsyncSearchIndexer`, or an `AsyncCompositeIngestor`
   with a chunk ingestor first, as
-  [Local Search and Discovery](README.md#local-search-and-discovery) shows. Its
+  [Local search and discovery](https://xueromll.github.io/sci-etl-core/latest/guide/search/) shows. Its
   `AsyncSqliteFts5Store` goes in `closeables` like any other SQLite store.
 - **SQLite state is safer under cancellation.** `AsyncSqliteStateManager` no
   longer lets a cancelled operation's worker thread overlap the next
