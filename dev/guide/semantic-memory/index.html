@@ -872,6 +872,8 @@
       
         
       
+        
+      
     
     
     
@@ -1076,6 +1078,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../search/backfill/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backfilling from vector memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../search/discovery-graphs/" class="md-nav__link">
         
   
@@ -1169,6 +1199,10 @@
   
     
     
+      
+        
+      
+        
       
         
       
@@ -1407,6 +1441,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Progress events and metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../token-usage/" class="md-nav__link">
         
   
@@ -1415,6 +1477,34 @@
     
   
     Token usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../llm-caching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM response caching
   
 
     
@@ -2485,6 +2575,11 @@ and list the embedder and store among its closeables:</p>
 <li><strong>Custom stores.</strong> Subclasses of <code>AsyncEmbeddingStore</code> implement <code>add</code>,
   <code>delete_record</code>, <code>query</code>, and <code>count</code>. <code>replace_record</code> defaults to delete
   then add; override it if your backend can do both atomically.</li>
+<li><strong>Reading the memory back.</strong> <code>finder.find_best_chunks(text, top_k=5)</code> ranks
+  articles as <code>find_similar_articles</code> does but returns each one's best
+  <code>SearchHit</code>, chunk text included, to show the passage that matched. A
+  store's <code>iter_records()</code> yields every record's passages as <code>StoredRecord</code>s,
+  without loading vectors.</li>
 <li><strong>Local embeddings.</strong> <code>AsyncSentenceTransformerEmbedder("all-MiniLM-L6-v2")</code>
   embeds without network calls. It needs the <code>embeddings-local</code> extra, loads
   the model when constructed, and accepts a preloaded <code>model=</code>.</li>
@@ -2504,7 +2599,9 @@ close enough to any reference text:</p>
 <p>To index the same records for Boolean search as well, see
 <a href="../search/">Local search and discovery</a>. Its SQLite text index,
 <code>AsyncSqliteFts5Store</code>, is one more store to list in <code>closeables</code> beside the
-embedding store, and its <code>search</code> extra installs nothing.</p>
+embedding store, and its <code>search</code> extra installs nothing. A memory filled
+before you added the text index can be indexed from its stored chunks; see
+<a href="../search/backfill/">Backfilling from vector memory</a>.</p>
 
 
 

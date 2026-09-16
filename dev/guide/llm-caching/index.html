@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://xueromll.github.io/sci-etl-core/dev/guide/rate-limiting/">
+        <link rel="canonical" href="https://xueromll.github.io/sci-etl-core/dev/guide/llm-caching/">
       
       
-        <link rel="prev" href="../retries/">
+        <link rel="prev" href="../token-usage/">
       
       
-        <link rel="next" href="../sync-components/">
+        <link rel="next" href="../architecture/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Rate limiting - sci-etl-core</title>
+        <title>LLM response caching - sci-etl-core</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#rate-limiting" class="md-skip">
+        <a href="#llm-response-caching" class="md-skip">
           Skip to content
         </a>
       
@@ -118,7 +118,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Rate limiting
+              LLM response caching
             
           </span>
         </div>
@@ -1287,37 +1287,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Rate limiting
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../rate-limiting/" class="md-nav__link">
         
   
   
@@ -1333,59 +1306,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#giving-a-limiter-to-a-component" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Giving a limiter to a component
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#limits-per-host" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Limits per host
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#sharing-a-limit-between-components" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Sharing a limit between components
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1507,10 +1427,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../llm-caching/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM response caching
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1526,6 +1473,59 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-requests-are-matched" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How requests are matched
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backends" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backends
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#when-the-cache-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When the cache fails
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -2500,10 +2500,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#giving-a-limiter-to-a-component" class="md-nav__link">
+  <a href="#how-requests-are-matched" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Giving a limiter to a component
+        How requests are matched
       
     </span>
   </a>
@@ -2511,10 +2511,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#limits-per-host" class="md-nav__link">
+  <a href="#backends" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Limits per host
+        Backends
       
     </span>
   </a>
@@ -2522,10 +2522,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#sharing-a-limit-between-components" class="md-nav__link">
+  <a href="#when-the-cache-fails" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sharing a limit between components
+        When the cache fails
       
     </span>
   </a>
@@ -2549,75 +2549,54 @@
 
 
 
-<h1 id="rate-limiting">Rate limiting<a class="headerlink" href="#rate-limiting" title="Permanent link">&para;</a></h1>
-<p><code>AsyncETLPipeline(max_concurrency=...)</code> bounds how many records are processed
-at once. For finer control, <code>sci_etl_core.rate_limiter</code> provides async
-limiters:</p>
+<h1 id="llm-response-caching">LLM response caching<a class="headerlink" href="#llm-response-caching" title="Permanent link">&para;</a></h1>
+<p>Rerunning a pipeline after a crash, a prompt tweak elsewhere, or a change to
+export code asks the LLM the same questions again. <code>CachingLLMClient</code> answers
+repeated requests from a cache, so they cost no tokens and return at once:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">AsyncLLMEntityExtractor</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">AsyncLLMRelevanceFilter</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">AsyncOpenAICompatibleClient</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">AsyncSqliteLLMResponseCache</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">CachingLLMClient</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">cache</span> <span class="o">=</span> <span class="n">AsyncSqliteLLMResponseCache</span><span class="p">(</span><span class="s2">"cache/llm.db"</span><span class="p">)</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">llm</span> <span class="o">=</span> <span class="n">CachingLLMClient</span><span class="p">(</span><span class="n">AsyncOpenAICompatibleClient</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="p">),</span> <span class="n">cache</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="nb">print</span><span class="p">)</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="n">relevance_filter</span> <span class="o">=</span> <span class="n">AsyncLLMRelevanceFilter</span><span class="p">(</span><span class="n">llm</span><span class="p">,</span> <span class="n">relevance_prompt</span><span class="p">)</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="n">entity_extractor</span> <span class="o">=</span> <span class="n">AsyncLLMEntityExtractor</span><span class="p">(</span><span class="n">llm</span><span class="p">,</span> <span class="n">extraction_prompt</span><span class="p">)</span>
+</code></pre></div>
+<p>List the SQLite cache in the pipeline's <code>closeables</code> so its connection is
+closed at the end of the run.</p>
+<h2 id="how-requests-are-matched">How requests are matched<a class="headerlink" href="#how-requests-are-matched" title="Permanent link">&para;</a></h2>
+<p>A request is keyed on the model name and both prompts, hashed with SHA-256; the
+timeout isn't part of the key. A changed system prompt, a changed paper text,
+or a different model is a miss.</p>
+<p>Anything else that changes the answer, such as the temperature, isn't part of
+the key. Give the cache a model name that includes it:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">llm</span> <span class="o">=</span> <span class="n">CachingLLMClient</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">cache</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">"gpt-4o-mini@t0.2"</span><span class="p">)</span>
+</code></pre></div>
+<p>Only successful responses are cached, so a request that failed is sent again
+next time.</p>
+<h2 id="backends">Backends<a class="headerlink" href="#backends" title="Permanent link">&para;</a></h2>
 <ul>
-<li><code>SemaphoreRateLimiter</code> — concurrency cap</li>
-<li><code>AioLimiterRateLimiter</code> — token bucket; needs the <code>async</code> extra</li>
-<li><code>NullRateLimiter</code> — no limit</li>
+<li><strong><code>InMemoryLLMResponseCache(max_entries=None)</code></strong> lives as long as the process.
+  With <code>max_entries</code>, the least recently used response is evicted once it's
+  full.</li>
+<li><strong><code>AsyncSqliteLLMResponseCache(path)</code></strong> keeps responses in a SQLite file
+  between runs. <code>clear()</code> empties it and <code>count()</code> reports its size.</li>
 </ul>
-<p><code>build_rate_limiter(max_concurrency, max_rate, time_period)</code> returns a token
-bucket when <code>max_rate</code> is set and a semaphore otherwise. Its parameters match
-the <code>full_text</code> <a href="../../getting-started/configuration/">config section</a>.</p>
-<h2 id="giving-a-limiter-to-a-component">Giving a limiter to a component<a class="headerlink" href="#giving-a-limiter-to-a-component" title="Permanent link">&para;</a></h2>
-<p>Every bundled extractor (<code>AsyncArxivExtractor</code>, <code>AsyncPubMedExtractor</code>,
-<code>AsyncSemanticScholarExtractor</code>, and <code>AsyncOpenAlexExtractor</code>),
-<code>AsyncOpenAICompatibleClient</code>, and <code>AsyncOpenAIEmbedder</code> take a
-<code>rate_limiter</code>. Every HTTP request, retries included, waits for a slot
-first and gives it back when the response arrives, so no slot is held while a
-component waits to retry:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncArxivExtractor</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.parsers</span><span class="w"> </span><span class="kn">import</span> <span class="n">LatexTarballParser</span><span class="p">,</span> <span class="n">PdfPlumberParser</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.rate_limiter</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_rate_limiter</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">extractor</span> <span class="o">=</span> <span class="n">AsyncArxivExtractor</span><span class="p">(</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">pdf_parser</span><span class="o">=</span><span class="n">PdfPlumberParser</span><span class="p">(),</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">latex_parser</span><span class="o">=</span><span class="n">LatexTarballParser</span><span class="p">(),</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">rate_limiter</span><span class="o">=</span><span class="n">build_rate_limiter</span><span class="p">(</span><span class="n">max_rate</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">time_period</span><span class="o">=</span><span class="mf">3.0</span><span class="p">),</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="p">)</span>
+<p>A custom backend, such as Redis, subclasses <code>AsyncLLMResponseCache</code> and
+implements <code>get</code>, <code>set</code>, and <code>clear</code>.</p>
+<h2 id="when-the-cache-fails">When the cache fails<a class="headerlink" href="#when-the-cache-fails" title="Permanent link">&para;</a></h2>
+<p>The cache never fails a completion. If reading or writing it raises, the error
+is logged as <code>LLM cache get failed: ...</code> or <code>LLM cache set failed: ...</code> and the
+request goes to the LLM as if nothing were cached. <code>stats</code> counts <code>hits</code>,
+<code>misses</code>, and <code>faults</code>, and <code>usage</code> is the wrapped client's, so cache hits cost
+no tokens:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">print</span><span class="p">(</span><span class="n">llm</span><span class="o">.</span><span class="n">stats</span><span class="p">,</span> <span class="n">llm</span><span class="o">.</span><span class="n">usage</span><span class="p">)</span>
 </code></pre></div>
-<h2 id="limits-per-host">Limits per host<a class="headerlink" href="#limits-per-host" title="Permanent link">&para;</a></h2>
-<p><code>HostRateLimiter</code> picks a limiter by the host a request goes to. A host also
-covers its subdomains, unless a subdomain has a limiter of its own, and hosts
-with no match use <code>default</code>, which is no limit when you leave it out. The arXiv
-extractor calls two hosts, <code>export.arxiv.org</code> for listings and <code>arxiv.org</code> for
-full text, so each can get its own budget:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.rate_limiter</span><span class="w"> </span><span class="kn">import</span> <span class="n">HostRateLimiter</span><span class="p">,</span> <span class="n">SemaphoreRateLimiter</span><span class="p">,</span> <span class="n">build_rate_limiter</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">arxiv_limits</span> <span class="o">=</span> <span class="n">HostRateLimiter</span><span class="p">(</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="p">{</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>        <span class="s2">"export.arxiv.org"</span><span class="p">:</span> <span class="n">build_rate_limiter</span><span class="p">(</span><span class="n">max_rate</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">time_period</span><span class="o">=</span><span class="mf">3.0</span><span class="p">),</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>        <span class="s2">"arxiv.org"</span><span class="p">:</span> <span class="n">SemaphoreRateLimiter</span><span class="p">(</span><span class="n">max_concurrency</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="p">}</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="p">)</span>
-</code></pre></div>
-<h2 id="sharing-a-limit-between-components">Sharing a limit between components<a class="headerlink" href="#sharing-a-limit-between-components" title="Permanent link">&para;</a></h2>
-<p>Pass the same limiter to several components to have them share one budget. A
-chat client and an embedder that call the same provider count against the same
-quota:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncOpenAICompatibleClient</span><span class="p">,</span> <span class="n">AsyncOpenAIEmbedder</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.rate_limiter</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_rate_limiter</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">provider_limit</span> <span class="o">=</span> <span class="n">build_rate_limiter</span><span class="p">(</span><span class="n">max_rate</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">time_period</span><span class="o">=</span><span class="mf">60.0</span><span class="p">)</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">llm</span> <span class="o">=</span> <span class="n">AsyncOpenAICompatibleClient</span><span class="p">(</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">api_key</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">api_key</span><span class="p">,</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">base_url</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">model</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="n">rate_limiter</span><span class="o">=</span><span class="n">provider_limit</span><span class="p">,</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="p">)</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="n">embedder</span> <span class="o">=</span> <span class="n">AsyncOpenAIEmbedder</span><span class="p">(</span>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>    <span class="n">api_key</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">api_key</span><span class="p">,</span>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>    <span class="n">base_url</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span>
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    <span class="n">model</span><span class="o">=</span><span class="s2">"text-embedding-3-small"</span><span class="p">,</span>
-<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>    <span class="n">rate_limiter</span><span class="o">=</span><span class="n">provider_limit</span><span class="p">,</span>
-<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="p">)</span>
-</code></pre></div>
-<p>A <code>HostRateLimiter</code> can be shared the same way, for example one instance whose
-hosts cover every service a run calls. The OpenAI-compatible clients match it
-against their <code>base_url</code>.</p>
 
 
 
@@ -2653,7 +2632,7 @@ against their <code>base_url</code>.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../retries/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Retries">
+          <a href="../token-usage/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Token usage">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2663,20 +2642,20 @@ against their <code>base_url</code>.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                Retries
+                Token usage
               </div>
             </div>
           </a>
         
         
           
-          <a href="../sync-components/" class="md-footer__link md-footer__link--next" aria-label="Next: Synchronous components">
+          <a href="../architecture/" class="md-footer__link md-footer__link--next" aria-label="Next: Architecture">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Synchronous components
+                Architecture
               </div>
             </div>
             <div class="md-footer__button md-icon">

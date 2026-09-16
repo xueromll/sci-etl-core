@@ -10,31 +10,31 @@
       
       
       
-        <link rel="canonical" href="https://xueromll.github.io/sci-etl-core/dev/guide/rate-limiting/">
+        <link rel="canonical" href="https://xueromll.github.io/sci-etl-core/dev/guide/search/backfill/">
       
       
-        <link rel="prev" href="../retries/">
+        <link rel="prev" href="../text-stores/">
       
       
-        <link rel="next" href="../sync-components/">
+        <link rel="next" href="../discovery-graphs/">
       
       
         
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
+      <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
-        <title>Rate limiting - sci-etl-core</title>
+        <title>Backfilling from vector memory - sci-etl-core</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,9 +53,9 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#rate-limiting" class="md-skip">
+        <a href="#backfilling-from-vector-memory" class="md-skip">
           Skip to content
         </a>
       
@@ -98,7 +98,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="sci-etl-core" class="md-header__button md-logo" aria-label="sci-etl-core" data-md-component="logo">
+    <a href="../../.." title="sci-etl-core" class="md-header__button md-logo" aria-label="sci-etl-core" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -118,7 +118,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Rate limiting
+              Backfilling from vector memory
             
           </span>
         </div>
@@ -241,7 +241,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../.." class="md-tabs__link">
+      <a href="../../.." class="md-tabs__link">
         
   
   
@@ -262,7 +262,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../getting-started/installation/" class="md-tabs__link">
+        <a href="../../../getting-started/installation/" class="md-tabs__link">
           
   
   
@@ -286,7 +286,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../sources/" class="md-tabs__link">
+        <a href="../../sources/" class="md-tabs__link">
           
   
   
@@ -308,7 +308,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../cli/" class="md-tabs__link">
+        <a href="../../../cli/" class="md-tabs__link">
           
   
   
@@ -330,7 +330,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../reference/" class="md-tabs__link">
+        <a href="../../../reference/" class="md-tabs__link">
           
   
   
@@ -352,7 +352,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../project/changelog/" class="md-tabs__link">
+        <a href="../../../project/changelog/" class="md-tabs__link">
           
   
   
@@ -388,7 +388,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="sci-etl-core" class="md-nav__button md-logo" aria-label="sci-etl-core" data-md-component="logo">
+    <a href="../../.." title="sci-etl-core" class="md-nav__button md-logo" aria-label="sci-etl-core" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -418,7 +418,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href="../../.." class="md-nav__link">
         
   
   
@@ -507,7 +507,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../getting-started/installation/" class="md-nav__link">
+      <a href="../../../getting-started/installation/" class="md-nav__link">
         
   
   
@@ -535,7 +535,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../getting-started/quick-start/" class="md-nav__link">
+      <a href="../../../getting-started/quick-start/" class="md-nav__link">
         
   
   
@@ -563,7 +563,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../getting-started/blocking-usage/" class="md-nav__link">
+      <a href="../../../getting-started/blocking-usage/" class="md-nav__link">
         
   
   
@@ -591,7 +591,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../getting-started/configuration/" class="md-nav__link">
+      <a href="../../../getting-started/configuration/" class="md-nav__link">
         
   
   
@@ -697,7 +697,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../sources/" class="md-nav__link">
+      <a href="../../sources/" class="md-nav__link">
         
   
   
@@ -725,7 +725,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../post-processing/" class="md-nav__link">
+      <a href="../../post-processing/" class="md-nav__link">
         
   
   
@@ -753,7 +753,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../semantic-memory/" class="md-nav__link">
+      <a href="../../semantic-memory/" class="md-nav__link">
         
   
   
@@ -778,6 +778,8 @@
                 
   
   
+    
+  
   
   
     
@@ -786,352 +788,6 @@
         
           
         
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-      
-        
-          
-          
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
-        
-          
-          <div class="md-nav__link md-nav__container">
-            <a href="../search/" class="md-nav__link ">
-              
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Local search and discovery
-  
-
-    
-  </span>
-  
-  
-
-            </a>
-            
-              
-              <label class="md-nav__link " for="__nav_3_4" id="__nav_3_4_label" tabindex="">
-                <span class="md-nav__icon md-icon"></span>
-              </label>
-            
-          </div>
-        
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_4">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Local search and discovery
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../search/query-syntax/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Query syntax
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../search/ranked-search/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Ranked search and filtering
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../search/hybrid-search/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Hybrid search
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../search/filters-and-facets/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Filters and facets
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../search/text-stores/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Text stores
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../search/backfill/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Backfilling from vector memory
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../search/discovery-graphs/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Discovery graphs
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../search/user-interfaces/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Building a user interface
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../search/store-ownership/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Store ownership
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-    
-  
-  
-  
-    
-    
       
         
       
@@ -1167,17 +823,18 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" checked>
         
           
-          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="">
-            
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
   
   
   <span class="md-ellipsis">
     
   
-    Running pipelines
+    Local search and discovery
   
 
     
@@ -1185,35 +842,43 @@
   
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_4" id="__nav_3_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_3_5">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_4">
             <span class="md-nav__icon md-icon"></span>
             
   
-    Running pipelines
+    Local search and discovery
   
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
               
+            
+              
                 
   
   
   
   
     <li class="md-nav__item">
-      <a href="../state/" class="md-nav__link">
+      <a href="../query-syntax/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    State, resuming, and errors
+    Query syntax
   
 
     
@@ -1234,14 +899,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../shutdown/" class="md-nav__link">
+      <a href="../ranked-search/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Graceful shutdown
+    Ranked search and filtering
   
 
     
@@ -1262,14 +927,70 @@
   
   
     <li class="md-nav__item">
-      <a href="../retries/" class="md-nav__link">
+      <a href="../hybrid-search/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Retries
+    Hybrid search
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filters-and-facets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Filters and facets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../text-stores/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Text stores
   
 
     
@@ -1306,7 +1027,7 @@
   <span class="md-ellipsis">
     
   
-    Rate limiting
+    Backfilling from vector memory
   
 
     
@@ -1324,7 +1045,7 @@
   <span class="md-ellipsis">
     
   
-    Rate limiting
+    Backfilling from vector memory
   
 
     
@@ -1350,10 +1071,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#giving-a-limiter-to-a-component" class="md-nav__link">
+  <a href="#overlapping-chunks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Giving a limiter to a component
+        Overlapping chunks
       
     </span>
   </a>
@@ -1361,10 +1082,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#limits-per-host" class="md-nav__link">
+  <a href="#what-a-backfilled-document-holds" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Limits per host
+        What a backfilled document holds
       
     </span>
   </a>
@@ -1372,10 +1093,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#sharing-a-limit-between-components" class="md-nav__link">
+  <a href="#records-already-in-the-index" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sharing a limit between components
+        Records already in the index
       
     </span>
   </a>
@@ -1398,7 +1119,286 @@
   
   
     <li class="md-nav__item">
-      <a href="../sync-components/" class="md-nav__link">
+      <a href="../discovery-graphs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Discovery graphs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-interfaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Building a user interface
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../store-ownership/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Store ownership
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running pipelines
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Running pipelines
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    State, resuming, and errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../shutdown/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Graceful shutdown
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../retries/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Retries
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../rate-limiting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rate limiting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../sync-components/" class="md-nav__link">
         
   
   
@@ -1426,7 +1426,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../logging/" class="md-nav__link">
+      <a href="../../logging/" class="md-nav__link">
         
   
   
@@ -1454,7 +1454,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../observability/" class="md-nav__link">
+      <a href="../../observability/" class="md-nav__link">
         
   
   
@@ -1482,7 +1482,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../token-usage/" class="md-nav__link">
+      <a href="../../token-usage/" class="md-nav__link">
         
   
   
@@ -1510,7 +1510,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../llm-caching/" class="md-nav__link">
+      <a href="../../llm-caching/" class="md-nav__link">
         
   
   
@@ -1546,7 +1546,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../architecture/" class="md-nav__link">
+      <a href="../../architecture/" class="md-nav__link">
         
   
   
@@ -1614,7 +1614,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../cli/" class="md-nav__link ">
+            <a href="../../../cli/" class="md-nav__link ">
               
   
   
@@ -1658,7 +1658,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../cli/quick-start/" class="md-nav__link">
+      <a href="../../../cli/quick-start/" class="md-nav__link">
         
   
   
@@ -1686,7 +1686,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../cli/commands/" class="md-nav__link">
+      <a href="../../../cli/commands/" class="md-nav__link">
         
   
   
@@ -1714,7 +1714,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../cli/config-file/" class="md-nav__link">
+      <a href="../../../cli/config-file/" class="md-nav__link">
         
   
   
@@ -1742,7 +1742,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../cli/plugins/" class="md-nav__link">
+      <a href="../../../cli/plugins/" class="md-nav__link">
         
   
   
@@ -1770,7 +1770,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../cli/exit-codes/" class="md-nav__link">
+      <a href="../../../cli/exit-codes/" class="md-nav__link">
         
   
   
@@ -1852,7 +1852,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../reference/" class="md-nav__link ">
+            <a href="../../../reference/" class="md-nav__link ">
               
   
   
@@ -1896,7 +1896,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/pipelines/" class="md-nav__link">
+      <a href="../../../reference/pipelines/" class="md-nav__link">
         
   
   
@@ -1924,7 +1924,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/configuration/" class="md-nav__link">
+      <a href="../../../reference/configuration/" class="md-nav__link">
         
   
   
@@ -1952,7 +1952,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/models/" class="md-nav__link">
+      <a href="../../../reference/models/" class="md-nav__link">
         
   
   
@@ -1980,7 +1980,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/extractors/" class="md-nav__link">
+      <a href="../../../reference/extractors/" class="md-nav__link">
         
   
   
@@ -2008,7 +2008,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/parsers/" class="md-nav__link">
+      <a href="../../../reference/parsers/" class="md-nav__link">
         
   
   
@@ -2036,7 +2036,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/llm/" class="md-nav__link">
+      <a href="../../../reference/llm/" class="md-nav__link">
         
   
   
@@ -2064,7 +2064,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/embeddings/" class="md-nav__link">
+      <a href="../../../reference/embeddings/" class="md-nav__link">
         
   
   
@@ -2092,7 +2092,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/search/" class="md-nav__link">
+      <a href="../../../reference/search/" class="md-nav__link">
         
   
   
@@ -2120,7 +2120,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/exporters/" class="md-nav__link">
+      <a href="../../../reference/exporters/" class="md-nav__link">
         
   
   
@@ -2148,7 +2148,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/processors/" class="md-nav__link">
+      <a href="../../../reference/processors/" class="md-nav__link">
         
   
   
@@ -2176,7 +2176,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/state/" class="md-nav__link">
+      <a href="../../../reference/state/" class="md-nav__link">
         
   
   
@@ -2204,7 +2204,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/utilities/" class="md-nav__link">
+      <a href="../../../reference/utilities/" class="md-nav__link">
         
   
   
@@ -2305,7 +2305,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../project/changelog/" class="md-nav__link">
+      <a href="../../../project/changelog/" class="md-nav__link">
         
   
   
@@ -2333,7 +2333,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../project/migration/" class="md-nav__link">
+      <a href="../../../project/migration/" class="md-nav__link">
         
   
   
@@ -2361,7 +2361,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../project/roadmap/" class="md-nav__link">
+      <a href="../../../project/roadmap/" class="md-nav__link">
         
   
   
@@ -2389,7 +2389,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../project/contributing/" class="md-nav__link">
+      <a href="../../../project/contributing/" class="md-nav__link">
         
   
   
@@ -2417,7 +2417,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../project/security/" class="md-nav__link">
+      <a href="../../../project/security/" class="md-nav__link">
         
   
   
@@ -2445,7 +2445,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../project/code-of-conduct/" class="md-nav__link">
+      <a href="../../../project/code-of-conduct/" class="md-nav__link">
         
   
   
@@ -2500,10 +2500,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#giving-a-limiter-to-a-component" class="md-nav__link">
+  <a href="#overlapping-chunks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Giving a limiter to a component
+        Overlapping chunks
       
     </span>
   </a>
@@ -2511,10 +2511,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#limits-per-host" class="md-nav__link">
+  <a href="#what-a-backfilled-document-holds" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Limits per host
+        What a backfilled document holds
       
     </span>
   </a>
@@ -2522,10 +2522,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#sharing-a-limit-between-components" class="md-nav__link">
+  <a href="#records-already-in-the-index" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sharing a limit between components
+        Records already in the index
       
     </span>
   </a>
@@ -2549,75 +2549,122 @@
 
 
 
-<h1 id="rate-limiting">Rate limiting<a class="headerlink" href="#rate-limiting" title="Permanent link">&para;</a></h1>
-<p><code>AsyncETLPipeline(max_concurrency=...)</code> bounds how many records are processed
-at once. For finer control, <code>sci_etl_core.rate_limiter</code> provides async
-limiters:</p>
-<ul>
-<li><code>SemaphoreRateLimiter</code> — concurrency cap</li>
-<li><code>AioLimiterRateLimiter</code> — token bucket; needs the <code>async</code> extra</li>
-<li><code>NullRateLimiter</code> — no limit</li>
-</ul>
-<p><code>build_rate_limiter(max_concurrency, max_rate, time_period)</code> returns a token
-bucket when <code>max_rate</code> is set and a semaphore otherwise. Its parameters match
-the <code>full_text</code> <a href="../../getting-started/configuration/">config section</a>.</p>
-<h2 id="giving-a-limiter-to-a-component">Giving a limiter to a component<a class="headerlink" href="#giving-a-limiter-to-a-component" title="Permanent link">&para;</a></h2>
-<p>Every bundled extractor (<code>AsyncArxivExtractor</code>, <code>AsyncPubMedExtractor</code>,
-<code>AsyncSemanticScholarExtractor</code>, and <code>AsyncOpenAlexExtractor</code>),
-<code>AsyncOpenAICompatibleClient</code>, and <code>AsyncOpenAIEmbedder</code> take a
-<code>rate_limiter</code>. Every HTTP request, retries included, waits for a slot
-first and gives it back when the response arrives, so no slot is held while a
-component waits to retry:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncArxivExtractor</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.parsers</span><span class="w"> </span><span class="kn">import</span> <span class="n">LatexTarballParser</span><span class="p">,</span> <span class="n">PdfPlumberParser</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.rate_limiter</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_rate_limiter</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">extractor</span> <span class="o">=</span> <span class="n">AsyncArxivExtractor</span><span class="p">(</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">pdf_parser</span><span class="o">=</span><span class="n">PdfPlumberParser</span><span class="p">(),</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">latex_parser</span><span class="o">=</span><span class="n">LatexTarballParser</span><span class="p">(),</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">rate_limiter</span><span class="o">=</span><span class="n">build_rate_limiter</span><span class="p">(</span><span class="n">max_rate</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">time_period</span><span class="o">=</span><span class="mf">3.0</span><span class="p">),</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="p">)</span>
+<h1 id="backfilling-from-vector-memory">Backfilling from vector memory<a class="headerlink" href="#backfilling-from-vector-memory" title="Permanent link">&para;</a></h1>
+<p>A deployment that has run with semantic memory but no text index already holds
+every relevant record's full text, split into chunks, in its
+<code>AsyncSqliteEmbeddingStore</code>. <code>backfill_text_index</code> builds the text index from
+those chunks, so nothing has to be fetched or embedded again:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.embeddings</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncSqliteEmbeddingStore</span><span class="p">,</span> <span class="n">SlidingWindowChunker</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.search</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncSqliteFts5Store</span><span class="p">,</span> <span class="n">backfill_text_index</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">backfill</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">vector_store</span> <span class="o">=</span> <span class="n">AsyncSqliteEmbeddingStore</span><span class="p">(</span><span class="s2">"memory.db"</span><span class="p">)</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">text_store</span> <span class="o">=</span> <span class="n">AsyncSqliteFts5Store</span><span class="p">(</span><span class="s2">"search.db"</span><span class="p">,</span> <span class="n">facet_keys</span><span class="o">=</span><span class="p">(</span><span class="s2">"categories"</span><span class="p">,</span> <span class="s2">"year"</span><span class="p">))</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        <span class="n">report</span> <span class="o">=</span> <span class="k">await</span> <span class="n">backfill_text_index</span><span class="p">(</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>            <span class="n">vector_store</span><span class="p">,</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>            <span class="n">text_store</span><span class="p">,</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>            <span class="n">overlap_words</span><span class="o">=</span><span class="n">SlidingWindowChunker</span><span class="p">()</span><span class="o">.</span><span class="n">overlap_words</span><span class="p">,</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        <span class="p">)</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">report</span><span class="o">.</span><span class="n">indexed</span><span class="si">}</span><span class="s2"> indexed, </span><span class="si">{</span><span class="n">report</span><span class="o">.</span><span class="n">skipped_existing</span><span class="si">}</span><span class="s2"> already there, </span><span class="si">{</span><span class="n">report</span><span class="o">.</span><span class="n">skipped_empty</span><span class="si">}</span><span class="s2"> empty"</span><span class="p">)</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="k">finally</span><span class="p">:</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>        <span class="k">await</span> <span class="n">vector_store</span><span class="o">.</span><span class="n">aclose</span><span class="p">()</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>        <span class="k">await</span> <span class="n">text_store</span><span class="o">.</span><span class="n">aclose</span><span class="p">()</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">backfill</span><span class="p">())</span>
 </code></pre></div>
-<h2 id="limits-per-host">Limits per host<a class="headerlink" href="#limits-per-host" title="Permanent link">&para;</a></h2>
-<p><code>HostRateLimiter</code> picks a limiter by the host a request goes to. A host also
-covers its subdomains, unless a subdomain has a limiter of its own, and hosts
-with no match use <code>default</code>, which is no limit when you leave it out. The arXiv
-extractor calls two hosts, <code>export.arxiv.org</code> for listings and <code>arxiv.org</code> for
-full text, so each can get its own budget:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.rate_limiter</span><span class="w"> </span><span class="kn">import</span> <span class="n">HostRateLimiter</span><span class="p">,</span> <span class="n">SemaphoreRateLimiter</span><span class="p">,</span> <span class="n">build_rate_limiter</span>
+<p>Run it once, while no pipeline is writing to either store, and then add an
+<code>AsyncSearchIndexer</code> to the pipeline as <a href="../">Local search and discovery</a>
+shows, so new records are indexed as they arrive.</p>
+<h2 id="overlapping-chunks">Overlapping chunks<a class="headerlink" href="#overlapping-chunks" title="Permanent link">&para;</a></h2>
+<p><code>SlidingWindowChunker</code> overlaps neighbouring chunks, by 50 words by default, so
+that no passage is cut off at a window boundary. Joining the chunks as they
+are would repeat those words, and BM25 would count every word at a boundary
+twice. The backfill removes the overlap with <code>merge_passages</code>, which drops the
+first <code>overlap_words</code> words of each chunk when they repeat the end of the
+chunk before, so the body comes back with every word once.</p>
+<p>Pass the <code>overlap_words</code> of the chunker that wrote the chunks. With
+<code>SlidingWindowChunker(chunk_words, overlap_words)</code>, pass the same
+<code>overlap_words</code>; when you left it out, read it back from a chunker built the
+same way, as the example does. A chunk whose first words don't repeat the
+previous chunk's last words is kept whole, so a wrong value leaves the
+repeated words in the body rather than cutting text out.</p>
+<p>The body comes back with single spaces between words, as the chunker split
+it; line breaks and paragraph spacing are gone, which doesn't change what
+matches.</p>
+<h2 id="what-a-backfilled-document-holds">What a backfilled document holds<a class="headerlink" href="#what-a-backfilled-document-holds" title="Permanent link">&para;</a></h2>
+<p>The vector memory keeps less than the pipeline had, so by default a
+backfilled document has:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>title</code></td>
+<td>the <code>title</code> stored with the record's chunks</td>
+</tr>
+<tr>
+<td><code>abstract</code></td>
+<td>empty, since the chunks don't hold it</td>
+</tr>
+<tr>
+<td><code>body</code></td>
+<td>the chunks, merged</td>
+</tr>
+<tr>
+<td><code>metadata</code></td>
+<td>the other chunk metadata, such as <code>source_url</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>AsyncChunkIngestor</code> doesn't store <code>RawRecord.metadata</code> with the chunks, so a
+backfilled document has no <code>categories</code>, <code>year</code>, or other facet tags, and
+filters on those keys don't match it. When you have that metadata elsewhere,
+such as in the exported CSV, pass a <code>build_document</code> that adds it. It receives
+the <code>StoredRecord</code> and the merged body, and returns the <code>SearchDocument</code> to
+index, or <code>None</code> to leave the record out:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.search</span><span class="w"> </span><span class="kn">import</span> <span class="n">SearchDocument</span><span class="p">,</span> <span class="n">backfill_text_index</span><span class="p">,</span> <span class="n">stored_record_document</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">arxiv_limits</span> <span class="o">=</span> <span class="n">HostRateLimiter</span><span class="p">(</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="p">{</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>        <span class="s2">"export.arxiv.org"</span><span class="p">:</span> <span class="n">build_rate_limiter</span><span class="p">(</span><span class="n">max_rate</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">time_period</span><span class="o">=</span><span class="mf">3.0</span><span class="p">),</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>        <span class="s2">"arxiv.org"</span><span class="p">:</span> <span class="n">SemaphoreRateLimiter</span><span class="p">(</span><span class="n">max_concurrency</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="p">}</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="p">)</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">with_catalogue_metadata</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">body</span><span class="p">):</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="n">document</span> <span class="o">=</span> <span class="n">stored_record_document</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="k">if</span> <span class="n">document</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">record</span><span class="o">.</span><span class="n">record_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">catalogue</span><span class="p">:</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>        <span class="k">return</span> <span class="n">document</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="n">entry</span> <span class="o">=</span> <span class="n">catalogue</span><span class="p">[</span><span class="n">record</span><span class="o">.</span><span class="n">record_id</span><span class="p">]</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="n">document</span><span class="o">.</span><span class="n">abstract</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"abstract"</span><span class="p">]</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="n">document</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">categories</span><span class="o">=</span><span class="n">entry</span><span class="p">[</span><span class="s2">"categories"</span><span class="p">],</span> <span class="n">year</span><span class="o">=</span><span class="n">entry</span><span class="p">[</span><span class="s2">"year"</span><span class="p">])</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    <span class="k">return</span> <span class="n">document</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="n">report</span> <span class="o">=</span> <span class="k">await</span> <span class="n">backfill_text_index</span><span class="p">(</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>    <span class="n">vector_store</span><span class="p">,</span> <span class="n">text_store</span><span class="p">,</span> <span class="n">overlap_words</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">build_document</span><span class="o">=</span><span class="n">with_catalogue_metadata</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="p">)</span>
 </code></pre></div>
-<h2 id="sharing-a-limit-between-components">Sharing a limit between components<a class="headerlink" href="#sharing-a-limit-between-components" title="Permanent link">&para;</a></h2>
-<p>Pass the same limiter to several components to have them share one budget. A
-chat client and an embedder that call the same provider count against the same
-quota:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncOpenAICompatibleClient</span><span class="p">,</span> <span class="n">AsyncOpenAIEmbedder</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.rate_limiter</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_rate_limiter</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">provider_limit</span> <span class="o">=</span> <span class="n">build_rate_limiter</span><span class="p">(</span><span class="n">max_rate</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">time_period</span><span class="o">=</span><span class="mf">60.0</span><span class="p">)</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">llm</span> <span class="o">=</span> <span class="n">AsyncOpenAICompatibleClient</span><span class="p">(</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">api_key</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">api_key</span><span class="p">,</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">base_url</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">model</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="n">rate_limiter</span><span class="o">=</span><span class="n">provider_limit</span><span class="p">,</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="p">)</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="n">embedder</span> <span class="o">=</span> <span class="n">AsyncOpenAIEmbedder</span><span class="p">(</span>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>    <span class="n">api_key</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">api_key</span><span class="p">,</span>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>    <span class="n">base_url</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span>
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    <span class="n">model</span><span class="o">=</span><span class="s2">"text-embedding-3-small"</span><span class="p">,</span>
-<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>    <span class="n">rate_limiter</span><span class="o">=</span><span class="n">provider_limit</span><span class="p">,</span>
-<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="p">)</span>
-</code></pre></div>
-<p>A <code>HostRateLimiter</code> can be shared the same way, for example one instance whose
-hosts cover every service a run calls. The OpenAI-compatible clients match it
-against their <code>base_url</code>.</p>
+<h2 id="records-already-in-the-index">Records already in the index<a class="headerlink" href="#records-already-in-the-index" title="Permanent link">&para;</a></h2>
+<p>A record the pipeline already indexed has its abstract and metadata, which a
+backfilled document lacks, so the backfill leaves it alone and counts it in
+<code>skipped_existing</code>. Pass <code>replace_existing=True</code> to overwrite every record
+from the vector memory, for example after rebuilding a text index from
+scratch. Records in the text index that aren't in the vector memory are never
+touched.</p>
+<ul>
+<li><strong>Batches.</strong> Records are read and written <code>batch_size</code> at a time (default
+  100), without loading any vector, so memory use stays flat on a large store.</li>
+<li><strong>Other vector stores.</strong> <code>InMemoryEmbeddingStore</code> and
+  <code>AsyncSqliteEmbeddingStore</code> can list their records through <code>iter_records</code>.
+  A custom <code>AsyncEmbeddingStore</code> that doesn't implement it raises
+  <code>NotImplementedError</code>.</li>
+<li><strong>Ownership.</strong> <code>backfill_text_index</code> closes neither store; close them
+  yourself, as the example does.</li>
+</ul>
 
 
 
@@ -2653,7 +2700,7 @@ against their <code>base_url</code>.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../retries/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Retries">
+          <a href="../text-stores/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Text stores">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2663,20 +2710,20 @@ against their <code>base_url</code>.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                Retries
+                Text stores
               </div>
             </div>
           </a>
         
         
           
-          <a href="../sync-components/" class="md-footer__link md-footer__link--next" aria-label="Next: Synchronous components">
+          <a href="../discovery-graphs/" class="md-footer__link md-footer__link--next" aria-label="Next: Discovery graphs">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Synchronous components
+                Discovery graphs
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -2744,10 +2791,10 @@ against their <code>base_url</code>.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.copy", "navigation.footer", "navigation.indexes", "navigation.sections", "navigation.tabs", "navigation.top", "search.highlight", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["content.code.copy", "navigation.footer", "navigation.indexes", "navigation.sections", "navigation.tabs", "navigation.top", "search.highlight", "search.suggest", "toc.follow"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

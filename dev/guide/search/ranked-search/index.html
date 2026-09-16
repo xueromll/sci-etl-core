@@ -805,6 +805,8 @@
       
         
       
+        
+      
     
     
     
@@ -906,6 +908,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ranked search and filtering
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -922,6 +942,36 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#snippets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Snippets
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -999,6 +1049,34 @@
     
   
     Text stores
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backfill/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backfilling from vector memory
   
 
     
@@ -1112,6 +1190,10 @@
   
     
     
+      
+        
+      
+        
       
         
       
@@ -1350,6 +1432,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Progress events and metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../token-usage/" class="md-nav__link">
         
   
@@ -1358,6 +1468,34 @@
     
   
     Token usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../llm-caching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM response caching
   
 
     
@@ -2333,6 +2471,25 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#snippets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Snippets
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -2361,9 +2518,29 @@ ids, which carries no order and so can't be mistaken for a ranking:</p>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">observational</span> <span class="o">=</span> <span class="k">await</span> <span class="n">text_store</span><span class="o">.</span><span class="n">filter_ids</span><span class="p">(</span><span class="n">parse_query</span><span class="p">(</span><span class="s2">"NOT simulation"</span><span class="p">))</span>
 </code></pre></div>
 <p>A <code>TextHit</code> has a <code>score</code> where higher is better. Its scale depends on the
-corpus, so compare scores only within one result list. Its <code>snippet</code> is plain
-text from one field, and <code>highlights</code> holds <code>[start, end)</code> character offsets
-into it for the matched words, so the UI applies its own markup.</p>
+corpus, so compare scores only within one result list.</p>
+<h2 id="snippets">Snippets<a class="headerlink" href="#snippets" title="Permanent link">&para;</a></h2>
+<p>A hit's <code>snippet</code> is plain text from the field that matched best, and
+<code>highlights</code> holds <code>[start, end)</code> character offsets into it for the matched
+words, so the UI applies its own markup. A field longer than 24 tokens is cut
+to a window of 24 tokens around a match, with <code>…</code> where text is left out.</p>
+<p>When a query matches in more than one field, <code>snippets</code> holds a <code>Snippet</code> for
+each of them, in <code>title</code>, <code>abstract</code>, <code>body</code> order, so a result can show the
+match in the title and the passage in the body together:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.search</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_query</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="k">for</span> <span class="n">hit</span> <span class="ow">in</span> <span class="k">await</span> <span class="n">text_store</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">parse_query</span><span class="p">(</span><span class="s2">"dwarf OR photometr*"</span><span class="p">),</span> <span class="n">limit</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="k">for</span> <span class="n">snippet</span> <span class="ow">in</span> <span class="n">hit</span><span class="o">.</span><span class="n">snippets</span><span class="p">:</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>        <span class="n">marked</span> <span class="o">=</span> <span class="p">[</span><span class="n">snippet</span><span class="o">.</span><span class="n">text</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span> <span class="k">for</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="ow">in</span> <span class="n">snippet</span><span class="o">.</span><span class="n">highlights</span><span class="p">]</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">hit</span><span class="o">.</span><span class="n">record_id</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">snippet</span><span class="o">.</span><span class="n">field</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">snippet</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">marked</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</code></pre></div>
+<p>A field appears in <code>snippets</code> only when a matched word is highlighted in it.
+The two text stores highlight the same words, except on the queries where FTS5
+also counts a word inside a part of the query that fails to match, which
+<code>InMemoryTextSearchStore</code> documents.</p>
+<p><code>passage_snippet(query, text)</code> builds a <code>Snippet</code> of any other text in the same
+way, highlighting every word of the query that isn't negated. The hybrid
+searcher uses it for the passages the semantic leg finds.</p>
 
 
 

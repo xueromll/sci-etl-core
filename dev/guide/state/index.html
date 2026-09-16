@@ -803,6 +803,8 @@
       
         
       
+        
+      
     
     
     
@@ -1007,6 +1009,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../search/backfill/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backfilling from vector memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../search/discovery-graphs/" class="md-nav__link">
         
   
@@ -1102,6 +1132,10 @@
   
     
     
+      
+        
+      
+        
       
         
       
@@ -1247,6 +1281,17 @@
     <span class="md-ellipsis">
       
         Resuming
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#newest-first-listings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Newest-first listings
       
     </span>
   </a>
@@ -1431,6 +1476,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Progress events and metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../token-usage/" class="md-nav__link">
         
   
@@ -1439,6 +1512,34 @@
     
   
     Token usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../llm-caching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM response caching
   
 
     
@@ -2443,6 +2544,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#newest-first-listings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Newest-first listings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#what-happens-when-something-fails" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2508,15 +2620,42 @@ line boundary or have leading or trailing whitespace, since neither would read
 back unchanged. Metadata content that isn't valid falls back to offset 0, which
 only costs a rescan. Both backends record <code>last_run_at</code> as an ISO 8601
 timestamp in UTC.</p>
-<div class="admonition note">
-<p class="admonition-title">Newest-first listings</p>
-<p>The arXiv extractor lists the newest submissions first, so new papers push
-older ones to higher offsets. A run that resumes from the saved offset keeps
-working backwards through older papers and does not revisit the new ones.
-To pick those up, pass <code>start_index=0</code>: processed records are skipped by id,
-so a rescan costs listing requests (each preceded by the extractor's
-<code>sleep_before_search</code> delay) but reprocesses nothing.</p>
-</div>
+<h2 id="newest-first-listings">Newest-first listings<a class="headerlink" href="#newest-first-listings" title="Permanent link">&para;</a></h2>
+<p>The arXiv extractor lists the newest submissions first, and the PubMed and
+OpenAlex extractors sort newest first by default, so new papers push older
+ones to higher offsets. A run that resumes from the saved offset keeps
+working backwards through older papers and never sees the new ones. Pass
+<code>newest_first=True</code> to pick up both:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="s2">"all:galaxy"</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">newest_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+<p>Such a run pages from offset 0 until it has passed the records the previous
+run saw at the top of the listing. How far those records have moved is the
+number of new submissions, so the saved offset has moved down by the same
+number. The run jumps to the page just before that offset and checks that the
+records last seen there are still on it. If they are, the papers in between
+were settled by earlier runs and aren't listed again, and paging continues.</p>
+<ul>
+<li><strong>First run in this mode:</strong> there is nothing saved to look for yet, so it
+  scans from offset 0, skipping processed records by id, and saves the head of
+  the listing for the next run.</li>
+<li><strong>Failures near the top:</strong> the head the next run looks for is taken from the
+  page where a record failed, so that run pages at least that far and revisits
+  it.</li>
+<li><strong>Entries removed or reordered:</strong> when the records before the saved offset
+  aren't where they should be, the run pages on from the top instead of
+  skipping, and logs <code>Records last seen before the saved offset have moved</code>.</li>
+<li><strong>Saved head no longer listed:</strong> the run keeps paging to the end of the
+  listing, which is a full rescan, and saves the new head.</li>
+</ul>
+<p>A typical run with new papers costs two or three listing requests at the top,
+one to check the saved offset, and the requests for the backlog. The records
+it relies on are saved as <code>head_ids</code>, <code>head_offset</code>, and <code>tail_ids</code> in
+<code>PipelineMetadata</code>, by both state backends. <code>start_index</code> can't be combined
+with <code>newest_first</code>.</p>
+<p>Without <code>newest_first</code>, pass <code>start_index=0</code> to rescan a listing whose order
+has shifted: processed records are skipped by id, so a rescan costs listing
+requests (each preceded by the extractor's <code>sleep_before_search</code> delay) but
+reprocesses nothing.</p>
 <h2 id="what-happens-when-something-fails">What happens when something fails<a class="headerlink" href="#what-happens-when-something-fails" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2555,8 +2694,12 @@ so a rescan costs listing requests (each preceded by the extractor's
 <td>paging continues; the failed records stay unmarked for the next run</td>
 </tr>
 <tr>
-<td>Records fail with none processed on a second page before any progress, or on the last page of the listing, e.g. a rejected API key or an unreadable CSV</td>
+<td>Records fail with none processed on a second page since the last page that processed a record, or on the last page of the listing, e.g. a rejected API key or an unreadable CSV</td>
 <td><code>run()</code> raises <code>PipelineAborted</code> (cause: the last record's error)</td>
+</tr>
+<tr>
+<td>A shutdown is requested through <code>shutdown</code></td>
+<td><code>run()</code> raises <code>PipelineInterrupted</code>; see <a href="../shutdown/">Graceful shutdown</a></td>
 </tr>
 <tr>
 <td>arXiv reports the LaTeX and PDF as unavailable (e.g. 404), or neither can be parsed</td>
@@ -2587,9 +2730,10 @@ so a rescan costs listing requests (each preceded by the extractor's
 <h2 id="exceptions">Exceptions<a class="headerlink" href="#exceptions" title="Permanent link">&para;</a></h2>
 <p>All library exceptions derive from <code>SciEtlError</code>: <code>ExtractionError</code>
 (<code>UpstreamError</code>, <code>MalformedResponseError</code>), <code>ParsingError</code>, <code>LLMError</code>,
-<code>EmbeddingError</code>, <code>EmbeddingStoreError</code>, <code>SearchError</code> (<code>SearchQueryError</code>,
-<code>SearchStoreError</code>), <code>ConfigurationError</code>, and <code>PipelineAborted</code>. All of them
-can be imported from <code>sci_etl_core</code>. The bundled parsers raise <code>ParsingError</code>
+<code>LLMCacheError</code>, <code>EmbeddingError</code>, <code>EmbeddingStoreError</code>, <code>SearchError</code>
+(<code>SearchQueryError</code>, <code>SearchStoreError</code>), <code>ConfigurationError</code>, and
+<code>PipelineAborted</code> (<code>PipelineInterrupted</code>). All of them can be imported from
+<code>sci_etl_core</code>. The bundled parsers raise <code>ParsingError</code>
 for bytes they can't read; a custom <code>Parser</code> should do the same, so
 <code>AsyncArxivExtractor</code> moves on to its next source instead of failing the
 record.</p>

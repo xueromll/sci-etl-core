@@ -865,6 +865,8 @@
       
         
       
+        
+      
     
     
     
@@ -1066,6 +1068,34 @@
   
   
     <li class="md-nav__item">
+      <a href="guide/search/backfill/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backfilling from vector memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="guide/search/discovery-graphs/" class="md-nav__link">
         
   
@@ -1159,6 +1189,10 @@
   
     
     
+      
+        
+      
+        
       
         
       
@@ -1394,6 +1428,34 @@
   
   
     <li class="md-nav__item">
+      <a href="guide/observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Progress events and metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="guide/token-usage/" class="md-nav__link">
         
   
@@ -1402,6 +1464,34 @@
     
   
     Token usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="guide/llm-caching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM response caching
   
 
     
@@ -2439,7 +2529,8 @@ runs these pipelines from a single YAML file.</p>
 <li>
 <p><strong>Get started</strong></p>
 <hr />
-<p>Install the extras you need and run your first pipeline over arXiv.</p>
+<p>Install the extras you need and run your first pipeline over arXiv, then
+point it at <a href="guide/sources/">PubMed, Semantic Scholar, or OpenAlex</a>.</p>
 <p><a href="getting-started/installation/">Installation</a> ·
 <a href="getting-started/quick-start/">Quick start</a></p>
 </li>
@@ -2481,12 +2572,18 @@ wiring code.</p>
   stop the run instead of burning through the rest of the listing.</li>
 <li><strong>Resumable, crash-safe state</strong> — plain-file or SQLite backends record
   processed ids and the listing offset; CSV and metadata writes use atomic
-  renames.</li>
-<li><strong>Polite retries</strong> — the arXiv extractor and the OpenAI-compatible chat and
-  embedding clients wait as long as a throttled response's <code>Retry-After</code>
-  header asks, up to a configurable cap.</li>
-<li><strong>Token usage</strong> — the OpenAI-compatible clients count the tokens each
-  response reports, so a run's API cost can be shown.</li>
+  renames. Newest-first listings pick up new papers without rescanning.</li>
+<li><strong>Graceful shutdown</strong> — Ctrl+C or SIGTERM lets in-flight records finish,
+  flushes state, and raises <code>PipelineInterrupted</code>.</li>
+<li><strong>Polite retries and rate limits</strong> — every bundled extractor and the
+  OpenAI-compatible chat and embedding clients wait as long as a throttled
+  response's <code>Retry-After</code> header asks, up to a configurable cap, and take
+  rate limiters that can be shared and set per host.</li>
+<li><strong>Progress events, metrics, and token usage</strong> — typed per-record events,
+  run metrics with counts, durations, and failures, and the tokens each run
+  used.</li>
+<li><strong>LLM response caching</strong> — an in-memory or SQLite cache answers repeated
+  prompts without another API call.</li>
 <li><strong>Semantic memory (optional)</strong> — chunk and embed full texts into an
   in-memory or SQLite vector store, search for similar articles, or gate
   relevance by embedding similarity instead of an LLM call.</li>
@@ -2495,10 +2592,11 @@ wiring code.</p>
   with embedding similarity, metadata facets, and graphs of related papers.</li>
 <li><strong>Dependency injection everywhere</strong> — HTTP clients, parsers, models,
   prompts, and destinations are constructor arguments.</li>
-<li><strong>Concrete implementations included</strong> — arXiv extractor; OpenAI-compatible
-  chat and embedding clients; local sentence-transformers embedder; PDF / LaTeX
-  / HTML parsers; CSV upsert, SQL table, and 3D Plotly exporters; dataframe
-  processors and record validators.</li>
+<li><strong>Concrete implementations included</strong> — arXiv, PubMed, Semantic Scholar,
+  and OpenAlex extractors; OpenAI-compatible chat and embedding clients; local
+  sentence-transformers embedder; PDF / LaTeX / HTML / DOCX / JATS XML parsers;
+  CSV upsert, SQL table, and 3D Plotly exporters; dataframe processors and
+  record validators.</li>
 <li><strong>Typed configuration</strong> from YAML + <code>.env</code> with Pydantic validation and
   <code>SecretStr</code> API keys.</li>
 <li><strong>Offline test suite</strong> — pytest with mocks, Hypothesis property tests, and

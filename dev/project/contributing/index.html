@@ -798,6 +798,8 @@
       
         
       
+        
+      
     
     
     
@@ -999,6 +1001,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guide/search/backfill/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backfilling from vector memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guide/search/discovery-graphs/" class="md-nav__link">
         
   
@@ -1092,6 +1122,10 @@
   
     
     
+      
+        
+      
+        
       
         
       
@@ -1327,6 +1361,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guide/observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Progress events and metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guide/token-usage/" class="md-nav__link">
         
   
@@ -1335,6 +1397,34 @@
     
   
     Token usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/llm-caching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM response caching
   
 
     
@@ -2755,6 +2845,12 @@ requested changes are about the code, never about you.</p>
 <td>Return the parsed JSON object; raise <code>LLMError</code> on failure or when the body isn't a JSON object.</td>
 </tr>
 <tr>
+<td>LLM response cache</td>
+<td><code>AsyncLLMResponseCache</code></td>
+<td><code>async get(key)</code>, <code>async set(key, response)</code>, <code>async clear()</code></td>
+<td><code>get</code> returns <code>None</code> for a missing key. Return copies, so a caller changing a response can't change the cache. Raise <code>LLMCacheError</code> for a storage fault; <code>CachingLLMClient</code> logs it and calls the LLM instead. Add <code>aclose()</code> if you hold connections.</td>
+</tr>
+<tr>
 <td>Relevance filter</td>
 <td><code>AsyncRelevanceFilter</code></td>
 <td><code>async is_relevant(record)</code></td>
@@ -2788,7 +2884,7 @@ requested changes are about the code, never about you.</p>
 <td>Vector store</td>
 <td><code>AsyncEmbeddingStore</code></td>
 <td><code>add</code>, <code>delete_record</code>, <code>query</code>, <code>count</code></td>
-<td>Replace chunks with the same <code>(record_id, chunk_index)</code>; <code>delete_record</code> removes all of a record's chunks. Override <code>replace_record</code> (delete then add by default) if your backend can do both atomically. Never return hits with non-finite scores. Match <code>InMemoryEmbeddingStore</code> for <code>top_k</code>, <code>min_score</code>, and <code>exclude_record_id</code>. Serialize use of a shared connection, and raise <code>EmbeddingStoreError</code>.</td>
+<td>Replace chunks with the same <code>(record_id, chunk_index)</code>; <code>delete_record</code> removes all of a record's chunks. Override <code>replace_record</code> (delete then add by default) if your backend can do both atomically. Never return hits with non-finite scores. Match <code>InMemoryEmbeddingStore</code> for <code>top_k</code>, <code>min_score</code>, and <code>exclude_record_id</code>. Serialize use of a shared connection, and raise <code>EmbeddingStoreError</code>. Implement <code>iter_records</code> (passages in <code>chunk_index</code> order, records in <code>record_id</code> order, no vectors) if the text index should be backfillable from your store.</td>
 </tr>
 <tr>
 <td>Chunker</td>
@@ -2800,7 +2896,7 @@ requested changes are about the code, never about you.</p>
 <td>Text search store</td>
 <td><code>AsyncTextSearchStore</code></td>
 <td><code>facet_keys</code> property, <code>index</code>, <code>delete_record</code>, <code>search</code>, <code>filter_ids</code>, <code>get_documents</code>, <code>facet_counts</code>, <code>count</code></td>
-<td>Take parsed queries, never text. Reject a query <code>search</code> can't rank with <code>require_rankable</code>. Order equal scores by <code>record_id</code>, and apply filters before <code>limit</code>. Raise <code>ValueError</code> before any I/O for a filter or facet key outside <code>facet_keys</code> or two filters on one key (<code>validate_filters</code>, <code>validate_facet_keys</code>). Match <code>InMemoryTextSearchStore</code>'s results, and raise <code>SearchStoreError</code>.</td>
+<td>Take parsed queries, never text. Reject a query <code>search</code> can't rank with <code>require_rankable</code>. Order equal scores by <code>record_id</code>, and apply filters before <code>limit</code>. Raise <code>ValueError</code> before any I/O for a filter or facet key outside <code>facet_keys</code> or two filters on one key (<code>validate_filters</code>, <code>validate_facet_keys</code>). Accept <code>MetadataFilter</code> and <code>RangeFilter</code>, compare ranges with <code>tag_in_range</code>, and fill <code>TextHit.snippets</code> for every field with a highlighted match. Override <code>range_counts</code> (one <code>filter_ids</code> per range by default) if you can count in one read. Match <code>InMemoryTextSearchStore</code>'s results, and raise <code>SearchStoreError</code>.</td>
 </tr>
 <tr>
 <td>Edge source</td>
