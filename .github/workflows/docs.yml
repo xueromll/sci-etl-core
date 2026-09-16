@@ -160,6 +160,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -z "$ALIAS" ] && ! mike list latest > /dev/null 2>&1; then
+            ALIAS=latest
+          fi
           if [ -n "$ALIAS" ]; then
             mike deploy --push --update-aliases "$VERSION" "$ALIAS"
             mike set-default --push "$ALIAS"
