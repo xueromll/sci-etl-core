@@ -805,8 +805,6 @@
       
         
       
-        
-      
     
     
     
@@ -1011,34 +1009,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../backfill/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Backfilling from vector memory
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../discovery-graphs/" class="md-nav__link">
         
   
@@ -1142,10 +1112,6 @@
   
     
     
-      
-        
-      
-        
       
         
       
@@ -1384,34 +1350,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../observability/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Progress events and metrics
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../token-usage/" class="md-nav__link">
         
   
@@ -1420,34 +1358,6 @@
     
   
     Token usage
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../llm-caching/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    LLM response caching
   
 
     
@@ -2444,10 +2354,6 @@
 matched count, elapsed time, and degraded and skipped legs) and <code>Facet</code>. Both
 are frozen dataclasses, and importing the module loads no store, no event-loop
 machinery, and no optional dependency.</p>
-<p>Render <code>FusedHit.snippets</code> with your own markup from their <code>highlights</code>, one
-line per field, and label a hit whose <code>lexical_rank</code> is <code>None</code> as a match by
-meaning. Build date or year histograms from <code>range_counts</code>, which leaves every
-bucket visible while one is selected.</p>
 <p>Keep parsing on the keystroke and make only retrieval asynchronous: debounce
 it, cancel a search when a newer one starts, and drop any result that arrives
 after a newer search began.</p>

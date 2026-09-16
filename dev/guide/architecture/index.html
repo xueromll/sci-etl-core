@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://xueromll.github.io/sci-etl-core/dev/guide/architecture/">
       
       
-        <link rel="prev" href="../llm-caching/">
+        <link rel="prev" href="../token-usage/">
       
       
         <link rel="next" href="../../cli/">
@@ -803,8 +803,6 @@
       
         
       
-        
-      
     
     
     
@@ -1009,34 +1007,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../search/backfill/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Backfilling from vector memory
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../search/discovery-graphs/" class="md-nav__link">
         
   
@@ -1130,10 +1100,6 @@
   
     
     
-      
-        
-      
-        
       
         
       
@@ -1372,34 +1338,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../observability/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Progress events and metrics
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../token-usage/" class="md-nav__link">
         
   
@@ -1408,34 +1346,6 @@
     
   
     Token usage
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../llm-caching/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    LLM response caching
   
 
     
@@ -2514,7 +2424,7 @@
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>                          AsyncRelevanceFilter.is_relevant --no--&gt; mark processed
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>                                                  | yes
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>                                                  v
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>                          AsyncExtractor.fetch_full_text (best source -&gt; abstract)
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>                          AsyncExtractor.fetch_full_text (LaTeX -&gt; PDF -&gt; abstract)
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>                                                  |
 <a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>                                                  +--&gt; MemoryIngestor (optional)
 <a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>                                                  |      AsyncChunkIngestor: TextChunker -&gt; AsyncEmbedder
@@ -2527,15 +2437,11 @@
 <a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>                                                  v
 <a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>                          AsyncExporter.export(entities, destination) --&gt; mark processed
 <a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>After each page: AsyncStateManager.save_metadata(last_start_index, newest-first head)
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>When the run ends: AsyncStateManager.flush(); RunFinished(metrics) to on_event
-<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>Throughout: ShutdownSignal stops new records; on_event receives RunStarted, PageFetched,
-<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>            RecordFinished, PageFinished
-<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>
-<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>Search:    AsyncHybridSearcher.search(query) --&gt; AsyncTextSearchStore.search (BM25) -------+--&gt; fusion --&gt; SearchOutcome
-<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>                                             --&gt; AsyncSimilarArticleFinder (vector memory) -+
-<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>Discovery: build_discovery_graph(seed) --&gt; AsyncEdgeSource.neighbours --&gt; DiscoveryGraph --&gt; filter_graph
-<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>Backfill:  AsyncEmbeddingStore.iter_records --&gt; merge_passages --&gt; AsyncTextSearchStore.index
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>After each page: AsyncStateManager.save_metadata(last_start_index)
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>Search:    AsyncHybridSearcher.search(query) --&gt; AsyncTextSearchStore.search (BM25) -------+--&gt; fusion --&gt; SearchOutcome
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>                                             --&gt; AsyncSimilarArticleFinder (vector memory) -+
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>Discovery: build_discovery_graph(seed) --&gt; AsyncEdgeSource.neighbours --&gt; DiscoveryGraph --&gt; filter_graph
 </code></pre></div>
 <h2 id="layers">Layers<a class="headerlink" href="#layers" title="Permanent link">&para;</a></h2>
 <table>
@@ -2551,25 +2457,19 @@
 <tr>
 <td>Extract</td>
 <td><code>AsyncExtractor</code></td>
-<td><code>AsyncArxivExtractor</code>, <code>AsyncPubMedExtractor</code>, <code>AsyncSemanticScholarExtractor</code>, <code>AsyncOpenAlexExtractor</code></td>
+<td><code>AsyncArxivExtractor</code></td>
 <td><code>sci_etl_core.extractors</code></td>
 </tr>
 <tr>
 <td>Parse</td>
 <td><code>Parser</code>, <code>TableParser</code></td>
-<td><code>PdfPlumberParser</code>, <code>LatexTarballParser</code>, <code>HtmlTextParser</code>, <code>DocxParser</code>, <code>JatsXmlParser</code></td>
+<td><code>PdfPlumberParser</code>, <code>LatexTarballParser</code>, <code>HtmlTextParser</code></td>
 <td><code>sci_etl_core.parsers</code></td>
 </tr>
 <tr>
 <td>LLM</td>
 <td><code>AsyncLLMClient</code></td>
-<td><code>AsyncOpenAICompatibleClient</code>, <code>CachingLLMClient</code></td>
-<td><code>sci_etl_core.llm</code></td>
-</tr>
-<tr>
-<td>LLM cache</td>
-<td><code>AsyncLLMResponseCache</code></td>
-<td><code>InMemoryLLMResponseCache</code>, <code>AsyncSqliteLLMResponseCache</code></td>
+<td><code>AsyncOpenAICompatibleClient</code></td>
 <td><code>sci_etl_core.llm</code></td>
 </tr>
 <tr>
@@ -2623,7 +2523,7 @@
 <tr>
 <td>Text search</td>
 <td><code>AsyncTextSearchStore</code></td>
-<td><code>InMemoryTextSearchStore</code>, <code>AsyncSqliteFts5Store</code>; <code>MetadataFilter</code>, <code>RangeFilter</code>; <code>backfill_text_index</code></td>
+<td><code>InMemoryTextSearchStore</code>, <code>AsyncSqliteFts5Store</code></td>
 <td><code>sci_etl_core.search</code></td>
 </tr>
 <tr>
@@ -2641,7 +2541,7 @@
 <tr>
 <td>Post-processing</td>
 <td><code>Processor</code>, <code>RecordValidator</code></td>
-<td><code>ProcessorChain</code>, <code>NormalizationStep</code>, <code>DeduplicationStep</code>, <code>ClusteringStep</code>, <code>CompletenessStep</code>, <code>QualityFlagStep</code>, <code>ValueClipStep</code>, <code>TableLayoutStep</code>; <code>NumericRangeValidator</code>, <code>KeywordExclusionValidator</code>, <code>CompositeValidator</code></td>
+<td><code>ProcessorChain</code>, <code>NormalizationStep</code>, <code>DeduplicationStep</code>, <code>ClusteringStep</code>, <code>CompletenessStep</code>, <code>QualityFlagStep</code>; <code>NumericRangeValidator</code>, <code>KeywordExclusionValidator</code>, <code>CompositeValidator</code></td>
 <td><code>sci_etl_core.processors</code></td>
 </tr>
 <tr>
@@ -2662,10 +2562,9 @@
 re-exported from <code>sci_etl_core</code> itself; parser implementations, processor
 steps, and validators come from their subpackages. Supporting modules:
 <code>sci_etl_core.config</code>, <code>sci_etl_core.http_async</code> (<code>build_async_client</code>),
-<code>sci_etl_core.rate_limiter</code> (including <code>HostRateLimiter</code>),
-<code>sci_etl_core.signals</code>, <code>sci_etl_core.observability</code> (progress events and
-<code>RunMetrics</code>), <code>sci_etl_core.log_utils</code>, <code>sci_etl_core.exceptions</code>, and
-<code>sci_etl_core.discovery</code> (the read-model for user interfaces). Every package loads its public names on first access, so
+<code>sci_etl_core.rate_limiter</code>, <code>sci_etl_core.signals</code>, <code>sci_etl_core.log_utils</code>,
+<code>sci_etl_core.exceptions</code>, and <code>sci_etl_core.discovery</code> (the read-model for
+user interfaces). Every package loads its public names on first access, so
 importing one component never requires another component's optional
 dependencies.</p>
 <p>The <a href="../../reference/">API reference</a> documents each module in detail.</p>
@@ -2704,7 +2603,7 @@ dependencies.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../llm-caching/" class="md-footer__link md-footer__link--prev" aria-label="Previous: LLM response caching">
+          <a href="../token-usage/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Token usage">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2714,7 +2613,7 @@ dependencies.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                LLM response caching
+                Token usage
               </div>
             </div>
           </a>

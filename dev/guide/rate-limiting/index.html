@@ -803,8 +803,6 @@
       
         
       
-        
-      
     
     
     
@@ -1009,34 +1007,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../search/backfill/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Backfilling from vector memory
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../search/discovery-graphs/" class="md-nav__link">
         
   
@@ -1132,10 +1102,6 @@
   
     
     
-      
-        
-      
-        
       
         
       
@@ -1299,24 +1265,6 @@
         
       
       
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Rate limiting
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -1333,58 +1281,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#giving-a-limiter-to-a-component" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Giving a limiter to a component
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#limits-per-host" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Limits per host
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#sharing-a-limit-between-components" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Sharing a limit between components
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
       
     </li>
   
@@ -1454,34 +1350,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../observability/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Progress events and metrics
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../token-usage/" class="md-nav__link">
         
   
@@ -1490,34 +1358,6 @@
     
   
     Token usage
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../llm-caching/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    LLM response caching
   
 
     
@@ -2493,47 +2333,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#giving-a-limiter-to-a-component" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Giving a limiter to a component
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#limits-per-host" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Limits per host
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#sharing-a-limit-between-components" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Sharing a limit between components
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -2551,8 +2350,8 @@
 
 <h1 id="rate-limiting">Rate limiting<a class="headerlink" href="#rate-limiting" title="Permanent link">&para;</a></h1>
 <p><code>AsyncETLPipeline(max_concurrency=...)</code> bounds how many records are processed
-at once. For finer control, <code>sci_etl_core.rate_limiter</code> provides async
-limiters:</p>
+at once. For finer control, <code>sci_etl_core.rate_limiter</code> provides standalone
+async context managers:</p>
 <ul>
 <li><code>SemaphoreRateLimiter</code> — concurrency cap</li>
 <li><code>AioLimiterRateLimiter</code> — token bucket; needs the <code>async</code> extra</li>
@@ -2560,64 +2359,37 @@ limiters:</p>
 </ul>
 <p><code>build_rate_limiter(max_concurrency, max_rate, time_period)</code> returns a token
 bucket when <code>max_rate</code> is set and a semaphore otherwise. Its parameters match
-the <code>full_text</code> <a href="../../getting-started/configuration/">config section</a>.</p>
-<h2 id="giving-a-limiter-to-a-component">Giving a limiter to a component<a class="headerlink" href="#giving-a-limiter-to-a-component" title="Permanent link">&para;</a></h2>
-<p>Every bundled extractor (<code>AsyncArxivExtractor</code>, <code>AsyncPubMedExtractor</code>,
-<code>AsyncSemanticScholarExtractor</code>, and <code>AsyncOpenAlexExtractor</code>),
-<code>AsyncOpenAICompatibleClient</code>, and <code>AsyncOpenAIEmbedder</code> take a
-<code>rate_limiter</code>. Every HTTP request, retries included, waits for a slot
-first and gives it back when the response arrives, so no slot is held while a
-component waits to retry:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncArxivExtractor</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.parsers</span><span class="w"> </span><span class="kn">import</span> <span class="n">LatexTarballParser</span><span class="p">,</span> <span class="n">PdfPlumberParser</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.rate_limiter</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_rate_limiter</span>
+the <code>full_text</code> <a href="../../getting-started/configuration/">config section</a>.
+Components don't take a limiter argument, so apply one by wrapping a
+component:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.extractors</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncExtractor</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.rate_limiter</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncRateLimiter</span><span class="p">,</span> <span class="n">build_rate_limiter</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">extractor</span> <span class="o">=</span> <span class="n">AsyncArxivExtractor</span><span class="p">(</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">pdf_parser</span><span class="o">=</span><span class="n">PdfPlumberParser</span><span class="p">(),</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">latex_parser</span><span class="o">=</span><span class="n">LatexTarballParser</span><span class="p">(),</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">rate_limiter</span><span class="o">=</span><span class="n">build_rate_limiter</span><span class="p">(</span><span class="n">max_rate</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">time_period</span><span class="o">=</span><span class="mf">3.0</span><span class="p">),</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="p">)</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">class</span><span class="w"> </span><span class="nc">RateLimitedExtractor</span><span class="p">(</span><span class="n">AsyncExtractor</span><span class="p">):</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="sd">"""Route an extractor's network calls through one shared limiter."""</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inner</span><span class="p">:</span> <span class="n">AsyncExtractor</span><span class="p">,</span> <span class="n">limiter</span><span class="p">:</span> <span class="n">AsyncRateLimiter</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_inner</span> <span class="o">=</span> <span class="n">inner</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_limiter</span> <span class="o">=</span> <span class="n">limiter</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">max_results</span><span class="p">,</span> <span class="n">start_index</span><span class="p">):</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        <span class="k">async</span> <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_limiter</span><span class="p">:</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>            <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inner</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">max_results</span><span class="p">,</span> <span class="n">start_index</span><span class="p">)</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parse_listing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw_listing</span><span class="p">,</span> <span class="n">seen_ids</span><span class="p">):</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inner</span><span class="o">.</span><span class="n">parse_listing</span><span class="p">(</span><span class="n">raw_listing</span><span class="p">,</span> <span class="n">seen_ids</span><span class="p">)</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">fetch_full_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>        <span class="k">async</span> <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_limiter</span><span class="p">:</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>            <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inner</span><span class="o">.</span><span class="n">fetch_full_text</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
 </code></pre></div>
-<h2 id="limits-per-host">Limits per host<a class="headerlink" href="#limits-per-host" title="Permanent link">&para;</a></h2>
-<p><code>HostRateLimiter</code> picks a limiter by the host a request goes to. A host also
-covers its subdomains, unless a subdomain has a limiter of its own, and hosts
-with no match use <code>default</code>, which is no limit when you leave it out. The arXiv
-extractor calls two hosts, <code>export.arxiv.org</code> for listings and <code>arxiv.org</code> for
-full text, so each can get its own budget:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.rate_limiter</span><span class="w"> </span><span class="kn">import</span> <span class="n">HostRateLimiter</span><span class="p">,</span> <span class="n">SemaphoreRateLimiter</span><span class="p">,</span> <span class="n">build_rate_limiter</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">arxiv_limits</span> <span class="o">=</span> <span class="n">HostRateLimiter</span><span class="p">(</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="p">{</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>        <span class="s2">"export.arxiv.org"</span><span class="p">:</span> <span class="n">build_rate_limiter</span><span class="p">(</span><span class="n">max_rate</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">time_period</span><span class="o">=</span><span class="mf">3.0</span><span class="p">),</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>        <span class="s2">"arxiv.org"</span><span class="p">:</span> <span class="n">SemaphoreRateLimiter</span><span class="p">(</span><span class="n">max_concurrency</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="p">}</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="p">)</span>
+<p>Wrap the extractor with a limiter built from the config:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">extractor</span> <span class="o">=</span> <span class="n">RateLimitedExtractor</span><span class="p">(</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="n">AsyncArxivExtractor</span><span class="p">(</span><span class="o">...</span><span class="p">),</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="n">build_rate_limiter</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="o">.</span><span class="n">full_text</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()),</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="p">)</span>
 </code></pre></div>
-<h2 id="sharing-a-limit-between-components">Sharing a limit between components<a class="headerlink" href="#sharing-a-limit-between-components" title="Permanent link">&para;</a></h2>
-<p>Pass the same limiter to several components to have them share one budget. A
-chat client and an embedder that call the same provider count against the same
-quota:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncOpenAICompatibleClient</span><span class="p">,</span> <span class="n">AsyncOpenAIEmbedder</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.rate_limiter</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_rate_limiter</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">provider_limit</span> <span class="o">=</span> <span class="n">build_rate_limiter</span><span class="p">(</span><span class="n">max_rate</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">time_period</span><span class="o">=</span><span class="mf">60.0</span><span class="p">)</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">llm</span> <span class="o">=</span> <span class="n">AsyncOpenAICompatibleClient</span><span class="p">(</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">api_key</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">api_key</span><span class="p">,</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">base_url</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">model</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="n">rate_limiter</span><span class="o">=</span><span class="n">provider_limit</span><span class="p">,</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="p">)</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="n">embedder</span> <span class="o">=</span> <span class="n">AsyncOpenAIEmbedder</span><span class="p">(</span>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>    <span class="n">api_key</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">api_key</span><span class="p">,</span>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>    <span class="n">base_url</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span>
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    <span class="n">model</span><span class="o">=</span><span class="s2">"text-embedding-3-small"</span><span class="p">,</span>
-<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>    <span class="n">rate_limiter</span><span class="o">=</span><span class="n">provider_limit</span><span class="p">,</span>
-<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="p">)</span>
-</code></pre></div>
-<p>A <code>HostRateLimiter</code> can be shared the same way, for example one instance whose
-hosts cover every service a run calls. The OpenAI-compatible clients match it
-against their <code>base_url</code>.</p>
 
 
 

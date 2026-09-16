@@ -805,8 +805,6 @@
       
         
       
-        
-      
     
     
     
@@ -929,17 +927,6 @@
       Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#proximity" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Proximity
-      
-    </span>
-  </a>
-  
-</li>
       
         <li class="md-nav__item">
   <a href="#parsing" class="md-nav__link">
@@ -1080,34 +1067,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../backfill/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Backfilling from vector memory
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../discovery-graphs/" class="md-nav__link">
         
   
@@ -1201,10 +1160,6 @@
   
     
     
-      
-        
-      
-        
       
         
       
@@ -1443,34 +1398,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../observability/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Progress events and metrics
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../token-usage/" class="md-nav__link">
         
   
@@ -1479,34 +1406,6 @@
     
   
     Token usage
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../llm-caching/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    LLM response caching
   
 
     
@@ -2489,17 +2388,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#proximity" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Proximity
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#parsing" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2558,11 +2446,6 @@
 <td>only in the named fields: <code>title</code>, <code>abstract</code>, <code>body</code></td>
 </tr>
 <tr>
-<td>Near</td>
-<td><code>NEAR(dwarf "dark matter" halo*, 5)</code>, <code>title:NEAR(dwarf halo)</code></td>
-<td>all the terms and phrases in one field, within 5 tokens of each other (10 by default), in any order</td>
-</tr>
-<tr>
 <td>And</td>
 <td><code>a AND b</code>, <code>a &amp;&amp; b</code>, <code>a b</code></td>
 <td>both</td>
@@ -2587,30 +2470,6 @@
 <p><code>NOT</code> binds tightest, then <code>AND</code>, then <code>OR</code>. Operators are upper case, so
 <code>and</code> is an ordinary word. A word the tokenizer splits, such as <code>H-alpha</code>, is
 searched as a phrase of its parts.</p>
-<h2 id="proximity">Proximity<a class="headerlink" href="#proximity" title="Permanent link">&para;</a></h2>
-<p><code>NEAR(...)</code> takes terms, phrases, and prefix terms separated by spaces, then
-optionally a comma and a whole number of tokens. With the occurrences chosen
-so that the one starting last starts at token <code>p</code>, every other operand must
-end at most that many tokens before <code>p</code>: <code>NEAR(a b, 2)</code> matches <code>a x x b</code> and
-<code>b x a</code> but not <code>a x x x b</code>.</p>
-<ul>
-<li><strong>Scope the group, not its parts.</strong> <code>abstract:NEAR(dwarf halo)</code> looks in the
-  abstract; a field scope inside the parentheses, such as
-  <code>NEAR(title:dwarf halo)</code>, is a <code>SearchQueryError</code>.</li>
-<li><strong>Only words inside.</strong> <code>AND</code>, <code>OR</code>, <code>NOT</code>, <code>-</code>, <code>&amp;&amp;</code>, <code>||</code>, and nested
-  parentheses are rejected inside a group. Negate or combine the whole group
-  instead, as in <code>quasar -NEAR(dwarf halo, 3)</code>.</li>
-<li><strong>Short forms.</strong> A group with one operand, such as <code>NEAR(dwarf)</code>, is that
-  term. A group holding one quoted phrase, such as <code>NEAR("dwarf halo", 3)</code>,
-  searches for the phrase's words near each other, not for the phrase.</li>
-<li><strong>Upper case, no space.</strong> <code>NEAR</code> must be upper case and directly followed by
-  <code>(</code>; <code>near(a b)</code> and <code>NEAR (a b)</code> are read as the word <code>near</code> and the terms
-  <code>a</code> and <code>b</code>.</li>
-</ul>
-<p>A <code>NEAR</code> group ranks, filters, and highlights like any other term, in both
-text stores. In a hybrid search its words are embedded like the rest of the
-query, except its prefix terms. <code>describe</code> returns a group as one <code>QueryChip</code> whose <code>near</code> is its
-distance.</p>
 <h2 id="parsing">Parsing<a class="headerlink" href="#parsing" title="Permanent link">&para;</a></h2>
 <p>Parsing is pure and synchronous, so a query bar can run it on every keystroke.
 A malformed query raises <code>SearchQueryError</code>, whose <code>position</code> and <code>token</code> point

@@ -804,23 +804,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Cleaning and plotting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#styling-the-plot" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Styling the plot
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -882,8 +865,6 @@
       
         
           
-        
-      
         
       
         
@@ -1106,34 +1087,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../search/backfill/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Backfilling from vector memory
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../search/discovery-graphs/" class="md-nav__link">
         
   
@@ -1227,10 +1180,6 @@
   
     
     
-      
-        
-      
-        
       
         
       
@@ -1469,34 +1418,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../observability/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Progress events and metrics
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../token-usage/" class="md-nav__link">
         
   
@@ -1505,34 +1426,6 @@
     
   
     Token usage
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../llm-caching/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    LLM response caching
   
 
     
@@ -2534,23 +2427,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Cleaning and plotting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#styling-the-plot" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Styling the plot
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -2676,79 +2552,19 @@ reloads the file; other tools reading the CSV see it. Pass
 </tbody>
 </table>
 <p>The Plotly exporter drops rows that are missing any axis value.</p>
-<h3 id="styling-the-plot">Styling the plot<a class="headerlink" href="#styling-the-plot" title="Permanent link">&para;</a></h3>
-<p><code>ScatterPlotConfig</code> also controls hover text and colors:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScatterPlotConfig</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">config</span> <span class="o">=</span> <span class="n">ScatterPlotConfig</span><span class="p">(</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="n">x_column</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="n">y_column</span><span class="o">=</span><span class="s2">"y"</span><span class="p">,</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="n">z_column</span><span class="o">=</span><span class="s2">"z"</span><span class="p">,</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="n">color_column</span><span class="o">=</span><span class="s2">"dark_matter_fraction"</span><span class="p">,</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="n">size_column</span><span class="o">=</span><span class="s2">"radius"</span><span class="p">,</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="n">hover_name_column</span><span class="o">=</span><span class="s2">"name"</span><span class="p">,</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="n">hover_data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"constellation"</span><span class="p">,</span> <span class="s2">"distance"</span><span class="p">],</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    <span class="n">hover_template</span><span class="o">=</span><span class="p">(</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>        <span class="s2">"&lt;b&gt;%</span><span class="si">{hovertext}</span><span class="s2">&lt;/b&gt;&lt;br&gt;Constellation: %</span><span class="si">{customdata[0]}</span><span class="s2">&lt;br&gt;"</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>        <span class="s2">"Distance: %</span><span class="si">{customdata[1]}</span><span class="s2"> Mpc&lt;extra&gt;&lt;/extra&gt;"</span>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>    <span class="p">),</span>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>    <span class="n">color_continuous_scale</span><span class="o">=</span><span class="s2">"Viridis"</span><span class="p">,</span>
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>    <span class="n">color_range</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>    <span class="n">color_label</span><span class="o">=</span><span class="s2">"DM fraction"</span><span class="p">,</span>
-<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>    <span class="n">marker</span><span class="o">=</span><span class="p">{</span><span class="s2">"sizemode"</span><span class="p">:</span> <span class="s2">"diameter"</span><span class="p">,</span> <span class="s2">"sizemin"</span><span class="p">:</span> <span class="mi">3</span><span class="p">},</span>
-<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>    <span class="n">layout</span><span class="o">=</span><span class="p">{</span><span class="s2">"paper_bgcolor"</span><span class="p">:</span> <span class="s2">"#0b0f19"</span><span class="p">,</span> <span class="s2">"scene"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"aspectmode"</span><span class="p">:</span> <span class="s2">"cube"</span><span class="p">}},</span>
-<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="p">)</span>
-</code></pre></div>
-<ul>
-<li><strong><code>hover_data_columns</code></strong> become <code>%{customdata[0]}</code>, <code>%{customdata[1]}</code>, and
-  so on in <code>hover_template</code>, in the order listed; the hover name is
-  <code>%{hovertext}</code>.</li>
-<li><strong><code>color_continuous_scale</code></strong> and <strong><code>color_range</code></strong> fix the colors of a
-  numeric color column, so a value has the same color in every export.
-  <code>color_label</code> titles the color bar, or the legend for a categorical color
-  column.</li>
-<li><strong><code>marker</code></strong> updates every trace's markers, and <strong><code>layout</code></strong> is applied to
-  the figure layout last, so it overrides <code>template</code> and the default margins.</li>
-</ul>
 <h2 id="other-building-blocks">Other building blocks<a class="headerlink" href="#other-building-blocks" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong><code>ClusteringStep(feature_extractor)</code></strong> runs DBSCAN over features returned by
   your own <code>FeatureExtractor</code>.</li>
-<li><strong><code>ValueClipStep(bounds)</code></strong> clamps numeric columns into ranges, such as
-  <code>{"fraction": (0.0, 1.0)}</code>, turning values that aren't numbers into empty
-  cells. It does during post-processing what the CSV exporter's <code>numeric_clip</code>
-  does during export.</li>
-<li><strong><code>TableLayoutStep(sort_by, leading_columns, hidden_prefixes)</code></strong> prepares a
-  table for publishing: it sorts rows by <code>(column, ascending)</code> pairs with
-  missing values last, drops helper columns such as <code>_norm_key</code> by prefix, and
-  moves the <code>leading_columns</code> to the front.</li>
 <li><strong>Record validators</strong> check individual entity dicts: <code>NumericRangeValidator</code>,
-  <code>KeywordExclusionValidator</code>, and <code>CompositeValidator</code>. Pass one to
-  <code>AsyncLLMEntityExtractor(validator=...)</code> to drop invalid entities before
-  export; each rejection is logged through its <code>logger</code>, labelled by the
-  <code>label_field</code> value when you name one:</li>
-</ul>
-<p><div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncLLMEntityExtractor</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.processors</span><span class="w"> </span><span class="kn">import</span> <span class="n">CompositeValidator</span><span class="p">,</span> <span class="n">KeywordExclusionValidator</span><span class="p">,</span> <span class="n">NumericRangeValidator</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">extractor</span> <span class="o">=</span> <span class="n">AsyncLLMEntityExtractor</span><span class="p">(</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">llm_client</span><span class="p">,</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">system_prompt</span><span class="p">,</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">validator</span><span class="o">=</span><span class="n">CompositeValidator</span><span class="p">(</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>        <span class="p">[</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>            <span class="n">KeywordExclusionValidator</span><span class="p">(</span><span class="s2">"name"</span><span class="p">,</span> <span class="p">[</span><span class="s2">"simulation"</span><span class="p">,</span> <span class="s2">"mock"</span><span class="p">]),</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>            <span class="n">NumericRangeValidator</span><span class="p">({</span><span class="s2">"ra"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">360.0</span><span class="p">)}),</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>        <span class="p">]</span>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>    <span class="p">),</span>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>    <span class="n">logger</span><span class="o">=</span><span class="nb">print</span><span class="p">,</span>
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    <span class="n">label_field</span><span class="o">=</span><span class="s2">"name"</span><span class="p">,</span>
-<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="p">)</span>
-</code></pre></div>
-- <strong><code>AsyncSqlTableExporter(table_name)</code></strong> writes a DataFrame to a SQLAlchemy
+  <code>KeywordExclusionValidator</code>, and <code>CompositeValidator</code>. The pipeline doesn't
+  call them, so apply them in your own entity extractor or before export.</li>
+<li><strong><code>AsyncSqlTableExporter(table_name)</code></strong> writes a DataFrame to a SQLAlchemy
   async URL, e.g.
   <code>await AsyncSqlTableExporter("entities").export(clean, "sqlite+aiosqlite:///results.db")</code>.
   Like the Plotly exporter, it takes a DataFrame, so use it after
-  post-processing rather than as the pipeline's exporter.</p>
+  post-processing rather than as the pipeline's exporter.</li>
+</ul>
 
 
 

@@ -803,8 +803,6 @@
       
         
       
-        
-      
     
     
     
@@ -1009,34 +1007,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../search/backfill/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Backfilling from vector memory
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../search/discovery-graphs/" class="md-nav__link">
         
   
@@ -1147,10 +1117,6 @@
       
         
       
-        
-      
-        
-      
     
     
     
@@ -1243,24 +1209,6 @@
         
       
       
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Graceful shutdown
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -1277,58 +1225,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#the-synchronous-pipeline" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The synchronous pipeline
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#flushing-state" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Flushing state
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#handlers-of-your-own" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Handlers of your own
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
       
     </li>
   
@@ -1454,34 +1350,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../observability/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Progress events and metrics
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../token-usage/" class="md-nav__link">
         
   
@@ -1490,34 +1358,6 @@
     
   
     Token usage
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../llm-caching/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    LLM response caching
   
 
     
@@ -2493,47 +2333,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#the-synchronous-pipeline" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The synchronous pipeline
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#flushing-state" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Flushing state
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#handlers-of-your-own" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Handlers of your own
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -2550,64 +2349,34 @@
 
 
 <h1 id="graceful-shutdown">Graceful shutdown<a class="headerlink" href="#graceful-shutdown" title="Permanent link">&para;</a></h1>
-<p>Pass a <code>ShutdownSignal</code> to the pipeline, and SIGINT (Ctrl+C) or SIGTERM stops a
-run cleanly:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncETLPipeline</span><span class="p">,</span> <span class="n">PipelineInterrupted</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.signals</span><span class="w"> </span><span class="kn">import</span> <span class="n">ShutdownSignal</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">AsyncETLPipeline</span><span class="p">(</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">extractor</span><span class="o">=</span><span class="n">extractor</span><span class="p">,</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">relevance_filter</span><span class="o">=</span><span class="n">relevance_filter</span><span class="p">,</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">entity_extractor</span><span class="o">=</span><span class="n">entity_extractor</span><span class="p">,</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">exporter</span><span class="o">=</span><span class="n">exporter</span><span class="p">,</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">state_manager</span><span class="o">=</span><span class="n">state_manager</span><span class="p">,</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">destination</span><span class="o">=</span><span class="s2">"results.csv"</span><span class="p">,</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">shutdown</span><span class="o">=</span><span class="n">ShutdownSignal</span><span class="p">(</span><span class="n">logger</span><span class="o">=</span><span class="nb">print</span><span class="p">),</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="p">)</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="n">count</span> <span class="o">=</span> <span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="s2">"all:galaxy"</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="k">except</span> <span class="n">PipelineInterrupted</span> <span class="k">as</span> <span class="n">stopped</span><span class="p">:</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Stopped after </span><span class="si">{</span><span class="n">stopped</span><span class="o">.</span><span class="n">partial_count</span><span class="si">}</span><span class="s2"> records; the next run picks up the rest"</span><span class="p">)</span>
+<p><code>ShutdownSignal</code> turns SIGINT/SIGTERM into a flag you can await. The pipeline
+doesn't use it on its own, so run the pipeline as a task alongside it:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.signals</span><span class="w"> </span><span class="kn">import</span> <span class="n">ShutdownSignal</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">run_until_signalled</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="n">state_manager</span><span class="p">,</span> <span class="o">**</span><span class="n">run_kwargs</span><span class="p">):</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">shutdown</span> <span class="o">=</span> <span class="n">ShutdownSignal</span><span class="p">(</span><span class="n">logger</span><span class="o">=</span><span class="nb">print</span><span class="p">)</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="k">with</span> <span class="n">shutdown</span><span class="o">.</span><span class="n">guard</span><span class="p">():</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        <span class="n">run</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="n">run_kwargs</span><span class="p">))</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        <span class="n">stop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">shutdown</span><span class="o">.</span><span class="n">wait</span><span class="p">())</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        <span class="n">done</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">wait</span><span class="p">({</span><span class="n">run</span><span class="p">,</span> <span class="n">stop</span><span class="p">},</span> <span class="n">return_when</span><span class="o">=</span><span class="n">asyncio</span><span class="o">.</span><span class="n">FIRST_COMPLETED</span><span class="p">)</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>        <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="p">(</span><span class="n">run</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>            <span class="k">if</span> <span class="n">task</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">done</span><span class="p">:</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>                <span class="n">task</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">run</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">return_exceptions</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="k">await</span> <span class="n">state_manager</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="k">return</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">run</span><span class="o">.</span><span class="n">cancelled</span><span class="p">()</span> <span class="k">else</span> <span class="n">run</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
 </code></pre></div>
-<p>The pipeline installs the signal handlers for the duration of each <code>run()</code> and
-puts the previous handlers back afterwards.</p>
 <ul>
-<li><strong>First signal:</strong> no new record starts. Records already in flight finish
-  and are marked processed; records that hadn't started stay unmarked for the
-  next run. A pending listing request or the wait between pages is cancelled
-  at once. The saved offset doesn't move past the page that was cut short.
-  State is flushed, and <code>run()</code> raises <code>PipelineInterrupted</code> carrying the
-  number of records processed.</li>
+<li><strong>First signal:</strong> sets the flag. Cancelled in-flight records stay unmarked
+  and are retried on the next run.</li>
 <li><strong>Second signal:</strong> restores the previous handler and terminates immediately.</li>
-<li><strong>Programmatic stop:</strong> <code>shutdown.request()</code> stops the run the same way, from
-  a web handler or a test for example.</li>
+<li><strong>Where it works:</strong> call <code>guard()</code> from async code on the main thread; on any
+  other thread it logs a message and installs nothing. That means it can't be
+  used through <code>ETLPipeline</code>, whose loop runs on a background thread.</li>
 </ul>
-<p><code>PipelineInterrupted</code> subclasses <code>PipelineAborted</code>, so an existing
-<code>except PipelineAborted</code> still catches it. Catch <code>PipelineInterrupted</code> first
-when an interrupted run should exit differently from a failed one.</p>
-<h2 id="the-synchronous-pipeline">The synchronous pipeline<a class="headerlink" href="#the-synchronous-pipeline" title="Permanent link">&para;</a></h2>
-<p><code>ETLPipeline</code> takes the same <code>shutdown</code> argument. Its work runs on a background
-event loop, so the handlers are installed on the thread that calls <code>run()</code>
-and forward the request to that loop. Call <code>run()</code> from the main thread, since
-only the main thread receives signals:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">ETLPipeline</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.signals</span><span class="w"> </span><span class="kn">import</span> <span class="n">ShutdownSignal</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="k">with</span> <span class="n">ETLPipeline</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">shutdown</span><span class="o">=</span><span class="n">ShutdownSignal</span><span class="p">())</span> <span class="k">as</span> <span class="n">pipeline</span><span class="p">:</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="s2">"all:galaxy"</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
-</code></pre></div>
-<h2 id="flushing-state">Flushing state<a class="headerlink" href="#flushing-state" title="Permanent link">&para;</a></h2>
-<p>Every run ends with the state manager's <code>flush()</code>, however it ends: completed,
-aborted, interrupted, or cancelled. <code>AsyncSqliteStateManager</code> checkpoints its
-write-ahead log there. When the run itself failed, a flush failure is logged
-instead of raised, so it doesn't hide the original error.</p>
-<h2 id="handlers-of-your-own">Handlers of your own<a class="headerlink" href="#handlers-of-your-own" title="Permanent link">&para;</a></h2>
-<p><code>shutdown.guard()</code> installs the handlers for a block of your own code. Guards
-nest, so a pipeline given the same signal inside that block leaves your
-handlers in place when its run ends. Handlers are only installed from the main
-thread; elsewhere <code>guard()</code> logs a message and installs nothing, and
-<code>request()</code> still works.</p>
 
 
 

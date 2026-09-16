@@ -805,8 +805,6 @@
       
         
       
-        
-      
     
     
     
@@ -964,24 +962,6 @@
         
       
       
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Filters and facets
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -998,47 +978,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#ranges" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Ranges
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#counting-ranges" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Counting ranges
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
       
     </li>
   
@@ -1060,34 +999,6 @@
     
   
     Text stores
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../backfill/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Backfilling from vector memory
   
 
     
@@ -1201,10 +1112,6 @@
   
     
     
-      
-        
-      
-        
       
         
       
@@ -1443,34 +1350,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../observability/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Progress events and metrics
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../token-usage/" class="md-nav__link">
         
   
@@ -1479,34 +1358,6 @@
     
   
     Token usage
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../llm-caching/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    LLM response caching
   
 
     
@@ -2482,36 +2333,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#ranges" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Ranges
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#counting-ranges" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Counting ranges
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -2528,34 +2349,31 @@
 
 
 <h1 id="filters-and-facets">Filters and facets<a class="headerlink" href="#filters-and-facets" title="Permanent link">&para;</a></h1>
-<p>Metadata filters are <code>MetadataFilter</code> and <code>RangeFilter</code> values passed beside
-the query, never written into it. A store tags each document under the
-metadata keys named in its <code>facet_keys</code>. Every bundled extractor fills
-<code>categories</code> and <code>authors</code> in <code>RawRecord.metadata</code>, and <code>published</code> and <code>year</code>
-when the source has a date (see <a href="../../sources/">Supported sources</a> for the keys
-each source adds), and <code>AsyncSearchIndexer</code> copies that metadata into the
-index.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.search</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetadataFilter</span><span class="p">,</span> <span class="n">RangeFilter</span><span class="p">,</span> <span class="n">parse_query</span>
+<p>Metadata filters are <code>MetadataFilter</code> values passed beside the query, never
+written into it. A store tags each document under the metadata keys named in
+its <code>facet_keys</code>. <code>AsyncArxivExtractor</code> fills <code>categories</code>, <code>authors</code>,
+<code>published</code>, and <code>year</code> in <code>RawRecord.metadata</code>, and <code>AsyncSearchIndexer</code>
+copies that metadata into the index.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.search</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetadataFilter</span><span class="p">,</span> <span class="n">parse_query</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">filters</span> <span class="o">=</span> <span class="p">(</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">MetadataFilter</span><span class="p">(</span><span class="s2">"categories"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"astro-ph.GA"</span><span class="p">,</span> <span class="s2">"astro-ph.CO"</span><span class="p">}),</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">RangeFilter</span><span class="p">(</span><span class="s2">"published"</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="s2">"2020-01"</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="s2">"2024-06"</span><span class="p">),</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">MetadataFilter</span><span class="p">(</span><span class="s2">"year"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"2020"</span><span class="p">,</span> <span class="s2">"2021"</span><span class="p">},</span> <span class="n">negated</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">outcome</span> <span class="o">=</span> <span class="k">await</span> <span class="n">searcher</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">"dwarf galaxy"</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">)</span>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="n">facets</span> <span class="o">=</span> <span class="k">await</span> <span class="n">text_store</span><span class="o">.</span><span class="n">facet_counts</span><span class="p">([</span><span class="s2">"categories"</span><span class="p">,</span> <span class="s2">"year"</span><span class="p">],</span> <span class="n">query</span><span class="o">=</span><span class="n">parse_query</span><span class="p">(</span><span class="s2">"dwarf galaxy"</span><span class="p">),</span> <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">)</span>
 </code></pre></div>
 <ul>
-<li><strong>Matching.</strong> A <code>MetadataFilter</code> keeps the records tagged with any of its
-  values, and with <code>negated=True</code> drops them. Every filter must pass. Several
-  values of one key go in one filter: two filters on the same key, including a
-  <code>MetadataFilter</code> and a <code>RangeFilter</code>, or a key outside <code>facet_keys</code>, raise
-  <code>ValueError</code> before any I/O.</li>
+<li><strong>Matching.</strong> A filter keeps the records tagged with any of its values, and
+  with <code>negated=True</code> drops them. Every filter must pass. Several values of one
+  key go in one filter: two filters on the same key, or a key outside
+  <code>facet_keys</code>, raise <code>ValueError</code> before any I/O.</li>
 <li><strong>Tags.</strong> Strings, integers, and lists of them become tags; other values are
-  not tagged. A record with several tags under a key, such as several
-  authors, passes a filter when any one of them does.</li>
+  not tagged. Matching is exact, so there are no range filters over dates or
+  years.</li>
 <li><strong>Before the limit.</strong> Filters are applied inside the index, before <code>limit</code>,
   and to both legs of a hybrid search, so a filtered-out record never takes a
-  result slot. <code>filter_graph</code> applies them to a discovery graph the same way.</li>
+  result slot.</li>
 <li><strong>Facet counts.</strong> <code>facet_counts</code> maps each key to <code>(value, count)</code> pairs,
   sorted by count and then value, without zero counts. Each key's counts apply
   the query and every filter on <em>other</em> keys, so a count says how many results
@@ -2566,62 +2384,6 @@ index.</p>
   keys and <code>await text_store.rebuild_tags()</code>. Until then, a filter or facet on
   a key whose tags aren't built raises <code>SearchStoreError</code>.</li>
 </ul>
-<h2 id="ranges">Ranges<a class="headerlink" href="#ranges" title="Permanent link">&para;</a></h2>
-<p>A <code>RangeFilter</code> keeps the records with a tag between <code>low</code> and <code>high</code>. Both
-bounds are inclusive, either can be left out, and <code>negated=True</code> drops the
-records in range instead. The type of the bounds decides how tags compare:</p>
-<table>
-<thead>
-<tr>
-<th>Bounds</th>
-<th>Compares</th>
-<th>Example</th>
-<th>Keeps</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Integers</td>
-<td>as numbers</td>
-<td><code>RangeFilter("year", 2020, 2024)</code></td>
-<td>the tags <code>2020</code> to <code>2024</code>, stored as integers or as text</td>
-</tr>
-<tr>
-<td>Text</td>
-<td>as text, with <code>high</code> against as many leading characters</td>
-<td><code>RangeFilter("published", "2024-01", "2024-06")</code></td>
-<td><code>2024-01-01</code> up to <code>2024-06-30T23:59:59Z</code></td>
-</tr>
-</tbody>
-</table>
-<ul>
-<li><strong>Integers.</strong> Only a tag written the way Python writes an integer can be in
-  an integer range: <code>2024</code>, <code>0</code>, and <code>-3</code> can, while <code>"07"</code>, <code>"+3"</code>, and
-  <code>"2024-05-01"</code> never are. Integer bounds suit counts, such as citations,
-  that text comparison would order wrongly.</li>
-<li><strong>Text.</strong> Text compares character by character, so ISO 8601 dates and
-  four-digit years order correctly. Because <code>high</code> is compared with the
-  tag's first characters, <code>high="2024-06"</code> keeps every date in June 2024, and
-  <code>high="2024"</code> keeps every date in 2024.</li>
-<li><strong>Invalid ranges.</strong> A range with no bound, an empty text bound, a <code>bool</code> or
-  <code>float</code> bound, one integer and one text bound, or a <code>low</code> above <code>high</code>, so
-  that nothing could match, raises when it is constructed.</li>
-</ul>
-<h2 id="counting-ranges">Counting ranges<a class="headerlink" href="#counting-ranges" title="Permanent link">&para;</a></h2>
-<p><code>range_counts</code> counts the matching records in each range, for histogram
-buckets or presets such as "last 5 years". Like <code>facet_counts</code>, each count
-applies the query and every filter on <em>other</em> keys, so selecting a bucket
-leaves the counts of the other buckets visible:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.search</span><span class="w"> </span><span class="kn">import</span> <span class="n">RangeFilter</span><span class="p">,</span> <span class="n">parse_query</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">buckets</span> <span class="o">=</span> <span class="p">[</span><span class="n">RangeFilter</span><span class="p">(</span><span class="s2">"year"</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">low</span> <span class="o">+</span> <span class="mi">4</span><span class="p">)</span> <span class="k">for</span> <span class="n">low</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span> <span class="mi">2025</span><span class="p">,</span> <span class="mi">5</span><span class="p">)]</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">counts</span> <span class="o">=</span> <span class="k">await</span> <span class="n">text_store</span><span class="o">.</span><span class="n">range_counts</span><span class="p">(</span><span class="n">buckets</span><span class="p">,</span> <span class="n">query</span><span class="o">=</span><span class="n">parse_query</span><span class="p">(</span><span class="s2">"dwarf galaxy"</span><span class="p">),</span> <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">)</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="k">for</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">buckets</span><span class="p">,</span> <span class="n">counts</span><span class="p">):</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">bucket</span><span class="o">.</span><span class="n">low</span><span class="si">}</span><span class="s2">–</span><span class="si">{</span><span class="n">bucket</span><span class="o">.</span><span class="n">high</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-</code></pre></div>
-<p>The counts come back as a tuple in the order of <code>ranges</code>, and ranges may share
-a key and overlap. <code>AsyncSqliteFts5Store</code> counts every range in one consistent
-read. A custom store inherits a version that calls <code>filter_ids</code> once per range.</p>
 
 
 

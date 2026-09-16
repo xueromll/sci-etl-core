@@ -805,8 +805,6 @@
       
         
       
-        
-      
     
     
     
@@ -1021,34 +1019,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../backfill/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Backfilling from vector memory
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../discovery-graphs/" class="md-nav__link">
         
   
@@ -1142,10 +1112,6 @@
   
     
     
-      
-        
-      
-        
       
         
       
@@ -1384,34 +1350,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../observability/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Progress events and metrics
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../token-usage/" class="md-nav__link">
         
   
@@ -1420,34 +1358,6 @@
     
   
     Token usage
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../llm-caching/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    LLM response caching
   
 
     
@@ -2484,16 +2394,10 @@ runs one or both retrieval legs:</p>
   <code>fusion=FusionParams(weights=(1.0, 2.0))</code> to weigh the lexical and semantic
   lists, in that order.</li>
 <li><strong>Hits.</strong> A <code>FusedHit</code> carries <code>lexical_rank</code> and <code>semantic_rank</code> (<code>None</code>
-  where that leg did not return it), <code>title</code>, <code>metadata</code>, <code>snippet</code>,
-  <code>highlights</code>, and <code>snippets</code>. Show ranks, never the fused score as a
-  percentage.</li>
-<li><strong>Snippets.</strong> A record the lexical leg returned keeps its lexical snippets,
-  one per matching field. A record found only by the semantic leg gets a
-  snippet of the chunk that ranked it, with the query's words highlighted
-  where they occur in it, as a single <code>Snippet</code> whose field is <code>"body"</code>. That
-  passage matched by meaning, so it may highlight nothing; check
-  <code>lexical_rank is None</code> to label it, for example "related passage", or read
-  the abstract with <code>text_store.get_documents</code> instead.</li>
+  where that leg did not return it), <code>title</code>, <code>metadata</code>, and the lexical
+  snippet and highlights. Show ranks, never the fused score as a percentage. A
+  record found only by the semantic leg has no snippet; read its abstract with
+  <code>text_store.get_documents</code>.</li>
 <li><strong>Candidate pool.</strong> Each leg fetches <code>HybridParams.candidate_pool</code> records
   (default 100, and never fewer than <code>top_k</code>) before fusion, so a record
   ranked 40th lexically and 3rd semantically can still reach the top 20. The

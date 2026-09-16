@@ -798,8 +798,6 @@
       
         
       
-        
-      
     
     
     
@@ -1001,34 +999,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guide/search/backfill/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Backfilling from vector memory
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../guide/search/discovery-graphs/" class="md-nav__link">
         
   
@@ -1122,10 +1092,6 @@
   
     
     
-      
-        
-      
-        
       
         
       
@@ -1361,34 +1327,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guide/observability/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Progress events and metrics
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../guide/token-usage/" class="md-nav__link">
         
   
@@ -1397,34 +1335,6 @@
     
   
     Token usage
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../guide/llm-caching/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    LLM response caching
   
 
     
@@ -2476,17 +2386,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#upgrading-to-04" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Upgrading to 0.4
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#what-the-migration-uncovered" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2834,17 +2733,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#upgrading-to-04" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Upgrading to 0.4
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#what-the-migration-uncovered" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2907,7 +2795,6 @@ fields, and domain rules for your own.</p>
 <li><a href="#step-8-check-parity-before-changing-behavior">Step 8: Check parity before changing behavior</a></li>
 <li><a href="#step-9-delete-the-old-code">Step 9: Delete the old code</a></li>
 <li><a href="#upgrading-to-03">Upgrading to 0.3</a></li>
-<li><a href="#upgrading-to-04">Upgrading to 0.4</a></li>
 <li><a href="#what-the-migration-uncovered">What the migration uncovered</a></li>
 <li><a href="#adapting-this-to-your-field">Adapting this to your field</a></li>
 </ul>
@@ -3758,50 +3645,6 @@ notice (<a href="../changelog/">CHANGELOG.md</a> lists everything):</p>
 <li><strong>SQLite state is safer under cancellation.</strong> <code>AsyncSqliteStateManager</code> no
   longer lets a cancelled operation's worker thread overlap the next
   operation. <code>AsyncFileStateManager</code>, which udg-catalogue uses, is unchanged.</li>
-</ul>
-<h2 id="upgrading-to-04">Upgrading to 0.4<a class="headerlink" href="#upgrading-to-04" title="Permanent link">&para;</a></h2>
-<p>The 0.4 release adds the PubMed, Semantic Scholar, and OpenAlex extractors,
-DOCX and JATS XML parsers, LLM response caching, graceful shutdown, progress
-events and run metrics, rate limiters for every HTTP component, <code>NEAR</code>
-queries, range filters, snippets for every matching field, and backfilling a
-text index from the vector memory. Several of them retire code this guide had
-the project write:</p>
-<ul>
-<li><strong>Renamed pipeline settings.</strong> <code>pipeline.max_records</code> is now <code>total_limit</code>
-  and <code>pipeline.max_workers</code> is <code>max_concurrency</code>. The old YAML keys and the
-  <code>PipelineConfig.max_records</code> and <code>max_workers</code> properties still work until
-  0.5, with a <code>DeprecationWarning</code>, so the <code>build_pipeline</code> and
-  <code>run_ingestion</code> shown above warn on 0.4. <code>run(max_records=)</code> is deprecated
-  the same way.</li>
-<li><strong>Validation without a wrapper.</strong> <code>AsyncLLMEntityExtractor</code> takes
-  <code>validator=</code>, <code>logger=</code>, and <code>label_field=</code>, and logs each entity it drops
-  as <code>Entity rejected by validation: &lt;label&gt;</code>. That replaces the
-  <code>ValidatedEntityExtractor</code> from Step 5.</li>
-<li><strong>Components from the config.</strong> <code>AsyncArxivExtractor.from_config</code>,
-  <code>AsyncOpenAICompatibleClient.from_config</code>, and <code>AsyncETLPipeline.from_config</code>
-  read the <code>http</code>, <code>llm</code>, and <code>pipeline</code> sections, and
-  <code>config.pipeline.run_arguments()</code> returns the arguments for <code>run()</code>, so the
-  settings no longer need copying into constructors by hand.</li>
-<li><strong>Newest-first resume.</strong> <code>run(newest_first=True)</code> picks up new arXiv
-  submissions without the full rescan that <code>start_index=0</code> costs, and saves
-  the head of the listing in the metadata file next to <code>last_start_index</code>.
-  <code>start_index</code> can't be combined with it.</li>
-<li><strong>Plots.</strong> <code>ScatterPlotConfig</code> takes <code>hover_data_columns</code>,
-  <code>hover_template</code>, <code>color_continuous_scale</code>, and <code>color_range</code>, the custom
-  hover text and fixed color range that kept udg-catalogue off
-  <code>AsyncPlotly3DExporter</code>.</li>
-<li><strong>Clamping and table layout.</strong> <code>ValueClipStep</code> clamps columns during
-  post-processing, and <code>TableLayoutStep</code> sorts rows and orders columns.</li>
-<li><strong>Search from the memory you already have.</strong> udg-catalogue's
-  <code>build_pipeline</code> passes no <code>memory_ingestor</code>, but a project that stored
-  chunks in an <code>AsyncSqliteEmbeddingStore</code> can build a text index from them
-  with <code>backfill_text_index</code> instead of fetching every paper again.</li>
-<li><strong>Snippets for semantic hits.</strong> A <code>FusedHit</code> found only by the semantic leg
-  now carries a snippet of its best chunk, where it used to have an empty
-  <code>snippet</code>. A UI that showed the abstract whenever <code>snippet</code> was empty should
-  check <code>lexical_rank is None</code> instead.</li>
-<li><strong>Deprecated <code>requests</code> helper.</strong> <code>build_retrying_session</code> warns and will be
-  removed in 0.5, along with <code>requests</code> in the <code>full</code> extra.</li>
 </ul>
 <h2 id="what-the-migration-uncovered">What the migration uncovered<a class="headerlink" href="#what-the-migration-uncovered" title="Permanent link">&para;</a></h2>
 <p>Moving code onto shared components forces you to state every rule precisely.

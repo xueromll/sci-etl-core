@@ -798,8 +798,6 @@
       
         
       
-        
-      
     
     
     
@@ -1001,34 +999,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../guide/search/backfill/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Backfilling from vector memory
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../guide/search/discovery-graphs/" class="md-nav__link">
         
   
@@ -1122,10 +1092,6 @@
   
     
     
-      
-        
-      
-        
       
         
       
@@ -1361,34 +1327,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../guide/observability/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Progress events and metrics
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../guide/token-usage/" class="md-nav__link">
         
   
@@ -1397,34 +1335,6 @@
     
   
     Token usage
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../guide/llm-caching/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    LLM response caching
   
 
     
@@ -2437,7 +2347,7 @@ module layout inside a package may change between releases.</p>
 <tr>
 <td><a href="pipelines/">Pipelines</a></td>
 <td><code>sci_etl_core</code></td>
-<td><code>AsyncETLPipeline</code>, <code>ETLPipeline</code>, memory ingestion, sync adapters, <code>ShutdownSignal</code>, progress events and <code>RunMetrics</code></td>
+<td><code>AsyncETLPipeline</code>, <code>ETLPipeline</code>, memory ingestion, sync adapters, <code>ShutdownSignal</code></td>
 </tr>
 <tr>
 <td><a href="configuration/">Configuration</a></td>
@@ -2452,17 +2362,17 @@ module layout inside a package may change between releases.</p>
 <tr>
 <td><a href="extractors/">Extractors</a></td>
 <td><code>sci_etl_core.extractors</code></td>
-<td><code>AsyncExtractor</code>, the arXiv, PubMed, Semantic Scholar, and OpenAlex extractors</td>
+<td><code>AsyncExtractor</code>, <code>AsyncArxivExtractor</code></td>
 </tr>
 <tr>
 <td><a href="parsers/">Parsers</a></td>
 <td><code>sci_etl_core.parsers</code></td>
-<td>PDF, LaTeX, HTML, DOCX, and JATS XML parsers, reference trimming</td>
+<td>PDF, LaTeX, and HTML parsers, reference trimming</td>
 </tr>
 <tr>
 <td><a href="llm/">LLM</a></td>
 <td><code>sci_etl_core.llm</code></td>
-<td>LLM clients, response caching, relevance filters, entity extractors</td>
+<td>LLM clients, relevance filters, entity extractors</td>
 </tr>
 <tr>
 <td><a href="embeddings/">Embeddings</a></td>
@@ -2492,7 +2402,7 @@ module layout inside a package may change between releases.</p>
 <tr>
 <td><a href="utilities/">Utilities</a></td>
 <td>defining module</td>
-<td>HTTP clients, rate limiters, including per-host limits, logging</td>
+<td>HTTP clients, rate limiters, logging</td>
 </tr>
 </tbody>
 </table>

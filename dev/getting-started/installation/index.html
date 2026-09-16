@@ -813,8 +813,6 @@
       
         
       
-        
-      
     
     
     
@@ -1016,34 +1014,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guide/search/backfill/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Backfilling from vector memory
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../guide/search/discovery-graphs/" class="md-nav__link">
         
   
@@ -1137,10 +1107,6 @@
   
     
     
-      
-        
-      
-        
       
         
       
@@ -1376,34 +1342,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guide/observability/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Progress events and metrics
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../guide/token-usage/" class="md-nav__link">
         
   
@@ -1412,34 +1350,6 @@
     
   
     Token usage
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../guide/llm-caching/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    LLM response caching
   
 
     
@@ -2438,11 +2348,9 @@
 <p>From a clone:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[full]"</span>
 </code></pre></div>
-<p>The base install covers configuration, both pipelines, graceful shutdown,
-progress events and run metrics, the state backends, the sync adapters, HTML,
-LaTeX, DOCX, and JATS XML parsing, LLM response caching, text chunking,
-Boolean text search, rank fusion, discovery graphs, and the pandas processor
-steps. Components load
+<p>The base install covers configuration, both pipelines, the state backends, the
+sync adapters, HTML and LaTeX parsing, text chunking, Boolean text search,
+rank fusion, discovery graphs, and the pandas processor steps. Components load
 their optional dependencies only when you import them, so add the extras for
 the components you use:</p>
 <table>
@@ -2457,7 +2365,7 @@ the components you use:</p>
 <tr>
 <td><code>async</code></td>
 <td><code>httpx</code>, <code>aiofiles</code>, <code>aiolimiter</code></td>
-<td><code>AsyncArxivExtractor</code>, <code>AsyncPubMedExtractor</code>, <code>AsyncSemanticScholarExtractor</code>, <code>AsyncOpenAlexExtractor</code>, <code>build_async_client</code>, <code>AsyncCsvUpsertExporter</code>, <code>load_config_async</code>, <code>AioLimiterRateLimiter</code></td>
+<td><code>AsyncArxivExtractor</code>, <code>build_async_client</code>, <code>AsyncCsvUpsertExporter</code>, <code>load_config_async</code>, <code>AioLimiterRateLimiter</code></td>
 </tr>
 <tr>
 <td><code>llm</code></td>
@@ -2511,7 +2419,7 @@ the components you use:</p>
 </tr>
 <tr>
 <td><code>docs</code></td>
-<td>MkDocs, Material for MkDocs, mkdocstrings, mkdocs-click, mike, <code>ruff</code></td>
+<td>MkDocs, Material for MkDocs, mkdocstrings, mkdocs-click, mike</td>
 <td>building this documentation site</td>
 </tr>
 </tbody>

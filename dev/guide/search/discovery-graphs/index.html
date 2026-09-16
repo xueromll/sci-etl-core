@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://xueromll.github.io/sci-etl-core/dev/guide/search/discovery-graphs/">
       
       
-        <link rel="prev" href="../backfill/">
+        <link rel="prev" href="../text-stores/">
       
       
         <link rel="next" href="../user-interfaces/">
@@ -805,8 +805,6 @@
       
         
       
-        
-      
     
     
     
@@ -1008,34 +1006,6 @@
                 
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../backfill/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Backfilling from vector memory
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
     
   
   
@@ -1142,10 +1112,6 @@
   
     
     
-      
-        
-      
-        
       
         
       
@@ -1384,34 +1350,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../observability/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Progress events and metrics
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../token-usage/" class="md-nav__link">
         
   
@@ -1420,34 +1358,6 @@
     
   
     Token usage
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../llm-caching/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    LLM response caching
   
 
     
@@ -2467,10 +2377,8 @@ similarity:</p>
   abstract are close in the vector memory, and <code>MetadataEdgeSource</code> records
   that share tags, weighted by the Jaccard index of their tag sets. Its keys
   must be among the text store's <code>facet_keys</code>, and it defaults to
-  <code>("categories", "authors")</code>. Other notions of relatedness plug in as
-  subclasses of <code>AsyncEdgeSource</code>. No bundled source uses citations yet, but
-  <code>AsyncOpenAlexExtractor</code> stores the works a paper cites under <code>references</code>
-  in its metadata.</li>
+  <code>("categories", "authors")</code>. Other notions of relatedness, such as
+  citations, plug in as subclasses of <code>AsyncEdgeSource</code>.</li>
 <li><strong>Growth.</strong> The graph grows <code>depth</code> levels. Each record adds up to <code>fanout</code>
   neighbors per source whose weight is at least <code>min_weight</code> (default 0.35),
   and <code>max_nodes</code> (default 200) is checked before each level. With
@@ -2489,8 +2397,7 @@ similarity:</p>
   an endpoint are dropped, and communities are kept so colors stay stable.
   Pass <code>matched_ids=await text_store.filter_ids(parse_query(...))</code> to keep only
   records matching a query; that call accepts pure negation, such as
-  <code>NOT simulation</code>. <code>filters</code> takes <code>RangeFilter</code>s too, such as
-  <code>RangeFilter("year", low=2020)</code>.</li>
+  <code>NOT simulation</code>.</li>
 <li><strong>Cost.</strong> <code>EmbeddingEdgeSource</code> issues up to one vector query per node, and
   <code>AsyncSqliteEmbeddingStore</code> scans every stored chunk on each query, so keep
   <code>max_nodes</code> small for a large memory.</li>
@@ -2530,7 +2437,7 @@ similarity:</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../backfill/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Backfilling from vector memory">
+          <a href="../text-stores/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Text stores">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2540,7 +2447,7 @@ similarity:</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                Backfilling from vector memory
+                Text stores
               </div>
             </div>
           </a>
