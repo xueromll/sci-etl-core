@@ -119,6 +119,19 @@ class TestTextSearchStoreContract:
             assert [hit.record_id for hit in await store.search(Term("galaxy"))] == ["in-body", "in-title"]
 
     @pytest.mark.asyncio
+    async def test_a_near_query_ranks_only_records_whose_words_are_close(self, kind, tmp_path):
+        documents = [
+            SearchDocument("close", title="dwarf spheroidal galaxy"),
+            SearchDocument("far", title="dwarf stars in a distant massive galaxy"),
+            SearchDocument("other", title="giant elliptical"),
+        ]
+        async with open_store(kind, tmp_path) as store:
+            await store.index(documents)
+            hits = await store.search(parse_query('NEAR("dwarf galaxy", 2)'))
+            assert [hit.record_id for hit in hits] == ["close"]
+            assert hits[0].score > 0
+
+    @pytest.mark.asyncio
     async def test_equal_scores_are_ordered_by_record_id_whatever_the_insertion_history(self, kind, tmp_path):
         forward_directory, backward_directory = tmp_path / "forward", tmp_path / "backward"
         forward_directory.mkdir()
