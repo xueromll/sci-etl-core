@@ -7,6 +7,14 @@ from sci_etl_core.models import TokenUsage
 
 
 class AsyncLLMClient(ABC):
+    """Contract for a chat-completion backend that answers with a JSON object.
+
+    The relevance filter and the entity extractor depend only on this
+    interface, so a provider, a cache such as
+    :class:`~sci_etl_core.llm.cache_async.CachingLLMClient`, or a test double
+    can be injected in its place.
+    """
+
     @abstractmethod
     async def complete_json(self, system_prompt: str, user_content: str, timeout: int | None = None) -> dict[str, Any]:
         """Send a chat completion request and return the parsed JSON object.

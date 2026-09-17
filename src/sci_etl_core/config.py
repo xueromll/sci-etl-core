@@ -26,6 +26,15 @@ _RENAMED_PIPELINE_KEYS: dict[str, str] = {"max_records": "total_limit", "max_wor
 
 
 class LLMConfig(BaseModel):
+    """Chat-completion endpoint settings.
+
+    :meth:`~sci_etl_core.llm.openai_compatible_async.AsyncOpenAICompatibleClient.from_config`
+    builds a client from them. ``api_key`` is a :class:`~pydantic.SecretStr`, so it never appears in a
+    ``repr`` or a log line. :func:`load_config` takes it from the environment
+    variable it names, and falls back to the YAML value when that is unset.
+    ``timeout`` is in seconds.
+    """
+
     api_key: SecretStr = SecretStr("")
     base_url: str = "https://api.openai.com/v1"
     model: str = "gpt-4o-mini"
@@ -149,6 +158,7 @@ class BM25WeightsConfig(BaseModel):
     body: float = Field(default=1.0, ge=0, allow_inf_nan=False)
 
     def to_weights(self) -> BM25Weights:
+        """Build the BM25 weights."""
         from sci_etl_core.search.store_base import BM25Weights
 
         return BM25Weights(title=self.title, abstract=self.abstract, body=self.body)
@@ -178,6 +188,7 @@ class HybridConfig(BaseModel):
     chunk_pool_factor: int = Field(default=5, ge=1)
 
     def to_params(self) -> HybridParams:
+        """Build the hybrid search parameters."""
         from sci_etl_core.search.hybrid_async import HybridParams
 
         return HybridParams(candidate_pool=self.candidate_pool, chunk_pool_factor=self.chunk_pool_factor)
@@ -194,6 +205,7 @@ class GraphConfig(BaseModel):
     max_iterations: int = Field(default=20, ge=1)
 
     def to_params(self) -> GraphParams:
+        """Build the discovery graph parameters."""
         from sci_etl_core.search.graph import GraphParams
 
         return GraphParams(
@@ -216,6 +228,13 @@ class SearchConfig(BaseModel):
 
 
 class BaseAppConfig(BaseModel):
+    """Root of an application config: the library's sections, plus any keys a subclass adds.
+
+    Unknown top-level keys are kept rather than rejected, so an application can
+    read its own sections from the same YAML file. Subclass it to type those
+    sections, and set ``extra="forbid"`` in the subclass to reject typos.
+    """
+
     model_config = ConfigDict(extra="allow")
 
     llm: LLMConfig = Field(default_factory=LLMConfig)

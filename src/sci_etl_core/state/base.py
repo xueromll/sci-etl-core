@@ -6,6 +6,13 @@ from sci_etl_core.models import PipelineMetadata
 
 
 class StateManager(ABC):
+    """Blocking counterpart of :class:`~sci_etl_core.state.async_base.AsyncStateManager`.
+
+    Wrap an implementation in
+    :class:`~sci_etl_core._adapters.SyncStateManagerAdapter` to use it in a
+    pipeline. The blocking contract has no ``flush``.
+    """
+
     @abstractmethod
     def load_processed_ids(self) -> set[str]:
         """Return the set of record ids already processed."""

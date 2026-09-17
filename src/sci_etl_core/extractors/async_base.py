@@ -6,6 +6,14 @@ from sci_etl_core.models import RawRecord
 
 
 class AsyncExtractor(ABC):
+    """Contract for a paged source of scientific records.
+
+    :class:`~sci_etl_core.pipeline_async.AsyncETLPipeline` calls :meth:`search`
+    once per page and never concurrently, :meth:`parse_listing` on the payload
+    it returned, and :meth:`fetch_full_text` concurrently for the relevant
+    records of that page.
+    """
+
     @abstractmethod
     async def search(self, query: str, max_results: int, start_index: int) -> bytes | None:
         """Fetch a raw listing page from the source.

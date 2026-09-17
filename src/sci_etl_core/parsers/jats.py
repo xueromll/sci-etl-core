@@ -53,6 +53,7 @@ class JatsArticle:
 
     @property
     def doi(self) -> str | None:
+        """The article's DOI from ``identifiers``, or ``None``."""
         return self.identifiers.get("doi")
 
     def body_text(self) -> str:

@@ -14,6 +14,12 @@ DEFAULT_TRIM_PATTERNS: tuple[str, ...] = (
 
 
 def trim_after_references(text: str | None, patterns: tuple[str, ...] = DEFAULT_TRIM_PATTERNS) -> str | None:
+    """Cut ``text`` at the earliest match of any pattern, such as a references or acknowledgments heading.
+
+    Patterns are regular expressions matched without regard to case. The kept
+    text has trailing whitespace removed. ``text`` is returned unchanged when
+    no pattern matches, and ``None`` or ``""`` is returned as given.
+    """
     if not text:
         return text
 

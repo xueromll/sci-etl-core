@@ -31,12 +31,16 @@ def _read_verdict(result: Any) -> bool | None:
 
 
 class AsyncRelevanceFilter(ABC):
+    """Contract for the gate that decides, from a listing entry alone, whether a record is worth its full text."""
+
     @abstractmethod
     async def is_relevant(self, record: RawRecord) -> bool:
         """Decide whether a record should proceed through the pipeline."""
 
 
 class AsyncLLMRelevanceFilter(AsyncRelevanceFilter):
+    """Ask an LLM whether a record's title and abstract match ``system_prompt``."""
+
     def __init__(
         self,
         llm_client: AsyncLLMClient,
@@ -45,6 +49,15 @@ class AsyncLLMRelevanceFilter(AsyncRelevanceFilter):
         default_on_empty_abstract: bool = True,
         default_on_error: bool = True,
     ) -> None:
+        """Configure the filter.
+
+        ``system_prompt`` must ask for a JSON object with a ``relevant`` key.
+        ``timeout`` is passed to every completion. A record without an abstract
+        is not sent and reads as ``default_on_empty_abstract``; an
+        :class:`~sci_etl_core.exceptions.LLMError` or an unclear verdict reads
+        as ``default_on_error``. Both default to
+        ``True``, so a fault costs an extraction call rather than a record.
+        """
         self._llm_client = llm_client
         self._system_prompt = system_prompt
         self._timeout = timeout

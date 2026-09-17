@@ -9,6 +9,8 @@ from sci_etl_core.parsers.base import Parser, TableParser
 
 
 class PdfPlumberParser(Parser, TableParser):
+    """Read PDF text and tables with ``pdfplumber``. Needs the ``pdf`` extra."""
+
     def extract_text(self, content: bytes) -> str:
         """Return the text of every page, followed by any tables found.
 

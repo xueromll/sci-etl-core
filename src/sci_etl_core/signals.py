@@ -98,6 +98,7 @@ class ShutdownSignal:
                 self._install_os_handler(member)
 
     def uninstall(self) -> None:
+        """Remove the handlers :meth:`install` added and restore the ones they replaced."""
         for member in tuple(self._loop_handled):
             self._remove_loop_handler(member)
         for member, previous in tuple(self._previous.items()):

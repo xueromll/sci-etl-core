@@ -6,6 +6,13 @@ from sci_etl_core.models import RawRecord
 
 
 class Extractor(ABC):
+    """Blocking counterpart of :class:`~sci_etl_core.extractors.async_base.AsyncExtractor`.
+
+    Wrap an implementation in
+    :class:`~sci_etl_core._adapters.SyncExtractorAdapter` to use it in a
+    pipeline.
+    """
+
     @abstractmethod
     def search(self, query: str, max_results: int, start_index: int) -> bytes | None:
         """Fetch a raw listing page from the source.

@@ -9,6 +9,8 @@ from sci_etl_core.processors.base import Processor
 
 
 class NeighborMatcher(ABC):
+    """Contract for finding near-duplicate rows that do not share a normalized key."""
+
     @abstractmethod
     def find_matches(self, frame: pd.DataFrame, threshold: float) -> list[tuple[int, int]]:
         """Return (keep_index, drop_index) pairs for rows considered duplicates."""

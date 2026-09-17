@@ -15,12 +15,26 @@ if TYPE_CHECKING:
 
 
 class AsyncEntityExtractor(ABC):
+    """Contract for turning a record's full text into structured entities."""
+
     @abstractmethod
     async def extract(self, text: str | bytes) -> list[dict[str, Any]]:
-        """Extract structured entities from raw text."""
+        """Extract structured entities from raw text.
+
+        An empty list means the text holds no entities, and the pipeline marks
+        the record processed. Raising any exception instead fails the record,
+        which stays unmarked and is retried on the next run.
+        """
 
 
 class AsyncLLMEntityExtractor(AsyncEntityExtractor):
+    """Extract entities from full text with one JSON-mode LLM call per record.
+
+    Text that starts with markup is stripped with ``html_parser``. The text is
+    then truncated to ``max_tokens`` tokens when that is set and ``tiktoken``
+    is installed, or to ``max_chars`` characters otherwise.
+    """
+
     def __init__(
         self,
         llm_client: AsyncLLMClient,

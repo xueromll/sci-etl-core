@@ -22,6 +22,11 @@ _RETRYABLE = (APITimeoutError, APIConnectionError, RateLimitError, InternalServe
 
 
 class AsyncOpenAICompatibleClient(AsyncLLMClient):
+    """JSON-mode chat completions from any OpenAI-compatible endpoint, with retries and token accounting.
+
+    The client owns its HTTP connection pool; close it with :meth:`aclose`.
+    """
+
     def __init__(
         self,
         api_key: str | SecretStr,

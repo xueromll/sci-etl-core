@@ -7,6 +7,8 @@ from typing import Any
 
 
 class RecordValidator(ABC):
+    """Contract for a domain rule that decides whether an extracted entity is kept."""
+
     @abstractmethod
     def is_valid(self, record: dict[str, Any]) -> bool:
         """Return whether a raw extracted record should be kept."""
@@ -27,6 +29,8 @@ def _token_kind(character: str) -> str | None:
 
 
 class KeywordExclusionValidator(RecordValidator):
+    """Reject an entity whose ``key_field`` is null-like or contains a forbidden keyword as whole words."""
+
     def __init__(self, key_field: str, forbidden_keywords: list[str]) -> None:
         self._key_field = key_field
         self._forbidden_phrases = frozenset(
@@ -35,6 +39,14 @@ class KeywordExclusionValidator(RecordValidator):
         self._phrase_lengths = frozenset(len(phrase) for phrase in self._forbidden_phrases)
 
     def is_valid(self, record: dict[str, Any]) -> bool:
+        """Return ``False`` for a missing, empty, or null-like key, or one containing a forbidden phrase.
+
+        Null-like values are ``null``, ``none``, ``unknown``, ``n/a``, and
+        ``nan``, in any case. Keys and keywords are split into runs of letters
+        and runs of numbers after NFKC case folding, and a keyword matches only
+        a contiguous sequence of whole runs, so ``"star"`` never matches
+        ``"starburst"``.
+        """
         value = str(record.get(self._key_field, "")).strip().lower()
         if value in _NULL_LIKE_VALUES:
             return False
@@ -54,10 +66,17 @@ class KeywordExclusionValidator(RecordValidator):
 
 
 class NumericRangeValidator(RecordValidator):
+    """Reject an entity whose value for a field lies outside that field's inclusive range."""
+
     def __init__(self, field_ranges: dict[str, tuple[float, float]]) -> None:
         self._field_ranges = field_ranges
 
     def is_valid(self, record: dict[str, Any]) -> bool:
+        """Return ``False`` when a present value is out of range or cannot be read as a number.
+
+        A missing or ``None`` value passes, so completeness is left to other
+        steps.
+        """
         for field_name, (low, high) in self._field_ranges.items():
             value = record.get(field_name)
             if value is None:
@@ -71,8 +90,11 @@ class NumericRangeValidator(RecordValidator):
 
 
 class CompositeValidator(RecordValidator):
+    """Keep an entity only when every validator keeps it."""
+
     def __init__(self, validators: list[RecordValidator]) -> None:
         self._validators = validators
 
     def is_valid(self, record: dict[str, Any]) -> bool:
+        """Return whether all validators accept ``record``, stopping at the first rejection."""
         return all(validator.is_valid(record) for validator in self._validators)

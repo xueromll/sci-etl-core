@@ -6,6 +6,13 @@ from sci_etl_core.models import PipelineMetadata
 
 
 class AsyncStateManager(ABC):
+    """Contract for the durable record of which records a run has settled.
+
+    A pipeline loads the processed ids and metadata once per run, marks each
+    settled record as processed, possibly concurrently, saves metadata after
+    every page, and calls :meth:`flush` when the run ends, however it ends.
+    """
+
     @abstractmethod
     async def load_processed_ids(self) -> set[str]:
         """Return the set of record ids already processed."""
