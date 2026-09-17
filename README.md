@@ -5,10 +5,16 @@
 [![PyPI](https://img.shields.io/pypi/v/sci-etl-core)](https://pypi.org/project/sci-etl-core/)
 
 A reusable, **domain-agnostic** Python library for scientific text mining and
-ETL. `sci-etl-core` gives you composable building blocks — extractors, parsers,
+ETL. It extracts records from literature sources, filters them for relevance,
+turns their full text into structured entities with an LLM, and loads the
+results into files, databases, and a local search index.
+
+`sci-etl-core` gives you composable building blocks — extractors, parsers,
 LLM clients, embedding memory, processors, exporters, and state managers —
 behind abstract base classes, so you can assemble a pipeline for *any* corpus
-without inheriting constants tied to a specific field of science.
+without inheriting constants tied to a specific field of science. Domain
+knowledge lives in your prompts, validators, and normalizers, never in the
+library.
 
 The library is **async-first**. Every component is an `async` implementation,
 orchestrated by `AsyncETLPipeline`. For scripts that don't want to manage an
@@ -46,9 +52,32 @@ pip install "sci-etl-core[async,llm,pdf]"   # everything the example below uses
 pip install "sci-etl-core[full]"            # every bundled component except local embeddings
 ```
 
-Components load their optional dependencies only when you import them. The
+With Poetry or uv:
+
+```bash
+poetry add "sci-etl-core[async,llm,pdf]"
+uv add "sci-etl-core[async,llm,pdf]"
+```
+
+The base install covers configuration, both pipelines, state, the sync
+adapters, HTML, LaTeX, DOCX, and JATS XML parsing, Boolean search, and the
+pandas processors. Components load their optional dependencies only when you
+import them, so add an extra for each component group you use:
+
+| Extra | Needed for |
+|-------|------------|
+| `async` | The bundled extractors, `build_async_client`, CSV export, `load_config_async` |
+| `llm` | `AsyncOpenAICompatibleClient`, token-based truncation |
+| `pdf` | `PdfPlumberParser` |
+| `sql` | `AsyncSqlTableExporter` |
+| `viz` | `AsyncPlotly3DExporter` |
+| `cluster` | `ClusteringStep` |
+| `embeddings` | `AsyncOpenAIEmbedder`, the vector stores, `AsyncEmbeddingRelevanceFilter` |
+| `embeddings-local` | `AsyncSentenceTransformerEmbedder` |
+
+The
 [installation guide](https://xueromll.github.io/sci-etl-core/latest/getting-started/installation/)
-lists what each extra adds.
+lists the packages each extra adds.
 
 Prefer configuration to code? [sci-etl-cli](https://github.com/xueromll/sci-etl-cli)
 runs these pipelines from a single YAML file.
@@ -98,6 +127,76 @@ asyncio.run(main())
 
 The [quick start](https://xueromll.github.io/sci-etl-core/latest/getting-started/quick-start/)
 explains what a run does, how it resumes, and what the prompts must ask for.
+
+## Configuration
+
+Settings load from a YAML file into Pydantic models, and the LLM API key comes
+from the `LLM_API_KEY` environment variable, which a `.env` file can supply.
+Validation errors raise `ConfigurationError`, naming each failing key without
+echoing its value.
+
+```yaml
+llm:
+  base_url: https://api.openai.com/v1
+  model: gpt-4o-mini
+http:
+  user_agent: "my-project/1.0 (mailto:you@example.org)"
+pipeline:
+  search_query: "all:galaxy"
+  total_limit: 50
+  max_concurrency: 4
+  newest_first: true
+```
+
+```python
+from pathlib import Path
+
+from sci_etl_core import AsyncOpenAICompatibleClient, BaseAppConfig, load_config
+
+
+class ProjectConfig(BaseAppConfig):
+    output_csv: str = "results.csv"
+
+
+config = load_config(ProjectConfig, Path("config.yaml"))
+llm = AsyncOpenAICompatibleClient.from_config(config.llm)
+run_arguments = config.pipeline.run_arguments()
+```
+
+Subclass `BaseAppConfig` to add typed sections of your own. `from_config`
+builders take the matching section, and `run_arguments()` returns the keyword
+arguments for `run()`. The
+[configuration guide](https://xueromll.github.io/sci-etl-core/latest/getting-started/configuration/)
+lists every key and its default.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    Source[(Literature source)] --> Extractor[AsyncExtractor]
+    Extractor -->|listing page| Relevance[AsyncRelevanceFilter]
+    Relevance -->|irrelevant| State[(AsyncStateManager)]
+    Relevance -->|relevant| FullText[fetch_full_text]
+    FullText --> Memory[MemoryIngestor]
+    FullText --> Entities[AsyncEntityExtractor]
+    Memory --> Vectors[(Vector memory)]
+    Memory --> Index[(Text index)]
+    Entities --> Exporter[AsyncExporter]
+    Exporter --> State
+    Relevance -.-> LLM[AsyncLLMClient]
+    Entities -.-> LLM
+    Vectors --> Search[AsyncHybridSearcher]
+    Index --> Search
+```
+
+`AsyncETLPipeline` receives every collaborator through its constructor and
+depends only on the abstract interfaces, so any stage can be replaced by
+another implementation or a test double. It pages through the listing,
+processes up to `max_concurrency` records at a time, and marks a record
+processed only after its entities are exported, so a failed record is retried
+on the next run. The
+[architecture guide](https://xueromll.github.io/sci-etl-core/latest/guide/architecture/)
+describes each layer.
 
 ## Documentation
 
