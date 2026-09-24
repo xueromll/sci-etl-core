@@ -3717,6 +3717,8 @@
 
 
 
+        <p>Contract for one post-processing step over the exported table.</p>
+
 
 
 
@@ -3788,6 +3790,8 @@
 
 
 
+        <p>Run processor steps in order, each on the previous step's output.</p>
+
 
 
 
@@ -3821,6 +3825,8 @@
 </code></pre></div>
 
     <div class="doc doc-contents ">
+
+        <p>Return <code>frame</code> after every step, or <code>frame</code> itself when there are no steps.</p>
 
 
     </div>
@@ -3891,6 +3897,8 @@
               Bases: <code><a class="autorefs autorefs-external" title="abc.ABC" href="https://docs.python.org/3/library/abc.html#abc.ABC">ABC</a></code></p>
 
 
+
+        <p>Contract for mapping an entity's name to the key its duplicates share.</p>
 
 
 
@@ -3963,6 +3971,8 @@
               Bases: <code><a class="autorefs autorefs-internal" title="            KeyNormalizer (sci_etl_core.processors.normalization.KeyNormalizer)" href="#sci_etl_core.processors.normalization.KeyNormalizer">KeyNormalizer</a></code></p>
 
 
+
+        <p>Domain-agnostic key: case, width, spacing, and punctuation differences are ignored.</p>
 
 
 
@@ -4037,6 +4047,8 @@ and normalize to <code>""</code>.</p>
 
 
 
+        <p>Add <code>output_column</code> holding <code>normalizer</code>'s key for each row's <code>key_column</code> value.</p>
+
 
 
 
@@ -4070,6 +4082,31 @@ and normalize to <code>""</code>.</p>
 </code></pre></div>
 
     <div class="doc doc-contents ">
+
+        <p>Return a copy of <code>frame</code> with the key column added.</p>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/exceptions.html#KeyError">KeyError</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p><code>frame</code> has no <code>key_column</code>.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
 
 
     </div>
@@ -4140,6 +4177,8 @@ and normalize to <code>""</code>.</p>
               Bases: <code><a class="autorefs autorefs-external" title="abc.ABC" href="https://docs.python.org/3/library/abc.html#abc.ABC">ABC</a></code></p>
 
 
+
+        <p>Contract for finding near-duplicate rows that do not share a normalized key.</p>
 
 
 
@@ -4332,6 +4371,8 @@ that absorbed it, so a chain of matches never discards data.</p>
 
 
 
+        <p>Contract for choosing and scaling the numeric features that :class:<code>ClusteringStep</code> clusters on.</p>
+
 
 
 
@@ -4408,6 +4449,8 @@ that absorbed it, so a chain of matches never discards data.</p>
 
 
 
+        <p>Label rows with a DBSCAN cluster id. Needs the <code>cluster</code> extra.</p>
+
 
 
 
@@ -4441,6 +4484,10 @@ that absorbed it, so a chain of matches never discards data.</p>
 </code></pre></div>
 
     <div class="doc doc-contents ">
+
+        <p>Return a copy of <code>frame</code> with <code>output_column</code> added.</p>
+<p>Noise points, rows the feature extractor leaves out, and every row when
+fewer than <code>min_samples</code> rows have features are labeled <code>-1</code>.</p>
 
 
     </div>
@@ -4516,6 +4563,8 @@ that absorbed it, so a chain of matches never discards data.</p>
 
 
 
+        <p>Add <code>output_column</code> with the percentage of <code>tracked_fields</code> each row fills.</p>
+
 
 
 
@@ -4549,6 +4598,10 @@ that absorbed it, so a chain of matches never discards data.</p>
 </code></pre></div>
 
     <div class="doc doc-contents ">
+
+        <p>Return a copy of <code>frame</code> with the percentage, rounded to one decimal place.</p>
+<p>Tracked fields missing from <code>frame</code> are ignored. When none is present,
+every row scores <code>0.0</code>.</p>
 
 
     </div>
@@ -4585,6 +4638,8 @@ that absorbed it, so a chain of matches never discards data.</p>
 
 
 
+        <p>Label each row from its completeness, as computed by :class:<code>CompletenessStep</code>.</p>
+
 
 
 
@@ -4618,6 +4673,34 @@ that absorbed it, so a chain of matches never discards data.</p>
 </code></pre></div>
 
     <div class="doc doc-contents ">
+
+        <p>Return a copy of <code>frame</code> with the label column added.</p>
+<p>A row at 100% is <code>"Confirmed"</code>, one at or above <code>review_threshold</code>
+is <code>"Needs Review"</code>, and any other row, including one without a
+completeness value, is <code>"Low Confidence"</code>.</p>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/exceptions.html#KeyError">KeyError</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p><code>frame</code> has no <code>completeness_column</code>.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
 
 
     </div>
@@ -4688,6 +4771,8 @@ that absorbed it, so a chain of matches never discards data.</p>
               Bases: <code><a class="autorefs autorefs-external" title="abc.ABC" href="https://docs.python.org/3/library/abc.html#abc.ABC">ABC</a></code></p>
 
 
+
+        <p>Contract for a domain rule that decides whether an extracted entity is kept.</p>
 
 
 
@@ -4762,6 +4847,8 @@ that absorbed it, so a chain of matches never discards data.</p>
 
 
 
+        <p>Reject an entity whose <code>key_field</code> is null-like or contains a forbidden keyword as whole words.</p>
+
 
 
 
@@ -4796,6 +4883,13 @@ that absorbed it, so a chain of matches never discards data.</p>
 
     <div class="doc doc-contents ">
 
+        <p>Return <code>False</code> for a missing, empty, or null-like key, or one containing a forbidden phrase.</p>
+<p>Null-like values are <code>null</code>, <code>none</code>, <code>unknown</code>, <code>n/a</code>, and
+<code>nan</code>, in any case. Keys and keywords are split into runs of letters
+and runs of numbers after NFKC case folding, and a keyword matches only
+a contiguous sequence of whole runs, so <code>"star"</code> never matches
+<code>"starburst"</code>.</p>
+
 
     </div>
 
@@ -4828,6 +4922,8 @@ that absorbed it, so a chain of matches never discards data.</p>
               Bases: <code><a class="autorefs autorefs-internal" title="            RecordValidator (sci_etl_core.processors.validation.RecordValidator)" href="#sci_etl_core.processors.validation.RecordValidator">RecordValidator</a></code></p>
 
 
+
+        <p>Reject an entity whose value for a field lies outside that field's inclusive range.</p>
 
 
 
@@ -4863,6 +4959,10 @@ that absorbed it, so a chain of matches never discards data.</p>
 
     <div class="doc doc-contents ">
 
+        <p>Return <code>False</code> when a present value is out of range or cannot be read as a number.</p>
+<p>A missing or <code>None</code> value passes, so completeness is left to other
+steps.</p>
+
 
     </div>
 
@@ -4893,6 +4993,8 @@ that absorbed it, so a chain of matches never discards data.</p>
               Bases: <code><a class="autorefs autorefs-internal" title="            RecordValidator (sci_etl_core.processors.validation.RecordValidator)" href="#sci_etl_core.processors.validation.RecordValidator">RecordValidator</a></code></p>
 
 
+
+        <p>Keep an entity only when every validator keeps it.</p>
 
 
 
@@ -4927,6 +5029,8 @@ that absorbed it, so a chain of matches never discards data.</p>
 </code></pre></div>
 
     <div class="doc doc-contents ">
+
+        <p>Return whether all validators accept <code>record</code>, stopping at the first rejection.</p>
 
 
     </div>

@@ -3341,6 +3341,13 @@
 
 
 
+        <p>Contract for a sink that persists extracted data.</p>
+<p>:class:<code>~sci_etl_core.pipeline_async.AsyncETLPipeline</code> calls :meth:<code>export</code>
+once per relevant record with that record's entities as a
+<code>list[dict[str, Any]]</code>, possibly from several records concurrently. An
+implementation used in a pipeline must accept that shape and serialize its
+own writes.</p>
+
 
 
 
@@ -3588,6 +3595,13 @@ Value columns are numeric and need no escaping.</p>
 
 
 
+        <p>Write a dataframe to a SQL table through an async SQLAlchemy engine. Needs the <code>sql</code> extra.</p>
+<p>It takes a <code>DataFrame</code>, not the pipeline's <code>list[dict]</code> of entities, so
+it serves post-processing output rather than
+:class:<code>~sci_etl_core.pipeline_async.AsyncETLPipeline</code> directly.</p>
+
+        <p>Target <code>table_name</code>; <code>if_exists</code> is passed to <code>DataFrame.to_sql</code>.</p>
+
 
 
 
@@ -3625,6 +3639,10 @@ Value columns are numeric and need no escaping.</p>
 </code></pre></div>
 
     <div class="doc doc-contents ">
+
+        <p>Write <code>data</code> without its index to the database at the async URL <code>destination</code>.</p>
+<p>An engine is created and disposed for each call, and the write runs in
+one transaction.</p>
 
 
     </div>
@@ -4257,6 +4275,11 @@ no row remains.</p>
               Bases: <code><a class="autorefs autorefs-external" title="abc.ABC" href="https://docs.python.org/3/library/abc.html#abc.ABC">ABC</a></code></p>
 
 
+
+        <p>Blocking counterpart of :class:<code>~sci_etl_core.exporters.async_base.AsyncExporter</code>.</p>
+<p>Wrap an implementation in
+:class:<code>~sci_etl_core._adapters.SyncExporterAdapter</code> to use it in a
+pipeline.</p>
 
 
 

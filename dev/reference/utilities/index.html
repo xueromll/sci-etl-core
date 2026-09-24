@@ -2974,6 +2974,12 @@
 
     <div class="doc doc-contents ">
 
+        <p>Build an <code>httpx.AsyncClient</code> for the bundled extractors.</p>
+<p><code>total_retries</code> applies to connection failures only, at the transport
+level; the extractors retry HTTP status failures themselves. Redirects are
+followed, and <code>timeout</code> is in seconds. The caller owns the client and
+closes it with <code>aclose</code>.</p>
+
 
     </div>
 

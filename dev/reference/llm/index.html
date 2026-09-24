@@ -4023,6 +4023,12 @@
 
 
 
+        <p>Contract for a chat-completion backend that answers with a JSON object.</p>
+<p>The relevance filter and the entity extractor depend only on this
+interface, so a provider, a cache such as
+:class:<code>~sci_etl_core.llm.cache_async.CachingLLMClient</code>, or a test double
+can be injected in its place.</p>
+
 
 
 
@@ -4206,6 +4212,9 @@
               Bases: <code><a class="autorefs autorefs-internal" title="            AsyncLLMClient (sci_etl_core.llm.async_base.AsyncLLMClient)" href="#sci_etl_core.llm.async_base.AsyncLLMClient">AsyncLLMClient</a></code></p>
 
 
+
+        <p>JSON-mode chat completions from any OpenAI-compatible endpoint, with retries and token accounting.</p>
+<p>The client owns its HTTP connection pool; close it with :meth:<code>aclose</code>.</p>
 
         <p>Configure the client.</p>
 <p>This client is the only retry layer: the OpenAI SDK's own retries are
@@ -4492,6 +4501,8 @@ not valid JSON or is JSON other than an object.</p>
 
 
 
+        <p>Contract for the gate that decides, from a listing entry alone, whether a record is worth its full text.</p>
+
 
 
 
@@ -4574,6 +4585,16 @@ not valid JSON or is JSON other than an object.</p>
               Bases: <code><a class="autorefs autorefs-internal" title="            AsyncRelevanceFilter (sci_etl_core.llm.relevance_async.AsyncRelevanceFilter)" href="#sci_etl_core.llm.relevance_async.AsyncRelevanceFilter">AsyncRelevanceFilter</a></code></p>
 
 
+
+        <p>Ask an LLM whether a record's title and abstract match <code>system_prompt</code>.</p>
+
+        <p>Configure the filter.</p>
+<p><code>system_prompt</code> must ask for a JSON object with a <code>relevant</code> key.
+<code>timeout</code> is passed to every completion. A record without an abstract
+is not sent and reads as <code>default_on_empty_abstract</code>; an
+:class:<code>~sci_etl_core.exceptions.LLMError</code> or an unclear verdict reads
+as <code>default_on_error</code>. Both default to
+<code>True</code>, so a fault costs an extraction call rather than a record.</p>
 
 
 
@@ -4835,6 +4856,8 @@ verdict would mark it processed for good.</p>
 
 
 
+        <p>Contract for turning a record's full text into structured entities.</p>
+
 
 
 
@@ -4875,6 +4898,9 @@ verdict would mark it processed for good.</p>
     <div class="doc doc-contents ">
 
         <p>Extract structured entities from raw text.</p>
+<p>An empty list means the text holds no entities, and the pipeline marks
+the record processed. Raising any exception instead fails the record,
+which stays unmarked and is retried on the next run.</p>
 
 
     </div>
@@ -4918,6 +4944,11 @@ verdict would mark it processed for good.</p>
               Bases: <code><a class="autorefs autorefs-internal" title="            AsyncEntityExtractor (sci_etl_core.llm.extraction_async.AsyncEntityExtractor)" href="#sci_etl_core.llm.extraction_async.AsyncEntityExtractor">AsyncEntityExtractor</a></code></p>
 
 
+
+        <p>Extract entities from full text with one JSON-mode LLM call per record.</p>
+<p>Text that starts with markup is stripped with <code>html_parser</code>. The text is
+then truncated to <code>max_tokens</code> tokens when that is set and <code>tiktoken</code>
+is installed, or to <code>max_chars</code> characters otherwise.</p>
 
         <p>Configure the extractor.</p>
 <p>With a <code>validator</code>, each extracted entity is checked before it is
@@ -5909,6 +5940,8 @@ string to key the cache by.</p>
               Bases: <code><a class="autorefs autorefs-external" title="abc.ABC" href="https://docs.python.org/3/library/abc.html#abc.ABC">ABC</a></code></p>
 
 
+
+        <p>Blocking counterpart of :class:<code>~sci_etl_core.llm.async_base.AsyncLLMClient</code>.</p>
 
 
 

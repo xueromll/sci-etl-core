@@ -3217,6 +3217,11 @@
 
 
 
+        <p>Contract for the durable record of which records a run has settled.</p>
+<p>A pipeline loads the processed ids and metadata once per run, marks each
+settled record as processed, possibly concurrently, saves metadata after
+every page, and calls :meth:<code>flush</code> when the run ends, however it ends.</p>
+
 
 
 
@@ -3967,6 +3972,11 @@ one event loop.</p>
               Bases: <code><a class="autorefs autorefs-external" title="abc.ABC" href="https://docs.python.org/3/library/abc.html#abc.ABC">ABC</a></code></p>
 
 
+
+        <p>Blocking counterpart of :class:<code>~sci_etl_core.state.async_base.AsyncStateManager</code>.</p>
+<p>Wrap an implementation in
+:class:<code>~sci_etl_core._adapters.SyncStateManagerAdapter</code> to use it in a
+pipeline. The blocking contract has no <code>flush</code>.</p>
 
 
 

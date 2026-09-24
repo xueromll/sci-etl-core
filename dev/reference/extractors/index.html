@@ -3441,6 +3441,12 @@
 
 
 
+        <p>Contract for a paged source of scientific records.</p>
+<p>:class:<code>~sci_etl_core.pipeline_async.AsyncETLPipeline</code> calls :meth:<code>search</code>
+once per page and never concurrently, :meth:<code>parse_listing</code> on the payload
+it returned, and :meth:<code>fetch_full_text</code> concurrently for the relevant
+records of that page.</p>
+
 
 
 
@@ -5073,6 +5079,11 @@ retried on the next run rather than settled on its abstract.</p>
               Bases: <code><a class="autorefs autorefs-external" title="abc.ABC" href="https://docs.python.org/3/library/abc.html#abc.ABC">ABC</a></code></p>
 
 
+
+        <p>Blocking counterpart of :class:<code>~sci_etl_core.extractors.async_base.AsyncExtractor</code>.</p>
+<p>Wrap an implementation in
+:class:<code>~sci_etl_core._adapters.SyncExtractorAdapter</code> to use it in a
+pipeline.</p>
 
 
 
