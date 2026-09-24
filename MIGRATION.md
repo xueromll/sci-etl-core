@@ -6,10 +6,13 @@ real migration as the worked example:
 catalogue of ultra-diffuse galaxies (UDGs) from arXiv papers with an LLM.
 
 Every "before" snippet is taken from udg-catalogue as it was before the
-migration, and every "after" snippet from the migrated project on its
-[`main` branch](https://github.com/xueromll/udg-catalogue/tree/main). The
-science is astronomy, but nothing in the steps depends on it: swap the prompts,
-fields, and domain rules for your own.
+migration. Every "after" snippet in Steps 1 to 9 is taken from the migrated
+project on sci-etl-core 0.2, at
+[commit `8cd9471`](https://github.com/xueromll/udg-catalogue/tree/8cd94711b864212a8fa0d55d60f51e500cf42ec3).
+[Upgrading to 0.4](#upgrading-to-04) shows how that code changed on the
+project's [`main` branch](https://github.com/xueromll/udg-catalogue/tree/main).
+The science is astronomy, but nothing in the steps depends on it: swap the
+prompts, fields, and domain rules for your own.
 
 - [The project before](#the-project-before)
 - [Where you'll end up](#where-youll-end-up)
@@ -856,7 +859,8 @@ notice ([CHANGELOG.md](CHANGELOG.md) lists everything):
   works exactly as before. A type hint in your code that names
   `AsyncChunkIngestor` for this argument can widen to `MemoryIngestor`.
 - **Search is opt-in.** Nothing changes in a pipeline that passes no text
-  index; udg-catalogue's `build_pipeline` passes no `memory_ingestor` at all.
+  index; udg-catalogue's `build_pipeline` passed no `memory_ingestor` at all
+  until its 0.4 upgrade.
   To add one, pass an `AsyncSearchIndexer`, or an `AsyncCompositeIngestor`
   with a chunk ingestor first, as
   [Local search and discovery](https://xueromll.github.io/sci-etl-core/latest/guide/search/) shows. Its
@@ -871,44 +875,119 @@ The 0.4 release adds the PubMed, Semantic Scholar, and OpenAlex extractors,
 DOCX and JATS XML parsers, LLM response caching, graceful shutdown, progress
 events and run metrics, rate limiters for every HTTP component, `NEAR`
 queries, range filters, snippets for every matching field, and backfilling a
-text index from the vector memory. Several of them retire code this guide had
-the project write:
+text index from the vector memory. udg-catalogue moved from `>=0.2.0,<0.3`
+straight to `>=0.4.0,<0.5`, adding the `embeddings`, `embeddings-local`, and
+`search` extras:
+
+```text
+sci-etl-core[async,llm,pdf,cluster,embeddings,embeddings-local,search]>=0.4.0,<0.5
+```
+
+Several of the new features retire code this guide had the project write:
 
 - **Renamed pipeline settings.** `pipeline.max_records` is now `total_limit`
   and `pipeline.max_workers` is `max_concurrency`. The old YAML keys and the
   `PipelineConfig.max_records` and `max_workers` properties still work until
-  0.5, with a `DeprecationWarning`, so the `build_pipeline` and
+  0.5, with a `DeprecationWarning`, so the 0.2 `build_pipeline` and
   `run_ingestion` shown above warn on 0.4. `run(max_records=)` is deprecated
-  the same way.
+  the same way. udg-catalogue renamed both keys in `config.yaml`.
+- **No pipeline subclass.** `PipelineConfig` now has `page_size`,
+  `search_delay`, and `newest_first`, so `CataloguePipelineConfig` from
+  Step 2 was deleted and `CatalogueConfig` uses the library's `pipeline`
+  section as it is.
 - **Validation without a wrapper.** `AsyncLLMEntityExtractor` takes
   `validator=`, `logger=`, and `label_field=`, and logs each entity it drops
-  as `Entity rejected by validation: <label>`. That replaces the
+  as `Entity rejected by validation: <label>`. udg-catalogue passes
+  `build_galaxy_validator()` and `label_field=KEY_COLUMN` and deleted the
   `ValidatedEntityExtractor` from Step 5.
 - **Components from the config.** `AsyncArxivExtractor.from_config`,
   `AsyncOpenAICompatibleClient.from_config`, and `AsyncETLPipeline.from_config`
-  read the `http`, `llm`, and `pipeline` sections, and
-  `config.pipeline.run_arguments()` returns the arguments for `run()`, so the
-  settings no longer need copying into constructors by hand.
+  read the `http`, `llm`, and `pipeline` sections, `config.http.build_client()`
+  replaces `build_async_client`, and `config.pipeline.run_arguments()` returns
+  the arguments for `run()`, so the settings no longer need copying into
+  constructors by hand.
 - **Newest-first resume.** `run(newest_first=True)` picks up new arXiv
   submissions without the full rescan that `start_index=0` costs, and saves
   the head of the listing in the metadata file next to `last_start_index`.
-  `start_index` can't be combined with it.
+  `start_index` can't be combined with it. udg-catalogue sets
+  `pipeline.newest_first: true`, so `python main.py` now resumes by default;
+  the `--resume` flag from Step 6 is gone, and `--rescan` passes
+  `start_index=0` with `newest_first=False` to page the whole listing.
+- **Caching, shutdown, and run summaries.** udg-catalogue wraps its LLM client
+  in a `CachingLLMClient` backed by an `AsyncSqliteLLMResponseCache`, so a
+  rerun after a crash doesn't pay for the same relevance and extraction calls
+  twice. It passes a `ShutdownSignal`, and `main.py` exits with code 130 on
+  `PipelineInterrupted`. An `on_event` callback logs each `PageFinished`, and
+  the `RunFinished` event's `RunMetrics`, including token usage from
+  `usage_sources`, becomes the run summary in the log.
 - **Plots.** `ScatterPlotConfig` takes `hover_data_columns`,
   `hover_template`, `color_continuous_scale`, and `color_range`, the custom
   hover text and fixed color range that kept udg-catalogue off
   `AsyncPlotly3DExporter`.
 - **Clamping and table layout.** `ValueClipStep` clamps columns during
   post-processing, and `TableLayoutStep` sorts rows and orders columns.
-- **Search from the memory you already have.** udg-catalogue's
-  `build_pipeline` passes no `memory_ingestor`, but a project that stored
-  chunks in an `AsyncSqliteEmbeddingStore` can build a text index from them
-  with `backfill_text_index` instead of fetching every paper again.
+  udg-catalogue deleted its own `ValueClipStep` and `CatalogueLayoutStep` from
+  Step 7; the chain now imports `ValueClipStep` from the library and ends with
+  `TableLayoutStep(sort_by=SORT_ORDER, leading_columns=LEADING_COLUMNS,
+  hidden_prefixes=("_",))`.
+- **Search from the memory you already have.** A project that stored chunks
+  in an `AsyncSqliteEmbeddingStore` can build a text index from them with
+  `backfill_text_index` instead of fetching every paper again.
 - **Snippets for semantic hits.** A `FusedHit` found only by the semantic leg
   now carries a snippet of its best chunk, where it used to have an empty
   `snippet`. A UI that showed the abstract whenever `snippet` was empty should
   check `lexical_rank is None` instead.
 - **Deprecated `requests` helper.** `build_retrying_session` warns and will be
   removed in 0.5, along with `requests` in the `full` extra.
+
+After the upgrade, udg-catalogue's pipeline wiring reads its settings from the
+config and indexes every relevant paper for search. Trimmed to the ingestion
+branch, `udg_catalogue/pipeline.py` builds the pipeline like this:
+
+```python
+cache = AsyncSqliteLLMResponseCache(config.paths.llm_cache)
+cached_llm = CachingLLMClient(llm_client, cache, model=config.llm.model, logger=logger.warning)
+extractor = AsyncArxivExtractor.from_config(
+    config.http,
+    config.pipeline,
+    client=http_client,
+    pdf_parser=PdfPlumberParser(),
+    latex_parser=LatexTarballParser(),
+    logger=logger.info,
+)
+return AsyncETLPipeline.from_config(
+    config.pipeline,
+    extractor=extractor,
+    relevance_filter=AsyncLLMRelevanceFilter(llm_client=cached_llm, system_prompt=RELEVANCE_PROMPT),
+    entity_extractor=build_entity_extractor(config, cached_llm, logger),
+    exporter=build_catalogue_exporter(),
+    state_manager=AsyncFileStateManager(config.paths.processed_ids, config.paths.pipeline_metadata),
+    destination=str(config.paths.raw_catalogue),
+    logger=logger.warning,
+    closeables=[http_client, llm_client, cache, *library.closeables],
+    memory_ingestor=library.memory_ingestor(build_chunker(config.embeddings), logger.warning),
+    shutdown=shutdown,
+    on_event=progress_logger(logger.info),
+    usage_sources=[llm_client, *library.usage_sources],
+)
+```
+
+`library.memory_ingestor` returns an `AsyncCompositeIngestor` that stores
+embedded chunks in an `AsyncSqliteEmbeddingStore` and indexes the paper in an
+`AsyncSqliteFts5Store`, or just the `AsyncSearchIndexer` when
+`embeddings.enabled` is false. The run itself shrinks to one call:
+
+```python
+async with build(config, logger, http_client, llm_client, library, shutdown) as pipeline:
+    return await pipeline.run(**run_arguments(config.pipeline, start_index))
+```
+
+Papers screened before the upgrade were never indexed, and udg-catalogue had
+no vector memory to backfill from. `python main.py --index-papers` fetches
+them again through the same pipeline with an entity extractor that returns
+nothing, a relevance filter that skips papers already in the text index, and
+a separate state manager (`indexed_arxiv_ids.txt`, `indexing_meta.json`), so
+the galaxy catalogue and its processed ids are left alone.
 
 ## What the migration uncovered
 
