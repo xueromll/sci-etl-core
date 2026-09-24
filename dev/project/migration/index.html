@@ -2889,10 +2889,13 @@ real migration as the worked example:
 <a href="https://github.com/xueromll/udg-catalogue">udg-catalogue</a>, which builds a
 catalogue of ultra-diffuse galaxies (UDGs) from arXiv papers with an LLM.</p>
 <p>Every "before" snippet is taken from udg-catalogue as it was before the
-migration, and every "after" snippet from the migrated project on its
-<a href="https://github.com/xueromll/udg-catalogue/tree/main"><code>main</code> branch</a>. The
-science is astronomy, but nothing in the steps depends on it: swap the prompts,
-fields, and domain rules for your own.</p>
+migration. Every "after" snippet in Steps 1 to 9 is taken from the migrated
+project on sci-etl-core 0.2, at
+<a href="https://github.com/xueromll/udg-catalogue/tree/8cd94711b864212a8fa0d55d60f51e500cf42ec3">commit <code>8cd9471</code></a>.
+<a href="#upgrading-to-04">Upgrading to 0.4</a> shows how that code changed on the
+project's <a href="https://github.com/xueromll/udg-catalogue/tree/main"><code>main</code> branch</a>.
+The science is astronomy, but nothing in the steps depends on it: swap the
+prompts, fields, and domain rules for your own.</p>
 <ul>
 <li><a href="#the-project-before">The project before</a></li>
 <li><a href="#where-youll-end-up">Where you'll end up</a></li>
@@ -3750,7 +3753,8 @@ notice (<a href="../changelog/">CHANGELOG.md</a> lists everything):</p>
   works exactly as before. A type hint in your code that names
   <code>AsyncChunkIngestor</code> for this argument can widen to <code>MemoryIngestor</code>.</li>
 <li><strong>Search is opt-in.</strong> Nothing changes in a pipeline that passes no text
-  index; udg-catalogue's <code>build_pipeline</code> passes no <code>memory_ingestor</code> at all.
+  index; udg-catalogue's <code>build_pipeline</code> passed no <code>memory_ingestor</code> at all
+  until its 0.4 upgrade.
   To add one, pass an <code>AsyncSearchIndexer</code>, or an <code>AsyncCompositeIngestor</code>
   with a chunk ingestor first, as
   <a href="https://xueromll.github.io/sci-etl-core/latest/guide/search/">Local search and discovery</a> shows. Its
@@ -3764,38 +3768,61 @@ notice (<a href="../changelog/">CHANGELOG.md</a> lists everything):</p>
 DOCX and JATS XML parsers, LLM response caching, graceful shutdown, progress
 events and run metrics, rate limiters for every HTTP component, <code>NEAR</code>
 queries, range filters, snippets for every matching field, and backfilling a
-text index from the vector memory. Several of them retire code this guide had
-the project write:</p>
+text index from the vector memory. udg-catalogue moved from <code>&gt;=0.2.0,&lt;0.3</code>
+straight to <code>&gt;=0.4.0,&lt;0.5</code>, adding the <code>embeddings</code>, <code>embeddings-local</code>, and
+<code>search</code> extras:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>sci-etl-core[async,llm,pdf,cluster,embeddings,embeddings-local,search]&gt;=0.4.0,&lt;0.5
+</code></pre></div>
+<p>Several of the new features retire code this guide had the project write:</p>
 <ul>
 <li><strong>Renamed pipeline settings.</strong> <code>pipeline.max_records</code> is now <code>total_limit</code>
   and <code>pipeline.max_workers</code> is <code>max_concurrency</code>. The old YAML keys and the
   <code>PipelineConfig.max_records</code> and <code>max_workers</code> properties still work until
-  0.5, with a <code>DeprecationWarning</code>, so the <code>build_pipeline</code> and
+  0.5, with a <code>DeprecationWarning</code>, so the 0.2 <code>build_pipeline</code> and
   <code>run_ingestion</code> shown above warn on 0.4. <code>run(max_records=)</code> is deprecated
-  the same way.</li>
+  the same way. udg-catalogue renamed both keys in <code>config.yaml</code>.</li>
+<li><strong>No pipeline subclass.</strong> <code>PipelineConfig</code> now has <code>page_size</code>,
+  <code>search_delay</code>, and <code>newest_first</code>, so <code>CataloguePipelineConfig</code> from
+  Step 2 was deleted and <code>CatalogueConfig</code> uses the library's <code>pipeline</code>
+  section as it is.</li>
 <li><strong>Validation without a wrapper.</strong> <code>AsyncLLMEntityExtractor</code> takes
   <code>validator=</code>, <code>logger=</code>, and <code>label_field=</code>, and logs each entity it drops
-  as <code>Entity rejected by validation: &lt;label&gt;</code>. That replaces the
+  as <code>Entity rejected by validation: &lt;label&gt;</code>. udg-catalogue passes
+  <code>build_galaxy_validator()</code> and <code>label_field=KEY_COLUMN</code> and deleted the
   <code>ValidatedEntityExtractor</code> from Step 5.</li>
 <li><strong>Components from the config.</strong> <code>AsyncArxivExtractor.from_config</code>,
   <code>AsyncOpenAICompatibleClient.from_config</code>, and <code>AsyncETLPipeline.from_config</code>
-  read the <code>http</code>, <code>llm</code>, and <code>pipeline</code> sections, and
-  <code>config.pipeline.run_arguments()</code> returns the arguments for <code>run()</code>, so the
-  settings no longer need copying into constructors by hand.</li>
+  read the <code>http</code>, <code>llm</code>, and <code>pipeline</code> sections, <code>config.http.build_client()</code>
+  replaces <code>build_async_client</code>, and <code>config.pipeline.run_arguments()</code> returns
+  the arguments for <code>run()</code>, so the settings no longer need copying into
+  constructors by hand.</li>
 <li><strong>Newest-first resume.</strong> <code>run(newest_first=True)</code> picks up new arXiv
   submissions without the full rescan that <code>start_index=0</code> costs, and saves
   the head of the listing in the metadata file next to <code>last_start_index</code>.
-  <code>start_index</code> can't be combined with it.</li>
+  <code>start_index</code> can't be combined with it. udg-catalogue sets
+  <code>pipeline.newest_first: true</code>, so <code>python main.py</code> now resumes by default;
+  the <code>--resume</code> flag from Step 6 is gone, and <code>--rescan</code> passes
+  <code>start_index=0</code> with <code>newest_first=False</code> to page the whole listing.</li>
+<li><strong>Caching, shutdown, and run summaries.</strong> udg-catalogue wraps its LLM client
+  in a <code>CachingLLMClient</code> backed by an <code>AsyncSqliteLLMResponseCache</code>, so a
+  rerun after a crash doesn't pay for the same relevance and extraction calls
+  twice. It passes a <code>ShutdownSignal</code>, and <code>main.py</code> exits with code 130 on
+  <code>PipelineInterrupted</code>. An <code>on_event</code> callback logs each <code>PageFinished</code>, and
+  the <code>RunFinished</code> event's <code>RunMetrics</code>, including token usage from
+  <code>usage_sources</code>, becomes the run summary in the log.</li>
 <li><strong>Plots.</strong> <code>ScatterPlotConfig</code> takes <code>hover_data_columns</code>,
   <code>hover_template</code>, <code>color_continuous_scale</code>, and <code>color_range</code>, the custom
   hover text and fixed color range that kept udg-catalogue off
   <code>AsyncPlotly3DExporter</code>.</li>
 <li><strong>Clamping and table layout.</strong> <code>ValueClipStep</code> clamps columns during
-  post-processing, and <code>TableLayoutStep</code> sorts rows and orders columns.</li>
-<li><strong>Search from the memory you already have.</strong> udg-catalogue's
-  <code>build_pipeline</code> passes no <code>memory_ingestor</code>, but a project that stored
-  chunks in an <code>AsyncSqliteEmbeddingStore</code> can build a text index from them
-  with <code>backfill_text_index</code> instead of fetching every paper again.</li>
+  post-processing, and <code>TableLayoutStep</code> sorts rows and orders columns.
+  udg-catalogue deleted its own <code>ValueClipStep</code> and <code>CatalogueLayoutStep</code> from
+  Step 7; the chain now imports <code>ValueClipStep</code> from the library and ends with
+  <code>TableLayoutStep(sort_by=SORT_ORDER, leading_columns=LEADING_COLUMNS,
+  hidden_prefixes=("_",))</code>.</li>
+<li><strong>Search from the memory you already have.</strong> A project that stored chunks
+  in an <code>AsyncSqliteEmbeddingStore</code> can build a text index from them with
+  <code>backfill_text_index</code> instead of fetching every paper again.</li>
 <li><strong>Snippets for semantic hits.</strong> A <code>FusedHit</code> found only by the semantic leg
   now carries a snippet of its best chunk, where it used to have an empty
   <code>snippet</code>. A UI that showed the abstract whenever <code>snippet</code> was empty should
@@ -3803,6 +3830,48 @@ the project write:</p>
 <li><strong>Deprecated <code>requests</code> helper.</strong> <code>build_retrying_session</code> warns and will be
   removed in 0.5, along with <code>requests</code> in the <code>full</code> extra.</li>
 </ul>
+<p>After the upgrade, udg-catalogue's pipeline wiring reads its settings from the
+config and indexes every relevant paper for search. Trimmed to the ingestion
+branch, <code>udg_catalogue/pipeline.py</code> builds the pipeline like this:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="n">cache</span> <span class="o">=</span> <span class="n">AsyncSqliteLLMResponseCache</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">paths</span><span class="o">.</span><span class="n">llm_cache</span><span class="p">)</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="n">cached_llm</span> <span class="o">=</span> <span class="n">CachingLLMClient</span><span class="p">(</span><span class="n">llm_client</span><span class="p">,</span> <span class="n">cache</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">)</span>
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="n">extractor</span> <span class="o">=</span> <span class="n">AsyncArxivExtractor</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span>
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a>    <span class="n">config</span><span class="o">.</span><span class="n">http</span><span class="p">,</span>
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a>    <span class="n">config</span><span class="o">.</span><span class="n">pipeline</span><span class="p">,</span>
+<a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a>    <span class="n">client</span><span class="o">=</span><span class="n">http_client</span><span class="p">,</span>
+<a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a>    <span class="n">pdf_parser</span><span class="o">=</span><span class="n">PdfPlumberParser</span><span class="p">(),</span>
+<a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a>    <span class="n">latex_parser</span><span class="o">=</span><span class="n">LatexTarballParser</span><span class="p">(),</span>
+<a id="__codelineno-25-9" name="__codelineno-25-9" href="#__codelineno-25-9"></a>    <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">,</span>
+<a id="__codelineno-25-10" name="__codelineno-25-10" href="#__codelineno-25-10"></a><span class="p">)</span>
+<a id="__codelineno-25-11" name="__codelineno-25-11" href="#__codelineno-25-11"></a><span class="k">return</span> <span class="n">AsyncETLPipeline</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span>
+<a id="__codelineno-25-12" name="__codelineno-25-12" href="#__codelineno-25-12"></a>    <span class="n">config</span><span class="o">.</span><span class="n">pipeline</span><span class="p">,</span>
+<a id="__codelineno-25-13" name="__codelineno-25-13" href="#__codelineno-25-13"></a>    <span class="n">extractor</span><span class="o">=</span><span class="n">extractor</span><span class="p">,</span>
+<a id="__codelineno-25-14" name="__codelineno-25-14" href="#__codelineno-25-14"></a>    <span class="n">relevance_filter</span><span class="o">=</span><span class="n">AsyncLLMRelevanceFilter</span><span class="p">(</span><span class="n">llm_client</span><span class="o">=</span><span class="n">cached_llm</span><span class="p">,</span> <span class="n">system_prompt</span><span class="o">=</span><span class="n">RELEVANCE_PROMPT</span><span class="p">),</span>
+<a id="__codelineno-25-15" name="__codelineno-25-15" href="#__codelineno-25-15"></a>    <span class="n">entity_extractor</span><span class="o">=</span><span class="n">build_entity_extractor</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">cached_llm</span><span class="p">,</span> <span class="n">logger</span><span class="p">),</span>
+<a id="__codelineno-25-16" name="__codelineno-25-16" href="#__codelineno-25-16"></a>    <span class="n">exporter</span><span class="o">=</span><span class="n">build_catalogue_exporter</span><span class="p">(),</span>
+<a id="__codelineno-25-17" name="__codelineno-25-17" href="#__codelineno-25-17"></a>    <span class="n">state_manager</span><span class="o">=</span><span class="n">AsyncFileStateManager</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">paths</span><span class="o">.</span><span class="n">processed_ids</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">paths</span><span class="o">.</span><span class="n">pipeline_metadata</span><span class="p">),</span>
+<a id="__codelineno-25-18" name="__codelineno-25-18" href="#__codelineno-25-18"></a>    <span class="n">destination</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">paths</span><span class="o">.</span><span class="n">raw_catalogue</span><span class="p">),</span>
+<a id="__codelineno-25-19" name="__codelineno-25-19" href="#__codelineno-25-19"></a>    <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">,</span>
+<a id="__codelineno-25-20" name="__codelineno-25-20" href="#__codelineno-25-20"></a>    <span class="n">closeables</span><span class="o">=</span><span class="p">[</span><span class="n">http_client</span><span class="p">,</span> <span class="n">llm_client</span><span class="p">,</span> <span class="n">cache</span><span class="p">,</span> <span class="o">*</span><span class="n">library</span><span class="o">.</span><span class="n">closeables</span><span class="p">],</span>
+<a id="__codelineno-25-21" name="__codelineno-25-21" href="#__codelineno-25-21"></a>    <span class="n">memory_ingestor</span><span class="o">=</span><span class="n">library</span><span class="o">.</span><span class="n">memory_ingestor</span><span class="p">(</span><span class="n">build_chunker</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">embeddings</span><span class="p">),</span> <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">),</span>
+<a id="__codelineno-25-22" name="__codelineno-25-22" href="#__codelineno-25-22"></a>    <span class="n">shutdown</span><span class="o">=</span><span class="n">shutdown</span><span class="p">,</span>
+<a id="__codelineno-25-23" name="__codelineno-25-23" href="#__codelineno-25-23"></a>    <span class="n">on_event</span><span class="o">=</span><span class="n">progress_logger</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">),</span>
+<a id="__codelineno-25-24" name="__codelineno-25-24" href="#__codelineno-25-24"></a>    <span class="n">usage_sources</span><span class="o">=</span><span class="p">[</span><span class="n">llm_client</span><span class="p">,</span> <span class="o">*</span><span class="n">library</span><span class="o">.</span><span class="n">usage_sources</span><span class="p">],</span>
+<a id="__codelineno-25-25" name="__codelineno-25-25" href="#__codelineno-25-25"></a><span class="p">)</span>
+</code></pre></div>
+<p><code>library.memory_ingestor</code> returns an <code>AsyncCompositeIngestor</code> that stores
+embedded chunks in an <code>AsyncSqliteEmbeddingStore</code> and indexes the paper in an
+<code>AsyncSqliteFts5Store</code>, or just the <code>AsyncSearchIndexer</code> when
+<code>embeddings.enabled</code> is false. The run itself shrinks to one call:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="k">async</span> <span class="k">with</span> <span class="n">build</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">http_client</span><span class="p">,</span> <span class="n">llm_client</span><span class="p">,</span> <span class="n">library</span><span class="p">,</span> <span class="n">shutdown</span><span class="p">)</span> <span class="k">as</span> <span class="n">pipeline</span><span class="p">:</span>
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>    <span class="k">return</span> <span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="n">run_arguments</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">pipeline</span><span class="p">,</span> <span class="n">start_index</span><span class="p">))</span>
+</code></pre></div>
+<p>Papers screened before the upgrade were never indexed, and udg-catalogue had
+no vector memory to backfill from. <code>python main.py --index-papers</code> fetches
+them again through the same pipeline with an entity extractor that returns
+nothing, a relevance filter that skips papers already in the text index, and
+a separate state manager (<code>indexed_arxiv_ids.txt</code>, <code>indexing_meta.json</code>), so
+the galaxy catalogue and its processed ids are left alone.</p>
 <h2 id="what-the-migration-uncovered">What the migration uncovered<a class="headerlink" href="#what-the-migration-uncovered" title="Permanent link">&para;</a></h2>
 <p>Moving code onto shared components forces you to state every rule precisely.
 udg-catalogue's migration surfaced these problems, most of them invisible in
