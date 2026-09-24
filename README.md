@@ -23,6 +23,13 @@ pipeline on a background loop.
 
 **Documentation: https://xueromll.github.io/sci-etl-core/**
 
+## Motivation
+
+I built `sci-etl-core` while working with scientific papers during my
+undergraduate physics studies, after rewriting the same fetch–parse–extract–cache
+machinery one too many times. It's a personal research and learning project,
+released free and open-source under the MIT License — not a commercial product.
+
 ## Features
 
 - **Pluggable async interfaces** for every stage, with `Sync*Adapter` wrappers
@@ -42,7 +49,7 @@ pipeline on a background loop.
   dataframe processors and record validators.
 - **Typed configuration** from YAML and `.env`, an offline test suite at 100%
   coverage, and PEP 561 type information.
-
+  
 ## Installation
 
 Python 3.10 or newer is required.
@@ -237,4 +244,4 @@ Please report vulnerabilities privately — see [SECURITY.md](SECURITY.md).
 
 ## License
 
-Released under the MIT License. See [LICENSE](LICENSE) for details.
+This is a non-commercial research and educational project, freely available under the MIT License. See [LICENSE](LICENSE) for details.
