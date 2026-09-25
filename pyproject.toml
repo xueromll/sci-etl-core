@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sci-etl-core"
-version = "0.4.1"
+version = "0.5.0.dev0"
 description = "Reusable, domain-agnostic ETL core for scientific text mining."
 readme = "README.md"
 license = "MIT"
