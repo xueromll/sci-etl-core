@@ -1,20 +1,40 @@
 # sci-etl-core
 
-A reusable, **domain-agnostic** Python library for scientific text mining and
-ETL. `sci-etl-core` gives you composable building blocks — extractors, parsers,
-LLM clients, embedding memory, processors, exporters, and state managers —
-behind abstract base classes, so you can assemble a pipeline for *any* corpus
-without inheriting constants tied to a specific field of science.
+`sci-etl-core` is a Python library for turning scientific papers from any field
+into structured, searchable data. It fetches papers from arXiv, PubMed,
+OpenAlex, and Semantic Scholar, reads their full text, extracts the values you
+ask for with an LLM, and keeps the papers searchable on your own machine.
 
-The library is **async-first**. Every component is an `async` implementation,
-orchestrated by `AsyncETLPipeline`. For scripts that don't want to manage an
-event loop, `ETLPipeline` is a single blocking entrypoint that runs the same
-pipeline on a background loop.
+udg-catalogue shows the result. It screens astrophysics papers on arXiv,
+extracts measurements of ultra-diffuse galaxies, and publishes a cross-matched
+catalog of 1,285 objects, with keyword and semantic search over the papers
+behind it. `sci-etl-core` supplies the fetching, parsing, extraction, caching,
+resumable state, and search, while udg-catalogue adds the astronomy: prompts,
+validation rules, sky-position matching, and the dashboard.
 
-Prefer configuration to code? The [`sci-etl` command-line tool](cli/index.md)
-runs these pipelines from a single YAML file.
+Nothing in the library is tied to astronomy. Field knowledge lives in your
+prompts, validators, and normalizers, so the same building blocks work for any
+field of science.
 
 <div class="grid cards" markdown>
+
+- **Run it from YAML**
+
+    ---
+
+    Initialize, validate, search, and run extraction projects without writing
+    wiring code.
+
+    [sci-etl-cli](cli/index.md)
+
+- **See a complete project**
+
+    ---
+
+    From an arXiv query to a published catalog and a searchable memory of the
+    papers behind it.
+
+    [udg-catalogue](https://github.com/xueromll/udg-catalogue)
 
 - **Get started**
 
@@ -35,15 +55,6 @@ runs these pipelines from a single YAML file.
 
     [Local search and discovery](guide/search/index.md)
 
-- **Run it from YAML**
-
-    ---
-
-    Initialize, validate, search, and run extraction projects without writing
-    wiring code.
-
-    [sci-etl CLI](cli/index.md)
-
 - **Look up an API**
 
     ---
@@ -60,9 +71,11 @@ runs these pipelines from a single YAML file.
   `AsyncLLMClient`, `AsyncRelevanceFilter`, `AsyncEntityExtractor`,
   `AsyncExporter`, `AsyncStateManager`, plus `AsyncEmbedder`, `TextChunker`,
   and `AsyncEmbeddingStore` for semantic memory. Existing blocking
-  implementations plug in through `Sync*Adapter` wrappers.
-- **Built-in orchestration** — `AsyncETLPipeline` processes records with
-  bounded concurrency; `ETLPipeline` wraps it for blocking code.
+  implementations plug in through `Sync*Adapter` wrappers. Run the whole
+  pipeline, or use only the parts you need, such as search.
+- **Async-first orchestration** — every component is an `async`
+  implementation. `AsyncETLPipeline` processes records with bounded
+  concurrency, and `ETLPipeline` runs the same pipeline from blocking code.
 - **Explicit failure signaling** — a transport fault or malformed listing
   aborts the run with `PipelineAborted` (carrying the partial count) instead of
   looking like the end of the data. A single failing record is logged and left

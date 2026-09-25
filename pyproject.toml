@@ -4,13 +4,24 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sci-etl-core"
-version = "0.5.0.dev0"
-description = "Reusable, domain-agnostic ETL core for scientific text mining."
+version = "0.5.0"
+description = "A Python library for turning scientific papers from any field into structured, searchable data."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.11"
-keywords = ["etl", "pipeline", "text-mining", "scientific-literature", "data-extraction"]
+keywords = [
+    "scientific-papers",
+    "literature-mining",
+    "research-data",
+    "arxiv",
+    "pubmed",
+    "scientific-literature",
+    "text-mining",
+    "data-extraction",
+    "pipeline",
+    "etl",
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",

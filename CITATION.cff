@@ -1,20 +1,25 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 title: "sci-etl-core"
-abstract: "Async-first, domain-agnostic Python library for mining scientific literature: LLM-powered ETL pipelines with pluggable extractors, parsers, exporters, and resumable state."
+abstract: "A Python library for turning scientific papers from any field into structured, searchable data."
 type: software
 authors:
   - given-names: Anna
     family-names: Perekhodiuk
-version: "0.4.1"
+version: "0.5.0"
 date-released: "2026-09-25"
 url: "https://github.com/xueromll/sci-etl-core"
 repository-code: "https://github.com/xueromll/sci-etl-core"
 license: MIT
 keywords:
-  - etl
-  - llm
+  - scientific-papers
   - literature-mining
+  - research-data
+  - arxiv
+  - pubmed
+  - scientific-literature
   - text-mining
+  - llm
   - asyncio
   - python
+  - etl

@@ -4,22 +4,22 @@
 [![Docs](https://github.com/xueromll/sci-etl-core/actions/workflows/docs.yml/badge.svg)](https://xueromll.github.io/sci-etl-core/)
 [![PyPI](https://img.shields.io/pypi/v/sci-etl-core)](https://pypi.org/project/sci-etl-core/)
 
-A reusable, **domain-agnostic** Python library for scientific text mining and
-ETL. It extracts records from literature sources, filters them for relevance,
-turns their full text into structured entities with an LLM, and loads the
-results into files, databases, and a local search index.
+`sci-etl-core` is a Python library for turning scientific papers from any field
+into structured, searchable data. It fetches papers from arXiv, PubMed,
+OpenAlex, and Semantic Scholar, reads their full text, extracts the values you
+ask for with an LLM, and keeps the papers searchable on your own machine.
 
-`sci-etl-core` gives you composable building blocks — extractors, parsers,
-LLM clients, embedding memory, processors, exporters, and state managers —
-behind abstract base classes, so you can assemble a pipeline for *any* corpus
-without inheriting constants tied to a specific field of science. Domain
-knowledge lives in your prompts, validators, and normalizers, never in the
-library.
+[udg-catalogue](https://github.com/xueromll/udg-catalogue) shows the result. It
+screens astrophysics papers on arXiv, extracts measurements of ultra-diffuse
+galaxies, and publishes a cross-matched catalog of 1,285 objects, with keyword
+and semantic search over the papers behind it. `sci-etl-core` supplies the
+fetching, parsing, extraction, caching, resumable state, and search, while
+udg-catalogue adds the astronomy: prompts, validation rules, sky-position
+matching, and the dashboard.
 
-The library is **async-first**. Every component is an `async` implementation,
-orchestrated by `AsyncETLPipeline`. For scripts that don't want to manage an
-event loop, `ETLPipeline` is a single blocking entrypoint that runs the same
-pipeline on a background loop.
+Nothing in the library is tied to astronomy. Field knowledge lives in your
+prompts, validators, and normalizers, so the same building blocks work for any
+field of science.
 
 **Documentation: https://xueromll.github.io/sci-etl-core/**
 
@@ -32,12 +32,15 @@ released free and open-source under the MIT License — not a commercial product
 
 ## Features
 
-- **Pluggable async interfaces** for every stage, with `Sync*Adapter` wrappers
-  for existing blocking implementations.
-- **Built-in orchestration** with bounded concurrency, resumable crash-safe
-  state, graceful shutdown, polite retries that honor `Retry-After`, shared
-  and per-host rate limits, progress events and run metrics, and explicit
-  failure signaling through `PipelineAborted`.
+- **Composable building blocks** — extractors, parsers, LLM clients, embedding
+  memory, processors, exporters, and state managers behind abstract base
+  classes, with `Sync*Adapter` wrappers for existing blocking implementations.
+  Run the whole pipeline, or use only the parts you need, such as search.
+- **Async-first orchestration** through `AsyncETLPipeline`, with bounded
+  concurrency, resumable crash-safe state, graceful shutdown, polite retries
+  that honor `Retry-After`, shared and per-host rate limits, progress events
+  and run metrics, and explicit failure signaling through `PipelineAborted`.
+  `ETLPipeline` runs the same pipeline from blocking code.
 - **LLM response caching** in memory or SQLite, so a rerun doesn't pay for the
   same prompt twice.
 - **Semantic memory and local search** — embed full texts into a vector store,

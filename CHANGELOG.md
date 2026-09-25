@@ -5,7 +5,8 @@ All notable changes to sci-etl-core are recorded here. The format follows
 [Semantic Versioning](https://semver.org/). Until 1.0, a minor release may
 change behavior; each such change is listed under **Changed**.
 
-## [Unreleased]
+
+## [0.5.0] - 2026-09-25
 
 This release changes how extractors page through a listing, what run state is
 saved, and how the pipeline is constructed. State saved by 0.4 is upgraded
@@ -338,7 +339,8 @@ extractor, OpenAI-compatible chat and embedding clients, PDF, LaTeX, and HTML
 parsers, CSV, SQL, and Plotly exporters, dataframe processors and validators,
 file and SQLite state, semantic memory, and the udg-catalogue migration guide.
 
-[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/xueromll/sci-etl-core/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/xueromll/sci-etl-core/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/xueromll/sci-etl-core/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/xueromll/sci-etl-core/compare/v0.2.0...v0.3.0

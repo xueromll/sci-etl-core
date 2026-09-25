@@ -1,5 +1,5 @@
 site_name: sci-etl-core
-site_description: Domain-agnostic ETL building blocks for scientific text mining, and the sci-etl CLI that runs them from YAML.
+site_description: A Python library for turning scientific papers from any field into structured, searchable data, and the sci-etl CLI that runs it from YAML.
 site_url: https://xueromll.github.io/sci-etl-core/
 repo_url: https://github.com/xueromll/sci-etl-core
 repo_name: xueromll/sci-etl-core

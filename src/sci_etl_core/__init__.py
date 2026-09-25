@@ -1,4 +1,6 @@
-"""Reusable, domain-agnostic ETL building blocks for scientific text mining.
+"""A Python library for turning scientific papers from any field into structured, searchable data.
+
+Scope: scientific papers in, structured and searchable data out.
 
 Public names load on first access, so importing the package never requires an
 optional dependency that the components you use don't need.
