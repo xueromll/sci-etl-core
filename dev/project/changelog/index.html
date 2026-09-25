@@ -3054,6 +3054,9 @@ change behavior; each such change is listed under <strong>Changed</strong>.</p>
 <ul>
 <li><code>load_config_async</code> and <code>AsyncCsvUpsertExporter</code> check whether a file exists
   in a worker thread instead of blocking the event loop.</li>
+<li>The <code>sql</code> and <code>full</code> extras require <code>sqlalchemy[asyncio]</code>, so they install
+  <code>greenlet</code>. SQLAlchemy 2.1 no longer installs it by default, and without it
+  <code>AsyncSqlTableExporter</code> could not be imported.</li>
 </ul>
 <h2 id="040-2026-09-16"><a href="https://github.com/xueromll/sci-etl-core/compare/v0.3.0...v0.4.0">0.4.0</a> - 2026-09-16<a class="headerlink" href="#040-2026-09-16" title="Permanent link">&para;</a></h2>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
