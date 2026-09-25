@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Domain-agnostic ETL building blocks for scientific text mining, and the sci-etl CLI that runs them from YAML.">
+        <meta name="description" content="A Python library for turning scientific papers from any field into structured, searchable data, and the sci-etl CLI that runs it from YAML.">
       
       
       
@@ -2543,19 +2543,35 @@
 
 
 <h1 id="sci-etl-core">sci-etl-core<a class="headerlink" href="#sci-etl-core" title="Permanent link">&para;</a></h1>
-<p>A reusable, <strong>domain-agnostic</strong> Python library for scientific text mining and
-ETL. <code>sci-etl-core</code> gives you composable building blocks — extractors, parsers,
-LLM clients, embedding memory, processors, exporters, and state managers —
-behind abstract base classes, so you can assemble a pipeline for <em>any</em> corpus
-without inheriting constants tied to a specific field of science.</p>
-<p>The library is <strong>async-first</strong>. Every component is an <code>async</code> implementation,
-orchestrated by <code>AsyncETLPipeline</code>. For scripts that don't want to manage an
-event loop, <code>ETLPipeline</code> is a single blocking entrypoint that runs the same
-pipeline on a background loop.</p>
-<p>Prefer configuration to code? The <a href="cli/"><code>sci-etl</code> command-line tool</a>
-runs these pipelines from a single YAML file.</p>
+<p><code>sci-etl-core</code> is a Python library for turning scientific papers from any field
+into structured, searchable data. It fetches papers from arXiv, PubMed,
+OpenAlex, and Semantic Scholar, reads their full text, extracts the values you
+ask for with an LLM, and keeps the papers searchable on your own machine.</p>
+<p>udg-catalogue shows the result. It screens astrophysics papers on arXiv,
+extracts measurements of ultra-diffuse galaxies, and publishes a cross-matched
+catalog of 1,285 objects, with keyword and semantic search over the papers
+behind it. <code>sci-etl-core</code> supplies the fetching, parsing, extraction, caching,
+resumable state, and search, while udg-catalogue adds the astronomy: prompts,
+validation rules, sky-position matching, and the dashboard.</p>
+<p>Nothing in the library is tied to astronomy. Field knowledge lives in your
+prompts, validators, and normalizers, so the same building blocks work for any
+field of science.</p>
 <div class="grid cards">
 <ul>
+<li>
+<p><strong>Run it from YAML</strong></p>
+<hr />
+<p>Initialize, validate, search, and run extraction projects without writing
+wiring code.</p>
+<p><a href="cli/">sci-etl-cli</a></p>
+</li>
+<li>
+<p><strong>See a complete project</strong></p>
+<hr />
+<p>From an arXiv query to a published catalog and a searchable memory of the
+papers behind it.</p>
+<p><a href="https://github.com/xueromll/udg-catalogue">udg-catalogue</a></p>
+</li>
 <li>
 <p><strong>Get started</strong></p>
 <hr />
@@ -2572,13 +2588,6 @@ over a local SQLite index.</p>
 <p><a href="guide/search/">Local search and discovery</a></p>
 </li>
 <li>
-<p><strong>Run it from YAML</strong></p>
-<hr />
-<p>Initialize, validate, search, and run extraction projects without writing
-wiring code.</p>
-<p><a href="cli/">sci-etl CLI</a></p>
-</li>
-<li>
 <p><strong>Look up an API</strong></p>
 <hr />
 <p>Every public class and function, generated from the source.</p>
@@ -2592,9 +2601,11 @@ wiring code.</p>
   <code>AsyncLLMClient</code>, <code>AsyncRelevanceFilter</code>, <code>AsyncEntityExtractor</code>,
   <code>AsyncExporter</code>, <code>AsyncStateManager</code>, plus <code>AsyncEmbedder</code>, <code>TextChunker</code>,
   and <code>AsyncEmbeddingStore</code> for semantic memory. Existing blocking
-  implementations plug in through <code>Sync*Adapter</code> wrappers.</li>
-<li><strong>Built-in orchestration</strong> — <code>AsyncETLPipeline</code> processes records with
-  bounded concurrency; <code>ETLPipeline</code> wraps it for blocking code.</li>
+  implementations plug in through <code>Sync*Adapter</code> wrappers. Run the whole
+  pipeline, or use only the parts you need, such as search.</li>
+<li><strong>Async-first orchestration</strong> — every component is an <code>async</code>
+  implementation. <code>AsyncETLPipeline</code> processes records with bounded
+  concurrency, and <code>ETLPipeline</code> runs the same pipeline from blocking code.</li>
 <li><strong>Explicit failure signaling</strong> — a transport fault or malformed listing
   aborts the run with <code>PipelineAborted</code> (carrying the partial count) instead of
   looking like the end of the data. A single failing record is logged and left

@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Domain-agnostic ETL building blocks for scientific text mining, and the sci-etl CLI that runs them from YAML.">
+        <meta name="description" content="A Python library for turning scientific papers from any field into structured, searchable data, and the sci-etl CLI that runs it from YAML.">
       
       
       
@@ -2363,10 +2363,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#current-release-v041" class="md-nav__link">
+  <a href="#current-release-v050" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Current release — v0.4.1
+        Current release — v0.5.0
       
     </span>
   </a>
@@ -2378,17 +2378,6 @@
     <span class="md-ellipsis">
       
         Path to 1.0
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#v050-run-contract" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        v0.5.0 — Run contract
       
     </span>
   </a>
@@ -2588,10 +2577,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#current-release-v041" class="md-nav__link">
+  <a href="#current-release-v050" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Current release — v0.4.1
+        Current release — v0.5.0
       
     </span>
   </a>
@@ -2603,17 +2592,6 @@
     <span class="md-ellipsis">
       
         Path to 1.0
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#v050-run-contract" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        v0.5.0 — Run contract
       
     </span>
   </a>
@@ -2705,12 +2683,15 @@
 
 <h1 id="roadmap">Roadmap<a class="headerlink" href="#roadmap" title="Permanent link">&para;</a></h1>
 <p>This roadmap states direction, not commitments. Priorities follow real use
-cases. To work on an item, comment on its issue or open one. Items marked
-<strong>good first issue</strong> suit newcomers.</p>
+cases, and every item must fit the library's scope: scientific papers in,
+structured and searchable data out. An item that does not fit is declined,
+however useful it would be elsewhere. To work on an item, comment on its issue
+or open one. Items marked <strong>good first issue</strong> suit newcomers.</p>
 <p>Each milestone lists its exit criteria. A milestone ships when every criterion
 holds with the test suite offline and line coverage at 100%.</p>
-<h2 id="current-release-v041">Current release — v0.4.1<a class="headerlink" href="#current-release-v041" title="Permanent link">&para;</a></h2>
-<p><a href="../changelog/">CHANGELOG.md</a> lists every change by release.</p>
+<h2 id="current-release-v050">Current release — v0.5.0<a class="headerlink" href="#current-release-v050" title="Permanent link">&para;</a></h2>
+<p><a href="../changelog/">CHANGELOG.md</a> lists every change by release, and
+<a href="../migration/">MIGRATION.md</a> explains how to upgrade from 0.4.</p>
 <table>
 <thead>
 <tr>
@@ -2722,12 +2703,12 @@ holds with the test suite offline and line coverage at 100%.</p>
 <tbody>
 <tr>
 <td><a href="https://github.com/xueromll/udg-catalogue">udg-catalogue</a></td>
-<td><code>sci-etl-core&gt;=0.4.0,&lt;0.5</code>, with the <code>embeddings</code>, <code>embeddings-local</code>, and <code>search</code> extras</td>
+<td><code>sci-etl-core&gt;=0.4.0,&lt;0.5</code> in its latest commit, with the <code>embeddings</code>, <code>embeddings-local</code>, and <code>search</code> extras; its next commit requires <code>&gt;=0.5,&lt;0.6</code></td>
 <td>0.4 in production, including search, discovery, and embeddings</td>
 </tr>
 <tr>
 <td><a href="https://github.com/xueromll/sci-etl-cli">sci-etl-cli</a></td>
-<td>0.2 or 0.3 in its latest release; its next release requires <code>&gt;=0.4,&lt;0.5</code>, and its suite passes against core <code>master</code></td>
+<td><code>&gt;=0.5.0.dev0,&lt;0.6</code> on <code>master</code>, and its suite passes against core <code>master</code>; its next release requires <code>&gt;=0.5.0,&lt;0.6</code></td>
 <td>0.3</td>
 </tr>
 </tbody>
@@ -2746,7 +2727,7 @@ holds with the test suite offline and line coverage at 100%.</p>
 </tr>
 <tr>
 <td>Contracts</td>
-<td>ABCs for extractors, relevance filters, entity extractors, LLM clients, exporters, state managers, parsers, embedders, chunkers, vector and text stores, processors, and validators; <code>Sync*Adapter</code> wrappers for blocking implementations</td>
+<td>ABCs for extractors, relevance filters, entity extractors, LLM clients, exporters, state managers, parsers, embedders, chunkers, vector and text stores, processors, and validators; <code>Sync*Adapter</code> wrappers for blocking implementations, deprecated until their removal in 0.6.0</td>
 </tr>
 <tr>
 <td>Reliability</td>
@@ -2754,7 +2735,7 @@ holds with the test suite offline and line coverage at 100%.</p>
 </tr>
 <tr>
 <td>Resumption</td>
-<td>Saved listing offsets that advance only past settled pages, and <code>newest_first</code> runs that pick up new submissions without rescanning</td>
+<td>Saved listing cursors that advance only past settled pages, result caps reported as truncated with the next run starting from the first page, a quarantine for records that keep failing, schema-versioned state that upgrades files written by 0.4, and <code>newest_first</code> runs that pick up new submissions without rescanning</td>
 </tr>
 <tr>
 <td>Sources</td>
@@ -2778,7 +2759,7 @@ holds with the test suite offline and line coverage at 100%.</p>
 </tr>
 <tr>
 <td>Project health</td>
-<td>Offline pytest and Hypothesis suite at 100% line coverage, with branch coverage reported; ruff with the <code>ASYNC</code>, <code>UP</code>, <code>RUF</code>, and <code>PT</code> rule sets, and mypy with stricter flags on the core contracts; CI on Linux, Windows, and macOS for Python 3.10–3.14, PyPI trusted publishing, a documentation site with a generated API reference</td>
+<td>Offline pytest and Hypothesis suite at 100% line coverage, with branch coverage reported; ruff with the <code>ASYNC</code>, <code>UP</code>, <code>RUF</code>, and <code>PT</code> rule sets, and mypy with stricter flags on the core contracts; CI on Linux, Windows, and macOS for Python 3.11–3.14, PyPI trusted publishing, a documentation site with a generated API reference</td>
 </tr>
 <tr>
 <td>Guardrails</td>
@@ -2786,7 +2767,12 @@ holds with the test suite offline and line coverage at 100%.</p>
 </tr>
 </tbody>
 </table>
-<p>Still open from 0.4.1: a sci-etl-cli release that requires core 0.4, and a udg-catalogue run on 0.4.1.</p>
+<p>Still open from 0.5.0: a sci-etl-cli release and a udg-catalogue commit that
+require core 0.5, and a live check of how long OpenAlex cursors stay valid.
+PubMed and Semantic Scholar keep offset paging and report their caps as
+truncated: E-utilities serves at most 9,999 results even through its history
+server, and Semantic Scholar's bulk search returns fixed pages of 1,000
+papers, which cannot honor <code>page_size</code>.</p>
 <h2 id="path-to-10">Path to 1.0<a class="headerlink" href="#path-to-10" title="Permanent link">&para;</a></h2>
 <p>Each public contract changes at most once more before 1.0. The run contract
 (extractor, state, constructor) breaks in 0.5.0, the data contract (entities,
@@ -2794,38 +2780,6 @@ exporter, logging, dependencies) in 0.6.0, and every later release is
 additive. A release is tagged only when sci-etl-cli passes against it and
 udg-catalogue completes a run on it. Each breaking change gets a
 <a href="../migration/">MIGRATION.md</a> entry.</p>
-<h2 id="v050-run-contract">v0.5.0 — Run contract<a class="headerlink" href="#v050-run-contract" title="Permanent link">&para;</a></h2>
-<p>Breaking. <strong>Status:</strong> implemented, not yet released. PubMed and
-Semantic Scholar keep offset paging and report their caps as truncated:
-E-utilities serves at most 9,999 results even through its history server, and
-Semantic Scholar's bulk search returns fixed pages of 1,000 papers, which
-cannot honor <code>page_size</code>. OpenAlex moved to cursor paging. Still open: both
-consumers moving to 0.5.0, and a live check of how long OpenAlex cursors stay
-valid.</p>
-<ul>
-<li><strong>Extractor pages and cursors.</strong> Extractors return a parsed <code>ListingPage</code>
-  from <code>fetch_page(query, cursor, page_size)</code>, and the pipeline de-duplicates.
-  Saved state holds an opaque cursor instead of an offset. A listing that
-  stops at a source's result cap is reported as truncated instead of ending
-  silently, and the next run starts from the first page instead of the cap.</li>
-<li><strong>Failure tracking.</strong> A record that keeps failing, on pages that otherwise
-  make progress, is quarantined after <code>max_attempts</code> runs instead of holding
-  the saved position forever. An outage never quarantines records.</li>
-<li><strong>Schema versions.</strong> Every SQLite store and the JSON state file record a
-  schema version and migrate files written by 0.4.</li>
-<li><strong>Typed seams.</strong> Keyword-only constructors and dataclasses, and explicit
-  signatures on <code>ETLPipeline</code> and every <code>from_config</code>.</li>
-<li><strong>Strict config sections.</strong> Unknown keys in bundled sections fail
-  validation, with an opt-out on <code>BaseAppConfig</code> subclasses.</li>
-<li><strong>Table sinks.</strong> <code>SqlTableSink</code> and <code>Plotly3DSink</code> replace the exporters
-  that take a <code>DataFrame</code>.</li>
-<li><strong>Removals and deprecations.</strong> What 0.4 deprecated is removed. The blocking
-  orchestration contracts and their adapters, <code>logger=</code> callables,
-  <code>configure_logging</code>, <code>AsyncExporter.export</code>, and <code>AsyncCsvUpsertExporter</code>
-  are deprecated. Python 3.10 support ends.</li>
-</ul>
-<p>Exit criteria: both consumers run on 0.5.0, a run after a capped run starts
-from the first page, and files written by 0.4.0 open in every store.</p>
 <h2 id="v060-data-contract-and-claims">v0.6.0 — Data contract and claims<a class="headerlink" href="#v060-data-contract-and-claims" title="Permanent link">&para;</a></h2>
 <p>Breaking, for the last time before 1.0.</p>
 <ul>
@@ -2843,6 +2797,9 @@ from the first page, and files written by 0.4.0 open in every store.</p>
 <li><strong>Lighter install.</strong> The base install requires only <code>pydantic</code>; parsers,
   loaders, and processors move to extras. <code>load_config</code> no longer loads <code>.env</code>
   implicitly.</li>
+<li><strong>udg-catalogue guide.</strong> A guide page follows udg-catalogue end to end,
+  from an arXiv query to a catalog and a search over its papers. The docs
+  landing page then links to it instead of the udg-catalogue repository.</li>
 </ul>
 <p>Exit criteria: no delivery test loses a record, a bare install imports every
 stable name, and both consumers run on 0.6.0 without <code>DeprecationWarning</code>.</p>
@@ -2869,8 +2826,24 @@ every change, and files written by 0.6.0 and 0.7.0 open in it.</p>
 <p>These items wait on a consumer that needs them, or on a measurement.</p>
 <ul>
 <li><strong>Knowledge synthesis (sci-etl-kg).</strong> Unit normalization, consolidation of
-  repeated measurements, and evidence graphs built on the 0.6.0 claims, in a
-  separate package that builds on 0.7.0.</li>
+  repeated measurements, and pooled effect sizes built on the 0.6.0 claims, in a
+  separate package that builds on 1.0.0. Until the start rule below holds,
+  this work stays in udg-catalogue, because a layer built from one catalog
+  would bake in that catalog's assumptions. The core never imports
+  sci-etl-kg, so no outcome below affects core users.<ul>
+<li><strong>Second catalog.</strong> Once 1.0.0 is out and a second consumer that builds
+  a catalog needs unit normalization or consolidation, sci-etl-kg 0.1
+  starts with those two features only, built on stable names.</li>
+<li><strong>No second catalog.</strong> If no second catalog exists by September 2027,
+  sci-etl-kg moves to Not planned until one appears.</li>
+<li><strong>Six months idle.</strong> If sci-etl-kg goes six months without a release,
+  or its upkeep delays a core release, its last 0.x release is frozen,
+  marked unmaintained, and archived.</li>
+<li><strong>Contradiction detection.</strong> Contradiction detection and causal graphs
+  stay out of every release plan; notebooks and research branches are
+  the limit.</li>
+</ul>
+</li>
 <li><strong>Scalable vector memory.</strong> An approximate-nearest-neighbor
   <code>AsyncEmbeddingStore</code> for corpora the exact-scan SQLite store cannot serve
   interactively. Starts once a corpus defines the target size and latency.</li>
@@ -2898,7 +2871,7 @@ every change, and files written by 0.6.0 and 0.7.0 open in it.</p>
   or one whose structured-output support that endpoint lacks.</li>
 </ul>
 <h2 id="not-planned">Not planned<a class="headerlink" href="#not-planned" title="Permanent link">&para;</a></h2>
-<p>These appeared on earlier roadmaps and were withdrawn.</p>
+<p>These were considered and withdrawn; some appeared on earlier roadmaps.</p>
 <ul>
 <li>
 <p><strong>Blocking orchestration contracts.</strong> The asynchronous API is the supported
@@ -2922,6 +2895,16 @@ every change, and files written by 0.6.0 and 0.7.0 open in it.</p>
 <li><strong>Distributed execution.</strong> State managers rely on local file locks and a
   single SQLite writer. Sharding a corpus across independent runs, each with
   its own state, covers large corpora without a distributed runtime.</li>
+<li><strong>Renaming <code>sci-etl-core</code> or <code>sci_etl_core</code>.</strong> The distribution and import
+  names stay as they are. A rename would need a bridge release and a
+  migration in every consumer, and would change nothing about what the
+  library does.</li>
+<li><strong>A <code>sci-etl</code> meta-package.</strong> sci-etl-cli already depends on the core with
+  the extras it needs, so a meta-package would only add a release to every
+  release.</li>
+<li><strong>Republishing <code>sci-etl-cli</code> as <code>sci-etl</code>.</strong> The CLI already ships on PyPI
+  as sci-etl-cli and installs the <code>sci-etl</code> command. A new distribution name
+  would be another rename, with its own bridge release.</li>
 </ul>
 <hr />
 <p>Have a use case the roadmap does not cover? Open a
