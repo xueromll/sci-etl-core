@@ -1141,6 +1141,8 @@
       
         
       
+        
+      
     
     
     
@@ -1201,6 +1203,34 @@
     
   
     State, resuming, and errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/run-semantics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Run semantics
   
 
     
@@ -4342,7 +4372,7 @@ completion without making a single attempt, or
 <a href="#sci_etl_core.llm.openai_compatible_async.AsyncOpenAICompatibleClient.from_config" class="headerlink" title="Permanent link">&para;</a></h4>
 <div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">from_config</span><span class="p">(</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">llm</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            LLMConfig (sci_etl_core.config.LLMConfig)" href="../configuration/#sci_etl_core.config.LLMConfig">LLMConfig</a></span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"AsyncOpenAICompatibleClient"</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            AsyncOpenAICompatibleClient (sci_etl_core.llm.openai_compatible_async.AsyncOpenAICompatibleClient)" href="#sci_etl_core.llm.openai_compatible_async.AsyncOpenAICompatibleClient">AsyncOpenAICompatibleClient</a></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -4934,7 +4964,7 @@ which stays unmarked and is retried on the next run.</p>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">max_tokens</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">encoding_name</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">"cl100k_base"</span><span class="p">,</span>
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">validator</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            RecordValidator (sci_etl_core.processors.validation.RecordValidator)" href="../processors/#sci_etl_core.processors.validation.RecordValidator">RecordValidator</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">logger</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Callable" href="https://docs.python.org/3/library/typing.html#typing.Callable">Callable</a></span><span class="p">[[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">logger</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable">Callable</a></span><span class="p">[[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">label_field</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="p">)</span>
 </code></pre></div>
@@ -5361,7 +5391,7 @@ returned dict cannot change what is cached.</p>
 <a href="#sci_etl_core.llm.cache_async.AsyncSqliteLLMResponseCache" class="headerlink" title="Permanent link">&para;</a></h3>
 <div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">AsyncSqliteLLMResponseCache</span><span class="p">(</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">path</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></span><span class="p">,</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">now</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Callable" href="https://docs.python.org/3/library/typing.html#typing.Callable">Callable</a></span><span class="p">[[],</span> <span class="n"><a class="autorefs autorefs-external" title="datetime.datetime" href="https://docs.python.org/3/library/datetime.html#datetime.datetime">datetime</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">now</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable">Callable</a></span><span class="p">[[],</span> <span class="n"><a class="autorefs autorefs-external" title="datetime.datetime" href="https://docs.python.org/3/library/datetime.html#datetime.datetime">datetime</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">)</span>
 </code></pre></div>
 
@@ -5654,7 +5684,7 @@ with :meth:<code>aclose</code>, for example by listing it in the pipeline's
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">client</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            AsyncLLMClient (sci_etl_core.llm.async_base.AsyncLLMClient)" href="#sci_etl_core.llm.async_base.AsyncLLMClient">AsyncLLMClient</a></span><span class="p">,</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">cache</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            AsyncLLMResponseCache (sci_etl_core.llm.cache_async.AsyncLLMResponseCache)" href="#sci_etl_core.llm.cache_async.AsyncLLMResponseCache">AsyncLLMResponseCache</a></span><span class="p">,</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">model</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">logger</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Callable" href="https://docs.python.org/3/library/typing.html#typing.Callable">Callable</a></span><span class="p">[[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">logger</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable">Callable</a></span><span class="p">[[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span>
 </code></pre></div>
 

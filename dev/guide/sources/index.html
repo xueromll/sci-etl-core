@@ -1251,6 +1251,8 @@
       
         
       
+        
+      
     
     
     
@@ -1314,6 +1316,34 @@
     
   
     State, resuming, and errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../run-semantics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Run semantics
   
 
     
@@ -2685,6 +2715,9 @@ through the first 10,000 results of a search. Metadata adds <code>journal</code>
 <p>The relevance search returns only its first 1,000 results and isn't ordered by
 date, so run it without <code>newest_first</code>. Metadata adds <code>venue</code>, and <code>doi</code>,
 <code>arxiv_id</code>, and <code>pmid</code> when known.</p>
+<p>A query that matches more results than a source serves stops at its cap, and
+later runs resume at the cap; see
+<a href="../run-semantics/#known-limitation-capped-listings">capped listings</a>.</p>
 <h2 id="openalex">OpenAlex<a class="headerlink" href="#openalex" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncOpenAlexExtractor</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>

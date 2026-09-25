@@ -1141,6 +1141,8 @@
       
         
       
+        
+      
     
     
     
@@ -1201,6 +1203,34 @@
     
   
     State, resuming, and errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/run-semantics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Run semantics
   
 
     
@@ -3681,7 +3711,7 @@ genuinely contains no entries.</p>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">max_retries</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">backoff_factor</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">sleep_before_search</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></span> <span class="o">=</span> <span class="mf">3.0</span><span class="p">,</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">logger</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Callable" href="https://docs.python.org/3/library/typing.html#typing.Callable">Callable</a></span><span class="p">[[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">logger</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable">Callable</a></span><span class="p">[[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">sleep</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-external" title="asyncio.sleep" href="https://docs.python.org/3/library/asyncio-task.html#asyncio.sleep">sleep</a></span><span class="p">,</span>
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">max_retry_after</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></span> <span class="o">=</span> <span class="mf">60.0</span><span class="p">,</span>
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">rate_limiter</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            RateLimiting
@@ -3806,7 +3836,7 @@ request without making a single attempt, or
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">pdf_parser</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Parser (sci_etl_core.parsers.base.Parser)" href="../parsers/#sci_etl_core.parsers.base.Parser">Parser</a></span><span class="p">,</span>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">latex_parser</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Parser (sci_etl_core.parsers.base.Parser)" href="../parsers/#sci_etl_core.parsers.base.Parser">Parser</a></span><span class="p">,</span>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="o">**</span><span class="n">options</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">,</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"AsyncArxivExtractor"</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            AsyncArxivExtractor (sci_etl_core.extractors.arxiv_async.AsyncArxivExtractor)" href="#sci_etl_core.extractors.arxiv_async.AsyncArxivExtractor">AsyncArxivExtractor</a></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -4068,7 +4098,7 @@ yielded usable text.</p>
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">backoff_factor</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">max_retry_after</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></span> <span class="o">=</span> <span class="mf">60.0</span><span class="p">,</span>
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">sleep</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-external" title="asyncio.sleep" href="https://docs.python.org/3/library/asyncio-task.html#asyncio.sleep">sleep</a></span><span class="p">,</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n">logger</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Callable" href="https://docs.python.org/3/library/typing.html#typing.Callable">Callable</a></span><span class="p">[[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n">logger</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable">Callable</a></span><span class="p">[[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="n">rate_limiter</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            RateLimiting
 
 
@@ -4392,7 +4422,7 @@ retried on the next run.</p>
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">backoff_factor</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">max_retry_after</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></span> <span class="o">=</span> <span class="mf">60.0</span><span class="p">,</span>
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">sleep</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-external" title="asyncio.sleep" href="https://docs.python.org/3/library/asyncio-task.html#asyncio.sleep">sleep</a></span><span class="p">,</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">logger</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Callable" href="https://docs.python.org/3/library/typing.html#typing.Callable">Callable</a></span><span class="p">[[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">logger</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable">Callable</a></span><span class="p">[[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n">rate_limiter</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            RateLimiting
 
 
@@ -4728,7 +4758,7 @@ matches, is an empty listing.</p>
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">backoff_factor</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">max_retry_after</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></span> <span class="o">=</span> <span class="mf">60.0</span><span class="p">,</span>
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">sleep</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-external" title="asyncio.sleep" href="https://docs.python.org/3/library/asyncio-task.html#asyncio.sleep">sleep</a></span><span class="p">,</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n">logger</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Callable" href="https://docs.python.org/3/library/typing.html#typing.Callable">Callable</a></span><span class="p">[[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n">logger</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable">Callable</a></span><span class="p">[[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="n">rate_limiter</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            RateLimiting
 
 
