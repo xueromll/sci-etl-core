@@ -130,7 +130,7 @@ class TestAsyncSqliteRunnerErrors:
         error = ValueError("bad row")
         runner = AsyncSqliteRunner(opener, error_factory=_RunnerFailure)
         try:
-            with pytest.raises(ValueError) as caught:
+            with pytest.raises(ValueError, match="bad row") as caught:
                 await runner.run(_raise(error), "write rows")
             assert caught.value is error
         finally:

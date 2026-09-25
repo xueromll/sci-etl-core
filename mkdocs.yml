@@ -132,6 +132,7 @@ nav:
           - Store ownership: guide/search/store-ownership.md
       - Running pipelines:
           - State, resuming, and errors: guide/state.md
+          - Run semantics: guide/run-semantics.md
           - Graceful shutdown: guide/shutdown.md
           - Retries: guide/retries.md
           - Rate limiting: guide/rate-limiting.md

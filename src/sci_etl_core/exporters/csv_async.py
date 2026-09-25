@@ -92,12 +92,16 @@ class AsyncCsvUpsertExporter(AsyncExporter):
             columns[column] = pd.Series(dtype="float64")
         return pd.DataFrame(columns)
 
+    @staticmethod
+    def _has_content(destination: str) -> bool:
+        return os.path.isfile(destination) and os.path.getsize(destination) > 0
+
     async def _ensure_loaded(self, destination: str) -> None:
         if self._loaded_destination == destination:
             return
         frame = self._empty_frame()
-        if os.path.isfile(destination) and os.path.getsize(destination) > 0:
-            async with aiofiles.open(destination, "r", encoding="utf-8") as handle:
+        if await asyncio.to_thread(self._has_content, destination):
+            async with aiofiles.open(destination, encoding="utf-8") as handle:
                 existing_text = await handle.read()
             frame = await asyncio.to_thread(self._init_frame, existing_text)
         self._frame = frame

@@ -51,11 +51,11 @@ class TestSlidingWindowChunker:
         assert chunks[-1].split()[-1] == "9"
 
     def test_rejects_bad_overlap(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="overlap_words must be in the range"):
             SlidingWindowChunker(chunk_words=4, overlap_words=4)
 
     def test_rejects_non_positive_size(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="chunk_words must be a positive integer"):
             SlidingWindowChunker(chunk_words=0)
 
 

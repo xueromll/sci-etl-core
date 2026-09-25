@@ -40,14 +40,14 @@ class TokenUsage:
         """The prompt and completion tokens together."""
         return self.prompt_tokens + self.completion_tokens
 
-    def __add__(self, other: "TokenUsage") -> "TokenUsage":
+    def __add__(self, other: TokenUsage) -> TokenUsage:
         return TokenUsage(
             self.requests + other.requests,
             self.prompt_tokens + other.prompt_tokens,
             self.completion_tokens + other.completion_tokens,
         )
 
-    def __sub__(self, other: "TokenUsage") -> "TokenUsage":
+    def __sub__(self, other: TokenUsage) -> TokenUsage:
         return TokenUsage(
             self.requests - other.requests,
             self.prompt_tokens - other.prompt_tokens,

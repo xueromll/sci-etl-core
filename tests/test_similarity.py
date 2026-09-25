@@ -52,7 +52,8 @@ class TestL2Normalize:
         matrix = np.array([[np.inf, 1.0], [np.nan, 1.0]])
         normalized = l2_normalize(matrix)
         assert normalized[0].tolist() == [np.inf, 1.0]
-        assert np.isnan(normalized[1][0]) and normalized[1][1] == 1.0
+        assert np.isnan(normalized[1][0])
+        assert normalized[1][1] == 1.0
 
 
 class TestUnitVector:

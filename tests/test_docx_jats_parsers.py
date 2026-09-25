@@ -98,7 +98,7 @@ class TestDocxParser:
         buffer = io.BytesIO()
         with zipfile.ZipFile(buffer, "w") as archive:
             archive.writestr("xl/workbook.xml", "<workbook/>")
-        with pytest.raises(ParsingError, match="no word/document.xml"):
+        with pytest.raises(ParsingError, match=r"no word/document\.xml"):
             DocxParser().extract_text(buffer.getvalue())
 
     def test_malformed_xml_raises_a_parsing_error(self):

@@ -4,6 +4,7 @@ import warnings
 
 import httpx
 import pytest
+from pydantic import ConfigDict
 
 from sci_etl_core import AsyncArxivExtractor, AsyncETLPipeline, AsyncOpenAICompatibleClient, ETLPipeline
 from sci_etl_core.config import (
@@ -33,23 +34,29 @@ class TestRenamedPipelineKeys:
         assert getattr(config, new) == 7
 
     def test_both_names_with_the_same_value_are_accepted(self):
-        with pytest.warns(DeprecationWarning):
+        with pytest.warns(DeprecationWarning, match="pipeline.max_records is deprecated"):
             config = PipelineConfig.model_validate({"max_records": 9, "total_limit": 9})
         assert config.total_limit == 9
 
     def test_both_names_with_different_values_are_a_configuration_error(self, tmp_path):
-        with pytest.warns(DeprecationWarning), pytest.raises(ConfigurationError, match="set only total_limit"):
+        with (
+            pytest.warns(DeprecationWarning, match="pipeline.max_records is deprecated"),
+            pytest.raises(ConfigurationError, match="set only total_limit"),
+        ):
             validate_config(BaseAppConfig, {"pipeline": {"max_records": 1, "total_limit": 2}}, tmp_path / "c.yaml")
 
     def test_an_old_key_is_still_validated(self):
-        with pytest.warns(DeprecationWarning), pytest.raises(ValueError, match="greater than or equal to 1"):
+        with (
+            pytest.warns(DeprecationWarning, match="pipeline.max_workers is deprecated"),
+            pytest.raises(ValueError, match="greater than or equal to 1"),
+        ):
             PipelineConfig.model_validate({"max_workers": 0})
 
     def test_a_subclass_that_forbids_extra_keys_still_accepts_an_old_key(self):
         class StrictPipeline(PipelineConfig):
-            model_config = {"extra": "forbid"}
+            model_config = ConfigDict(extra="forbid")
 
-        with pytest.warns(DeprecationWarning):
+        with pytest.warns(DeprecationWarning, match="pipeline.max_records is deprecated"):
             assert StrictPipeline.model_validate({"max_records": 3}).total_limit == 3
 
     def test_a_section_that_is_not_a_mapping_is_still_rejected(self):
@@ -132,7 +139,7 @@ class TestPipelineConfigRunArguments:
             destination="out.csv",
         )
         with pytest.warns(DeprecationWarning, match="run\\(max_records=\\) is deprecated"):
-            with pytest.raises(ValueError):
+            with pytest.raises(ValueError, match="page_size must be a positive integer"):
                 await pipeline.run(query="q", max_records=0)
 
 

@@ -99,7 +99,8 @@ class TestAsyncArxivParseListing:
         records, total = extractor.parse_listing(ATOM.encode(), seen_ids=set())
         assert total == 2
         assert [r.record_id for r in records] == ["2401.00001v1", "2401.00002v1"]
-        assert records[0].source_url and "html" in records[0].source_url
+        assert records[0].source_url
+        assert "html" in records[0].source_url
 
     def test_skips_already_seen_ids(self, mocker):
         extractor = _build(_client(mocker), mocker)
@@ -174,7 +175,10 @@ class TestAsyncArxivListingMetadata:
         assert "published" not in record.metadata
         assert "year" not in record.metadata
 
-    @pytest.mark.parametrize("published", ["January 2024", "24-01-02", "20245-01-02", "２０２４-01-02", "2024"])
+    @pytest.mark.parametrize(
+        "published",
+        ["January 2024", "24-01-02", "20245-01-02", "\uff12\uff10\uff12\uff14-01-02", "2024"],
+    )
     def test_year_is_taken_only_from_a_leading_four_digit_year(self, mocker, published):
         feed = _single_entry_feed(f"<published>{published}</published>")
         (record,), _ = _build(_client(mocker), mocker).parse_listing(feed, set())
@@ -244,7 +248,7 @@ class TestAsyncArxivFetchFullText:
         client = _client(mocker, side_effect=httpx.ConnectError("down"))
         extractor = _build(client, mocker, logger=logged.append)
         record = RawRecord(record_id="2401.4", title="t", abstract="safe fallback")
-        with pytest.raises(UpstreamError, match="2401.4"):
+        with pytest.raises(UpstreamError, match=r"2401\.4"):
             await extractor.fetch_full_text(record)
         assert any("failed" in message for message in logged)
 

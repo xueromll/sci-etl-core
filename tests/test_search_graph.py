@@ -27,7 +27,7 @@ class TestGraphParams:
         )
 
     @pytest.mark.parametrize(
-        "options, message",
+        ("options", "message"),
         [
             ({"depth": -1}, "depth must not be negative"),
             ({"fanout": 0}, "fanout must be at least 1"),
@@ -87,7 +87,7 @@ class TestLabelCommunities:
     def test_k2_uses_its_whole_budget_on_its_one_changing_pass(self):
         assert label_communities(["a", "b"], [edge("a", "b")], max_iterations=1) == ({"a": 0, "b": 0}, False)
 
-    @pytest.mark.parametrize("max_iterations, converged", [(2, False), (3, True)])
+    @pytest.mark.parametrize(("max_iterations", "converged"), [(2, False), (3, True)])
     def test_a_graph_needing_two_changing_passes_converges_on_the_third(self, max_iterations, converged):
         edges = [edge("a", "c"), edge("a", "e"), edge("c", "e"), edge("d", "e")]
         _, result = label_communities(["a", "c", "d", "e"], edges, max_iterations=max_iterations)

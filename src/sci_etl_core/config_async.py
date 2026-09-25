@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from pathlib import Path
 from typing import Any, TypeVar
 
@@ -19,9 +20,9 @@ async def load_yaml_async(path: Path) -> dict[str, Any]:
         ConfigurationError: The file is missing, is not valid YAML, or does not
             hold a mapping at the top level.
     """
-    if not Path(path).is_file():
+    if not await asyncio.to_thread(Path(path).is_file):
         raise ConfigurationError(f"Config file not found: {path}")
-    async with aiofiles.open(path, "r", encoding="utf-8") as handle:
+    async with aiofiles.open(path, encoding="utf-8") as handle:
         text = await handle.read()
     return parse_yaml(text, Path(path))
 

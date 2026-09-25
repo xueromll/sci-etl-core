@@ -5,8 +5,9 @@ import atexit
 import math
 import threading
 import time
+from collections.abc import Awaitable, Callable, Coroutine
 from concurrent.futures import TimeoutError as FutureTimeoutError
-from typing import Any, Awaitable, Callable, Coroutine, TypeVar
+from typing import Any, TypeVar
 
 T = TypeVar("T")
 

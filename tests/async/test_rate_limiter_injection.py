@@ -28,7 +28,7 @@ class RecordingLimiter(AsyncRateLimiter):
         self.journal = journal if journal is not None else []
         self.inside = 0
 
-    async def __aenter__(self) -> "RecordingLimiter":
+    async def __aenter__(self) -> RecordingLimiter:
         self.inside += 1
         self.journal.append(f"{self.name}:enter")
         return self

@@ -64,7 +64,7 @@ pip install -e ".[full,dev]"
 The suite is offline — no network, live LLM, or embedding service required.
 
 ```bash
-pytest                                                # everything
+pytest                                                # everything offline
 pytest tests/async                                    # async components
 pytest tests/contract                                 # ABC conformance
 pytest --cov=sci_etl_core --cov-report=term-missing   # coverage report
@@ -73,7 +73,8 @@ pytest --cov=sci_etl_core --cov-report=term-missing   # coverage report
 - **Coverage stays at 100%.** `pytest --cov=sci_etl_core` fails below 100%
   (configured in `pyproject.toml`), so new and changed code needs tests that
   cover it. Use `# pragma: no cover` only for lines that can't run on the test
-  platform, such as OS-specific imports.
+  platform, such as OS-specific imports. CI also measures branch coverage and
+  reports it in the job summary; it isn't gated yet.
 - **Async tests** use an explicit `@pytest.mark.asyncio` marker (auto mode
   isn't configured), with `AsyncMock` or the `mocker` fixture.
 - **No real network or backoff waits.** Mock HTTP, LLM, and embedding clients,
@@ -84,6 +85,52 @@ pytest --cov=sci_etl_core --cov-report=term-missing   # coverage report
 - **Property tests.** Put invariants — especially ones two backends must share,
   such as the in-memory and SQLite embedding stores — in Hypothesis tests in
   `tests/test_properties.py`.
+- **Public-surface snapshot.** `tests/api/public_surface.txt` records every
+  stable class, field, method, and function signature, and
+  `tests/api/test_public_surface.py` fails when the code no longer matches it.
+  When you change the public API on purpose, regenerate the snapshot, commit
+  the diff, and add a CHANGELOG.md entry for it:
+
+  ```bash
+  python tests/api/update_surface.py
+  ```
+
+  `tests/api/surface.py` lists the stable names. Every name that
+  [sci-etl-cli](https://github.com/xueromll/sci-etl-cli) or
+  [udg-catalogue](https://github.com/xueromll/udg-catalogue) imports or
+  subclasses must be among them. `tests/api/consumer_surface.txt` lists those
+  names. Regenerate it when a consumer's pin changes, reading the catalogue
+  from its fetched remote branch rather than a local checkout that may be
+  behind:
+
+  ```bash
+  git -C ../udg-catalogue fetch origin
+  python tests/api/scan_consumers.py sci-etl-cli=../sci-etl-cli udg-catalogue=../udg-catalogue@origin/main
+  ```
+- **Live tests.** `tests/live` runs one small query against each bundled
+  source and checks the records, metadata, and full text it returns. The tests
+  are deselected by default. The Live workflow runs them nightly and is never a
+  required check. Run them locally with `pytest -m live tests/live`. Keys for a
+  higher rate limit are optional and read from `NCBI_API_KEY`,
+  `SEMANTIC_SCHOLAR_API_KEY`, and `OPENALEX_MAILTO`.
+- **Throughput benchmark.** `python benchmarks/run_throughput.py` runs every
+  bundled pipeline exporter through `AsyncETLPipeline` at 1,000, 10,000, and
+  50,000 records and writes the timings to `benchmarks/results/<version>.json`.
+  An exporter counts as linear when its time per record at the largest size is
+  at most 1.5 times its time at the smallest. `--sizes`, `--repeats`, and
+  `--exporters` narrow a run.
+- **Downstream tests.** The Downstream workflow runs the
+  [sci-etl-cli](https://github.com/xueromll/sci-etl-cli) suite against every
+  push and pull request, and fails on any `DeprecationWarning`. To run it
+  locally, install the CLI without its pinned core and run its suite:
+
+  ```bash
+  git clone https://github.com/xueromll/sci-etl-cli.git ../sci-etl-cli
+  pip install -e ".[async,llm,pdf]"
+  pip install --no-deps -e ../sci-etl-cli
+  pip install click rich python-dotenv pytest pytest-asyncio pytest-mock
+  cd ../sci-etl-cli && python -m pytest -W error::DeprecationWarning
+  ```
 
 ## Code Style
 
@@ -98,7 +145,12 @@ pytest --cov=sci_etl_core --cov-report=term-missing   # coverage report
 - **American English** for identifiers and docstrings.
 
 ruff and mypy run in CI on every push and pull request, configured in
-`pyproject.toml`. Run both before opening a PR:
+`pyproject.toml`. ruff checks the `ASYNC`, `UP`, `RUF`, and `PT` rule sets
+besides the pycodestyle, Pyflakes, isort, and bugbear rules. mypy checks the
+core contracts (`models`, `exceptions`, `observability`, `pipeline_async`, and
+every `async_base` module) with stricter flags: no untyped definitions, no bare
+generics, no returned `Any`, and no implicit re-exports. Run both before opening
+a PR:
 
 ```bash
 pip install -e ".[full,dev,lint]"

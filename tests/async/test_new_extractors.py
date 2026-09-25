@@ -184,7 +184,8 @@ class TestOpenAlexExtractor:
         extractor = AsyncOpenAlexExtractor(_client(router), sort=None, sleep=_no_sleep)
         payload = await extractor.search("", 500, 0)
         params = router.requests[0].url.params
-        assert "search" not in params and "sort" not in params
+        assert "search" not in params
+        assert "sort" not in params
         assert params["per-page"] == "200"
         with pytest.raises(MalformedResponseError, match="no results list"):
             extractor.parse_listing(payload, set())
@@ -217,7 +218,8 @@ class TestOpenAlexExtractor:
             "pdf_url": "https://oa.test/1.pdf",
         }
         assert records[1].source_url is None
-        assert "doi" not in records[1].metadata and "venue" not in records[1].metadata
+        assert "doi" not in records[1].metadata
+        assert "venue" not in records[1].metadata
 
     def test_parse_listing_uses_the_landing_page_and_tolerates_sparse_works(self):
         extractor = AsyncOpenAlexExtractor(_client(Router()))

@@ -6,10 +6,11 @@ import json
 import sqlite3
 from abc import ABC, abstractmethod
 from collections import OrderedDict
+from collections.abc import Callable
 from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from sci_etl_core._sqlite_async import AsyncSqliteRunner
 from sci_etl_core.exceptions import LLMCacheError

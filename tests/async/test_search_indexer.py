@@ -145,13 +145,14 @@ class TestAsyncCompositeIngestor:
     async def test_several_failures_re_raise_the_first_in_ingestor_order(self):
         slow_first = _Failing(RuntimeError("first"), delay=0.02)
         composite = AsyncCompositeIngestor(slow_first, _Failing(RuntimeError("second")))
-        with pytest.raises(RuntimeError, match="^first$"):
+        with pytest.raises(RuntimeError, match=r"^first$"):
             await composite.ingest(RECORD, "text")
 
     @pytest.mark.asyncio
     async def test_cancelling_the_caller_cancels_every_ingestor(self):
         started: list[str] = []
         cancelled: list[str] = []
+        both_started = asyncio.Event()
 
         class Blocking:
             def __init__(self, name: str) -> None:
@@ -159,6 +160,8 @@ class TestAsyncCompositeIngestor:
 
             async def ingest(self, record: RawRecord, text: str) -> int:
                 started.append(self.name)
+                if len(started) == 2:
+                    both_started.set()
                 try:
                     await asyncio.Event().wait()
                 except asyncio.CancelledError:
@@ -167,8 +170,7 @@ class TestAsyncCompositeIngestor:
                 return 0
 
         task = asyncio.create_task(AsyncCompositeIngestor(Blocking("a"), Blocking("b")).ingest(RECORD, "text"))
-        while len(started) < 2:
-            await asyncio.sleep(0)
+        await asyncio.wait_for(both_started.wait(), timeout=2)
         task.cancel()
         with pytest.raises(asyncio.CancelledError):
             await task

@@ -62,7 +62,7 @@ class TestAsyncFileStateManager:
             await manager.load_metadata()
 
     @pytest.mark.parametrize(
-        "boundary", ["\n", "\r", "\x0b", "\x0c", "\x1c", "\x1d", "\x1e", "\x85", " ", " "]
+        "boundary", ["\n", "\r", "\x0b", "\x0c", "\x1c", "\x1d", "\x1e", "\x85", "\u2028", "\u2029"]
     )
     @pytest.mark.asyncio
     async def test_ids_containing_any_line_boundary_are_rejected(self, manager, boundary):

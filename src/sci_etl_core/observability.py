@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
-from typing import Literal, Union
+from typing import Literal
 
 from sci_etl_core.models import TokenUsage
 
@@ -42,7 +42,7 @@ class RunMetrics:
         """Add one record to the counter for ``outcome``."""
         setattr(self, outcome, getattr(self, outcome) + 1)
 
-    def snapshot(self) -> "RunMetrics":
+    def snapshot(self) -> RunMetrics:
         """Return a copy that later updates to this object do not change."""
         usage = None if self.token_usage is None else replace(self.token_usage)
         return replace(self, token_usage=usage)
@@ -101,4 +101,4 @@ class RunFinished:
     metrics: RunMetrics
 
 
-PipelineEvent = Union[RunStarted, PageFetched, RecordFinished, PageFinished, RunFinished]
+PipelineEvent = RunStarted | PageFetched | RecordFinished | PageFinished | RunFinished

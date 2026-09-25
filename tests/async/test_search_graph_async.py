@@ -103,7 +103,7 @@ class TestBuildDiscoveryGraph:
         assert summary(graph) == ([("s", 0)], [])
 
     @pytest.mark.parametrize(
-        "max_nodes, nodes, calls",
+        ("max_nodes", "nodes", "calls"),
         [
             (3, ["s", "a", "b"], [(["s"], 8), (["a", "b"], 8)]),
             (2, ["s", "a"], [(["s"], 8), (["a"], 8)]),
@@ -156,7 +156,7 @@ class TestBuildDiscoveryGraph:
         slow_failure = TableSource(TABLE, error=RuntimeError("first"), delay=0.02)
         fast_failure = TableSource(TABLE, error=RuntimeError("second"))
         slow_success = TableSource(TABLE, delay=0.04)
-        with pytest.raises(RuntimeError, match="^first$"):
+        with pytest.raises(RuntimeError, match=r"^first$"):
             await build_discovery_graph("s", [slow_failure, fast_failure, slow_success], InMemoryTextSearchStore())
         assert slow_success.finished
 

@@ -64,6 +64,10 @@ The relevance search returns only its first 1,000 results and isn't ordered by
 date, so run it without `newest_first`. Metadata adds `venue`, and `doi`,
 `arxiv_id`, and `pmid` when known.
 
+A query that matches more results than a source serves stops at its cap, and
+later runs resume at the cap; see
+[capped listings](run-semantics.md#known-limitation-capped-listings).
+
 ## OpenAlex
 
 ```python

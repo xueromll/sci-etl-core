@@ -34,7 +34,7 @@ class TestDedupKeylessRows:
         result = DeduplicationStep("_norm_key").process(normalized)
         assert result["_norm_key"].tolist() == ["alpha", "", "", ""]
         assert result["value"].tolist() == [1.0, 2.0, 3.0, 5.0]
-        assert list(result.columns)[0] == "_norm_key"
+        assert next(iter(result.columns)) == "_norm_key"
 
     def test_missing_key_values_are_kept_not_dropped(self):
         frame = pd.DataFrame({"_norm_key": ["a", None, np.nan], "value": [1.0, 2.0, 3.0]})

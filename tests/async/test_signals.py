@@ -59,7 +59,7 @@ class TestShutdownSignalInstallation:
     async def test_guard_restores_the_handler_when_the_body_raises(self):
         original = signal.getsignal(TEST_SIGNAL)
         shutdown = ShutdownSignal(signals=(TEST_SIGNAL,))
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="body failed"):
             with shutdown.guard():
                 raise ValueError("body failed")
         assert signal.getsignal(TEST_SIGNAL) is original

@@ -94,7 +94,7 @@ def test_normalizing_twice_changes_nothing(tree):
 
 class TestNodeValidation:
     @pytest.mark.parametrize(
-        "build, message",
+        ("build", "message"),
         [
             (lambda: Term(""), "non-empty text"),
             (lambda: Term("x", fields=("titel",)), "Unknown field 'titel'"),

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Coroutine
 from contextlib import suppress
-from typing import TYPE_CHECKING, Any, Coroutine
+from typing import TYPE_CHECKING, Any
 
 from sci_etl_core._sync_bridge import bridge_loop, run_sync
 from sci_etl_core.pipeline_async import AsyncETLPipeline
@@ -27,7 +28,7 @@ class ETLPipeline:
         self._run_timeout = run_timeout
 
     @classmethod
-    def from_config(cls, pipeline: PipelineConfig, **arguments: Any) -> "ETLPipeline":
+    def from_config(cls, pipeline: PipelineConfig, **arguments: Any) -> ETLPipeline:
         """Build a pipeline configured as :meth:`AsyncETLPipeline.from_config` describes."""
         arguments.setdefault("max_concurrency", pipeline.max_concurrency)
         return cls(**arguments)
@@ -51,7 +52,7 @@ class ETLPipeline:
         """Metrics of the most recent run, as :attr:`AsyncETLPipeline.last_run_metrics`."""
         return self._async.last_run_metrics
 
-    def __enter__(self) -> "ETLPipeline":
+    def __enter__(self) -> ETLPipeline:
         return self
 
     def __exit__(self, exc_type: Any, exc: Any, tb: Any) -> None:

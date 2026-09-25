@@ -21,7 +21,7 @@ class _FakeAsyncLimiter:
         self.time_period = time_period
         self.events: list[str] = []
 
-    async def __aenter__(self) -> "_FakeAsyncLimiter":
+    async def __aenter__(self) -> _FakeAsyncLimiter:
         self.events.append("enter")
         return self
 
@@ -64,7 +64,7 @@ class TestSemaphoreRateLimiter:
         assert peak <= 2
 
     def test_rejects_non_positive_concurrency(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="max_concurrency must be a positive integer"):
             SemaphoreRateLimiter(max_concurrency=0)
 
 

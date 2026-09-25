@@ -6,8 +6,8 @@ type: software
 authors:
   - given-names: Anna
     family-names: Perekhodiuk
-version: "0.4.0"
-date-released: "2026-09-16"
+version: "0.4.1"
+date-released: "2026-09-25"
 url: "https://github.com/xueromll/sci-etl-core"
 repository-code: "https://github.com/xueromll/sci-etl-core"
 license: MIT

@@ -306,10 +306,12 @@ class TestNewestFirstProperties:
             extraction.failing = {
                 listing.entries[position] for position in failing_positions if position < len(listing.entries)
             }
+            failure: Exception | None = None
             try:
                 await _run(listing, state, extraction, total_limit=limit, page_size=page_size)
             except Exception as error:
-                assert type(error).__name__ == "PipelineAborted"
+                failure = error
+            assert failure is None or type(failure).__name__ == "PipelineAborted"
         await _run(listing, state, page_size=page_size)
         assert set(listing.entries) <= state.processed
         assert len(marked) == len(set(marked))

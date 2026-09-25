@@ -3,9 +3,10 @@ from __future__ import annotations
 import asyncio
 import signal
 import threading
+from collections.abc import Callable, Iterable, Iterator
 from contextlib import contextmanager, suppress
 from types import FrameType
-from typing import Any, Callable, Iterable, Iterator
+from typing import Any
 
 DEFAULT_SIGNALS: tuple[signal.Signals, ...] = tuple(
     member
@@ -56,7 +57,7 @@ class ShutdownSignal:
         self._event.set()
 
     @contextmanager
-    def guard(self, loop: asyncio.AbstractEventLoop | None = None) -> Iterator["ShutdownSignal"]:
+    def guard(self, loop: asyncio.AbstractEventLoop | None = None) -> Iterator[ShutdownSignal]:
         """Install handlers for the duration of the block and restore them after.
 
         Guards nest: only the outermost block installs and restores handlers, so

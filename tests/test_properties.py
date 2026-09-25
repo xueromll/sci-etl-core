@@ -665,7 +665,7 @@ class TestFileStateProperties:
                 state = AsyncFileStateManager(
                     Path(directory) / "ids.txt", Path(directory) / "meta.json"
                 )
-                with pytest.raises(ValueError):
+                with pytest.raises(ValueError, match="record_id must not"):
                     await state.mark_processed(f"{prefix}{separator}{suffix}")
                 assert await state.load_processed_ids() == set()
 
@@ -700,8 +700,10 @@ class TestResolveLimitsProperties:
         resolved_page, resolved_total = AsyncETLPipeline._resolve_limits(
             page_size, total_limit, max_records
         )
-        assert isinstance(resolved_page, int) and resolved_page > 0
-        assert isinstance(resolved_total, int) and resolved_total > 0
+        assert isinstance(resolved_page, int)
+        assert resolved_page > 0
+        assert isinstance(resolved_total, int)
+        assert resolved_total > 0
 
     @given(page_size=_LIMIT, total_limit=_LIMIT, max_records=_LIMIT)
     def test_an_explicit_limit_is_never_overridden(
@@ -836,7 +838,7 @@ class TestKeywordExclusionValidatorProperties:
 
     @given(
         forbidden=st.lists(_WORD, max_size=4),
-        null_like=st.sampled_from(sorted(_NULL_LIKE) + ["  ", "NULL", "N/A"]),
+        null_like=st.sampled_from([*sorted(_NULL_LIKE), "  ", "NULL", "N/A"]),
     )
     def test_a_null_like_value_is_always_rejected(self, forbidden, null_like):
         validator = KeywordExclusionValidator("name", forbidden)
@@ -861,20 +863,23 @@ _QUERY_TEXT = st.one_of(st.text(max_size=40), st.lists(_QUERY_PIECES, max_size=2
 class TestParseQueryProperties:
     @given(_QUERY_TEXT)
     def test_returns_a_normalized_node_or_a_located_query_error(self, text):
+        failure: SearchQueryError | None = None
         try:
             node = parse_query(text)
         except SearchQueryError as error:
-            assert error.position is not None
-            assert 0 <= error.position <= len(text)
-            assert text[error.position : error.position + len(error.token)] == error.token
-        else:
+            failure = error
+        if failure is None:
             assert normalize(node) == node
+            return
+        assert failure.position is not None
+        assert 0 <= failure.position <= len(text)
+        assert text[failure.position : failure.position + len(failure.token)] == failure.token
 
 
 _TOKENIZER = Unicode61Tokenizer()
 _PARITY_TEXT = st.text(
     alphabet=st.one_of(
-        st.sampled_from("AaZzßẞÆæØøŁłÉéÖöÜüİıΣσςЖж019-~.'́̈ \t\n\x00\x02"),
+        st.sampled_from("AaZzßẞÆæØøŁłÉéÖöÜüİ\u0131Σ\u03c3ςЖж019-~.'́̈ \t\n\x00\x02"),
         st.characters(exclude_categories=("Cs",)),
     ),
     max_size=40,
@@ -1238,7 +1243,7 @@ class TestLabelCommunitiesProperties:
         shuffled_nodes = data.draw(st.permutations(nodes))
         shuffled_edges = data.draw(st.permutations(edges))
         assert label_communities(shuffled_nodes, shuffled_edges) == expected
-        communities, converged = expected
+        _communities, converged = expected
         if converged:
             assert label_communities(nodes, edges, max_iterations=40) == expected
 
@@ -1247,7 +1252,8 @@ class TestSplitMarkersProperties:
     @given(st.one_of(st.text(alphabet=st.sampled_from("ab \x02\x03…"), max_size=30), st.text(max_size=30)))
     def test_never_raises_and_every_span_lies_within_the_plain_text(self, raw):
         plain, spans = split_markers(raw)
-        assert "\x02" not in plain and "\x03" not in plain
+        assert "\x02" not in plain
+        assert "\x03" not in plain
         previous_end = 0
         for start, end in spans:
             assert previous_end <= start < end <= len(plain)

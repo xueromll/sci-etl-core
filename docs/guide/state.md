@@ -19,6 +19,8 @@ past a page once every record on it is settled, meaning processed or marked
 irrelevant. When a record fails, or is left over because `total_limit` was
 reached, the offset stays at the start of that page for the rest of the run,
 so the next run revisits it while skipping everything already processed.
+[Run semantics](run-semantics.md) lists every rule a run follows, each with
+the test that checks it.
 
 Records are exported before they are marked processed, so a crash between the
 two re-exports that record on the next run. `AsyncCsvUpsertExporter` absorbs

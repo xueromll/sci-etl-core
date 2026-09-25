@@ -12,7 +12,7 @@ class AsyncRateLimiter(ABC):
     """Async context manager that gates concurrent access to a resource."""
 
     @abstractmethod
-    async def __aenter__(self) -> "AsyncRateLimiter":
+    async def __aenter__(self) -> AsyncRateLimiter:
         """Acquire a slot, awaiting until one becomes available."""
 
     @abstractmethod
@@ -28,7 +28,7 @@ class AsyncRateLimiter(ABC):
 class NullRateLimiter(AsyncRateLimiter):
     """No-op limiter that imposes no concurrency or rate constraint."""
 
-    async def __aenter__(self) -> "NullRateLimiter":
+    async def __aenter__(self) -> NullRateLimiter:
         return self
 
     async def __aexit__(
@@ -58,7 +58,7 @@ class SemaphoreRateLimiter(AsyncRateLimiter):
         """Number of slots currently checked out."""
         return self._held
 
-    async def __aenter__(self) -> "SemaphoreRateLimiter":
+    async def __aenter__(self) -> SemaphoreRateLimiter:
         await self._semaphore.acquire()
         try:
             self._held += 1
@@ -87,7 +87,7 @@ class AioLimiterRateLimiter(AsyncRateLimiter):
 
         self._limiter = AsyncLimiter(max_rate, time_period)
 
-    async def __aenter__(self) -> "AioLimiterRateLimiter":
+    async def __aenter__(self) -> AioLimiterRateLimiter:
         await self._limiter.__aenter__()
         return self
 

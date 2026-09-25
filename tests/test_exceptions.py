@@ -18,7 +18,7 @@ from sci_etl_core.exceptions import (
 
 
 @pytest.mark.parametrize(
-    "error, ancestor",
+    ("error", "ancestor"),
     [
         (UpstreamError, ExtractionError),
         (MalformedResponseError, ExtractionError),
@@ -61,11 +61,13 @@ class TestPipelineAborted:
         assert PipelineAborted("nothing started").partial_count == 0
 
     def test_preserves_the_originating_cause(self):
-        try:
+        def abort_on_upstream_fault() -> None:
             try:
                 raise UpstreamError("gateway down")
             except UpstreamError as exc:
                 raise PipelineAborted("Listing fetch failed upstream", 3) from exc
-        except PipelineAborted as aborted:
-            assert isinstance(aborted.__cause__, UpstreamError)
-            assert aborted.partial_count == 3
+
+        with pytest.raises(PipelineAborted, match="Listing fetch failed upstream") as aborted:
+            abort_on_upstream_fault()
+        assert isinstance(aborted.value.__cause__, UpstreamError)
+        assert aborted.value.partial_count == 3

@@ -39,7 +39,7 @@ class TestCompleteJsonRequiresAnObject:
 
 class TestEntityShapes:
     @pytest.mark.parametrize(
-        "payload, expected",
+        ("payload", "expected"),
         [
             ({"items": None}, []),
             ({"items": {"name": "A"}}, [{"name": "A"}]),
@@ -86,5 +86,6 @@ class TestEntityShapes:
         client = _client_returning(mocker, {"items": []})
         extractor = AsyncLLMEntityExtractor(client, "p", html_parser=RecordingParser())
         await extractor.extract("<html><body>x</body></html>")
-        assert parser_threads and parser_threads[0] != threading.get_ident()
+        assert parser_threads
+        assert parser_threads[0] != threading.get_ident()
         assert client.complete_json.await_args.args[1] == "stripped"

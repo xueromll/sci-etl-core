@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import importlib
+from collections.abc import Iterator
 from contextlib import contextmanager
 from types import ModuleType
-from typing import IO, Any, Iterator
+from typing import IO, Any
 
 _LOCK_BYTES = 1
 

@@ -33,7 +33,7 @@ def test_every_code_point_tokenizes_as_fts5_does(fts5_terms):
 
 
 @pytest.mark.parametrize(
-    "text, expected",
+    ("text", "expected"),
     [
         ("Müller's H-alpha", ["muller", "s", "h", "alpha"]),
         ("z~0.5", ["z", "0", "5"]),

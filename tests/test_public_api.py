@@ -78,7 +78,7 @@ def test_every_public_name_resolves():
 
 
 @pytest.mark.parametrize(
-    "name, module",
+    ("name", "module"),
     [
         ("AsyncETLPipeline", "sci_etl_core.pipeline_async"),
         ("AsyncCompositeIngestor", "sci_etl_core.ingest_async"),

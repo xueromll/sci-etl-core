@@ -189,7 +189,7 @@ class TestAsyncLLMRelevanceFilter:
         assert await f.is_relevant(RawRecord("1", "t", "abstract")) is default
 
     @pytest.mark.parametrize(
-        "value, expected",
+        ("value", "expected"),
         [
             ("false", False),
             (" FALSE ", False),

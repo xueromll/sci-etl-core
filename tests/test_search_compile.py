@@ -90,7 +90,7 @@ def test_a_nested_negation_without_a_positive_part_is_not_rankable(node):
 
 
 @pytest.mark.parametrize(
-    "node, expression",
+    ("node", "expression"),
     [
         (Term("foo", prefix=True), '"foo"*'),
         (Term('a"b'), '"a""b"'),
@@ -108,7 +108,7 @@ def test_every_word_reaches_fts5_as_one_quoted_literal(node, expression, fts5_ma
 
 
 @pytest.mark.parametrize(
-    "node, expression",
+    ("node", "expression"),
     [
         (And((A, B, C)), '("a" AND "b" AND "c")'),
         (Or((A, B)), '("a" OR "b")'),
@@ -164,7 +164,7 @@ class TestFilterExpression:
         assert to_filter_expression(And((Not(B), Not(C)))) == (f"(NOT {LEAF})", ('("b" OR "c")',))
 
     @pytest.mark.parametrize(
-        "query, expected",
+        ("query", "expected"),
         [
             ("NOT b", {"1", "4", "5", "6"}),
             ("NOT b OR c", {"1", "4", "5", "6"}),
@@ -179,7 +179,7 @@ class TestFilterExpression:
 
 class TestSemanticText:
     @pytest.mark.parametrize(
-        "query, expected",
+        ("query", "expected"),
         [
             ("photometr* dwarf", "dwarf"),
             ("photometr*", ""),

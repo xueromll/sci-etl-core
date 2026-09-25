@@ -20,7 +20,7 @@ class TestAtomicWrite:
         mocker.patch(
             "sci_etl_core._atomic_io.os.replace", side_effect=OSError("replace failed")
         )
-        with pytest.raises(OSError):
+        with pytest.raises(OSError, match="replace failed"):
             atomic_write_text(target, "payload")
         assert not target.exists()
         assert list(tmp_path.iterdir()) == []

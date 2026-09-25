@@ -14,7 +14,7 @@ from sci_etl_core.embeddings.store_base import (
 
 
 class _Row:
-    __slots__ = ("record_id", "chunk_index", "text", "vector", "metadata")
+    __slots__ = ("chunk_index", "metadata", "record_id", "text", "vector")
 
     def __init__(self, chunk: EmbeddingChunk) -> None:
         self.record_id = chunk.record_id

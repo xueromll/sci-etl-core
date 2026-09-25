@@ -1,0 +1,53 @@
+{
+  "sci_etl_core": "0.4.1",
+  "python": "3.14.6",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "page_size": 100,
+  "max_concurrency": 6,
+  "entities_per_record": 3,
+  "repeats": 1,
+  "results": {
+    "csv_upsert": {
+      "1000": {
+        "runs": [
+          7.434639900006005
+        ],
+        "median_seconds": 7.434639900006005,
+        "seconds_per_record": 0.0074346399000060044
+      },
+      "10000": {
+        "runs": [
+          324.58734560001176
+        ],
+        "median_seconds": 324.58734560001176,
+        "seconds_per_record": 0.03245873456000117
+      }
+    },
+    "discard": {
+      "1000": {
+        "runs": [
+          1.462721900010365
+        ],
+        "median_seconds": 1.462721900010365,
+        "seconds_per_record": 0.001462721900010365
+      },
+      "10000": {
+        "runs": [
+          13.66745800001081
+        ],
+        "median_seconds": 13.66745800001081,
+        "seconds_per_record": 0.0013667458000010812
+      }
+    }
+  },
+  "linearity": {
+    "csv_upsert": {
+      "ratio": 4.3658785087862775,
+      "linear": false
+    },
+    "discard": {
+      "ratio": 0.9343852717262223,
+      "linear": true
+    }
+  }
+}

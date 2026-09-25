@@ -3,10 +3,11 @@ from __future__ import annotations
 import asyncio
 import time
 import warnings
-from contextlib import nullcontext
+from collections.abc import Callable, Coroutine, Iterable
+from contextlib import AbstractContextManager, nullcontext
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Callable, ContextManager, Coroutine, Iterable, NoReturn
+from typing import TYPE_CHECKING, Any, NoReturn
 
 from sci_etl_core._listing_head import NewestFirstCursor
 from sci_etl_core.exceptions import (
@@ -178,7 +179,7 @@ class AsyncETLPipeline:
         self._last_run_metrics: RunMetrics | None = None
 
     @classmethod
-    def from_config(cls, pipeline: PipelineConfig, **arguments: Any) -> "AsyncETLPipeline":
+    def from_config(cls, pipeline: PipelineConfig, **arguments: Any) -> AsyncETLPipeline:
         """Build a pipeline whose ``max_concurrency`` comes from the ``pipeline`` config section.
 
         ``arguments`` are the other constructor arguments, the collaborators
@@ -208,7 +209,7 @@ class AsyncETLPipeline:
         """Emit a message through the injected logger."""
         self._log(message)
 
-    async def __aenter__(self) -> "AsyncETLPipeline":
+    async def __aenter__(self) -> AsyncETLPipeline:
         return self
 
     async def __aexit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
@@ -427,7 +428,7 @@ class AsyncETLPipeline:
             self._abort_stalled(total_processed, last_failure)
         return total_processed
 
-    def _signal_guard(self) -> ContextManager[Any]:
+    def _signal_guard(self) -> AbstractContextManager[Any]:
         if self._shutdown is None:
             return nullcontext()
         return self._shutdown.guard()

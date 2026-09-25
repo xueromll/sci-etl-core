@@ -41,7 +41,7 @@ def chunks_of(record_id, text, chunker, **metadata):
 
 
 class TestMergePassages:
-    @pytest.mark.parametrize("chunk_words, overlap_words", [(10, 3), (10, 0), (5, 4), (40, 10), (1, 0)])
+    @pytest.mark.parametrize(("chunk_words", "overlap_words"), [(10, 3), (10, 0), (5, 4), (40, 10), (1, 0)])
     def test_rebuilds_the_text_a_sliding_window_chunker_split(self, chunk_words, overlap_words):
         passages = SlidingWindowChunker(chunk_words, overlap_words).chunk(ARTICLE)
         assert merge_passages(passages, overlap_words) == ARTICLE
@@ -140,7 +140,7 @@ async def test_documents_are_written_in_batches(mocker):
 
 
 @pytest.mark.parametrize(
-    "options, message",
+    ("options", "message"),
     [({"overlap_words": -1}, "overlap_words must not be negative"), ({"batch_size": 0}, "batch_size must be")],
 )
 @pytest.mark.asyncio

@@ -113,4 +113,5 @@ def test_a_fused_hit_defaults_to_no_ranks_snippet_or_metadata():
         (),
         "",
     )
-    assert first.metadata == {} and first.metadata is not second.metadata
+    assert first.metadata == {}
+    assert first.metadata is not second.metadata

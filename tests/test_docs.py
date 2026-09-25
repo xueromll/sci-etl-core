@@ -34,7 +34,7 @@ class Example:
 
 
 def _examples() -> list[Example]:
-    pages = sorted(DOCS.rglob("*.md")) + [ROOT / "README.md"]
+    pages = [*sorted(DOCS.rglob("*.md")), ROOT / "README.md"]
     examples: list[Example] = []
     for page in pages:
         text = page.read_text(encoding="utf-8")

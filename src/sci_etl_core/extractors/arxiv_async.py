@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import asyncio
 import re
-from typing import TYPE_CHECKING, Any, Callable
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 import httpx
 from bs4 import BeautifulSoup
@@ -99,7 +100,7 @@ class AsyncArxivExtractor(AsyncExtractor):
         pdf_parser: Parser,
         latex_parser: Parser,
         **options: Any,
-    ) -> "AsyncArxivExtractor":
+    ) -> AsyncArxivExtractor:
         """Build an extractor from config sections.
 
         ``http`` supplies ``max_retries`` and ``backoff_factor``, and

@@ -115,7 +115,7 @@ class TestTableLayoutStep:
         assert result.empty
 
     @pytest.mark.parametrize(
-        "kwargs, message",
+        ("kwargs", "message"),
         [
             ({"sort_by": [("a", True), ("a", False)]}, "sort_by names a column more than once"),
             ({"leading_columns": ["a", "a"]}, "leading_columns names a column more than once"),

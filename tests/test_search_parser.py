@@ -14,7 +14,7 @@ NO_WHOLE_WORD = "A semantic search needs at least one whole word; prefix terms m
 
 
 @pytest.mark.parametrize(
-    "query, expected",
+    ("query", "expected"),
     [
         ("galaxy", Term("galaxy")),
         ("GaLaXy", Term("galaxy")),
@@ -62,7 +62,7 @@ def test_negation_forms(query):
 
 
 @pytest.mark.parametrize(
-    "query, expected",
+    ("query", "expected"),
     [
         ("a OR b c", Or((A, And((B, C))))),
         ("a b OR c", Or((And((A, B)), C))),
@@ -85,7 +85,7 @@ def test_precedence_and_grouping(query, expected):
 
 
 @pytest.mark.parametrize(
-    "query, expected",
+    ("query", "expected"),
     [
         ("NOT NOT a", A),
         ("--a", A),
@@ -121,7 +121,7 @@ class TestDefaultFields:
 
 
 @pytest.mark.parametrize(
-    "query, position, token, message",
+    ("query", "position", "token", "message"),
     [
         ("", 0, "", "The query is empty"),
         (" \t ", 0, "", "The query is empty"),
@@ -169,7 +169,7 @@ def test_a_malformed_query_names_the_first_fault(query, position, token, message
 
 class TestNear:
     @pytest.mark.parametrize(
-        "query, expected",
+        ("query", "expected"),
         [
             ("NEAR(a b)", Near((A, B))),
             ("NEAR(a b, 5)", Near((A, B), 5)),
@@ -196,7 +196,7 @@ class TestNear:
         assert parse_query("NEAR(a b)", default_fields=["title"]) == Near((A, B), fields=("title",))
 
     @pytest.mark.parametrize(
-        "query, position, token, message",
+        ("query", "position", "token", "message"),
         [
             ("NEAR(a b", 4, "(", "NEAR( is never closed"),
             ("NEAR(", 4, "(", "NEAR( is never closed"),
@@ -251,7 +251,7 @@ class TestParseRankedQuery:
         )
 
     @pytest.mark.parametrize(
-        "query, position, token",
+        ("query", "position", "token"),
         [
             ("NOT b", 0, "NOT"),
             ("NOT b OR c", 0, "NOT"),
@@ -280,7 +280,7 @@ class TestParseSemanticQuery:
         )
 
     @pytest.mark.parametrize(
-        "query, position, token",
+        ("query", "position", "token"),
         [
             ("photometr*", 0, "photometr*"),
             ("a* title:b*", 0, "a*"),

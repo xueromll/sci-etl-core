@@ -77,7 +77,7 @@ class AsyncOpenAICompatibleClient(AsyncLLMClient):
         self._rate_limiter = rate_limiter
 
     @classmethod
-    def from_config(cls, llm: LLMConfig, **options: Any) -> "AsyncOpenAICompatibleClient":
+    def from_config(cls, llm: LLMConfig, **options: Any) -> AsyncOpenAICompatibleClient:
         """Build a client from the ``llm`` config section.
 
         The section supplies ``api_key``, ``base_url``, ``model``, and

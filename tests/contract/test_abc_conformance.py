@@ -108,7 +108,7 @@ CASES: list[tuple[type, type]] = [
 _IDS = [f"{abc.__name__}-{concrete.__name__}" for abc, concrete in CASES]
 
 
-@pytest.mark.parametrize("abc, concrete", CASES, ids=_IDS)
+@pytest.mark.parametrize(("abc", "concrete"), CASES, ids=_IDS)
 class TestAbcConformance:
     def test_is_registered_subclass(self, abc, concrete):
         assert issubclass(concrete, abc)

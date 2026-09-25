@@ -280,7 +280,8 @@ class TestSemanticSnippets:
         assert [quasar.snippet[start:end] for start, end in quasar.highlights] == ["dwarf"]
         assert quasar.snippets == (Snippet("body", quasar.snippet, quasar.highlights),)
         satellites = by_id["vectors-only"]
-        assert satellites.snippet.startswith("…") and satellites.snippet.endswith("dwarf satellites")
+        assert satellites.snippet.startswith("…")
+        assert satellites.snippet.endswith("dwarf satellites")
         assert [satellites.snippet[start:end] for start, end in satellites.highlights] == ["dwarf"]
 
     @pytest.mark.asyncio

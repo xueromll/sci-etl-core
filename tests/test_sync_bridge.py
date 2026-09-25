@@ -97,7 +97,7 @@ class TestWaiting:
                 cancelled.set()
                 raise
 
-        with pytest.raises(TimeoutError, match="did not complete within 0.05 seconds"):
+        with pytest.raises(TimeoutError, match=r"did not complete within 0\.05 seconds"):
             _sync_bridge.run_sync(slow(), timeout=0.05)
         assert cancelled.wait(timeout=2)
 

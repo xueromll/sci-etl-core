@@ -48,6 +48,45 @@ jobs:
       - name: Run the test suite with coverage
         run: python -m pytest --cov=sci_etl_core --cov-report=term-missing
 
+  branch-coverage:
+    name: Branch coverage (reported, not gated)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install the package with every extra
+        run: python -m pip install -e ".[full,dev]"
+
+      - name: Measure branch coverage
+        run: >-
+          python -m pytest --cov=sci_etl_core --cov-branch --cov-fail-under=0
+          --cov-report=term-missing:skip-covered --cov-report=json:coverage-branch.json
+
+      - name: Report branch coverage in the job summary
+        shell: python
+        run: |
+          import json
+          import os
+
+          totals = json.load(open("coverage-branch.json", encoding="utf-8"))["totals"]
+          percent = 100 * totals["covered_branches"] / totals["num_branches"]
+          line = (
+              f"Branch coverage: {totals['covered_branches']} of {totals['num_branches']} branches "
+              f"({percent:.2f}%), {totals['num_partial_branches']} partial."
+          )
+          print(line)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write(line + "\n")
+
   lint:
     name: Lint and type check
     runs-on: ubuntu-latest
@@ -112,3 +151,7 @@ jobs:
           "$RUNNER_TEMP/wheel-env/bin/python" -m pip install dist/*.whl
           cd "$RUNNER_TEMP"
           "$RUNNER_TEMP/wheel-env/bin/python" -c "from sci_etl_core import AsyncETLPipeline, AsyncFileStateManager, ETLPipeline; print('wheel imports cleanly')"
+
+      - name: Record which public names need an extra
+        working-directory: ${{ runner.temp }}
+        run: '"$RUNNER_TEMP/wheel-env/bin/python" "$GITHUB_WORKSPACE/tests/api/import_map.py" "$GITHUB_WORKSPACE/pyproject.toml"'

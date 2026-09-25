@@ -7,11 +7,14 @@ cases. To work on an item, comment on its issue or open one. Items marked
 Each milestone lists its exit criteria. A milestone ships when every criterion
 holds with the test suite offline and line coverage at 100%.
 
-## Current release — v0.4.0
+## Current release — v0.4.1
 
-`sci-etl-core` runs scientific corpus ETL in production, including
-[udg-catalogue](https://github.com/xueromll/udg-catalogue).
 [CHANGELOG.md](CHANGELOG.md) lists every change by release.
+
+| Consumer | Requires | Runs |
+|----------|----------|------|
+| [udg-catalogue](https://github.com/xueromll/udg-catalogue) | `sci-etl-core>=0.4.0,<0.5`, with the `embeddings`, `embeddings-local`, and `search` extras | 0.4 in production, including search, discovery, and embeddings |
+| [sci-etl-cli](https://github.com/xueromll/sci-etl-cli) | 0.2 or 0.3 in its latest release; its next release requires `>=0.4,<0.5`, and its suite passes against core `master` | 0.3 |
 
 | Area | Shipped |
 |------|---------|
@@ -24,120 +27,114 @@ holds with the test suite offline and line coverage at 100%.
 | Memory and search | Vector memory, Boolean query language with `NEAR`, SQLite FTS5 and in-memory text stores, hybrid rank fusion, range and metadata filters, facets, snippets, discovery graphs, and backfill from vector memory |
 | Configuration | Pydantic models loaded from YAML and `.env`, `SecretStr` keys, secret-safe validation errors, `from_config` builders |
 | Observability | Progress events and `RunMetrics` with counts, durations, outcome, and token usage |
-| Project health | Offline pytest and Hypothesis suite at 100% line coverage, ruff and mypy, CI on Linux, Windows, and macOS for Python 3.10–3.14, PyPI trusted publishing, a documentation site with a generated API reference |
+| Project health | Offline pytest and Hypothesis suite at 100% line coverage, with branch coverage reported; ruff with the `ASYNC`, `UP`, `RUF`, and `PT` rule sets, and mypy with stricter flags on the core contracts; CI on Linux, Windows, and macOS for Python 3.10–3.14, PyPI trusted publishing, a documentation site with a generated API reference |
+| Guardrails | A committed snapshot of every stable signature, which also covers every name a known consumer uses; the guarantees of `AsyncETLPipeline.run` numbered in a run-semantics guide, each with a named test; the sci-etl-cli suite run against every core change; nightly smoke tests against each bundled source; a throughput benchmark that runs every exporter through the pipeline |
 
-## v0.4.x — Integration fixes
+Still open from 0.4.1: a sci-etl-cli release that requires core 0.4, and a udg-catalogue run on 0.4.1.
 
-No API change. These items unblock
-[sci-etl-cli](https://github.com/xueromll/sci-etl-cli), which lives in its own
-repository.
+## Path to 1.0
 
-- **sci-etl-cli on core 0.4.** The CLI requires `sci-etl-core<0.4`. Against
-  0.4 it reads the deprecated `max_records` and `max_workers` properties,
-  which ignore `run --limit` and `run --workers` overrides applied through
-  `model_copy`. The CLI moves to `total_limit` and `max_concurrency`, requires
-  `>=0.4,<0.5`, and renames the keys in its `init` template.
-- **Cross-repository CI.** Run the CLI suite against sci-etl-core `master` on
-  every core push, so an API change that breaks the CLI fails before release.
-- **Accurate defaults.** `HttpConfig.user_agent` and `build_async_client`
-  default to `sci-etl-core/0.1`; derive the version from the installed
-  package. **good first issue**
-
-Exit criteria: `pip install sci-etl-cli` resolves to sci-etl-core 0.4, and the
-CLI suite passes against core `master` without `DeprecationWarning`.
-
-## v0.5.0 — API hardening
-
-The release that removes what 0.4 deprecated. Each breaking change gets a
+Each public contract changes at most once more before 1.0. The run contract
+(extractor, state, constructor) breaks in 0.5.0, the data contract (entities,
+exporter, logging, dependencies) in 0.6.0, and every later release is
+additive. A release is tagged only when sci-etl-cli passes against it and
+udg-catalogue completes a run on it. Each breaking change gets a
 [MIGRATION.md](MIGRATION.md) entry.
 
-### Removals announced in 0.4
+## v0.5.0 — Run contract
 
-- `PipelineConfig.max_records` and `max_workers`, their YAML keys, and
-  `run(max_records=)`.
-- `sci_etl_core.http.build_retrying_session`, and `requests` in the `full`
-  extra and `types-requests` in the `lint` extra.
+Breaking.
 
-### Typed seams
+- **Extractor pages and cursors.** Extractors return a parsed `ListingPage`
+  from `fetch_page(query, cursor, page_size)`, and the pipeline de-duplicates.
+  Saved state holds an opaque cursor instead of an offset. A listing that
+  stops at a source's result cap is reported as truncated instead of ending
+  silently, and the next run starts from the first page instead of the cap.
+- **Failure tracking.** A record that keeps failing, on pages that otherwise
+  make progress, is quarantined after `max_attempts` runs instead of holding
+  the saved position forever. An outage never quarantines records.
+- **Schema versions.** Every SQLite store and the JSON state file record a
+  schema version and migrate files written by 0.4.
+- **Typed seams.** Keyword-only constructors and dataclasses, and explicit
+  signatures on `ETLPipeline` and every `from_config`.
+- **Strict config sections.** Unknown keys in bundled sections fail
+  validation, with an opt-out on `BaseAppConfig` subclasses.
+- **Table sinks.** `SqlTableSink` and `Plotly3DSink` replace the exporters
+  that take a `DataFrame`.
+- **Removals and deprecations.** What 0.4 deprecated is removed. The blocking
+  orchestration contracts and their adapters, `logger=` callables,
+  `configure_logging`, `AsyncExporter.export`, and `AsyncCsvUpsertExporter`
+  are deprecated. Python 3.10 support ends.
 
-- **Typed facades.** `ETLPipeline.__init__` and `run` accept `*args` and
-  `**kwargs`, and `from_config` accepts `**Any`, so mypy cannot check
-  collaborators passed through them. Give them the explicit signatures of
-  `AsyncETLPipeline`.
-- **Strict config sections.** Nested sections ignore unknown keys, so a typo
-  such as `search.bm25.titel` is silently dropped even when the root model
-  forbids extras. Forbid unknown keys in every bundled section, with an
-  opt-out on `BaseAppConfig` subclasses.
-- **Exporter shape.** `AsyncExporter.export(data: Any, ...)` hides that the
-  pipeline passes `list[dict[str, Any]]`, and `AsyncSqlTableExporter` accepts
-  only a `DataFrame`. Make the exporter contract generic over its input type
-  and give the pipeline an exporter typed for entity lists.
-- **Contract parity.** Add `flush` to the blocking `StateManager` and forward
-  it from `SyncStateManagerAdapter`, and add an `AsyncParser` contract that
-  `AsyncPdfPlumberParser` implements.
+Exit criteria: both consumers run on 0.5.0, a run after a capped run starts
+from the first page, and files written by 0.4.0 open in every store.
 
-### Async core
+## v0.6.0 — Data contract and claims
 
-- **Non-blocking sync adapters.** `SyncExtractorAdapter.search` runs a
-  blocking listing request on the event loop, which delays a shutdown request
-  until the request returns. Run it in a worker thread; listing calls are
-  already sequential, so ordering is unchanged.
-- **Bridge re-entrancy.** `run_sync` called from the bridge loop's own thread,
-  for example by a blocking component that calls back into a facade, waits on
-  itself until the call timeout. Detect that case and raise `RuntimeError`.
-- **Bridge teardown.** On interpreter exit, cancel pending bridge tasks before
-  stopping the loop, and skip `loop.close()` when the thread did not stop
-  within the timeout.
-- **Single-pass PDF parsing.** `PdfPlumberParser.extract_text` opens every PDF
-  twice, once for text and once for tables. Read both in one pass.
+Breaking, for the last time before 1.0.
 
-### Features
+- **Typed entity schemas.** `AsyncLLMEntityExtractor(schema=...)` requests
+  JSON-schema structured output where the provider supports it, validates
+  every entity, and adds the schema to the LLM cache key.
+- **Exporter lifecycle.** Exporters receive each record with its entities
+  through `open`, `write`, `flush`, and `aclose`, with at-least-once delivery.
+  New JSONL and CSV exporters write in time linear in the number of records.
+- **Claims and provenance.** A `sci_etl_core.claims` package, provisional at
+  first, records each extracted value with its paper, its evidence sentence,
+  and the model, prompt, and schema that produced it, and keeps rejected
+  entities, with reasons, for review.
+- **Standard logging.** Modules log through `logging.getLogger(__name__)`.
+- **Lighter install.** The base install requires only `pydantic`; parsers,
+  loaders, and processors move to extras. `load_config` no longer loads `.env`
+  implicitly.
 
-- **Targeted reprocessing.** A `forget(record_ids)` operation on both bundled
-  state managers, exposed as a separate optional contract so third-party
-  state managers keep working, lets records be re-extracted after a prompt or
-  normalizer fix without discarding all state.
-- **Cascading relevance filters.** A composite filter that runs a cheap
-  filter, such as `AsyncEmbeddingRelevanceFilter`, before the LLM filter, so
-  a rejected record never costs an LLM call.
-- **Record-level exporters.** JSONL and SQL exporters that accept the
-  pipeline's entity lists and reuse one connection for the whole run.
+Exit criteria: no delivery test loses a record, a bare install imports every
+stable name, and both consumers run on 0.6.0 without `DeprecationWarning`.
 
-Exit criteria: mypy passes on a pipeline built through `ETLPipeline` with no
-`Any` at its seams, every deprecated name is gone, and MIGRATION.md covers
-each removal.
+## v0.7.0 — Additive features and the testing kit
 
-## v0.6.0 — Structured extraction
+No breaking change and no new deprecation.
 
-- **Typed entity schemas.** Let `AsyncLLMEntityExtractor` take a Pydantic
-  model: request JSON-schema structured output where the provider supports
-  it, fall back to JSON mode elsewhere, and validate every entity before
-  export. The schema becomes part of the LLM cache key, so changing it never
-  serves stale cached responses.
-- **Columnar export.** A Parquet exporter for post-processed tables, behind a
-  new optional extra.
-- **Candidate pool tuning.** Measure how many distinct records the top chunks
-  span on a real memory database, such as udg-catalogue's, and set the
-  `chunk_pool_factor` default from the measurement. The benchmark script
-  ships with the repository.
+- **Targeted reprocessing.** An optional `forget(record_ids)` contract, which
+  both bundled state managers implement, lets records be re-extracted without
+  discarding all state.
+- **Cascading relevance filters.** A composite filter runs a cheap filter,
+  such as `AsyncEmbeddingRelevanceFilter`, before the LLM filter.
+- **Testing kit.** `sci_etl_core.testing` provides contract suites that
+  third-party extractors, state managers, exporters, and embedding stores can
+  run.
 
-Exit criteria: an extraction run with a schema exports only entities that
-validate against it, on providers with and without structured output.
+## v1.0.0 — Stabilization
+
+1.0.0 guarantees three tiers: stable names follow Semantic Versioning,
+provisional names may change in a minor release with a changelog entry, and
+private names may change at any time. Every name a known consumer imports is
+stable. The release candidate is tagged once one full minor has shipped with
+no breaking change, the public-surface snapshot and run-semantics tests gate
+every change, and files written by 0.6.0 and 0.7.0 open in it.
 
 ## Later
 
-These items depend on measurements or on the milestones above.
+These items wait on a consumer that needs them, or on a measurement.
 
+- **Knowledge synthesis (sci-etl-kg).** Unit normalization, consolidation of
+  repeated measurements, and evidence graphs built on the 0.6.0 claims, in a
+  separate package that builds on 0.7.0.
 - **Scalable vector memory.** An approximate-nearest-neighbor
   `AsyncEmbeddingStore` for corpora the exact-scan SQLite store cannot serve
-  interactively. Discovery graphs run one vector query per node, so they
-  speed up with no change to the graph layer. Starts once the candidate pool
-  benchmark defines the target corpus size and latency.
+  interactively. Starts once a corpus defines the target size and latency.
+- **Candidate pool tuning.** Measure how many distinct records the top chunks
+  span on a real memory database, such as udg-catalogue's, and set the
+  `chunk_pool_factor` default from the measurement.
+- **Columnar export.** A Parquet sink for post-processed tables, behind an
+  optional extra.
+- **Single-pass PDF parsing.** `PdfPlumberParser.extract_text` opens every PDF
+  twice, once for text and once for tables. Read both in one pass.
 - **Citation edges.** An edge source for co-citation and bibliographic
   coupling, built on the reference lists `AsyncOpenAlexExtractor` stores under
   `metadata["references"]`.
 - **Substring and CJK matching.** An optional trigram text index, which
-  roughly doubles index size. Starts when a corpus needs it.
+  roughly doubles index size.
 - **Discovery interface.** An interactive search and graph view on the
   `sci_etl_core.discovery` read-model, built outside this repository as a
   sci-etl-cli subcommand or a separate application.
@@ -152,6 +149,12 @@ These items depend on measurements or on the milestones above.
 ## Not planned
 
 These appeared on earlier roadmaps and were withdrawn.
+
+- **Blocking orchestration contracts.** The asynchronous API is the supported
+  one. Blocking leaf components, such as parsers and pandas processors, stay
+  blocking; the blocking extractor, state, exporter, LLM, relevance, and
+  entity contracts, their adapters, and the fixes to the bridge beneath them
+  are withdrawn in favor of their asynchronous counterparts.
 
 - **Config-driven assembly in the library.** sci-etl-cli already builds a
   complete pipeline from one YAML file. The library supplies `from_config`

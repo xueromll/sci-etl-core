@@ -13,7 +13,7 @@ from sci_etl_core.processors.quality import CompletenessStep, QualityFlagStep
 
 class TestDefaultKeyNormalizer:
     @pytest.mark.parametrize(
-        "raw, expected",
+        ("raw", "expected"),
         [
             (" Test-Name_1 ", "testname1"),
             ("ALPHA", "alpha"),
@@ -22,7 +22,7 @@ class TestDefaultKeyNormalizer:
             ("", ""),
             ("Галактика Андромеды", "галактикаандромеды"),
             ("Straße", "strasse"),
-            ("ＡＢＣ１２３", "abc123"),
+            ("\uff21\uff22\uff23\uff11\uff12\uff13", "abc123"),
             ("🌌 Milky Way", "🌌milkyway"),
             ("C++", "c++"),
         ],
@@ -30,7 +30,7 @@ class TestDefaultKeyNormalizer:
     def test_normalizes_to_casefolded_unicode_key(self, raw, expected):
         assert DefaultKeyNormalizer().normalize(raw) == expected
 
-    @pytest.mark.parametrize("pair", [("Ж", "Щ"), ("α", "β"), ("🔭", "🌌"), ("C", "C++")])
+    @pytest.mark.parametrize("pair", [("Ж", "Щ"), ("\u03b1", "\u03b2"), ("🔭", "🌌"), ("C", "C++")])
     def test_distinct_non_latin_keys_do_not_merge(self, pair):
         first, second = pair
         normalizer = DefaultKeyNormalizer()
@@ -133,7 +133,7 @@ class TestCompletenessStep:
 
 class TestQualityFlagStep:
     @pytest.mark.parametrize(
-        "pct, flag",
+        ("pct", "flag"),
         [(100.0, "Confirmed"), (75.0, "Needs Review"), (50.0, "Needs Review"), (10.0, "Low Confidence")],
     )
     def test_classifies_by_completeness(self, pct, flag):

@@ -7,7 +7,8 @@ from pathlib import Path
 
 def _exec_conftest(path: Path) -> object:
     spec = importlib.util.spec_from_file_location(f"_reexec_{path.parent.name}", path)
-    assert spec is not None and spec.loader is not None
+    assert spec is not None
+    assert spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

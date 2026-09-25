@@ -17,7 +17,7 @@ def marked(snippet):
 
 class TestPassageSnippet:
     @pytest.mark.parametrize(
-        "query, words",
+        ("query", "words"),
         [
             ("dwarf galaxies", ["dwarf", "galaxies"]),
             ("quasar OR halo*", ["halos"]),
@@ -42,7 +42,8 @@ class TestPassageSnippet:
         words = " ".join(f"w{index}" for index in range(40))
         snippet = passage_snippet(parse_query("quasar"), words)
         assert snippet.highlights == ()
-        assert snippet.text.startswith("w0 w1") and snippet.text.endswith("…")
+        assert snippet.text.startswith("w0 w1")
+        assert snippet.text.endswith("…")
 
     def test_the_field_decides_which_scoped_words_are_highlighted(self):
         assert marked(passage_snippet(parse_query("title:dwarf"), PASSAGE, "title")) == ["dwarf"]
@@ -71,13 +72,15 @@ class TestSnippetWindow:
     def test_a_long_text_is_cut_around_the_first_range_with_ellipses(self):
         text = " ".join(f"w{index}" for index in range(100))
         window, highlights = snippet_window(text, TOKENIZER.tokens(text), [(50, 51), (40, 42)])
-        assert window.startswith("…w40 w41") and window.endswith("w63…")
+        assert window.startswith("…w40 w41")
+        assert window.endswith("w63…")
         assert [window[start:end] for start, end in highlights] == ["w40 w41", "w50"]
 
     def test_a_range_near_the_end_moves_the_window_back(self):
         text = " ".join(f"w{index}" for index in range(30))
         window, highlights = snippet_window(text, TOKENIZER.tokens(text), [(29, 30)])
-        assert window.startswith("…w6 ") and window.endswith("w29")
+        assert window.startswith("…w6 ")
+        assert window.endswith("w29")
         assert [window[start:end] for start, end in highlights] == ["w29"]
 
     def test_overlapping_ranges_become_one_span_and_ranges_outside_the_window_are_dropped(self):

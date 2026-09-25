@@ -75,7 +75,7 @@ class TestValidateFilters:
 
 
 @pytest.mark.parametrize(
-    "metadata, filters, expected",
+    ("metadata", "filters", "expected"),
     [
         ({"categories": ["GA", "CO"]}, [MetadataFilter("categories", {"CO"})], True),
         ({"categories": ["GA"]}, [MetadataFilter("categories", {"CO", "HE"})], False),
@@ -101,17 +101,17 @@ def test_matches_filters(metadata, filters, expected):
 
 class TestRangeFilter:
     @pytest.mark.parametrize(
-        "value, expected",
+        ("value", "expected"),
         [("2020", True), ("2024", True), ("2022", True), ("2019", False), ("2025", False), ("02022", False)],
     )
     def test_integer_bounds_are_inclusive_and_compare_canonical_integers(self, value, expected):
         assert RangeFilter("year", 2020, 2024).contains(value) is expected
 
-    @pytest.mark.parametrize("value", ["", " 5", "+5", "-0", "05", "5.0", "5e0", "٥", "abc"])
+    @pytest.mark.parametrize("value", ["", " 5", "+5", "-0", "05", "5.0", "5e0", "\u0665", "abc"])
     def test_only_integers_written_as_python_writes_them_can_be_in_an_integer_range(self, value):
         assert RangeFilter("n", -10, 10).contains(value) is False
 
-    @pytest.mark.parametrize("value, expected", [("0", True), ("-3", True), ("-11", False), ("10", True)])
+    @pytest.mark.parametrize(("value", "expected"), [("0", True), ("-3", True), ("-11", False), ("10", True)])
     def test_zero_and_negative_integers_compare_numerically(self, value, expected):
         assert RangeFilter("n", -10, 10).contains(value) is expected
 
@@ -123,7 +123,7 @@ class TestRangeFilter:
         assert RangeFilter("n", low=2**63 - 1).contains(str(2**64)) is True
 
     @pytest.mark.parametrize(
-        "value, expected",
+        ("value", "expected"),
         [
             ("2024-01-01", True),
             ("2024-06-30T23:59:59Z", True),
@@ -145,7 +145,7 @@ class TestRangeFilter:
             RangeFilter("year", 2020).low = 2021
 
     @pytest.mark.parametrize(
-        "options, error, message",
+        ("options", "error", "message"),
         [
             ({}, ValueError, "needs a low or a high bound"),
             ({"low": True}, TypeError, "integers or text, not bool"),
@@ -200,7 +200,7 @@ class TestTagRows:
 
 
 @pytest.mark.parametrize(
-    "raw, plain, spans",
+    ("raw", "plain", "spans"),
     [
         ("no markers", "no markers", ()),
         ("\x02a\x03 b", "a b", ((0, 1),)),
@@ -225,7 +225,8 @@ class TestEncodeMetadata:
     def test_a_datetime_is_iso_8601_with_a_t_and_no_space(self):
         value = json.loads(encode_metadata({"d": datetime(2026, 9, 15, 8, 20, tzinfo=timezone.utc)}))["d"]
         assert value == "2026-09-15T08:20:00+00:00"
-        assert "T" in value and " " not in value
+        assert "T" in value
+        assert " " not in value
 
     def test_a_time_is_iso_8601(self):
         assert json.loads(encode_metadata({"t": time(8, 20, 9)})) == {"t": "08:20:09"}

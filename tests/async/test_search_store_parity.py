@@ -174,7 +174,7 @@ class TestTextSearchStoreContract:
             assert await store.filter_ids() == frozenset({"a", "b", "c"})
 
     @pytest.mark.parametrize(
-        "query, words",
+        ("query", "words"),
         [
             ('"dwarf galaxies"', ["dwarf galaxies"]),
             ("photometr*", ["photometry"]),
@@ -291,7 +291,7 @@ class TestTextSearchStoreContract:
             assert await store.facet_counts(["authors", "year"]) == {"authors": (("B", 1),), "year": (("2024", 1),)}
 
     @pytest.mark.parametrize(
-        "filters, expected",
+        ("filters", "expected"),
         [
             ([RangeFilter("year", 2020, 2022)], ["y2020", "y2021", "y2022"]),
             ([RangeFilter("year", "2024")], ["y2024", "y2025"]),
@@ -362,7 +362,8 @@ class TestTextSearchStoreContract:
             title, abstract, body = hit.snippets
             assert title == Snippet("title", "Dwarf galaxies", ((0, 5),))
             assert abstract == Snippet("abstract", "Tidal streams", ((6, 13),))
-            assert body.text.startswith("…") and [body.text[start:end] for start, end in body.highlights] == ["dwarf"]
+            assert body.text.startswith("…")
+            assert [body.text[start:end] for start, end in body.highlights] == ["dwarf"]
             assert (hit.snippet, hit.highlights) == (title.text, title.highlights)
             (scoped,) = await store.search(parse_query("body:dwarf"))
             assert [snippet.field for snippet in scoped.snippets] == ["body"]

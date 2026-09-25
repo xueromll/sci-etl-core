@@ -34,7 +34,7 @@ class WhitespaceTokenizer:
 
 
 @pytest.mark.parametrize(
-    "node, expected",
+    ("node", "expected"),
     [
         (Term("galaxies"), True),
         (Term("quasar"), False),
@@ -67,7 +67,7 @@ def test_leaf_semantics(node, expected):
 
 
 @pytest.mark.parametrize(
-    "node, expected",
+    ("node", "expected"),
     [
         (And((Term("dwarf"), Term("sample"))), True),
         (And((Term("dwarf"), Term("quasar"))), False),
@@ -85,7 +85,7 @@ def test_boolean_semantics(node, expected):
 
 
 @pytest.mark.parametrize(
-    "node, expected",
+    ("node", "expected"),
     [
         (Term("~"), set()),
         (And((Term("a"), Term("~"))), set()),

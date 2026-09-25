@@ -161,9 +161,10 @@ class TestShutdownBetweenRequests:
     async def test_the_wait_between_pages_is_cut_short(self, mocker):
         shutdown = ShutdownSignal(signals=())
         pipeline, parts = _pipeline(mocker, [_records(1), _records(1, 1)], shutdown=shutdown, sleep=asyncio.sleep)
+        saved = asyncio.Event()
+        parts["state_manager"].save_metadata.side_effect = lambda metadata: saved.set()
         run = asyncio.create_task(pipeline.run(query="q", page_size=1, total_limit=5, sleep_between=30))
-        while parts["state_manager"].save_metadata.await_count == 0:
-            await asyncio.sleep(0.001)
+        await asyncio.wait_for(saved.wait(), timeout=2)
         shutdown.request()
         with pytest.raises(PipelineInterrupted) as raised:
             await asyncio.wait_for(run, timeout=2)

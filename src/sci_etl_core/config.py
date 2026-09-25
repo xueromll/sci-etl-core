@@ -9,6 +9,7 @@ import yaml
 from dotenv import find_dotenv, load_dotenv
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, ValidationError, model_validator
 
+from sci_etl_core._user_agent import DEFAULT_USER_AGENT
 from sci_etl_core.exceptions import ConfigurationError
 
 if TYPE_CHECKING:
@@ -42,9 +43,12 @@ class LLMConfig(BaseModel):
 
 
 class HttpConfig(BaseModel):
-    """HTTP settings for the clients and extractors that call a remote source."""
+    """HTTP settings for the clients and extractors that call a remote source.
 
-    user_agent: str = "sci-etl-core/0.1"
+    ``user_agent`` defaults to ``sci-etl-core/<installed version>``.
+    """
+
+    user_agent: str = DEFAULT_USER_AGENT
     max_retries: int = Field(default=3, ge=1)
     backoff_factor: float = Field(default=2.0, ge=0)
     timeout: int = Field(default=25, gt=0)

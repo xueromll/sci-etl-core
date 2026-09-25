@@ -1,16 +1,18 @@
 from __future__ import annotations
 
+from importlib.metadata import PackageNotFoundError, version
+
 import pytest
 
-from sci_etl_core import config_async
-from sci_etl_core.config import BaseAppConfig
+from sci_etl_core import _user_agent, config_async
+from sci_etl_core.config import BaseAppConfig, HttpConfig
 from sci_etl_core.exceptions import ConfigurationError
 from sci_etl_core.http_async import build_async_client
 
 
 class TestAsyncConfigErrors:
     @pytest.mark.parametrize(
-        "text, message",
+        ("text", "message"),
         [("llm: [unclosed\n", "not valid YAML"), ("- a\n- b\n", "mapping")],
     )
     @pytest.mark.asyncio
@@ -49,3 +51,20 @@ class TestAsyncClientDefaults:
             assert client.follow_redirects is True
         finally:
             await client.aclose()
+
+    @pytest.mark.asyncio
+    async def test_default_user_agent_reports_the_installed_version(self):
+        client = build_async_client()
+        try:
+            assert client.headers["User-Agent"] == f"sci-etl-core/{version('sci-etl-core')}"
+        finally:
+            await client.aclose()
+
+
+class TestDefaultUserAgent:
+    def test_http_config_defaults_to_the_installed_version(self):
+        assert HttpConfig().user_agent == f"sci-etl-core/{version('sci-etl-core')}"
+
+    def test_missing_distribution_falls_back_to_the_bare_name(self, mocker):
+        mocker.patch.object(_user_agent, "version", side_effect=PackageNotFoundError("sci-etl-core"))
+        assert _user_agent.default_user_agent() == "sci-etl-core"
