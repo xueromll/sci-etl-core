@@ -16,6 +16,9 @@ change behavior; each such change is listed under **Changed**.
 
 - `load_config_async` and `AsyncCsvUpsertExporter` check whether a file exists
   in a worker thread instead of blocking the event loop.
+- The `sql` and `full` extras require `sqlalchemy[asyncio]`, so they install
+  `greenlet`. SQLAlchemy 2.1 no longer installs it by default, and without it
+  `AsyncSqlTableExporter` could not be imported.
 
 ## [0.4.0] - 2026-09-16
 

@@ -26,7 +26,7 @@ the components you use:
 | `async` | `httpx`, `aiofiles`, `aiolimiter` | `AsyncArxivExtractor`, `AsyncPubMedExtractor`, `AsyncSemanticScholarExtractor`, `AsyncOpenAlexExtractor`, `build_async_client`, `AsyncCsvUpsertExporter`, `load_config_async`, `AioLimiterRateLimiter` |
 | `llm` | `openai`, `tiktoken` | `AsyncOpenAICompatibleClient`, token-based truncation |
 | `pdf` | `pdfplumber` | `PdfPlumberParser` |
-| `sql` | `sqlalchemy`, `aiosqlite` | `AsyncSqlTableExporter` |
+| `sql` | `sqlalchemy[asyncio]`, `aiosqlite` | `AsyncSqlTableExporter` |
 | `viz` | `plotly`, `aiofiles` | `AsyncPlotly3DExporter` |
 | `cluster` | `scikit-learn`, `numpy` | `ClusteringStep` |
 | `embeddings` | `numpy`, `openai` | `AsyncOpenAIEmbedder`, the vector stores, `AsyncEmbeddingRelevanceFilter` |

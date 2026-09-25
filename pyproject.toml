@@ -47,7 +47,7 @@ Issues = "https://github.com/xueromll/sci-etl-core/issues"
 async = ["httpx", "aiofiles", "aiolimiter"]
 llm = ["openai", "tiktoken"]
 pdf = ["pdfplumber"]
-sql = ["sqlalchemy>=2", "aiosqlite"]
+sql = ["sqlalchemy[asyncio]>=2", "aiosqlite"]
 viz = ["plotly", "aiofiles"]
 cluster = ["scikit-learn", "numpy"]
 embeddings = ["numpy", "openai"]
@@ -67,7 +67,7 @@ full = [
     "httpx", "aiofiles", "aiolimiter",
     "openai", "tiktoken",
     "pdfplumber",
-    "sqlalchemy>=2", "aiosqlite",
+    "sqlalchemy[asyncio]>=2", "aiosqlite",
     "plotly",
     "scikit-learn", "numpy",
     "requests",
