@@ -2632,43 +2632,41 @@ a <code>.env</code> file instead, see <a href="../configuration/">Configuration<
 <a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a>        <span class="n">state_manager</span><span class="o">=</span><span class="n">AsyncFileStateManager</span><span class="p">(</span><span class="s2">"state/processed.txt"</span><span class="p">,</span> <span class="s2">"state/metadata.json"</span><span class="p">),</span>
 <a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a>        <span class="n">destination</span><span class="o">=</span><span class="s2">"results.csv"</span><span class="p">,</span>
 <a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a>        <span class="n">max_concurrency</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-<a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a>        <span class="n">logger</span><span class="o">=</span><span class="nb">print</span><span class="p">,</span>
-<a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a>        <span class="n">closeables</span><span class="o">=</span><span class="p">[</span><span class="n">client</span><span class="p">,</span> <span class="n">llm</span><span class="p">],</span>
-<a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a>    <span class="p">)</span>
-<a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a>
-<a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a>    <span class="k">async</span> <span class="k">with</span> <span class="n">pipeline</span><span class="p">:</span>
-<a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a>        <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a>            <span class="n">processed</span> <span class="o">=</span> <span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="s2">"all:galaxy"</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
-<a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a>        <span class="k">except</span> <span class="n">PipelineAborted</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-<a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a>            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Stopped early after </span><span class="si">{</span><span class="n">exc</span><span class="o">.</span><span class="n">partial_count</span><span class="si">}</span><span class="s2"> records: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>            <span class="k">return</span>
-<a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Processed </span><span class="si">{</span><span class="n">processed</span><span class="si">}</span><span class="s2"> relevant records"</span><span class="p">)</span>
+<a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a>        <span class="n">closeables</span><span class="o">=</span><span class="p">[</span><span class="n">client</span><span class="p">,</span> <span class="n">llm</span><span class="p">],</span>
+<a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a>    <span class="p">)</span>
+<a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a>
+<a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a>    <span class="k">async</span> <span class="k">with</span> <span class="n">pipeline</span><span class="p">:</span>
+<a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a>        <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a>            <span class="n">processed</span> <span class="o">=</span> <span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s2">"all:galaxy"</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+<a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a>        <span class="k">except</span> <span class="n">PipelineAborted</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+<a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a>            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Stopped early after </span><span class="si">{</span><span class="n">exc</span><span class="o">.</span><span class="n">partial_count</span><span class="si">}</span><span class="s2"> records: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a>            <span class="k">return</span>
+<a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Processed </span><span class="si">{</span><span class="n">processed</span><span class="si">}</span><span class="s2"> relevant records"</span><span class="p">)</span>
+<a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>
 <a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a>
-<a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a>
-<a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+<a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 </code></pre></div>
 <h2 id="what-a-run-does">What a run does<a class="headerlink" href="#what-a-run-does" title="Permanent link">&para;</a></h2>
 <ol>
-<li>Fetches a listing page (<code>page_size</code> records, default 100) starting at the
-   offset saved by the state manager (or at <code>start_index=</code>, if given), and
-   skips records already processed. A page that holds only processed records
-   is passed over, not treated as the end of the data.</li>
+<li>Fetches a listing page (<code>page_size</code> records, default 100) at the cursor
+   saved by the state manager (or from the first page with <code>start_index=0</code>),
+   and skips records already processed. A page that holds only processed
+   records is passed over, not treated as the end of the data.</li>
 <li>For each remaining record, with at most <code>max_concurrency</code> in flight:
    relevance filter → full-text fetch → optional memory ingest → entity
    extraction → export → mark processed. Irrelevant records are marked
    processed without fetching full text. Records whose <code>record_id</code> is missing
    or blank can't be tracked, so they are skipped and logged.</li>
-<li>Saves the listing offset and repeats until <code>total_limit</code> relevant records
-   are processed or the listing is empty, waiting <code>sleep_between</code> seconds
-   (default 0) before each further page. The offset only moves past pages
-   whose records were all settled; see
-   <a href="../../guide/state/">State, resuming, and errors</a>.</li>
+<li>Saves the listing cursor and repeats until <code>total_limit</code> relevant records
+   are processed or the listing ends, waiting <code>sleep_between</code> seconds
+   (default 0) before each further page. The cursor only moves past pages
+   whose records were all settled, and a record that failed in 3 runs is
+   skipped as quarantined; see <a href="../../guide/state/">State, resuming, and errors</a>.</li>
 </ol>
 <p><code>total_limit</code> counts <strong>relevant</strong> records only, is never exceeded, and defaults
-to <code>page_size</code>. <code>max_concurrency</code> and <code>page_size</code> must be at least 1 and
-<code>total_limit</code> must not be negative; other values raise <code>ValueError</code> before any
-request is made. The deprecated <code>max_records=</code> argument sets both values
-and will be removed in 0.5.
+to <code>page_size</code>. Every argument of <code>run()</code> after the query is keyword-only.
+<code>max_concurrency</code> and <code>page_size</code> must be at least 1 and <code>total_limit</code> must not
+be negative; other values raise <code>ValueError</code> before any request is made.
 <code>AsyncArxivExtractor</code> also waits <code>sleep_before_search</code> seconds (default 3)
 before every listing request, to respect arXiv's rate limits.</p>
 <p>On exit, <code>async with pipeline</code> awaits <code>aclose()</code> on every entry in

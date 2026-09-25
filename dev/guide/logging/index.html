@@ -2469,6 +2469,16 @@
 
 
 <h1 id="logging">Logging<a class="headerlink" href="#logging" title="Permanent link">&para;</a></h1>
+<div class="admonition warning">
+<p class="admonition-title">Deprecated in 0.5</p>
+<p>Every <code>logger=</code> argument and <code>configure_logging</code> are deprecated and emit a
+<code>DeprecationWarning</code>; they keep working through 0.5.x. In 0.6.0 each
+module logs through the standard <code>logging</code> module under the
+<code>sci_etl_core</code> logger, and the library stops configuring logging, so the
+application configures handlers itself, for example with
+<code>logging.basicConfig</code>. The progress events in
+<a href="../observability/">Observability</a> remain the structured channel.</p>
+</div>
 <p><code>configure_logging(name, log_file, level=logging.INFO)</code> returns a
 <code>logging.Logger</code> that writes to a file and to stdout, creating the file's
 folder if it doesn't exist. Calling it again with the same name, file, and

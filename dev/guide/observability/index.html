@@ -2599,6 +2599,14 @@ however it ended:</p>
 <td>Memory ingest faults that were logged without failing their record</td>
 </tr>
 <tr>
+<td><code>quarantined</code></td>
+<td>Listed records skipped because they failed <code>max_attempts</code> times in earlier runs, each counted once per run</td>
+</tr>
+<tr>
+<td><code>listing_truncated</code></td>
+<td><code>True</code> when the source stopped the listing at its result cap</td>
+</tr>
+<tr>
 <td><code>duration_seconds</code></td>
 <td>Wall time of the run</td>
 </tr>
@@ -2626,7 +2634,7 @@ the run progresses:</p>
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">RecordFinished</span><span class="p">)</span> <span class="ow">and</span> <span class="n">event</span><span class="o">.</span><span class="n">outcome</span> <span class="o">==</span> <span class="s2">"failed"</span><span class="p">:</span>
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">record_id</span><span class="si">}</span><span class="s2"> failed after </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">duration_seconds</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> s: </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">error</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">PageFinished</span><span class="p">):</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"page at </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">offset</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">processed</span><span class="si">}</span><span class="s2"> processed so far"</span><span class="p">)</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"page at </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">cursor</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'start'</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">processed</span><span class="si">}</span><span class="s2"> processed so far"</span><span class="p">)</span>
 <a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">RunFinished</span><span class="p">):</span>
 <a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"run </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">outcome</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 <a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
@@ -2642,19 +2650,19 @@ the run progresses:</p>
 </thead>
 <tbody>
 <tr>
-<td><code>RunStarted(query, start_index, total_limit, newest_first)</code></td>
+<td><code>RunStarted(query, start_index, total_limit, newest_first, cursor)</code></td>
 <td>Before the first listing request</td>
 </tr>
 <tr>
-<td><code>PageFetched(offset, entries, new_records)</code></td>
-<td>A listing page arrived; <code>new_records</code> aren't processed yet</td>
+<td><code>PageFetched(offset, entries, new_records, cursor, truncated)</code></td>
+<td>A listing page arrived; <code>new_records</code> aren't processed yet, and <code>truncated</code> marks the page where the source stopped at its result cap</td>
 </tr>
 <tr>
 <td><code>RecordFinished(record_id, title, outcome, duration_seconds, entities, error)</code></td>
 <td>A record left the pipeline for this run</td>
 </tr>
 <tr>
-<td><code>PageFinished(offset, duration_seconds, metrics)</code></td>
+<td><code>PageFinished(offset, duration_seconds, metrics, cursor)</code></td>
 <td>Every record of a page finished; <code>metrics</code> is the run so far</td>
 </tr>
 <tr>
@@ -2663,6 +2671,10 @@ the run progresses:</p>
 </tr>
 </tbody>
 </table>
+<p><code>cursor</code> is the listing cursor a page was requested with, <code>None</code> for the first
+page. <code>start_index</code> and <code>offset</code> hold the same position as a listing offset
+when the extractor pages by offset, and are <code>None</code> otherwise. Every event and
+<code>RunMetrics</code> is a keyword-only dataclass.</p>
 <p>The handler runs on the event loop, so keep it quick: hand slow work, such as
 a network call, to a queue. An exception it raises is logged as
 <code>Event handler failed: ...</code> and never stops the run. <code>ETLPipeline</code> takes the

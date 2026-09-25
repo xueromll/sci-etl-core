@@ -1290,6 +1290,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#records-that-keep-failing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Records that keep failing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#newest-first-listings" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2574,6 +2585,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#records-that-keep-failing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Records that keep failing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#newest-first-listings" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2634,13 +2656,22 @@
   database. Add it to <code>closeables</code> so its connection is closed. Its <code>flush()</code>
   checkpoints the WAL.</li>
 </ul>
+<p>Both record a schema version: the SQLite database in <code>PRAGMA user_version</code>,
+the metadata file in a <code>schema_version</code> key. Each reads files written by
+sci-etl-core 0.4, whose saved offset becomes the cursor, and raises
+<code>StateStoreError</code> for a file written by a newer release instead of reading or
+overwriting it. A custom <code>AsyncStateManager</code> implements the four abstract
+methods; <code>record_failure</code>, <code>failure_counts</code>, and <code>flush</code> have defaults.</p>
 <h2 id="resuming">Resuming<a class="headerlink" href="#resuming" title="Permanent link">&para;</a></h2>
-<p>Each run starts at the saved <code>last_start_index</code> and skips ids that were
-already processed. The offset is saved after every page, but it only moves
-past a page once every record on it is settled, meaning processed or marked
-irrelevant. When a record fails, or is left over because <code>total_limit</code> was
-reached, the offset stays at the start of that page for the rest of the run,
-so the next run revisits it while skipping everything already processed.
+<p>Each run starts at the saved <code>cursor</code> and skips ids that were already
+processed. The cursor is saved after every page, but it only moves past a page
+once every record on it is settled, meaning processed, marked irrelevant, or
+skipped as quarantined. When a record fails, or is left over because
+<code>total_limit</code> was reached, the cursor stays at the start of that page for the
+rest of the run, so the next run revisits it while skipping everything already
+processed. When a run reaches the end of the listing, an extractor that pages
+by offset saves the offset past the last entry, and any other extractor saves
+no cursor, so the next run starts from the first page.
 <a href="../run-semantics/">Run semantics</a> lists every rule a run follows, each with
 the test that checks it.</p>
 <p>Records are exported before they are marked processed, so a crash between the
@@ -2649,13 +2680,35 @@ this; an appending exporter of your own should tolerate duplicates.</p>
 <p><code>AsyncFileStateManager</code> raises <code>OSError</code> when a state file exists but can't be
 read, rather than treating it as empty. It rejects record ids that contain a
 line boundary or have leading or trailing whitespace, since neither would read
-back unchanged. Metadata content that isn't valid falls back to offset 0, which
-only costs a rescan. Both backends record <code>last_run_at</code> as an ISO 8601
+back unchanged. Metadata content that isn't valid falls back to the first page,
+which only costs a rescan. Both backends record <code>last_run_at</code> as an ISO 8601
 timestamp in UTC.</p>
+<h2 id="records-that-keep-failing">Records that keep failing<a class="headerlink" href="#records-that-keep-failing" title="Permanent link">&para;</a></h2>
+<p>A record that fails in every run, such as a paper whose PDF crashes the
+parser, would otherwise be retried forever and hold the saved cursor at its
+page. <code>run(max_attempts=3)</code>, the default, counts each failed attempt through
+the state manager and, from the next run on, skips a record whose attempts
+reached <code>max_attempts</code> as quarantined. A quarantined record is not processed
+or retried, counts as settled for the saved cursor, is counted in
+<code>RunMetrics.quarantined</code>, and is logged once per run. Both bundled state
+managers store each record's attempts and last error, truncated to 4,096
+characters, and marking a record processed clears them.</p>
+<p>Attempts are only counted from pages that processed a record, or from stalled
+pages that a later page of the same run cleared. A page on which every record
+fails says nothing about the records: during an outage or with a rejected API
+key, every record fails, the run aborts (R5, R6), and no attempt is counted.</p>
+<p>This has one limit. A record that fails on a page with no other relevant
+record stalls that page. If the listing continues, a later page that processes
+a record clears the stall and the attempt is counted. If that page is the last
+page of the listing, the run aborts and nothing is counted, so such a record
+reaches quarantine only in a run where the listing continues past it.</p>
+<p>Pass <code>max_attempts=None</code> to count nothing and retry every failed record on
+every run, as 0.4 did. A custom state manager that does not override
+<code>record_failure</code> and <code>failure_counts</code> never quarantines.</p>
 <h2 id="newest-first-listings">Newest-first listings<a class="headerlink" href="#newest-first-listings" title="Permanent link">&para;</a></h2>
-<p>The arXiv extractor lists the newest submissions first, and the PubMed and
-OpenAlex extractors sort newest first by default, so new papers push older
-ones to higher offsets. A run that resumes from the saved offset keeps
+<p>The arXiv extractor lists the newest submissions first, and the PubMed
+extractor sorts newest first by default, so new papers push older ones to
+higher offsets. A run that resumes from the saved offset keeps
 working backwards through older papers and never sees the new ones. Pass
 <code>newest_first=True</code> to pick up both:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="s2">"all:galaxy"</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">newest_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -2682,10 +2735,11 @@ were settled by earlier runs and aren't listed again, and paging continues.</p>
 <p>A typical run with new papers costs two or three listing requests at the top,
 one to check the saved offset, and the requests for the backlog. The records
 it relies on are saved as <code>head_ids</code>, <code>head_offset</code>, and <code>tail_ids</code> in
-<code>PipelineMetadata</code>, by both state backends. <code>start_index</code> can't be combined
-with <code>newest_first</code>.</p>
-<p>Without <code>newest_first</code>, pass <code>start_index=0</code> to rescan a listing whose order
-has shifted: processed records are skipped by id, so a rescan costs listing
+<code>PipelineMetadata</code>, by both state backends. <code>newest_first</code> needs an extractor
+that pages by offset (<code>OffsetListing</code>), and <code>start_index</code> can't be combined
+with it.</p>
+<p>Without <code>newest_first</code>, pass <code>start_index=0</code> to rescan a listing from its
+first page, for example one whose order has shifted: processed records are skipped by id, so a rescan costs listing
 requests (each preceded by the extractor's <code>sleep_before_search</code> delay) but
 reprocesses nothing.</p>
 <h2 id="what-happens-when-something-fails">What happens when something fails<a class="headerlink" href="#what-happens-when-something-fails" title="Permanent link">&para;</a></h2>
@@ -2710,16 +2764,24 @@ reprocesses nothing.</p>
 <td><code>run()</code> raises <code>PipelineAborted</code> (cause: <code>MalformedResponseError</code>)</td>
 </tr>
 <tr>
-<td>Listing is valid but has no entries</td>
+<td>Listing is valid but has no entries, or a page has no next cursor</td>
 <td><code>run()</code> returns the count normally</td>
 </tr>
 <tr>
-<td>Listing page holds only already-processed records</td>
+<td>The source stops at its result cap</td>
+<td><code>run()</code> returns the count normally; the next run starts from the first page</td>
+</tr>
+<tr>
+<td>The source rejects a saved cursor (<code>StaleCursorError</code>)</td>
+<td>the listing restarts from the first page; a second rejection in the run raises <code>PipelineAborted</code></td>
+</tr>
+<tr>
+<td>Listing page holds only already-processed or quarantined records</td>
 <td>paging continues with the next page</td>
 </tr>
 <tr>
 <td>One record raises, e.g. a transient full-text failure</td>
-<td>logged through <code>logger</code>; record left unmarked; saved offset held at its page; other records continue</td>
+<td>logged through <code>logger</code>; record left unmarked; saved cursor held at its page; the attempt counted; other records continue</td>
 </tr>
 <tr>
 <td>Records on one page fail and none on it is processed, but a later page processes a record</td>
@@ -2763,8 +2825,9 @@ reprocesses nothing.</p>
 <p>All library exceptions derive from <code>SciEtlError</code>: <code>ExtractionError</code>
 (<code>UpstreamError</code>, <code>MalformedResponseError</code>), <code>ParsingError</code>, <code>LLMError</code>,
 <code>LLMCacheError</code>, <code>EmbeddingError</code>, <code>EmbeddingStoreError</code>, <code>SearchError</code>
-(<code>SearchQueryError</code>, <code>SearchStoreError</code>), <code>ConfigurationError</code>, and
-<code>PipelineAborted</code> (<code>PipelineInterrupted</code>). All of them can be imported from
+(<code>SearchQueryError</code>, <code>SearchStoreError</code>), <code>StateStoreError</code>,
+<code>ConfigurationError</code>, and <code>PipelineAborted</code> (<code>PipelineInterrupted</code>).
+<code>ExtractionError</code> also has <code>StaleCursorError</code>. All of them can be imported from
 <code>sci_etl_core</code>. The bundled parsers raise <code>ParsingError</code>
 for bytes they can't read; a custom <code>Parser</code> should do the same, so
 <code>AsyncArxivExtractor</code> moves on to its next source instead of failing the

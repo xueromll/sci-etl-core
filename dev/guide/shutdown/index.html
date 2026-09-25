@@ -2592,7 +2592,7 @@ run cleanly:</p>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">exporter</span><span class="o">=</span><span class="n">exporter</span><span class="p">,</span>
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">state_manager</span><span class="o">=</span><span class="n">state_manager</span><span class="p">,</span>
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">destination</span><span class="o">=</span><span class="s2">"results.csv"</span><span class="p">,</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">shutdown</span><span class="o">=</span><span class="n">ShutdownSignal</span><span class="p">(</span><span class="n">logger</span><span class="o">=</span><span class="nb">print</span><span class="p">),</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">shutdown</span><span class="o">=</span><span class="n">ShutdownSignal</span><span class="p">(),</span>
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="p">)</span>
 <a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
 <a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="k">try</span><span class="p">:</span>
@@ -2606,7 +2606,7 @@ puts the previous handlers back afterwards.</p>
 <li><strong>First signal:</strong> no new record starts. Records already in flight finish
   and are marked processed; records that hadn't started stay unmarked for the
   next run. A pending listing request or the wait between pages is cancelled
-  at once. The saved offset doesn't move past the page that was cut short.
+  at once. The saved cursor doesn't move past the page that was cut short.
   State is flushed, and <code>run()</code> raises <code>PipelineInterrupted</code> carrying the
   number of records processed.</li>
 <li><strong>Second signal:</strong> restores the previous handler and terminates immediately.</li>

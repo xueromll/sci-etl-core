@@ -2630,41 +2630,41 @@ reloads the file; other tools reading the CSV see it. Pass
 <code>escape_formulas=False</code> to write keys unchanged.</p>
 <h2 id="cleaning-and-plotting">Cleaning and plotting<a class="headerlink" href="#cleaning-and-plotting" title="Permanent link">&para;</a></h2>
 <p>Cleanup, scoring, and plots are a separate step over a DataFrame:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncPlotly3DExporter</span><span class="p">,</span> <span class="n">ScatterPlotConfig</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.processors</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">CompletenessStep</span><span class="p">,</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">DeduplicationStep</span><span class="p">,</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">DefaultKeyNormalizer</span><span class="p">,</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">NormalizationStep</span><span class="p">,</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">ProcessorChain</span><span class="p">,</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">QualityFlagStep</span><span class="p">,</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="p">)</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="n">frame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">"results.csv"</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="nb">str</span><span class="p">})</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="n">clean</span> <span class="o">=</span> <span class="n">ProcessorChain</span><span class="p">(</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="p">[</span>
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>        <span class="n">NormalizationStep</span><span class="p">(</span><span class="s2">"name"</span><span class="p">,</span> <span class="n">DefaultKeyNormalizer</span><span class="p">()),</span>  <span class="c1"># adds _norm_key</span>
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>        <span class="n">DeduplicationStep</span><span class="p">(</span><span class="s2">"_norm_key"</span><span class="p">),</span>                     <span class="c1"># one row per key</span>
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>        <span class="n">CompletenessStep</span><span class="p">([</span><span class="s2">"value_a"</span><span class="p">,</span> <span class="s2">"value_b"</span><span class="p">]),</span>           <span class="c1"># adds completeness_pct</span>
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>        <span class="n">QualityFlagStep</span><span class="p">(),</span>                                  <span class="c1"># adds quality_flag</span>
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    <span class="p">]</span>
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="p">)</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="n">plot</span> <span class="o">=</span> <span class="n">AsyncPlotly3DExporter</span><span class="p">(</span>
-<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>    <span class="n">ScatterPlotConfig</span><span class="p">(</span>
-<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>        <span class="n">x_column</span><span class="o">=</span><span class="s2">"value_a"</span><span class="p">,</span>
-<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>        <span class="n">y_column</span><span class="o">=</span><span class="s2">"value_b"</span><span class="p">,</span>
-<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>        <span class="n">z_column</span><span class="o">=</span><span class="s2">"completeness_pct"</span><span class="p">,</span>
-<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>        <span class="n">color_column</span><span class="o">=</span><span class="s2">"quality_flag"</span><span class="p">,</span>
-<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>        <span class="n">hover_name_column</span><span class="o">=</span><span class="s2">"name"</span><span class="p">,</span>
-<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>        <span class="n">title</span><span class="o">=</span><span class="s2">"Corpus overview"</span><span class="p">,</span>
-<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>    <span class="p">)</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.processors</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">CompletenessStep</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">DeduplicationStep</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">DefaultKeyNormalizer</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">NormalizationStep</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">Plotly3DSink</span><span class="p">,</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">ProcessorChain</span><span class="p">,</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">QualityFlagStep</span><span class="p">,</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="p">)</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.processors.sinks</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScatterPlotConfig</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="n">frame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">"results.csv"</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="nb">str</span><span class="p">})</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="n">clean</span> <span class="o">=</span> <span class="n">ProcessorChain</span><span class="p">(</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="p">[</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        <span class="n">NormalizationStep</span><span class="p">(</span><span class="s2">"name"</span><span class="p">,</span> <span class="n">DefaultKeyNormalizer</span><span class="p">()),</span>  <span class="c1"># adds _norm_key</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>        <span class="n">DeduplicationStep</span><span class="p">(</span><span class="s2">"_norm_key"</span><span class="p">),</span>                     <span class="c1"># one row per key</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>        <span class="n">CompletenessStep</span><span class="p">([</span><span class="s2">"value_a"</span><span class="p">,</span> <span class="s2">"value_b"</span><span class="p">]),</span>           <span class="c1"># adds completeness_pct</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>        <span class="n">QualityFlagStep</span><span class="p">(),</span>                                  <span class="c1"># adds quality_flag</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    <span class="p">]</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="p">)</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="n">plot</span> <span class="o">=</span> <span class="n">Plotly3DSink</span><span class="p">(</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="n">ScatterPlotConfig</span><span class="p">(</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>        <span class="n">x_column</span><span class="o">=</span><span class="s2">"value_a"</span><span class="p">,</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>        <span class="n">y_column</span><span class="o">=</span><span class="s2">"value_b"</span><span class="p">,</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>        <span class="n">z_column</span><span class="o">=</span><span class="s2">"completeness_pct"</span><span class="p">,</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>        <span class="n">color_column</span><span class="o">=</span><span class="s2">"quality_flag"</span><span class="p">,</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>        <span class="n">hover_name_column</span><span class="o">=</span><span class="s2">"name"</span><span class="p">,</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>        <span class="n">title</span><span class="o">=</span><span class="s2">"Corpus overview"</span><span class="p">,</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>    <span class="p">),</span>
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>    <span class="s2">"overview.html"</span><span class="p">,</span>
 <a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="p">)</span>
-<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">plot</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">clean</span><span class="p">,</span> <span class="s2">"overview.html"</span><span class="p">))</span>
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="n">plot</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">clean</span><span class="p">)</span>
 </code></pre></div>
 <p><code>clean</code> then looks like this:</p>
 <table>
@@ -2705,10 +2705,15 @@ reloads the file; other tools reading the CSV see it. Pass
 </tr>
 </tbody>
 </table>
-<p>The Plotly exporter drops rows that are missing any axis value.</p>
+<p><code>Plotly3DSink</code> drops rows that are missing any axis value, writes nothing when
+no row remains, and replaces the HTML file atomically. It needs the <code>viz</code>
+extra when constructed; importing <code>sci_etl_core.processors.sinks</code> needs only
+the <code>processors</code> dependencies. The sinks are blocking, so call <code>write</code> through
+<code>asyncio.to_thread</code> from async code. <code>AsyncPlotly3DExporter</code>, the 0.4 way to
+write this plot, is deprecated and will be removed in 0.6.0.</p>
 <h3 id="styling-the-plot">Styling the plot<a class="headerlink" href="#styling-the-plot" title="Permanent link">&para;</a></h3>
 <p><code>ScatterPlotConfig</code> also controls hover text and colors:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScatterPlotConfig</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.processors.sinks</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScatterPlotConfig</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">config</span> <span class="o">=</span> <span class="n">ScatterPlotConfig</span><span class="p">(</span>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="n">x_column</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span>
@@ -2774,11 +2779,13 @@ reloads the file; other tools reading the CSV see it. Pass
 <a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    <span class="n">label_field</span><span class="o">=</span><span class="s2">"name"</span><span class="p">,</span>
 <a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="p">)</span>
 </code></pre></div>
-- <strong><code>AsyncSqlTableExporter(table_name)</code></strong> writes a DataFrame to a SQLAlchemy
-  async URL, e.g.
-  <code>await AsyncSqlTableExporter("entities").export(clean, "sqlite+aiosqlite:///results.db")</code>.
-  Like the Plotly exporter, it takes a DataFrame, so use it after
-  post-processing rather than as the pipeline's exporter.</p>
+- <strong><code>SqlTableSink(url, table_name)</code></strong> writes a DataFrame to a database
+  through a synchronous SQLAlchemy URL, in one transaction, e.g.
+  <code>SqlTableSink("sqlite:///results.db", "entities").write(clean)</code>. It needs
+  the <code>sql</code> extra when constructed. Like <code>Plotly3DSink</code>, it takes a
+  DataFrame, so use it after post-processing rather than as the pipeline's
+  exporter. It replaces <code>AsyncSqlTableExporter</code>, which is deprecated and will
+  be removed in 0.6.0.</p>
 
 
 

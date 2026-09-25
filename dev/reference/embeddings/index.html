@@ -6094,7 +6094,9 @@ used by two worker threads at once, so every operation holds an
 :class:<code>asyncio.Lock</code> until its thread finishes, even if the awaiting task
 is cancelled meanwhile. Each write is one transaction, rolled back on
 failure, and every SQLite failure (including a file that is not a
-database) surfaces as :class:<code>EmbeddingStoreError</code>.</p>
+database) surfaces as :class:<code>EmbeddingStoreError</code>, as does a file written
+by a newer sci-etl-core. The file records its schema version in
+<code>PRAGMA user_version</code>.</p>
 <p>Similarity is a linear scan computed in NumPy: every stored vector is loaded
 and dotted against the query. This is exact and dependency-light, and fits
 corpora up to the low millions of chunks; swap in an ANN index behind this

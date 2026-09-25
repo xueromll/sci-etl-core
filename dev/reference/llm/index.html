@@ -5404,8 +5404,9 @@ returned dict cannot change what is cached.</p>
         <p>A cache kept in a SQLite file, so responses survive between runs.</p>
 <p>The file and its parent folder are created on first use, and responses are
 stored as JSON. Every SQLite failure, including a file that is not a
-database, raises :class:<code>~sci_etl_core.exceptions.LLMCacheError</code>. Close it
-with :meth:<code>aclose</code>, for example by listing it in the pipeline's
+database or a file written by a newer sci-etl-core, raises
+:class:<code>~sci_etl_core.exceptions.LLMCacheError</code>. The file records its schema
+version in <code>PRAGMA user_version</code>. Close it with :meth:<code>aclose</code>, for example by listing it in the pipeline's
 <code>closeables</code>. Use each instance from one event loop.</p>
 
 
@@ -5972,6 +5973,10 @@ string to key the cache by.</p>
 
 
         <p>Blocking counterpart of :class:<code>~sci_etl_core.llm.async_base.AsyncLLMClient</code>.</p>
+<p>.. deprecated:: 0.5.0
+    Subclassing it outside sci-etl-core emits a
+    :class:<code>DeprecationWarning</code>. The blocking contracts will be removed in
+    0.6.0; implement :class:<code>AsyncLLMClient</code> instead.</p>
 
 
 
@@ -6048,6 +6053,10 @@ string to key the cache by.</p>
 
 
         <p>Blocking relevance filter; wrap it in <code>SyncRelevanceFilterAdapter</code>.</p>
+<p>.. deprecated:: 0.5.0
+    Subclassing it outside sci-etl-core emits a
+    :class:<code>DeprecationWarning</code>. The blocking contracts will be removed in
+    0.6.0; implement :class:<code>AsyncRelevanceFilter</code> instead.</p>
 
 
 
@@ -6125,6 +6134,10 @@ string to key the cache by.</p>
 
 
         <p>Blocking entity extractor; wrap it in <code>SyncEntityExtractorAdapter</code>.</p>
+<p>.. deprecated:: 0.5.0
+    Subclassing it outside sci-etl-core emits a
+    :class:<code>DeprecationWarning</code>. The blocking contracts will be removed in
+    0.6.0; implement :class:<code>AsyncEntityExtractor</code> instead.</p>
 
 
 

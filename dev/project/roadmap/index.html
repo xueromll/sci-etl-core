@@ -2795,7 +2795,13 @@ additive. A release is tagged only when sci-etl-cli passes against it and
 udg-catalogue completes a run on it. Each breaking change gets a
 <a href="../migration/">MIGRATION.md</a> entry.</p>
 <h2 id="v050-run-contract">v0.5.0 — Run contract<a class="headerlink" href="#v050-run-contract" title="Permanent link">&para;</a></h2>
-<p>Breaking.</p>
+<p>Breaking. <strong>Status:</strong> implemented, not yet released. PubMed and
+Semantic Scholar keep offset paging and report their caps as truncated:
+E-utilities serves at most 9,999 results even through its history server, and
+Semantic Scholar's bulk search returns fixed pages of 1,000 papers, which
+cannot honor <code>page_size</code>. OpenAlex moved to cursor paging. Still open: both
+consumers moving to 0.5.0, and a live check of how long OpenAlex cursors stay
+valid.</p>
 <ul>
 <li><strong>Extractor pages and cursors.</strong> Extractors return a parsed <code>ListingPage</code>
   from <code>fetch_page(query, cursor, page_size)</code>, and the pipeline de-duplicates.

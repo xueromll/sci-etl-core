@@ -2461,7 +2461,7 @@
 
 
 <h1 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h1>
-<p>Python 3.10 or newer is required.</p>
+<p>Python 3.11 or newer is required.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"sci-etl-core[async,llm,pdf]"</span><span class="w">   </span><span class="c1"># everything the Quick Start uses</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"sci-etl-core[full]"</span><span class="w">            </span><span class="c1"># every bundled component except local embeddings</span>
 </code></pre></div>
@@ -2502,12 +2502,12 @@ the components you use:</p>
 <tr>
 <td><code>sql</code></td>
 <td><code>sqlalchemy[asyncio]</code>, <code>aiosqlite</code></td>
-<td><code>AsyncSqlTableExporter</code></td>
+<td><code>SqlTableSink</code>, and the deprecated <code>AsyncSqlTableExporter</code></td>
 </tr>
 <tr>
 <td><code>viz</code></td>
 <td><code>plotly</code>, <code>aiofiles</code></td>
-<td><code>AsyncPlotly3DExporter</code></td>
+<td><code>Plotly3DSink</code>, and the deprecated <code>AsyncPlotly3DExporter</code></td>
 </tr>
 <tr>
 <td><code>cluster</code></td>

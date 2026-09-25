@@ -2601,7 +2601,8 @@ wiring code.</p>
   for the next run, and records that keep failing while nothing is processed
   stop the run instead of burning through the rest of the listing.</li>
 <li><strong>Resumable, crash-safe state</strong> — plain-file or SQLite backends record
-  processed ids and the listing offset; CSV and metadata writes use atomic
+  processed ids, the listing cursor, and failed attempts, so a record that
+  keeps failing is quarantined; CSV and metadata writes use atomic
   renames. Newest-first listings pick up new papers without rescanning.</li>
 <li><strong>Graceful shutdown</strong> — Ctrl+C or SIGTERM lets in-flight records finish,
   flushes state, and raises <code>PipelineInterrupted</code>.</li>

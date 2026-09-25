@@ -1296,10 +1296,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#known-limitation-capped-listings" class="md-nav__link">
+  <a href="#capped-listings" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Known limitation: capped listings
+        Capped listings
       
     </span>
   </a>
@@ -2508,10 +2508,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#known-limitation-capped-listings" class="md-nav__link">
+  <a href="#capped-listings" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Known limitation: capped listings
+        Capped listings
       
     </span>
   </a>
@@ -2538,11 +2538,13 @@
 <h1 id="run-semantics">Run semantics<a class="headerlink" href="#run-semantics" title="Permanent link">&para;</a></h1>
 <p><code>AsyncETLPipeline.run</code> makes the guarantees below. Each one is numbered, and
 each has a test in <code>tests/semantics/test_run_rules.py</code> whose name starts with
-the rule's number, such as <code>test_r1_offset_waits_for_settled_page</code>. Changing a
+the rule's number, such as <code>test_r1_cursor_waits_for_settled_page</code>. Changing a
 rule is a breaking change: it changes the rule's test, and it gets a
 <a href="../../project/migration/">MIGRATION.md</a> entry.</p>
-<p>A record is <strong>settled</strong> once it is processed, or marked irrelevant. A page is
-<strong>stalled</strong> when records on it failed and none was processed.</p>
+<p>A record is <strong>settled</strong> once it is processed, marked irrelevant, or skipped as
+quarantined. A page is <strong>stalled</strong> when records on it failed and none was
+processed. A page <strong>ends the listing</strong> when it has no next cursor, has no
+entries, or is truncated.</p>
 <table>
 <thead>
 <tr>
@@ -2555,100 +2557,127 @@ rule is a breaking change: it changes the rule's test, and it gets a
 <tbody>
 <tr>
 <td>R1</td>
-<td>The saved offset moves only past pages whose every record settled. Once a record fails, or is deferred by <code>total_limit</code>, the offset stays at the start of that page for the rest of the run.</td>
+<td>The saved cursor never moves forward past a page with an unsettled record: once a record fails, or is deferred by <code>total_limit</code>, the cursor stays at the start of that page for the rest of the run. Resetting it to the first page (R15, R16) is not moving forward. A record skipped as quarantined counts as settled (R18).</td>
 <td><code>test_r1_*</code></td>
-<td><code>pipeline_async.py:417-421</code></td>
+<td><code>_listing_position.py:44-55</code></td>
 </tr>
 <tr>
 <td>R2</td>
 <td><code>total_limit</code> is exact. A relevant record reserves a slot before its full text is fetched, and a record that fails releases its slot for another record.</td>
 <td><code>test_r2_*</code></td>
-<td><code>pipeline_async.py:59-76</code>, <code>:584-601</code></td>
+<td><code>pipeline_async.py:66-82</code>, <code>:728-746</code></td>
 </tr>
 <tr>
 <td>R3</td>
 <td>An irrelevant record is marked processed at once, without fetching its full text.</td>
 <td><code>test_r3_*</code></td>
-<td><code>pipeline_async.py:586-588</code></td>
+<td><code>pipeline_async.py:731-733</code></td>
 </tr>
 <tr>
 <td>R4</td>
 <td>A memory-ingest exception in <code>MEMORY_FAULTS</code> is logged and counted in <code>RunMetrics.memory_faults</code>, and the record's entities are still exported.</td>
 <td><code>test_r4_*</code></td>
-<td><code>pipeline_async.py:603-620</code></td>
+<td><code>pipeline_async.py:763-765</code></td>
 </tr>
 <tr>
 <td>R5</td>
-<td>Two stalled pages, with no page that processed a record between them, abort the run with <code>PipelineAborted</code>. A single stalled page is tolerated.</td>
+<td>Two stalled pages, with no page that processed a record between them, abort the run with <code>PipelineAborted</code>. A single stalled page is tolerated. Records skipped as processed or quarantined make a page neither stalled nor processing.</td>
 <td><code>test_r5_*</code></td>
-<td><code>pipeline_async.py:41</code>, <code>:401-407</code></td>
+<td><code>pipeline_async.py:44</code>, <code>:539-544</code></td>
 </tr>
 <tr>
 <td>R6</td>
-<td>A stalled page followed by the end of the listing aborts the run.</td>
+<td>A stalled page that ends the listing, or is followed by a page that does, aborts the run before the end is saved. This takes precedence over R15.</td>
 <td><code>test_r6_*</code></td>
-<td><code>pipeline_async.py:426-427</code></td>
+<td><code>pipeline_async.py:545-546</code></td>
 </tr>
 <tr>
 <td>R7</td>
-<td>An empty listing is the only data-driven clean end. A fetch that returns no payload aborts the run instead.</td>
+<td>A page with no next cursor, or with no entries, ends the run <code>"completed"</code> once the page settles. An <code>OffsetListing</code> then saves the offset past the last entry, so entries appended later are found by the next run; any other extractor saves no cursor, so the next run starts from the first page.</td>
 <td><code>test_r7_*</code></td>
-<td><code>pipeline_async.py:383-385</code></td>
+<td><code>_listing_position.py:44-73</code></td>
 </tr>
 <tr>
 <td>R8</td>
 <td>A page made up entirely of already-processed records is not the end; paging moves past it.</td>
 <td><code>test_r8_*</code></td>
-<td><code>pipeline_async.py:379-383</code></td>
+<td><code>pipeline_async.py:571-583</code></td>
 </tr>
 <tr>
 <td>R9</td>
-<td>A shutdown request finishes the records in flight, leaves the rest of the page for the next run, keeps the saved offset before that page, and raises <code>PipelineInterrupted</code>.</td>
+<td>A shutdown request finishes the records in flight, leaves the rest of the page for the next run, keeps the saved cursor before that page, and raises <code>PipelineInterrupted</code>.</td>
 <td><code>test_r9_*</code></td>
-<td><code>pipeline_async.py:372-378</code>, <code>:584</code></td>
+<td><code>pipeline_async.py:491-505</code>, <code>:729-730</code></td>
 </tr>
 <tr>
 <td>R10</td>
 <td>State is flushed however the run ends. A flush fault after the run failed is logged, so it never hides the original error.</td>
 <td><code>test_r10_*</code></td>
-<td><code>pipeline_async.py:325-334</code>, <code>:494-498</code></td>
+<td><code>pipeline_async.py:443-445</code>, <code>:668-672</code></td>
 </tr>
 <tr>
 <td>R11</td>
 <td>A record whose <code>record_id</code> is missing or blank is skipped, logged, and reported as a <code>RecordFinished</code> event with outcome <code>"skipped"</code>.</td>
 <td><code>test_r11_*</code></td>
-<td><code>pipeline_async.py:531-536</code></td>
+<td><code>pipeline_async.py:694-697</code></td>
 </tr>
 <tr>
 <td>R12</td>
-<td><code>sleep_between</code> is waited between pages, never after the page that reaches <code>total_limit</code>.</td>
+<td><code>sleep_between</code> is waited between pages, never after the page that reaches <code>total_limit</code> or ends the listing.</td>
 <td><code>test_r12_*</code></td>
-<td><code>pipeline_async.py:423-424</code></td>
+<td><code>pipeline_async.py:552-557</code></td>
 </tr>
 <tr>
 <td>R13</td>
-<td>A listing that cannot be fetched or parsed aborts the run with <code>PipelineAborted</code> carrying the count processed so far.</td>
+<td>A listing page that cannot be fetched or parsed aborts the run with <code>PipelineAborted</code> carrying the count processed so far.</td>
 <td><code>test_r13_*</code></td>
-<td><code>pipeline_async.py:508-525</code></td>
+<td><code>pipeline_async.py:678-686</code></td>
 </tr>
 <tr>
 <td>R14</td>
-<td>A <code>newest_first=True</code> run pages from offset 0 until it finds the records saved at the head of the listing, then continues from the saved offset moved down by the number of new entries.</td>
+<td>For an <code>OffsetListing</code>, a <code>newest_first=True</code> run pages from offset 0 until it finds the records saved at the head of the listing, then continues from the saved offset moved down by the number of new entries. Each offset cursor comes from <code>cursor_for_offset</code>, and the listed ids come from the page's records, so each page is fetched and parsed once.</td>
 <td><code>test_r14_*</code></td>
-<td><code>pipeline_async.py:360-362</code>, <code>:409-416</code></td>
+<td><code>_listing_position.py:75-135</code></td>
+</tr>
+<tr>
+<td>R15</td>
+<td>A truncated page that is not a stall page ends the run <code>"completed"</code>, reports the truncation in <code>RunMetrics.listing_truncated</code>, <code>PageFetched.truncated</code>, and one log line per run, resets the saved cursor to the first page even when a page did not settle, and sets <code>PipelineMetadata.truncated</code>. The flag is cleared by the first run that reaches the end of the listing without a cap; a run that aborts, is interrupted, or reaches <code>total_limit</code> leaves it unchanged.</td>
+<td><code>test_r15_*</code></td>
+<td><code>pipeline_async.py:518-520</code>, <code>:548-551</code></td>
+</tr>
+<tr>
+<td>R16</td>
+<td>A <code>StaleCursorError</code> restarts the listing from the first page once per run; a second one in the same run raises <code>PipelineAborted</code>.</td>
+<td><code>test_r16_*</code></td>
+<td><code>pipeline_async.py:496-503</code></td>
+</tr>
+<tr>
+<td>R17</td>
+<td><code>newest_first=True</code>, or a <code>start_index</code> above 0, with an extractor that is not an <code>OffsetListing</code> raises <code>ValueError</code> before any request.</td>
+<td><code>test_r17_*</code></td>
+<td><code>pipeline_async.py:428-431</code></td>
+</tr>
+<tr>
+<td>R18</td>
+<td>With <code>max_attempts</code> set, failures are counted through <code>record_failure</code> only from pages that processed a record, or from stalled pages that a later page of the same run cleared; failures held by a stalled page that is never cleared are discarded. A listed record whose counted attempts reach <code>max_attempts</code> is skipped as quarantined, counted once per run in <code>RunMetrics.quarantined</code>, and logged once. No record is quarantined in the run in which its last attempt failed.</td>
+<td><code>test_r18_*</code></td>
+<td><code>pipeline_async.py:101-121</code>, <code>:535-542</code>, <code>:571-594</code></td>
 </tr>
 </tbody>
 </table>
 <p>The source column cites the code behind each rule. A change that moves that
 code updates its citation here.</p>
-<h2 id="known-limitation-capped-listings">Known limitation: capped listings<a class="headerlink" href="#known-limitation-capped-listings" title="Permanent link">&para;</a></h2>
-<p>OpenAlex and PubMed serve at most 10,000 results for a query, and Semantic
-Scholar serves 1,000. Past that cap, the extractor returns an empty listing,
-which the pipeline reads as the end of the data (R7). A run without
-<code>newest_first</code> ends <code>"completed"</code> with its offset saved at the cap, so every
-later run with the same query ends at once. <code>test_characterization_capped_listing_pins_every_later_run_at_the_cap</code>
-records this behavior. Until it changes, narrow a query that could reach a
-source's cap, for example by date range, or pass <code>start_index=0</code> to rescan.</p>
+<h2 id="capped-listings">Capped listings<a class="headerlink" href="#capped-listings" title="Permanent link">&para;</a></h2>
+<p>PubMed serves the first 9,999 results of a query and Semantic Scholar's
+relevance search the first 1,000. Their extractors mark the page that reaches
+the cap as truncated, and R15 applies: the run completes, and the next run
+pages the reachable results again. Processed records are skipped by id, so the
+rescan costs listing requests, not LLM calls: at <code>page_size=100</code>, up to 10
+requests for Semantic Scholar and 100 for PubMed. The rescan also finds
+records that entered the reachable window since the last run, which matters
+for a listing sorted by relevance. To avoid the rescan, narrow the query, for
+example by date range. OpenAlex is not capped: <code>AsyncOpenAlexExtractor</code> pages
+with OpenAlex cursors.</p>
 
 
 

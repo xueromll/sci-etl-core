@@ -2697,8 +2697,8 @@ quickly.</p>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[full,dev]"</span>
 </code></pre></div>
 <ul>
-<li><strong>Python 3.10+</strong> is required; the codebase uses <code>X | Y</code> unions and
-  <code>slots=True</code> dataclasses.</li>
+<li><strong>Python 3.11+</strong> is required; the codebase uses <code>X | Y</code> unions and
+  <code>slots=True</code>, <code>kw_only=True</code> dataclasses.</li>
 <li><strong>Why <code>[full]</code>:</strong> the suite exercises every bundled component.</li>
 <li><strong>Not needed for tests:</strong> <code>sentence-transformers</code> and a real SQL driver are
   mocked or stubbed.</li>
@@ -2906,8 +2906,8 @@ requested changes are about the code, never about you.</p>
 <tr>
 <td>Extractor</td>
 <td><code>AsyncExtractor</code></td>
-<td><code>async search</code>, <code>parse_listing</code> (<strong>synchronous</strong>), <code>async fetch_full_text</code></td>
-<td>Raise <code>UpstreamError</code> when the source can't be reached after retries, <code>ExtractionError</code> when it rejects a request outright, and <code>MalformedResponseError</code> for an unreadable listing. Return <code>([], 0)</code> only for a genuinely empty listing. Skip ids in <code>seen_ids</code>, and skip entries that have no id.</td>
+<td><code>async fetch_page(query, cursor, page_size) -&gt; ListingPage</code>, <code>async fetch_full_text</code>; <code>cursor_for_offset</code> when the cursors are decimal offsets</td>
+<td>Return every entry it can read: the pipeline skips processed ids. Count entries without an id in <code>entries</code>, return <code>next_cursor=None</code> on the last page, and <code>truncated=True</code> on the page that reaches the source's own result cap. Raise <code>UpstreamError</code> when the source can't be reached after retries, <code>ExtractionError</code> when it rejects a request outright, <code>MalformedResponseError</code> for an unreadable listing, and <code>StaleCursorError</code> for a cursor the source no longer accepts.</td>
 </tr>
 <tr>
 <td>Parser</td>
@@ -2949,7 +2949,7 @@ requested changes are about the code, never about you.</p>
 <td>State manager</td>
 <td><code>AsyncStateManager</code></td>
 <td><code>load_processed_ids</code>, <code>mark_processed</code>, <code>load_metadata</code>, <code>save_metadata</code></td>
-<td>Concurrency-safe. Override <code>flush()</code> if you buffer; add <code>aclose()</code> if you hold connections.</td>
+<td>Concurrency-safe. Override <code>record_failure</code> and <code>failure_counts</code> to support quarantine; the defaults track nothing. Record a schema version and refuse a file from a newer release. Override <code>flush()</code> if you buffer; add <code>aclose()</code> if you hold connections.</td>
 </tr>
 <tr>
 <td>Embedder</td>

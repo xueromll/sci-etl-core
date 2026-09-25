@@ -3377,6 +3377,12 @@ once per relevant record with that record's entities as a
 <code>list[dict[str, Any]]</code>, possibly from several records concurrently. An
 implementation used in a pipeline must accept that shape and serialize its
 own writes.</p>
+<p>.. deprecated:: 0.5.0
+    :meth:<code>export</code> is replaced in 0.6.0 by an exporter lifecycle of
+    <code>open</code>, <code>write</code> per record, <code>flush</code> per page, and <code>aclose</code>.
+    Subclassing it outside sci-etl-core emits a
+    :class:<code>DeprecationWarning</code> as advance notice; there is nothing to
+    migrate to before 0.6.0.</p>
 
 
 
@@ -3511,6 +3517,10 @@ only the new rows.</p>
 <p>Keys come from LLM output, so by default any key a spreadsheet would treat
 as a formula is written with a leading apostrophe and restored on reload.
 Value columns are numeric and need no escaping.</p>
+<p>.. deprecated:: 0.5.0
+    Constructing it emits a :class:<code>DeprecationWarning</code>. It will be
+    removed in 0.6.0, which adds its replacement, <code>AsyncCsvExporter</code>;
+    keep using it until then.</p>
 
 
 
@@ -3629,6 +3639,10 @@ Value columns are numeric and need no escaping.</p>
 <p>It takes a <code>DataFrame</code>, not the pipeline's <code>list[dict]</code> of entities, so
 it serves post-processing output rather than
 :class:<code>~sci_etl_core.pipeline_async.AsyncETLPipeline</code> directly.</p>
+<p>.. deprecated:: 0.5.0
+    Constructing it emits a :class:<code>DeprecationWarning</code>. It will be
+    removed in 0.6.0; use
+    :class:<code>~sci_etl_core.processors.sinks.SqlTableSink</code> instead.</p>
 
         <p>Target <code>table_name</code>; <code>if_exists</code> is passed to <code>DataFrame.to_sql</code>.</p>
 
@@ -3765,7 +3779,7 @@ one transaction.</p>
 
 
 
-        <p>What an :class:<code>AsyncPlotly3DExporter</code> plots and how it looks.</p>
+        <p>What a 3D scatter plot shows and how it looks.</p>
 <p><code>hover_data_columns</code> are passed to the figure as custom data, so
 <code>hover_template</code> can show them as <code>%{customdata[0]}</code>, <code>%{customdata[1]}</code>,
 and so on, in the order listed; the <code>hover_name_column</code> value is
@@ -4185,7 +4199,7 @@ increasing order, or <code>hover_data_columns</code> repeats a column.</p>
 
   
       dataclass
-   (sci_etl_core.exporters.plotly_async.ScatterPlotConfig)" href="#sci_etl_core.exporters.plotly_async.ScatterPlotConfig">ScatterPlotConfig</a></span><span class="p">)</span>
+   (sci_etl_core.processors.sinks.ScatterPlotConfig)" href="../processors/#sci_etl_core.processors.sinks.ScatterPlotConfig">ScatterPlotConfig</a></span><span class="p">)</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -4197,6 +4211,10 @@ increasing order, or <code>hover_data_columns</code> repeats a column.</p>
         <p>Write a DataFrame as an interactive 3D scatter plot in a standalone HTML file.</p>
 <p>Rows missing an x, y, or z value are left out, and nothing is written when
 no row remains.</p>
+<p>.. deprecated:: 0.5.0
+    Constructing it emits a :class:<code>DeprecationWarning</code>. It will be
+    removed in 0.6.0; use
+    :class:<code>~sci_etl_core.processors.sinks.Plotly3DSink</code> instead.</p>
 
 
 
@@ -4310,6 +4328,10 @@ no row remains.</p>
 <p>Wrap an implementation in
 :class:<code>~sci_etl_core._adapters.SyncExporterAdapter</code> to use it in a
 pipeline.</p>
+<p>.. deprecated:: 0.5.0
+    Subclassing it outside sci-etl-core emits a
+    :class:<code>DeprecationWarning</code>. The blocking contracts will be removed in
+    0.6.0; implement :class:<code>AsyncExporter</code> instead.</p>
 
 
 

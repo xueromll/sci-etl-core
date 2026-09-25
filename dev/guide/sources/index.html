@@ -2631,6 +2631,7 @@ extractor with switches for every source.</p>
 <th>Source</th>
 <th>Extractor</th>
 <th>Record id</th>
+<th>Paging</th>
 <th>Full text</th>
 </tr>
 </thead>
@@ -2639,29 +2640,34 @@ extractor with switches for every source.</p>
 <td>arXiv</td>
 <td><code>AsyncArxivExtractor</code></td>
 <td>arXiv id with version</td>
+<td>offsets</td>
 <td>LaTeX source, then PDF, then abstract</td>
 </tr>
 <tr>
 <td>PubMed</td>
 <td><code>AsyncPubMedExtractor</code></td>
 <td>PMID</td>
+<td>offsets, first 9,999 results</td>
 <td>PubMed Central JATS when the paper has a PMC id, else abstract</td>
 </tr>
 <tr>
 <td>Semantic Scholar</td>
 <td><code>AsyncSemanticScholarExtractor</code></td>
 <td>paper id</td>
+<td>offsets, first 1,000 results</td>
 <td>Open-access PDF with a <code>pdf_parser</code>, else abstract</td>
 </tr>
 <tr>
 <td>OpenAlex</td>
 <td><code>AsyncOpenAlexExtractor</code></td>
 <td>work id, such as <code>W2741809807</code></td>
+<td>OpenAlex cursors, no cap</td>
 <td>Open-access PDF with a <code>pdf_parser</code>, else abstract</td>
 </tr>
 <tr>
 <td>bioRxiv, ChemRxiv</td>
 <td>Not bundled</td>
+<td></td>
 <td></td>
 <td>Adapt <code>AsyncArxivExtractor</code></td>
 </tr>
@@ -2669,10 +2675,19 @@ extractor with switches for every source.</p>
 <td>Crossref</td>
 <td>Not bundled</td>
 <td></td>
+<td></td>
 <td>Implement your own <code>AsyncExtractor</code></td>
 </tr>
 </tbody>
 </table>
+<p>An extractor that pages by offset is an <code>OffsetListing</code>, which <code>newest_first</code>
+runs and <code>run(start_index=)</code> above 0 need. When a source stops at its own
+result cap, its extractor marks the page that reaches the cap as <code>truncated</code>:
+the run completes, and the next run pages the reachable results again instead
+of stopping at the cap. Processed records are skipped by id, so that rescan
+costs listing requests, not LLM calls. To avoid it, narrow the query, for
+example by date range. <a href="../run-semantics/#capped-listings">Run semantics</a> has
+the details.</p>
 <p>The bundled extractors share the retry behavior described in
 <a href="../retries/">Retries</a> and take a <code>rate_limiter</code> (<a href="../rate-limiting/">Rate limiting</a>).
 Each fills <code>RawRecord.metadata</code> with <code>authors</code> and <code>categories</code>, and with
@@ -2690,14 +2705,15 @@ facets work the same across sources. Sources other than arXiv also store
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">email</span><span class="o">=</span><span class="s2">"you@example.org"</span><span class="p">,</span>
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">rate_limiter</span><span class="o">=</span><span class="n">build_rate_limiter</span><span class="p">(</span><span class="n">max_rate</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">time_period</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span>
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="p">)</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="s2">"dark matter[tiab] AND 2020:2026[dp]"</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">newest_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s2">"dark matter[tiab] AND 2020:2026[dp]"</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">newest_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
 <p>The query uses PubMed search syntax. Results are newest first (<code>sort="pub_date"</code>),
 so <code>newest_first=True</code> fits. Each listing page costs two requests, and NCBI
 allows 3 requests per second without an API key and 10 with one, so read the
 key from the environment and set a limiter below that. E-utilities pages
-through the first 10,000 results of a search. Metadata adds <code>journal</code>, and
-<code>doi</code> and <code>pmcid</code> when known; <code>categories</code> are MeSH headings.</p>
+through the first 9,999 results of a search, even with its history server, so
+the page that reaches them is <code>truncated</code>. Metadata adds <code>journal</code>, and <code>doi</code>
+and <code>pmcid</code> when known; <code>categories</code> are MeSH headings.</p>
 <h2 id="semantic-scholar">Semantic Scholar<a class="headerlink" href="#semantic-scholar" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncSemanticScholarExtractor</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.parsers</span><span class="w"> </span><span class="kn">import</span> <span class="n">PdfPlumberParser</span>
@@ -2713,11 +2729,9 @@ through the first 10,000 results of a search. Metadata adds <code>journal</code>
 <a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="p">)</span>
 </code></pre></div>
 <p>The relevance search returns only its first 1,000 results and isn't ordered by
-date, so run it without <code>newest_first</code>. Metadata adds <code>venue</code>, and <code>doi</code>,
-<code>arxiv_id</code>, and <code>pmid</code> when known.</p>
-<p>A query that matches more results than a source serves stops at its cap, and
-later runs resume at the cap; see
-<a href="../run-semantics/#known-limitation-capped-listings">capped listings</a>.</p>
+date, so run it without <code>newest_first</code>; the page that reaches the 1,000th
+result is <code>truncated</code>. Metadata adds <code>venue</code>, and <code>doi</code>, <code>arxiv_id</code>, and <code>pmid</code>
+when known.</p>
 <h2 id="openalex">OpenAlex<a class="headerlink" href="#openalex" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncOpenAlexExtractor</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
@@ -2726,11 +2740,15 @@ later runs resume at the cap; see
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="nb">filter</span><span class="o">=</span><span class="s2">"type:article,from_publication_date:2020-01-01"</span><span class="p">,</span>
 <a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">mailto</span><span class="o">=</span><span class="s2">"you@example.org"</span><span class="p">,</span>
 <a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="p">)</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="s2">"ultra-diffuse galaxies"</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">newest_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s2">"ultra-diffuse galaxies"</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
 </code></pre></div>
-<p>Results are newest first by default (<code>sort="publication_date:desc"</code>).
-OpenAlex pages through the first 10,000 results. <code>mailto</code> joins OpenAlex's
-polite pool. Abstracts are rebuilt from OpenAlex's inverted index. Metadata
+<p>Results are newest first by default (<code>sort="publication_date:desc"</code>). Paging
+uses OpenAlex's cursors, so a listing is not limited to its first 10,000
+results, but the extractor is not an <code>OffsetListing</code> and does not support
+<code>newest_first</code> runs. When a run reaches the end of the listing, the next run
+starts again from the first page and skips processed works by id. A cursor
+OpenAlex rejects restarts the listing once. <code>mailto</code> joins OpenAlex's polite
+pool. Abstracts are rebuilt from OpenAlex's inverted index. Metadata
 adds <code>doi</code>, <code>venue</code>, and <code>references</code>, the ids of the works a paper cites.</p>
 <h2 id="document-formats">Document formats<a class="headerlink" href="#document-formats" title="Permanent link">&para;</a></h2>
 <p>Besides the PDF, LaTeX, and HTML parsers the extractors use, two parsers read
@@ -2753,28 +2771,39 @@ formats you may get from other sources:</p>
 <code>ParsingError</code> for bytes they can't read.</p>
 <h2 id="writing-an-extractor">Writing an extractor<a class="headerlink" href="#writing-an-extractor" title="Permanent link">&para;</a></h2>
 <p>The pipeline works with any class that implements this contract:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncExtractor</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncExtractor</span><span class="p">,</span> <span class="n">ListingPage</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">RawRecord</span>
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
 <a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="k">class</span><span class="w"> </span><span class="nc">MySourceExtractor</span><span class="p">(</span><span class="n">AsyncExtractor</span><span class="p">):</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">max_results</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">start_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parse_listing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw_listing</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">seen_ids</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">RawRecord</span><span class="p">],</span> <span class="nb">int</span><span class="p">]:</span> <span class="o">...</span>
-<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">fetch_full_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">:</span> <span class="n">RawRecord</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span> <span class="o">...</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cursor_for_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">fetch_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cursor</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">page_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ListingPage</span><span class="p">:</span> <span class="o">...</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">fetch_full_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">:</span> <span class="n">RawRecord</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span> <span class="o">...</span>
 </code></pre></div>
 <ul>
-<li><strong><code>search</code></strong> returns one raw listing page. If the source can't be reached,
-  it raises <code>UpstreamError</code> instead of returning an empty value; if the source
-  rejects the request outright, it raises <code>ExtractionError</code>. Either one aborts
-  the run.</li>
-<li><strong><code>parse_listing</code></strong> returns the records whose ids aren't in <code>seen_ids</code>, plus
-  the number of entries on the page, counting the skipped ones. A count of <code>0</code>
-  ends the run. If the payload can't be read, it raises
-  <code>MalformedResponseError</code>.</li>
+<li><strong><code>fetch_page</code></strong> fetches and parses one page. <code>cursor=None</code> is the first
+  page; any other cursor is a <code>next_cursor</code> an earlier page returned, possibly
+  in an earlier run. It returns a <code>ListingPage</code> with every record it could
+  read, the number of entries on the page, counting entries it could not read,
+  and the next cursor, or <code>None</code> on the last page. The pipeline skips
+  processed records itself. A source that stopped at its own result cap
+  returns <code>truncated=True</code>.</li>
+<li>Errors: if the source can't be reached, raise <code>UpstreamError</code> instead of
+  returning an empty page; if it rejects the request outright, raise
+  <code>ExtractionError</code>; if the payload can't be read, raise
+  <code>MalformedResponseError</code>. Each aborts the run. If the source no longer
+  accepts a cursor, raise <code>StaleCursorError</code>, and the run restarts the listing
+  from the first page once.</li>
+<li><strong><code>cursor_for_offset</code></strong> is only for a source that pages by offset. It makes
+  the extractor an <code>OffsetListing</code>; leave it out when the cursors are opaque
+  tokens.</li>
 <li><strong><code>fetch_full_text</code></strong> returns the best text available for a record.</li>
 </ul>
+<p>An extractor written for 0.4, with <code>search</code> and <code>parse_listing</code>, runs in 0.5.x
+through <code>LegacyExtractorAdapter</code>, which is deprecated and removed in 0.6.</p>
 <p>The full contract for every component type is listed under
 <a href="../../project/contributing/#adding-a-new-component">Adding a new component</a>,
 and the <a href="../../reference/extractors/">extractor API reference</a> documents the

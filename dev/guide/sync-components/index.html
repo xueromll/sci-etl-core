@@ -2469,6 +2469,14 @@
 
 
 <h1 id="synchronous-components">Synchronous components<a class="headerlink" href="#synchronous-components" title="Permanent link">&para;</a></h1>
+<div class="admonition warning">
+<p class="admonition-title">Deprecated in 0.5</p>
+<p>The blocking interfaces and their adapters are deprecated and will be
+removed in 0.6.0. Subclassing one of the interfaces outside sci-etl-core,
+or constructing an adapter, emits a <code>DeprecationWarning</code>. Implement the
+async interface instead, and run blocking work in it through
+<code>asyncio.to_thread</code>, as the bundled components do.</p>
+</div>
 <p>To reuse blocking implementations, subclass the synchronous interfaces and
 wrap each object in its adapter. The result can be passed to either pipeline:</p>
 <table>
@@ -2483,7 +2491,7 @@ wrap each object in its adapter. The result can be passed to either pipeline:</p
 <tr>
 <td><code>Extractor</code></td>
 <td><code>SyncExtractorAdapter</code></td>
-<td><code>fetch_full_text</code> in a worker thread; <code>search</code> and <code>parse_listing</code> on the event loop, between pages</td>
+<td><code>fetch_full_text</code> in a worker thread; <code>search</code> and <code>parse_listing</code> on the event loop, between pages. The adapter pages by offset, so it is an <code>OffsetListing</code>, and a page with no entries ends the listing</td>
 </tr>
 <tr>
 <td><code>RelevanceFilter</code></td>

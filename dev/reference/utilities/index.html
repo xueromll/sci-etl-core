@@ -2234,34 +2234,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#sci_etl_core.http" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-module"></code>&nbsp;http
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label=" http">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#sci_etl_core.http.build_retrying_session" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;build_retrying_session
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#sci_etl_core.rate_limiter" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2740,34 +2712,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#sci_etl_core.http" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-module"></code>&nbsp;http
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label=" http">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#sci_etl_core.http.build_retrying_session" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;build_retrying_session
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#sci_etl_core.rate_limiter" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3010,81 +2954,6 @@ level; the extractors retry HTTP status failures themselves. Redirects are
 followed, and <code>timeout</code> is in seconds. <code>user_agent</code> defaults to
 <code>sci-etl-core/&lt;installed version&gt;</code>. The caller owns the client and
 closes it with <code>aclose</code>.</p>
-
-
-    </div>
-
-</div>
-
-
-
-  </div>
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-module">
-
-
-
-<h2 id="sci_etl_core.http" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-module"></code>            <span class="doc doc-object-name doc-module-name">sci_etl_core.http</span>
-
-
-<a href="#sci_etl_core.http" class="headerlink" title="Permanent link">&para;</a></h2>
-
-    <div class="doc doc-contents first">
-
-
-
-
-
-
-
-
-
-
-<div class="doc doc-children">
-
-
-
-
-
-
-
-
-
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="sci_etl_core.http.build_retrying_session" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <span class="doc doc-object-name doc-function-name">build_retrying_session</span>
-
-
-<a href="#sci_etl_core.http.build_retrying_session" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">build_retrying_session</span><span class="p">(</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">total_retries</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">backoff_factor</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">status_forcelist</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple">tuple</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        <span class="mi">429</span><span class="p">,</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        <span class="mi">500</span><span class="p">,</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        <span class="mi">502</span><span class="p">,</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        <span class="mi">503</span><span class="p">,</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        <span class="mi">504</span><span class="p">,</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="p">),</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="requests.Session">Session</span></span>
-</code></pre></div>
-
-    <div class="doc doc-contents ">
-
-        <p>Build a synchronous <code>requests</code> session that retries transient faults.</p>
-<p>.. deprecated:: 0.4.0
-    No component uses this helper. It will be removed in 0.5.0, together
-    with <code>requests</code> in the <code>full</code> extra. Use
-    :func:<code>sci_etl_core.http_async.build_async_client</code> with the async
-    components instead.</p>
 
 
     </div>
@@ -3588,6 +3457,10 @@ surrounding dots.</p>
 A call with a different file or level replaces the handlers this function
 installed earlier, closing the old file, so the logger always reflects the
 latest request. The log file's folder is created when it does not exist.</p>
+<p>.. deprecated:: 0.5.0
+    Calling it emits a :class:<code>DeprecationWarning</code>. It will be removed in
+    0.6.0, when the library stops configuring logging; configure the
+    standard :mod:<code>logging</code> module in the application instead.</p>
 
 
     </div>

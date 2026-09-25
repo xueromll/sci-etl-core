@@ -667,10 +667,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#renamed-pipeline-settings" class="md-nav__link">
+  <a href="#strict-sections" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Renamed pipeline settings
+        Strict sections
       
     </span>
   </a>
@@ -2533,10 +2533,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#renamed-pipeline-settings" class="md-nav__link">
+  <a href="#strict-sections" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Renamed pipeline settings
+        Strict sections
       
     </span>
   </a>
@@ -2681,7 +2681,7 @@ Scholar, and OpenAlex extractors have no <code>from_config</code>; pass
 <code>config.http.max_retries</code> and <code>config.http.backoff_factor</code> to their
 constructors yourself. The pipeline takes <code>max_concurrency</code>, and <code>run_arguments()</code> returns
 <code>query</code>, <code>page_size</code>, <code>total_limit</code>, <code>sleep_between</code>, and <code>newest_first</code> for
-<code>run()</code>. <code>ETLPipeline.from_config</code> works the same way.</p>
+<code>run()</code>; add <code>max_attempts</code> or <code>start_index</code> yourself when you need them. <code>ETLPipeline.from_config</code> works the same way.</p>
 <p>The search section builds the parameter dataclasses for
 <a href="../../guide/search/">local search</a>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.search</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncHybridSearcher</span><span class="p">,</span> <span class="n">AsyncSqliteFts5Store</span>
@@ -2694,11 +2694,25 @@ constructors yourself. The pipeline takes <code>max_concurrency</code>, and <cod
 <a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>    <span class="n">params</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">search</span><span class="o">.</span><span class="n">hybrid</span><span class="o">.</span><span class="n">to_params</span><span class="p">(),</span>
 <a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="p">)</span>
 </code></pre></div>
-<h2 id="renamed-pipeline-settings">Renamed pipeline settings<a class="headerlink" href="#renamed-pipeline-settings" title="Permanent link">&para;</a></h2>
-<p>In 0.4, <code>pipeline.max_records</code> became <code>total_limit</code> and <code>pipeline.max_workers</code>
-became <code>max_concurrency</code>, the names <code>run()</code> and the pipeline use. The old keys
-still load, with a <code>DeprecationWarning</code>, until 0.5. Setting an old and a new key
-to different values is a <code>ConfigurationError</code>.</p>
+<h2 id="strict-sections">Strict sections<a class="headerlink" href="#strict-sections" title="Permanent link">&para;</a></h2>
+<p>Every section the library defines rejects a key it does not declare, so a typo
+fails loudly instead of being ignored. The <code>ConfigurationError</code> names the key:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Invalid configuration in config.yaml:
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>  search.bm25.titel: Extra inputs are not permitted
+</code></pre></div>
+<p>The keys <code>pipeline.max_records</code> and <code>pipeline.max_workers</code>, renamed in 0.4, are rejected
+the same way since 0.5; use <code>total_limit</code> and <code>max_concurrency</code>. An application
+that must still load a file with unknown keys in the library's sections sets
+<code>strict_sections = False</code> on its config class. Each unknown key is then
+dropped with a <code>UserWarning</code> that names it:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseAppConfig</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyConfig</span><span class="p">(</span><span class="n">BaseAppConfig</span><span class="p">):</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>    <span class="n">strict_sections</span> <span class="o">=</span> <span class="kc">False</span>
+</code></pre></div>
+<p>Top-level sections your application adds are kept either way, and a section
+type you define yourself validates as its own <code>model_config</code> says.</p>
 <h2 id="details">Details<a class="headerlink" href="#details" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>API key.</strong> The key comes from the <code>LLM_API_KEY</code> environment variable
@@ -2711,7 +2725,8 @@ to different values is a <code>ConfigurationError</code>.</p>
   any <code>llm.api_key</code> in the YAML file, which is used only as a fallback. Keep
   keys out of config files anyway.</li>
 <li><strong>Project-specific settings.</strong> <code>BaseAppConfig</code> accepts extra top-level keys,
-  or you can subclass it.</li>
+  or you can subclass it. Keys inside the library's own sections must be ones
+  those sections declare; see <a href="#strict-sections">Strict sections</a>.</li>
 <li><strong>Async loading.</strong> <code>load_config_async</code> takes the same arguments.</li>
 <li><strong>Errors.</strong> A missing or unparseable YAML file, a file whose top level isn't
   a mapping, and a validation failure all raise <code>ConfigurationError</code>.
