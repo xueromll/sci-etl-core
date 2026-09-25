@@ -2362,6 +2362,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2391,7 +2402,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#fixed" class="md-nav__link">
+  <a href="#fixed_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         Fixed
@@ -2480,7 +2491,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#fixed_1" class="md-nav__link">
+  <a href="#fixed_2" class="md-nav__link">
     <span class="md-ellipsis">
       
         Fixed
@@ -2558,7 +2569,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#fixed_2" class="md-nav__link">
+  <a href="#fixed_3" class="md-nav__link">
     <span class="md-ellipsis">
       
         Fixed
@@ -2872,6 +2883,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2901,7 +2923,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#fixed" class="md-nav__link">
+  <a href="#fixed_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         Fixed
@@ -2990,7 +3012,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#fixed_1" class="md-nav__link">
+  <a href="#fixed_2" class="md-nav__link">
     <span class="md-ellipsis">
       
         Fixed
@@ -3068,7 +3090,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#fixed_2" class="md-nav__link">
+  <a href="#fixed_3" class="md-nav__link">
     <span class="md-ellipsis">
       
         Fixed
@@ -3167,91 +3189,82 @@
 <a href="https://semver.org/">Semantic Versioning</a>. Until 1.0, a minor release may
 change behavior; each such change is listed under <strong>Changed</strong>.</p>
 <h2 id="unreleased"><a href="https://github.com/xueromll/sci-etl-core/compare/v0.4.1...HEAD">Unreleased</a><a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
-<p>The 0.5.0 run contract. MIGRATION.md, "Upgrading to 0.5", covers every item
-below that needs a change in calling code.</p>
+<p>This release changes how extractors page through a listing, what run state is
+saved, and how the pipeline is constructed. State saved by 0.4 is upgraded
+automatically. See "Upgrading to 0.5" in MIGRATION.md for code changes.</p>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
-<li><code>ListingPage</code>, the parsed page <code>AsyncExtractor.fetch_page</code> returns, with an
-  opaque <code>next_cursor</code> and a <code>truncated</code> flag for a source that stopped at its
-  own result cap.</li>
-<li><code>OffsetListing</code>, the protocol of an extractor whose cursors are decimal
-  offsets. <code>newest_first</code> runs and <code>run(start_index=)</code> above 0 need it.</li>
-<li><code>StaleCursorError</code>, raised by an extractor that no longer accepts a cursor,
-  and <code>StateStoreError</code>, raised by a state manager for a file written by a newer
-  sci-etl-core.</li>
-<li><code>LegacyExtractorAdapter</code>, which runs an extractor written against the 0.4
-  <code>search</code> and <code>parse_listing</code> contract. It is deprecated on arrival.</li>
-<li>Failure tracking: <code>AsyncStateManager.record_failure</code> and <code>failure_counts</code>,
-  with defaults that track nothing; <code>run(max_attempts=3)</code>; and
-  <code>RunMetrics.quarantined</code>. Both bundled state managers store the attempts and
-  the last error per record, truncated to 4,096 characters.</li>
-<li><code>RunMetrics.listing_truncated</code>, <code>PageFetched.truncated</code>, and
-  <code>PipelineMetadata.truncated</code> report a listing that stopped at a result cap.
-  <code>RunStarted</code>, <code>PageFetched</code>, and <code>PageFinished</code> gain <code>cursor</code>.</li>
-<li><code>BaseAppConfig.strict_sections</code>, the opt-out from strict config sections.</li>
-<li><code>SqlTableSink</code> and <code>Plotly3DSink</code> in <code>sci_etl_core.processors.sinks</code>, blocking
-  <code>TableSink</code>s that take a post-processed <code>DataFrame</code>.</li>
-<li>Schema versions in <code>PRAGMA user_version</code> for the SQLite state database, the
-  SQLite LLM cache, and the SQLite embedding store, and a <code>schema_version</code> key
-  in the file state's metadata. Each store refuses a file written by a newer
-  release.</li>
+<li><strong>Cursor paging.</strong> Extractors return a <code>ListingPage</code> from <code>fetch_page</code>, with
+  the next page's cursor. Extractors that page by offset also implement
+  <code>OffsetListing</code>, which <code>newest_first</code> runs and <code>run(start_index=)</code> require.</li>
+<li><strong>Quarantine for records that keep failing.</strong> <code>run(max_attempts=3)</code> skips a
+  record that has failed in 3 runs. <code>RunMetrics.quarantined</code> counts skipped
+  records. Both bundled state managers store the attempts and last error of
+  each record.</li>
+<li><strong>Result caps are reported.</strong> <code>RunMetrics.listing_truncated</code>,
+  <code>PageFetched.truncated</code>, and <code>PipelineMetadata.truncated</code> show when a source
+  stopped at its result cap. Progress events also include the page <code>cursor</code>.</li>
+<li><strong>Table sinks.</strong> <code>SqlTableSink</code> and <code>Plotly3DSink</code> in
+  <code>sci_etl_core.processors.sinks</code> write a post-processed <code>DataFrame</code>.</li>
+<li><strong>Schema versions.</strong> The SQLite state database, LLM cache, and embedding
+  store, and the file state, record a schema version. A file written by a
+  newer release is refused, with <code>StateStoreError</code> for state files.</li>
+<li><code>StaleCursorError</code>, for a cursor the source no longer accepts.</li>
+<li><code>BaseAppConfig.strict_sections</code>, to opt out of strict config validation.</li>
+<li><code>LegacyExtractorAdapter</code>, which runs an extractor written for 0.4 until it is
+  ported. It is already deprecated.</li>
 </ul>
 <h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
 <ul>
-<li><code>AsyncExtractor</code> has <code>fetch_page(query, cursor, page_size)</code> in place of
-  <code>search</code> and <code>parse_listing</code>, and no longer receives the processed ids: the
-  pipeline skips processed records itself and parses each listing page once.</li>
-<li><code>PipelineMetadata.cursor</code> replaces <code>last_start_index</code>. Both bundled state
-  managers read a file written by 0.4 and turn its saved offset into the cursor.</li>
-<li><code>AsyncOpenAlexExtractor</code> pages with OpenAlex cursors, so a listing is no
-  longer limited to its first 10,000 works. It is not an <code>OffsetListing</code>, so it
-  no longer supports <code>newest_first</code> runs, and an offset saved by 0.4 restarts
-  its listing from the first page once.</li>
-<li><code>AsyncPubMedExtractor</code> and <code>AsyncSemanticScholarExtractor</code> mark the page that
-  reaches their result cap, 9,999 and 1,000 results, as <code>truncated</code>, and end
-  the listing on the page that reaches the search's result count.
-  <code>AsyncPubMedExtractor</code> no longer requests the offset 9,999, which E-utilities
-  rejects.</li>
-<li>A listing that stops at a result cap completes the run and resets the saved
-  cursor, so the next run pages the reachable results again instead of ending
-  at the cap. A stale cursor restarts the listing from its first page once per
-  run.</li>
-<li>A record that fails in <code>max_attempts</code> runs, on pages that processed another
-  record, is skipped as quarantined in later runs. Pass <code>max_attempts=None</code> for
-  the 0.4 behavior.</li>
-<li><code>AsyncETLPipeline</code> and <code>ETLPipeline</code> take the five collaborators positionally
-  and every other argument by keyword, with typed <code>sleep</code>, <code>closeables</code>, and
-  <code>usage_sources</code>. Every argument of <code>run</code> after <code>query</code> is keyword-only, and
-  <code>page_size</code> defaults to 100. Both <code>from_config</code> methods list their arguments
-  instead of taking <code>**arguments</code>.</li>
-<li><code>RawRecord</code>, <code>PipelineMetadata</code>, <code>TokenUsage</code>, <code>RunMetrics</code>, and every event
-  dataclass are keyword-only.</li>
-<li>A key a bundled config section does not declare, such as
-  <code>search.bm25.titel</code>, fails validation.</li>
-<li>sci-etl-core requires Python 3.11 or newer.</li>
+<li><strong>Breaking:</strong> <code>AsyncExtractor.fetch_page(query, cursor, page_size)</code> replaces
+  <code>search</code> and <code>parse_listing</code>. The pipeline now skips processed records
+  itself.</li>
+<li><strong>Breaking:</strong> <code>PipelineMetadata.cursor</code> replaces <code>last_start_index</code>.</li>
+<li><strong>Breaking:</strong> pipeline constructors take the five collaborators by position
+  or name and all other arguments by keyword. <code>run()</code> takes every argument
+  after <code>query</code> by keyword.</li>
+<li><strong>Breaking:</strong> <code>RawRecord</code>, <code>PipelineMetadata</code>, <code>TokenUsage</code>, <code>RunMetrics</code>,
+  and the progress events must be constructed with keyword arguments.</li>
+<li><strong>Breaking:</strong> unknown keys in the library's config sections, such as
+  <code>search.bm25.titel</code>, fail validation instead of being ignored.</li>
+<li><strong>Breaking:</strong> Python 3.11 or newer is required.</li>
+<li>A run that reaches a source's result cap now completes, and the next run
+  starts again from the first page instead of stopping at the cap.</li>
+<li>A cursor the source rejects restarts the listing from the first page once.</li>
+<li><code>AsyncOpenAlexExtractor</code> pages with OpenAlex cursors and is no longer limited
+  to the first 10,000 results. It no longer supports <code>newest_first</code>.</li>
+<li><code>AsyncPubMedExtractor</code> and <code>AsyncSemanticScholarExtractor</code> stop at the last
+  page of results without an extra empty request.</li>
 </ul>
 <h3 id="deprecated">Deprecated<a class="headerlink" href="#deprecated" title="Permanent link">&para;</a></h3>
-<p>These still work in 0.5.x, emit a <code>DeprecationWarning</code>, and are removed in
-0.6.0:</p>
+<p>These keep working in 0.5 and are removed in 0.6.0.</p>
+<p>With a replacement available now (<code>DeprecationWarning</code>):</p>
 <ul>
-<li>every <code>logger=</code> argument, and <code>configure_logging</code>;</li>
 <li>the blocking <code>Extractor</code>, <code>StateManager</code>, <code>Exporter</code>, <code>LLMClient</code>,
-  <code>RelevanceFilter</code>, and <code>EntityExtractor</code> contracts, when subclassed outside
-  the library, and the <code>Sync*Adapter</code>s;</li>
+  <code>RelevanceFilter</code>, and <code>EntityExtractor</code> interfaces and the <code>Sync*Adapter</code>
+  classes;</li>
 <li><code>LegacyExtractorAdapter</code>;</li>
-<li><code>AsyncETLPipeline(destination=)</code>;</li>
-<li><code>AsyncExporter.export</code> and <code>AsyncCsvUpsertExporter</code>, whose replacements
-  arrive in 0.6.0;</li>
 <li><code>AsyncSqlTableExporter</code> and <code>AsyncPlotly3DExporter</code>, replaced by
   <code>SqlTableSink</code> and <code>Plotly3DSink</code>.</li>
+</ul>
+<p>With a replacement arriving in 0.6.0 (<code>PendingDeprecationWarning</code>, so nothing
+needs to change yet):</p>
+<ul>
+<li><code>logger=</code> arguments and <code>configure_logging</code>;</li>
+<li><code>AsyncETLPipeline(destination=)</code>;</li>
+<li><code>AsyncExporter.export</code> and <code>AsyncCsvUpsertExporter</code>.</li>
 </ul>
 <h3 id="removed">Removed<a class="headerlink" href="#removed" title="Permanent link">&para;</a></h3>
 <ul>
 <li>The config keys <code>pipeline.max_records</code> and <code>pipeline.max_workers</code>, the
-  <code>PipelineConfig.max_records</code> and <code>max_workers</code> properties, and
-  <code>run(max_records=)</code>.</li>
-<li><code>sci_etl_core.http.build_retrying_session</code>, <code>requests</code> from the <code>full</code> extra,
-  and <code>types-requests</code> from the <code>lint</code> extra.</li>
+  matching <code>PipelineConfig</code> properties, and <code>run(max_records=)</code>. Use
+  <code>total_limit</code> and <code>max_concurrency</code>.</li>
+<li><code>build_retrying_session</code>, and <code>requests</code> from the <code>full</code> extra.</li>
+</ul>
+<h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>AsyncPubMedExtractor</code> no longer requests results past the 9,999th, which
+  PubMed rejects.</li>
 </ul>
 <h2 id="041-2026-09-25"><a href="https://github.com/xueromll/sci-etl-core/compare/v0.4.0...v0.4.1">0.4.1</a> - 2026-09-25<a class="headerlink" href="#041-2026-09-25" title="Permanent link">&para;</a></h2>
 <h3 id="changed_1">Changed<a class="headerlink" href="#changed_1" title="Permanent link">&para;</a></h3>
@@ -3259,7 +3272,7 @@ below that needs a change in calling code.</p>
 <li><code>HttpConfig.user_agent</code> and <code>build_async_client</code> default to
   <code>sci-etl-core/&lt;installed version&gt;</code> instead of <code>sci-etl-core/0.1</code>.</li>
 </ul>
-<h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
+<h3 id="fixed_1">Fixed<a class="headerlink" href="#fixed_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>load_config_async</code> and <code>AsyncCsvUpsertExporter</code> check whether a file exists
   in a worker thread instead of blocking the event loop.</li>
@@ -3413,7 +3426,7 @@ below that needs a change in calling code.</p>
   behavior-preserving: exception types, messages, transactions, and
   cancellation behavior are unchanged.</li>
 </ul>
-<h3 id="fixed_1">Fixed<a class="headerlink" href="#fixed_1" title="Permanent link">&para;</a></h3>
+<h3 id="fixed_2">Fixed<a class="headerlink" href="#fixed_2" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>AsyncSqliteStateManager</code>: cancelling a task that is awaiting a state
   operation no longer releases the connection while its worker thread is still
@@ -3456,7 +3469,7 @@ below that needs a change in calling code.</p>
   know <code>async with pipeline</code> never suppresses an exception.</li>
 </ul>
 <h2 id="012-2026-09-14"><a href="https://github.com/xueromll/sci-etl-core/compare/v0.1.1...v0.1.2">0.1.2</a> - 2026-09-14<a class="headerlink" href="#012-2026-09-14" title="Permanent link">&para;</a></h2>
-<h3 id="fixed_2">Fixed<a class="headerlink" href="#fixed_2" title="Permanent link">&para;</a></h3>
+<h3 id="fixed_3">Fixed<a class="headerlink" href="#fixed_3" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>max_concurrency</code> of 0 left every record waiting forever. Values below 1 now
   raise <code>ValueError</code>, as do a <code>page_size</code> below 1 and a negative <code>total_limit</code>.</li>

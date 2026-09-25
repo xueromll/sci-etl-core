@@ -2472,7 +2472,8 @@
 <div class="admonition warning">
 <p class="admonition-title">Deprecated in 0.5</p>
 <p>Every <code>logger=</code> argument and <code>configure_logging</code> are deprecated and emit a
-<code>DeprecationWarning</code>; they keep working through 0.5.x. In 0.6.0 each
+<code>PendingDeprecationWarning</code>, since there is nothing to migrate to before
+0.6.0; they keep working through 0.5.x. In 0.6.0 each
 module logs through the standard <code>logging</code> module under the
 <code>sci_etl_core</code> logger, and the library stops configuring logging, so the
 application configures handlers itself, for example with

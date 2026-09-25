@@ -3381,7 +3381,7 @@ own writes.</p>
     :meth:<code>export</code> is replaced in 0.6.0 by an exporter lifecycle of
     <code>open</code>, <code>write</code> per record, <code>flush</code> per page, and <code>aclose</code>.
     Subclassing it outside sci-etl-core emits a
-    :class:<code>DeprecationWarning</code> as advance notice; there is nothing to
+    :class:<code>PendingDeprecationWarning</code> as advance notice; there is nothing to
     migrate to before 0.6.0.</p>
 
 
@@ -3518,7 +3518,7 @@ only the new rows.</p>
 as a formula is written with a leading apostrophe and restored on reload.
 Value columns are numeric and need no escaping.</p>
 <p>.. deprecated:: 0.5.0
-    Constructing it emits a :class:<code>DeprecationWarning</code>. It will be
+    Constructing it emits a :class:<code>PendingDeprecationWarning</code>. It will be
     removed in 0.6.0, which adds its replacement, <code>AsyncCsvExporter</code>;
     keep using it until then.</p>
 
