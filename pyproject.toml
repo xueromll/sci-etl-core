@@ -85,6 +85,7 @@ markers = ["live: calls a real upstream source; deselected unless run with -m li
 addopts = "-m 'not live'"
 filterwarnings = [
     'ignore:.* is deprecated and will be removed in sci-etl-core 0.6.0:DeprecationWarning',
+    'ignore:.* is deprecated and will be removed in sci-etl-core 0.6.0:PendingDeprecationWarning',
 ]
 
 [tool.coverage.report]

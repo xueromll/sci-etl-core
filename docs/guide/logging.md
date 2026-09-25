@@ -2,7 +2,8 @@
 
 !!! warning "Deprecated in 0.5"
     Every `logger=` argument and `configure_logging` are deprecated and emit a
-    `DeprecationWarning`; they keep working through 0.5.x. In 0.6.0 each
+    `PendingDeprecationWarning`, since there is nothing to migrate to before
+    0.6.0; they keep working through 0.5.x. In 0.6.0 each
     module logs through the standard `logging` module under the
     `sci_etl_core` logger, and the library stops configuring logging, so the
     application configures handlers itself, for example with

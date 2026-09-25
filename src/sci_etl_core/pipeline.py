@@ -164,7 +164,10 @@ class ETLPipeline:
         """
         errors: list[Exception] = []
         for resource in self._async.closeables:
-            error = self._close(resource.aclose())
+            aclose = getattr(resource, "aclose", None)
+            if aclose is None:
+                continue
+            error = self._close(aclose())
             if error is not None:
                 errors.append(error)
         if errors and exc is None:

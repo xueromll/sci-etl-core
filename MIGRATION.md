@@ -992,9 +992,9 @@ the galaxy catalogue and its processed ids are left alone.
 
 ## Upgrading to 0.5
 
-0.5 changes the run contract: how extractors page, what the state saves, and
-how the pipeline is constructed. The data contract, meaning entities and
-exporters, changes once more in 0.6. Require the new minor and Python 3.11:
+0.5 changes how extractors page, what the state saves, and how the pipeline
+is constructed. Entities and exporters change in 0.6. Require the new minor
+and Python 3.11:
 
 ```text
 sci-etl-core[async,llm,pdf]>=0.5.0,<0.6
@@ -1165,13 +1165,18 @@ Plotly3DSink(ScatterPlotConfig("x", "y", "z", color_column="size"), "catalogue.h
 
 ### Deprecations with no replacement before 0.6
 
-These warn in 0.5.x and keep working. Their replacements ship in 0.6, so there
-is nothing to change yet: the `destination` argument, `AsyncExporter.export`
-and `AsyncCsvUpsertExporter` (replaced by the exporter lifecycle and
+These keep working in 0.5.x and emit a `PendingDeprecationWarning`, not a
+`DeprecationWarning`, because their replacements ship in 0.6 and there is
+nothing to change yet: the `destination` argument, `AsyncExporter.export` and
+`AsyncCsvUpsertExporter` (replaced by the exporter lifecycle and
 `AsyncCsvExporter`), and every `logger=` argument and `configure_logging`
-(replaced by the standard `logging` module). The blocking contracts and their
-`Sync*Adapter`s warn as well; move to the async contracts, which every
-component already implements.
+(replaced by the standard `logging` module). A test suite run with
+`-W error::DeprecationWarning` therefore keeps passing while it uses them.
+
+The blocking contracts and their `Sync*Adapter`s, `LegacyExtractorAdapter`,
+and the two table exporters emit a `DeprecationWarning`, because their
+replacements exist in 0.5; move to the async contracts, which every component
+already implements, `fetch_page`, and the table sinks.
 
 `build_retrying_session` is removed, and the `full` extra no longer installs
 `requests`.

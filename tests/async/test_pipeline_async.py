@@ -365,7 +365,7 @@ class TestAsyncPipelineContextManager:
         closeable = mocker.Mock()
         closeable.aclose = mocker.AsyncMock()
         pipeline, *_ = _build(mocker, _records(0))
-        pipeline._closeables = [closeable]
+        pipeline._closeables = [closeable, object()]
         async with pipeline as entered:
             assert entered is pipeline
         closeable.aclose.assert_awaited_once()

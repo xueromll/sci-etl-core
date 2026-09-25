@@ -137,7 +137,7 @@ class TestBlockingContracts:
 class TestExporters:
     def test_subclassing_the_async_exporter_outside_the_library_warns_about_export(self):
         message = f"AsyncExporter.export {REMOVAL}; .*open, write, flush, and aclose"
-        with pytest.warns(DeprecationWarning, match=message):
+        with pytest.warns(PendingDeprecationWarning, match=message):
             type("Custom", (AsyncExporter,), {})
 
     def test_the_bundled_exporters_import_without_warning(self):
@@ -146,7 +146,7 @@ class TestExporters:
             type("Bundled", (AsyncExporter,), {"__module__": "sci_etl_core.exporters.example"})
 
     def test_the_csv_upsert_exporter_warns_and_names_its_0_6_replacement(self):
-        with pytest.warns(DeprecationWarning, match=r"AsyncCsvUpsertExporter .*AsyncCsvExporter \(0\.6\.0\)"):
+        with pytest.warns(PendingDeprecationWarning, match=r"AsyncCsvUpsertExporter .*AsyncCsvExporter \(0\.6\.0\)"):
             AsyncCsvUpsertExporter("key", ["value"], DefaultKeyNormalizer())
 
     def test_the_table_exporters_point_to_the_sinks(self):
@@ -158,9 +158,9 @@ class TestExporters:
 
 class TestArguments:
     def test_the_pipeline_destination_and_logger_warn(self, mocker):
-        with pytest.warns(DeprecationWarning, match=r"AsyncETLPipeline\(destination=\) " + REMOVAL):
+        with pytest.warns(PendingDeprecationWarning, match=r"AsyncETLPipeline\(destination=\) " + REMOVAL):
             AsyncETLPipeline(*_collaborators(mocker), destination="out.csv")
-        with pytest.warns(DeprecationWarning, match=r"AsyncETLPipeline\(logger=\) " + REMOVAL):
+        with pytest.warns(PendingDeprecationWarning, match=r"AsyncETLPipeline\(logger=\) " + REMOVAL):
             AsyncETLPipeline(*_collaborators(mocker), logger=print)
 
     def test_a_pipeline_without_them_raises_no_warning(self, mocker):
@@ -169,13 +169,21 @@ class TestArguments:
             AsyncETLPipeline(*_collaborators(mocker))
 
     def test_component_logger_arguments_warn(self, mocker):
-        with pytest.warns(DeprecationWarning, match=r"ShutdownSignal\(logger=\) " + REMOVAL):
+        with pytest.warns(PendingDeprecationWarning, match=r"ShutdownSignal\(logger=\) " + REMOVAL):
             ShutdownSignal(signals=(), logger=print)
-        with pytest.warns(DeprecationWarning, match=r"AsyncOpenAlexExtractor\(logger=\) " + REMOVAL):
+        with pytest.warns(PendingDeprecationWarning, match=r"AsyncOpenAlexExtractor\(logger=\) " + REMOVAL):
             AsyncOpenAlexExtractor(mocker.Mock(), logger=print)
 
+    def test_advance_notices_pass_a_suite_that_errors_on_deprecation_warnings(self, mocker):
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", DeprecationWarning)
+            warnings.simplefilter("ignore", PendingDeprecationWarning)
+            AsyncETLPipeline(*_collaborators(mocker), destination="out.csv", logger=print)
+            AsyncCsvUpsertExporter("key", ["value"], DefaultKeyNormalizer())
+            type("Custom", (AsyncExporter,), {})
+
     def test_configure_logging_warns(self, tmp_path):
-        with pytest.warns(DeprecationWarning, match=f"configure_logging {REMOVAL}"):
+        with pytest.warns(PendingDeprecationWarning, match=f"configure_logging {REMOVAL}"):
             logger = configure_logging("sci-etl-deprecation-test", tmp_path / "run.log")
         for handler in list(logger.handlers):
             handler.close()

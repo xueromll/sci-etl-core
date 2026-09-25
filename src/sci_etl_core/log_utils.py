@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 from typing import NamedTuple
 
-from sci_etl_core._deprecation import warn_deprecated
+from sci_etl_core._deprecation import warn_advance_notice
 
 
 class _Configuration(NamedTuple):
@@ -28,11 +28,11 @@ def configure_logging(name: str, log_file: str | Path, level: int = logging.INFO
     latest request. The log file's folder is created when it does not exist.
 
     .. deprecated:: 0.5.0
-        Calling it emits a :class:`DeprecationWarning`. It will be removed in
+        Calling it emits a :class:`PendingDeprecationWarning`. It will be removed in
         0.6.0, when the library stops configuring logging; configure the
         standard :mod:`logging` module in the application instead.
     """
-    warn_deprecated("configure_logging", "configure the standard logging module in the application instead")
+    warn_advance_notice("configure_logging", "configure the standard logging module in the application instead")
     target = os.path.abspath(log_file)
     current = _CONFIGURED_LOGGERS.get(name)
     if current is not None and (current.log_file, current.level) == (target, level):

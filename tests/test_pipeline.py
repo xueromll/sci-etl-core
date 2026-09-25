@@ -178,7 +178,7 @@ class TestPipelineContextManager:
             exporter=mocker.Mock(spec=AsyncExporter),
             state_manager=mocker.Mock(spec=AsyncStateManager),
             destination="out.csv",
-            closeables=[closeable],
+            closeables=[closeable, object()],
         )
         with pipeline as entered:
             assert entered is pipeline

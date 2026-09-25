@@ -85,7 +85,7 @@ class AsyncOpenAlexExtractor(AsyncExtractor):
         200.
 
         .. deprecated:: 0.5.0
-            ``logger`` emits a :class:`DeprecationWarning`; 0.6.0 logs through
+            ``logger`` emits a :class:`PendingDeprecationWarning`; 0.6.0 logs through
             the standard :mod:`logging` module instead.
 
         Raises:

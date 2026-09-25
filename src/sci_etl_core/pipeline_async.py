@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING, Any, NoReturn
 
-from sci_etl_core._deprecation import warn_deprecated, warn_logger_argument
+from sci_etl_core._deprecation import warn_advance_notice, warn_logger_argument
 from sci_etl_core._listing_position import CursorPosition, NewestFirstPosition, listing_ends
 from sci_etl_core._protocols import SupportsAclose, UsageReporter
 from sci_etl_core.exceptions import (
@@ -188,7 +188,7 @@ class AsyncETLPipeline:
         record's entities.
 
         .. deprecated:: 0.5.0
-            ``destination`` and ``logger`` emit a :class:`DeprecationWarning`.
+            ``destination`` and ``logger`` emit a :class:`PendingDeprecationWarning`.
             In 0.6.0 exporters take their destination when constructed, and
             the pipeline logs through the standard :mod:`logging` module.
 
@@ -199,7 +199,7 @@ class AsyncETLPipeline:
         if max_concurrency < 1:
             raise ValueError("max_concurrency must be a positive integer")
         if destination is not None:
-            warn_deprecated(
+            warn_advance_notice(
                 "AsyncETLPipeline(destination=)",
                 "sci-etl-core 0.6.0 exporters take their destination when they are constructed",
             )
@@ -293,13 +293,18 @@ class AsyncETLPipeline:
     async def __aexit__(self, exc_type: object, exc: BaseException | None, tb: object) -> None:
         """Close every resource, even when an earlier one fails to close.
 
-        A close failure is logged. It is raised only when the block itself
-        succeeded, so teardown never masks the exception that ended the block.
+        A resource without ``aclose``, such as an ``AsyncFileStateManager``,
+        is skipped. A close failure is logged. It is raised only when the block
+        itself succeeded, so teardown never masks the exception that ended the
+        block.
         """
         errors: list[Exception] = []
         for resource in self._closeables:
+            aclose = getattr(resource, "aclose", None)
+            if aclose is None:
+                continue
             try:
-                await resource.aclose()
+                await aclose()
             except Exception as error:
                 self._log(f"Resource close failed: {error!r}")
                 errors.append(error)
