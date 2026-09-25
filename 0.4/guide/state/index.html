@@ -16,7 +16,7 @@
         <link rel="prev" href="../search/store-ownership/">
       
       
-        <link rel="next" href="../shutdown/">
+        <link rel="next" href="../run-semantics/">
       
       
         
@@ -1151,6 +1151,8 @@
       
         
       
+        
+      
     
     
     
@@ -1324,6 +1326,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../run-semantics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Run semantics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2610,7 +2640,9 @@ already processed. The offset is saved after every page, but it only moves
 past a page once every record on it is settled, meaning processed or marked
 irrelevant. When a record fails, or is left over because <code>total_limit</code> was
 reached, the offset stays at the start of that page for the rest of the run,
-so the next run revisits it while skipping everything already processed.</p>
+so the next run revisits it while skipping everything already processed.
+<a href="../run-semantics/">Run semantics</a> lists every rule a run follows, each with
+the test that checks it.</p>
 <p>Records are exported before they are marked processed, so a crash between the
 two re-exports that record on the next run. <code>AsyncCsvUpsertExporter</code> absorbs
 this; an appending exporter of your own should tolerate duplicates.</p>
@@ -2789,13 +2821,13 @@ record.</p>
         
         
           
-          <a href="../shutdown/" class="md-footer__link md-footer__link--next" aria-label="Next: Graceful shutdown">
+          <a href="../run-semantics/" class="md-footer__link md-footer__link--next" aria-label="Next: Run semantics">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Graceful shutdown
+                Run semantics
               </div>
             </div>
             <div class="md-footer__button md-icon">

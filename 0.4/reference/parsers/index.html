@@ -1141,6 +1141,8 @@
       
         
       
+        
+      
     
     
     
@@ -1201,6 +1203,34 @@
     
   
     State, resuming, and errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/run-semantics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Run semantics
   
 
     
@@ -3733,6 +3763,10 @@
 
 
 
+        <p>Contract for turning one document format into plain text.</p>
+<p>Parsers are synchronous and CPU-bound; async callers run them in a worker
+thread.</p>
+
 
 
 
@@ -3827,6 +3861,8 @@ to tell an unreadable artifact apart from a programming error.</p>
               Bases: <code><a class="autorefs autorefs-external" title="abc.ABC" href="https://docs.python.org/3/library/abc.html#abc.ABC">ABC</a></code></p>
 
 
+
+        <p>Contract for reading the tables of a document as text.</p>
 
 
 
@@ -3937,6 +3973,8 @@ to tell an unreadable artifact apart from a programming error.</p>
               Bases: <code><a class="autorefs autorefs-internal" title="            Parser (sci_etl_core.parsers.base.Parser)" href="#sci_etl_core.parsers.base.Parser">Parser</a></code>, <code><a class="autorefs autorefs-internal" title="            TableParser (sci_etl_core.parsers.base.TableParser)" href="#sci_etl_core.parsers.base.TableParser">TableParser</a></code></p>
 
 
+
+        <p>Read PDF text and tables with <code>pdfplumber</code>. Needs the <code>pdf</code> extra.</p>
 
 
 
@@ -4090,6 +4128,10 @@ an empty result rather than discarding text that was already read.</p>
 
 
 
+        <p>Run a :class:<code>~sci_etl_core.parsers.pdf.PdfPlumberParser</code> in a worker thread, off the event loop.</p>
+
+        <p>Wrap <code>sync_parser</code>, or a new <code>PdfPlumberParser</code> when it is <code>None</code>.</p>
+
 
 
 
@@ -4128,6 +4170,31 @@ an empty result rather than discarding text that was already read.</p>
 
     <div class="doc doc-contents ">
 
+        <p>Return the PDF's text, as :meth:<code>PdfPlumberParser.extract_text</code> does.</p>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="            ParsingError (sci_etl_core.exceptions.ParsingError)" href="../models/#sci_etl_core.exceptions.ParsingError">ParsingError</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The payload is not a readable PDF.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
 
     </div>
 
@@ -4149,6 +4216,8 @@ an empty result rather than discarding text that was already read.</p>
 </code></pre></div>
 
     <div class="doc doc-contents ">
+
+        <p>Return the PDF's tables, as :meth:<code>PdfPlumberParser.extract_tables</code> does.</p>
 
 
     </div>
@@ -4361,6 +4430,8 @@ example a PDF-only submission.</p>
 
 
 
+        <p>Read the visible text of an HTML document with the standard <code>html.parser</code> backend.</p>
+
 
 
 
@@ -4394,6 +4465,9 @@ example a PDF-only submission.</p>
 </code></pre></div>
 
     <div class="doc doc-contents ">
+
+        <p>Return the document's text with every run of whitespace collapsed to one space.</p>
+<p>Malformed markup is read leniently.</p>
 
 
     </div>
@@ -5023,6 +5097,8 @@ reference in the reference list, in order.</p>
 
     <div class="doc doc-contents ">
 
+        <p>The article's DOI from <code>identifiers</code>, or <code>None</code>.</p>
+
     </div>
 
 </div>
@@ -5298,6 +5374,11 @@ using the network.</p>
 </code></pre></div>
 
     <div class="doc doc-contents ">
+
+        <p>Cut <code>text</code> at the earliest match of any pattern, such as a references or acknowledgments heading.</p>
+<p>Patterns are regular expressions matched without regard to case. The kept
+text has trailing whitespace removed. <code>text</code> is returned unchanged when
+no pattern matches, and <code>None</code> or <code>""</code> is returned as given.</p>
 
 
     </div>

@@ -1141,6 +1141,8 @@
       
         
       
+        
+      
     
     
     
@@ -1201,6 +1203,34 @@
     
   
     State, resuming, and errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/run-semantics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Run semantics
   
 
     
@@ -4255,6 +4285,13 @@
 
 
 
+        <p>Chat-completion endpoint settings.</p>
+<p>:meth:<code>~sci_etl_core.llm.openai_compatible_async.AsyncOpenAICompatibleClient.from_config</code>
+builds a client from them. <code>api_key</code> is a :class:<code>~pydantic.SecretStr</code>, so it never appears in a
+<code>repr</code> or a log line. :func:<code>load_config</code> takes it from the environment
+variable it names, and falls back to the YAML value when that is unset.
+<code>timeout</code> is in seconds.</p>
+
 
 
 
@@ -4394,6 +4431,7 @@
 
 
         <p>HTTP settings for the clients and extractors that call a remote source.</p>
+<p><code>user_agent</code> defaults to <code>sci-etl-core/&lt;installed version&gt;</code>.</p>
 
 
 
@@ -4427,7 +4465,7 @@
   </span>
 
 <a href="#sci_etl_core.config.HttpConfig.user_agent" class="headerlink" title="Permanent link">&para;</a></h4>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">user_agent</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s1">'sci-etl-core/0.1'</span>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">user_agent</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="n"><span title="sci_etl_core._user_agent.DEFAULT_USER_AGENT">DEFAULT_USER_AGENT</span></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -5094,6 +5132,8 @@ request.</p>
 
     <div class="doc doc-contents ">
 
+        <p>Build the BM25 weights.</p>
+
 
     </div>
 
@@ -5353,6 +5393,8 @@ request.</p>
 
     <div class="doc doc-contents ">
 
+        <p>Build the hybrid search parameters.</p>
+
 
     </div>
 
@@ -5562,6 +5604,8 @@ request.</p>
 
     <div class="doc doc-contents ">
 
+        <p>Build the discovery graph parameters.</p>
+
 
     </div>
 
@@ -5733,6 +5777,11 @@ request.</p>
               Bases: <code><span title="pydantic.BaseModel">BaseModel</span></code></p>
 
 
+
+        <p>Root of an application config: the library's sections, plus any keys a subclass adds.</p>
+<p>Unknown top-level keys are kept rather than rejected, so an application can
+read its own sections from the same YAML file. Subclass it to type those
+sections, and set <code>extra="forbid"</code> in the subclass to reject typos.</p>
 
 
 

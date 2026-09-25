@@ -1141,6 +1141,8 @@
       
         
       
+        
+      
     
     
     
@@ -1201,6 +1203,34 @@
     
   
     State, resuming, and errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/run-semantics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Run semantics
   
 
     
@@ -2889,7 +2919,7 @@ once to stop after saving state; the next run retries unfinished records.</p>
 <tr>
 <td><code>--limit</code></td>
 <td>integer range (<code>0</code> and above)</td>
-<td>Stop after this many relevant records. Overrides pipeline.max_records.</td>
+<td>Stop after this many relevant records. Overrides pipeline.total_limit.</td>
 <td><code>Sentinel.UNSET</code></td>
 </tr>
 <tr>
@@ -2901,7 +2931,7 @@ once to stop after saving state; the next run retries unfinished records.</p>
 <tr>
 <td><code>--workers</code></td>
 <td>integer range (<code>1</code> and above)</td>
-<td>Records processed at once. Overrides pipeline.max_workers.</td>
+<td>Records processed at once. Overrides pipeline.max_concurrency.</td>
 <td><code>Sentinel.UNSET</code></td>
 </tr>
 <tr>

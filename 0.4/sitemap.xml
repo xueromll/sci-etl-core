@@ -2,214 +2,218 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/getting-started/blocking-usage/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/getting-started/configuration/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/getting-started/installation/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/getting-started/quick-start/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/guide/architecture/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/guide/llm-caching/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/guide/logging/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/guide/observability/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/guide/post-processing/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/guide/rate-limiting/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/guide/retries/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
+    </url>
+    <url>
+         <loc>https://xueromll.github.io/sci-etl-core/0.4/guide/run-semantics/</loc>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/guide/semantic-memory/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/guide/shutdown/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/guide/sources/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/guide/state/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/guide/sync-components/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/guide/token-usage/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/guide/search/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/guide/search/backfill/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/guide/search/discovery-graphs/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/guide/search/filters-and-facets/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/guide/search/hybrid-search/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/guide/search/query-syntax/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/guide/search/ranked-search/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/guide/search/store-ownership/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/guide/search/text-stores/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/guide/search/user-interfaces/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/project/changelog/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/project/code-of-conduct/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/project/contributing/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/project/migration/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/project/roadmap/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/project/security/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/reference/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/reference/configuration/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/reference/embeddings/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/reference/exporters/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/reference/extractors/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/reference/llm/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/reference/models/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/reference/parsers/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/reference/pipelines/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/reference/processors/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/reference/search/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/reference/state/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/reference/utilities/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/cli/commands/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/cli/config-file/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/cli/exit-codes/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/cli/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/cli/plugins/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
     <url>
          <loc>https://xueromll.github.io/sci-etl-core/0.4/cli/quick-start/</loc>
-         <lastmod>2026-09-16</lastmod>
+         <lastmod>2026-09-25</lastmod>
     </url>
 </urlset>

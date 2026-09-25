@@ -1141,6 +1141,8 @@
       
         
       
+        
+      
     
     
     
@@ -1201,6 +1203,34 @@
     
   
     State, resuming, and errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/run-semantics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Run semantics
   
 
     
@@ -2709,7 +2739,7 @@ quickly.</p>
 </ul>
 <h2 id="running-tests">Running Tests<a class="headerlink" href="#running-tests" title="Permanent link">&para;</a></h2>
 <p>The suite is offline — no network, live LLM, or embedding service required.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pytest<span class="w">                                                </span><span class="c1"># everything</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pytest<span class="w">                                                </span><span class="c1"># everything offline</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>pytest<span class="w"> </span>tests/async<span class="w">                                    </span><span class="c1"># async components</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>pytest<span class="w"> </span>tests/contract<span class="w">                                 </span><span class="c1"># ABC conformance</span>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>pytest<span class="w"> </span>--cov<span class="o">=</span>sci_etl_core<span class="w"> </span>--cov-report<span class="o">=</span>term-missing<span class="w">   </span><span class="c1"># coverage report</span>
@@ -2718,7 +2748,8 @@ quickly.</p>
 <li><strong>Coverage stays at 100%.</strong> <code>pytest --cov=sci_etl_core</code> fails below 100%
   (configured in <code>pyproject.toml</code>), so new and changed code needs tests that
   cover it. Use <code># pragma: no cover</code> only for lines that can't run on the test
-  platform, such as OS-specific imports.</li>
+  platform, such as OS-specific imports. CI also measures branch coverage and
+  reports it in the job summary; it isn't gated yet.</li>
 <li><strong>Async tests</strong> use an explicit <code>@pytest.mark.asyncio</code> marker (auto mode
   isn't configured), with <code>AsyncMock</code> or the <code>mocker</code> fixture.</li>
 <li><strong>No real network or backoff waits.</strong> Mock HTTP, LLM, and embedding clients,
@@ -2729,7 +2760,46 @@ quickly.</p>
 <li><strong>Property tests.</strong> Put invariants — especially ones two backends must share,
   such as the in-memory and SQLite embedding stores — in Hypothesis tests in
   <code>tests/test_properties.py</code>.</li>
+<li><strong>Public-surface snapshot.</strong> <code>tests/api/public_surface.txt</code> records every
+  stable class, field, method, and function signature, and
+  <code>tests/api/test_public_surface.py</code> fails when the code no longer matches it.
+  When you change the public API on purpose, regenerate the snapshot, commit
+  the diff, and add a CHANGELOG.md entry for it:</li>
 </ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python<span class="w"> </span>tests/api/update_surface.py
+</code></pre></div>
+<p><code>tests/api/surface.py</code> lists the stable names. Every name that
+  <a href="https://github.com/xueromll/sci-etl-cli">sci-etl-cli</a> or
+  <a href="https://github.com/xueromll/udg-catalogue">udg-catalogue</a> imports or
+  subclasses must be among them. <code>tests/api/consumer_surface.txt</code> lists those
+  names. Regenerate it when a consumer's pin changes, reading the catalogue
+  from its fetched remote branch rather than a local checkout that may be
+  behind:</p>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>git<span class="w"> </span>-C<span class="w"> </span>../udg-catalogue<span class="w"> </span>fetch<span class="w"> </span>origin
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>python<span class="w"> </span>tests/api/scan_consumers.py<span class="w"> </span>sci-etl-cli<span class="o">=</span>../sci-etl-cli<span class="w"> </span>udg-catalogue<span class="o">=</span>../udg-catalogue@origin/main
+</code></pre></div>
+- <strong>Live tests.</strong> <code>tests/live</code> runs one small query against each bundled
+  source and checks the records, metadata, and full text it returns. The tests
+  are deselected by default. The Live workflow runs them nightly and is never a
+  required check. Run them locally with <code>pytest -m live tests/live</code>. Keys for a
+  higher rate limit are optional and read from <code>NCBI_API_KEY</code>,
+  <code>SEMANTIC_SCHOLAR_API_KEY</code>, and <code>OPENALEX_MAILTO</code>.
+- <strong>Throughput benchmark.</strong> <code>python benchmarks/run_throughput.py</code> runs every
+  bundled pipeline exporter through <code>AsyncETLPipeline</code> at 1,000, 10,000, and
+  50,000 records and writes the timings to <code>benchmarks/results/&lt;version&gt;.json</code>.
+  An exporter counts as linear when its time per record at the largest size is
+  at most 1.5 times its time at the smallest. <code>--sizes</code>, <code>--repeats</code>, and
+  <code>--exporters</code> narrow a run.
+- <strong>Downstream tests.</strong> The Downstream workflow runs the
+  <a href="https://github.com/xueromll/sci-etl-cli">sci-etl-cli</a> suite against every
+  push and pull request, and fails on any <code>DeprecationWarning</code>. To run it
+  locally, install the CLI without its pinned core and run its suite:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/xueromll/sci-etl-cli.git<span class="w"> </span>../sci-etl-cli
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[async,llm,pdf]"</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>pip<span class="w"> </span>install<span class="w"> </span>--no-deps<span class="w"> </span>-e<span class="w"> </span>../sci-etl-cli
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>pip<span class="w"> </span>install<span class="w"> </span>click<span class="w"> </span>rich<span class="w"> </span>python-dotenv<span class="w"> </span>pytest<span class="w"> </span>pytest-asyncio<span class="w"> </span>pytest-mock
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="nb">cd</span><span class="w"> </span>../sci-etl-cli<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>-W<span class="w"> </span>error::DeprecationWarning
+</code></pre></div>
 <h2 id="code-style">Code Style<a class="headerlink" href="#code-style" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>PEP 8</strong> naming: <code>snake_case</code> functions and variables, <code>CapWords</code> classes,
@@ -2743,10 +2813,15 @@ quickly.</p>
 <li><strong>American English</strong> for identifiers and docstrings.</li>
 </ul>
 <p>ruff and mypy run in CI on every push and pull request, configured in
-<code>pyproject.toml</code>. Run both before opening a PR:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[full,dev,lint]"</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>ruff<span class="w"> </span>check<span class="w"> </span>.
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>mypy
+<code>pyproject.toml</code>. ruff checks the <code>ASYNC</code>, <code>UP</code>, <code>RUF</code>, and <code>PT</code> rule sets
+besides the pycodestyle, Pyflakes, isort, and bugbear rules. mypy checks the
+core contracts (<code>models</code>, <code>exceptions</code>, <code>observability</code>, <code>pipeline_async</code>, and
+every <code>async_base</code> module) with stricter flags: no untyped definitions, no bare
+generics, no returned <code>Any</code>, and no implicit re-exports. Run both before opening
+a PR:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[full,dev,lint]"</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>ruff<span class="w"> </span>check<span class="w"> </span>.
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>mypy
 </code></pre></div>
 <p><code>ruff check --fix .</code> sorts imports and applies the other safe fixes.
 Formatting isn't enforced, so keep unrelated reformatting out of your PR.
@@ -2756,11 +2831,11 @@ Record user-facing changes under the unreleased version in
 <p>The documentation site is built with <a href="https://www.mkdocs.org/">MkDocs</a> and
 <a href="https://squidfunk.github.io/mkdocs-material/">Material for MkDocs</a> from
 <code>mkdocs.yml</code> and the <code>docs/</code> folder, and published to GitHub Pages.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[docs]"</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/xueromll/sci-etl-cli.git<span class="w"> </span>../sci-etl-cli
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>pip<span class="w"> </span>install<span class="w"> </span>--no-deps<span class="w"> </span>-e<span class="w"> </span>../sci-etl-cli
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>mkdocs<span class="w"> </span>serve<span class="w">                                          </span><span class="c1"># preview at http://127.0.0.1:8000</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>mkdocs<span class="w"> </span>build<span class="w"> </span>--strict<span class="w">                                 </span><span class="c1"># the check CI runs</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[docs]"</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/xueromll/sci-etl-cli.git<span class="w"> </span>../sci-etl-cli
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>pip<span class="w"> </span>install<span class="w"> </span>--no-deps<span class="w"> </span>-e<span class="w"> </span>../sci-etl-cli
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>mkdocs<span class="w"> </span>serve<span class="w">                                          </span><span class="c1"># preview at http://127.0.0.1:8000</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>mkdocs<span class="w"> </span>build<span class="w"> </span>--strict<span class="w">                                 </span><span class="c1"># the check CI runs</span>
 </code></pre></div>
 <ul>
 <li><strong>Where pages live.</strong> Guides are Markdown files under <code>docs/</code>, listed in the
@@ -2786,14 +2861,14 @@ Record user-facing changes under the unreleased version in
 </ul>
 <h2 id="commit-format">Commit Format<a class="headerlink" href="#commit-format" title="Permanent link">&para;</a></h2>
 <p>Use <a href="https://www.conventionalcommits.org/">Conventional Commits</a>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>&lt;type&gt;(&lt;scope&gt;): &lt;short summary&gt;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>&lt;type&gt;(&lt;scope&gt;): &lt;short summary&gt;
 </code></pre></div>
 <p>Common types: <code>feat</code>, <code>fix</code>, <code>docs</code>, <code>test</code>, <code>refactor</code>, <code>perf</code>, <code>chore</code>. Mark
 breaking changes with <code>!</code> (e.g. <code>refactor(core)!: ...</code>).</p>
 <p>Examples:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>feat(extractors): add PubMed async extractor
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>fix(exporters): serialize concurrent CSV upserts
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>docs(readme): document ETLPipeline event-loop behavior
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>feat(extractors): add PubMed async extractor
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>fix(exporters): serialize concurrent CSV upserts
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>docs(readme): document ETLPipeline event-loop behavior
 </code></pre></div>
 <p>Keep the summary imperative and under ~72 characters. Reference issues in the
 body (<code>Closes #123</code>).</p>

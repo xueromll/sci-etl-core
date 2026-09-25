@@ -1141,6 +1141,8 @@
       
         
       
+        
+      
     
     
     
@@ -1201,6 +1203,34 @@
     
   
     State, resuming, and errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/run-semantics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Run semantics
   
 
     
@@ -2517,11 +2547,11 @@ is run from.</p>
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
 <a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="nt">pipeline</span><span class="p">:</span>
 <a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">  </span><span class="nt">search_query</span><span class="p">:</span><span class="w"> </span><span class="s">'cat:astro-ph.EP</span><span class="nv"> </span><span class="s">AND</span><span class="nv"> </span><span class="s">abs:"hot</span><span class="nv"> </span><span class="s">Jupiter"'</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">  </span><span class="nt">max_records</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">  </span><span class="nt">total_limit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20</span>
 <a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">  </span><span class="nt">page_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
 <a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">  </span><span class="nt">search_delay</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3.0</span>
 <a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">  </span><span class="nt">sleep_between</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5.0</span>
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">  </span><span class="nt">max_workers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">  </span><span class="nt">max_concurrency</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
 <a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>
 <a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="nt">prompts</span><span class="p">:</span>
 <a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">  </span><span class="nt">relevance</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prompts/relevance.txt</span>
@@ -2590,9 +2620,9 @@ is run from.</p>
 <td>An <a href="https://info.arxiv.org/help/api/user-manual.html#query_details">arXiv API query</a>.</td>
 </tr>
 <tr>
-<td><code>pipeline.max_records</code></td>
+<td><code>pipeline.total_limit</code></td>
 <td><code>100</code></td>
-<td>Relevant records to process per run. <code>run --limit</code> overrides it.</td>
+<td>Relevant records to process per run. <code>run --limit</code> overrides it. Named <code>max_records</code> before sci-etl-core 0.4.</td>
 </tr>
 <tr>
 <td><code>pipeline.page_size</code></td>
@@ -2610,9 +2640,9 @@ is run from.</p>
 <td>Seconds to wait between listing pages.</td>
 </tr>
 <tr>
-<td><code>pipeline.max_workers</code></td>
+<td><code>pipeline.max_concurrency</code></td>
 <td><code>6</code></td>
-<td>Records processed at once.</td>
+<td>Records processed at once. <code>run --workers</code> overrides it. Named <code>max_workers</code> before sci-etl-core 0.4.</td>
 </tr>
 <tr>
 <td><code>prompts.relevance</code></td>
