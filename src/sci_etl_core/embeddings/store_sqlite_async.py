@@ -9,6 +9,7 @@ from typing import Any
 
 import numpy as np
 
+from sci_etl_core._migrations import Migration, migrate, newer_schema_message
 from sci_etl_core._sqlite_async import AsyncSqliteRunner
 from sci_etl_core.embeddings._similarity import unit_vector
 from sci_etl_core.embeddings.store_base import (
@@ -19,17 +20,24 @@ from sci_etl_core.embeddings.store_base import (
 )
 from sci_etl_core.exceptions import EmbeddingStoreError
 
-_SCHEMA = """
-CREATE TABLE IF NOT EXISTS chunks (
-    record_id TEXT NOT NULL,
-    chunk_index INTEGER NOT NULL,
-    text TEXT NOT NULL,
-    dim INTEGER NOT NULL,
-    vector BLOB NOT NULL,
-    metadata TEXT NOT NULL DEFAULT '{}',
-    PRIMARY KEY (record_id, chunk_index)
-);
-"""
+_MIGRATIONS: tuple[Migration, ...] = (
+    (
+        1,
+        (
+            """
+            CREATE TABLE IF NOT EXISTS chunks (
+                record_id TEXT NOT NULL,
+                chunk_index INTEGER NOT NULL,
+                text TEXT NOT NULL,
+                dim INTEGER NOT NULL,
+                vector BLOB NOT NULL,
+                metadata TEXT NOT NULL DEFAULT '{}',
+                PRIMARY KEY (record_id, chunk_index)
+            )
+            """,
+        ),
+    ),
+)
 _INSERT = (
     "INSERT OR REPLACE INTO chunks (record_id, chunk_index, text, dim, vector, metadata)"
     " VALUES (?, ?, ?, ?, ?, ?)"
@@ -55,7 +63,9 @@ class AsyncSqliteEmbeddingStore(AsyncEmbeddingStore):
     :class:`asyncio.Lock` until its thread finishes, even if the awaiting task
     is cancelled meanwhile. Each write is one transaction, rolled back on
     failure, and every SQLite failure (including a file that is not a
-    database) surfaces as :class:`EmbeddingStoreError`.
+    database) surfaces as :class:`EmbeddingStoreError`, as does a file written
+    by a newer sci-etl-core. The file records its schema version in
+    ``PRAGMA user_version``.
 
     Similarity is a linear scan computed in NumPy: every stored vector is loaded
     and dotted against the query. This is exact and dependency-light, and fits
@@ -149,7 +159,10 @@ class AsyncSqliteEmbeddingStore(AsyncEmbeddingStore):
             raise EmbeddingStoreError(f"Failed to open the SQLite embedding store: {exc}") from exc
         try:
             connection.execute("PRAGMA journal_mode=WAL")
-            connection.executescript(_SCHEMA)
+            migrate(connection, _MIGRATIONS, _newer_schema_error)
+        except EmbeddingStoreError:
+            connection.close()
+            raise
         except sqlite3.Error as exc:
             connection.close()
             raise EmbeddingStoreError(f"Failed to open the SQLite embedding store: {exc}") from exc
@@ -214,6 +227,10 @@ class AsyncSqliteEmbeddingStore(AsyncEmbeddingStore):
             vector.tobytes(),
             json.dumps(chunk.metadata),
         )
+
+
+def _newer_schema_error(found: int, supported: int) -> EmbeddingStoreError:
+    return EmbeddingStoreError(newer_schema_message("embedding store", found, supported))
 
 
 def _decode_metadata(text: str) -> dict[str, Any]:

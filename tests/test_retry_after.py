@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import httpx
 import pytest
@@ -13,7 +13,7 @@ from sci_etl_core._retry_after import (
     retry_delay,
 )
 
-NOW = datetime(2026, 9, 14, 12, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 9, 14, 12, 0, tzinfo=UTC)
 
 
 @pytest.mark.parametrize(

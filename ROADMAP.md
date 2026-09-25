@@ -43,7 +43,13 @@ udg-catalogue completes a run on it. Each breaking change gets a
 
 ## v0.5.0 — Run contract
 
-Breaking.
+Breaking. **Status:** implemented, not yet released. PubMed and
+Semantic Scholar keep offset paging and report their caps as truncated:
+E-utilities serves at most 9,999 results even through its history server, and
+Semantic Scholar's bulk search returns fixed pages of 1,000 papers, which
+cannot honor `page_size`. OpenAlex moved to cursor paging. Still open: both
+consumers moving to 0.5.0, and a live check of how long OpenAlex cursors stay
+valid.
 
 - **Extractor pages and cursors.** Extractors return a parsed `ListingPage`
   from `fetch_page(query, cursor, page_size)`, and the pipeline de-duplicates.

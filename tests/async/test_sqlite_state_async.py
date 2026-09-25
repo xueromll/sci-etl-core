@@ -121,23 +121,23 @@ class TestAsyncSqliteStateManagerMetadata:
     @pytest.mark.asyncio
     async def test_defaults_when_absent(self, manager):
         metadata = await manager.load_metadata()
-        assert metadata.last_start_index == 0
+        assert metadata.cursor is None
         assert metadata.last_run_at is None
 
     @pytest.mark.asyncio
     async def test_round_trip_stamps_run_time(self, manager):
         metadata = await manager.load_metadata()
-        metadata.last_start_index = 50
+        metadata.cursor = "50"
         await manager.save_metadata(metadata)
         reloaded = await manager.load_metadata()
-        assert reloaded.last_start_index == 50
+        assert reloaded.cursor == "50"
         assert reloaded.last_run_at is not None
 
     @pytest.mark.asyncio
     async def test_second_save_updates_the_single_row(self, manager):
-        await manager.save_metadata(PipelineMetadata(last_start_index=11))
-        await manager.save_metadata(PipelineMetadata(last_start_index=42))
-        assert (await manager.load_metadata()).last_start_index == 42
+        await manager.save_metadata(PipelineMetadata(cursor="11"))
+        await manager.save_metadata(PipelineMetadata(cursor="42"))
+        assert (await manager.load_metadata()).cursor == "42"
         with closing(sqlite3.connect(manager._database_path)) as reader:
             rows = reader.execute("SELECT COUNT(*) FROM pipeline_metadata").fetchone()
         assert rows[0] == 1
@@ -145,9 +145,9 @@ class TestAsyncSqliteStateManagerMetadata:
     @pytest.mark.asyncio
     async def test_metadata_and_ids_are_independent(self, manager):
         await manager.mark_processed("only-id")
-        await manager.save_metadata(PipelineMetadata(last_start_index=3))
+        await manager.save_metadata(PipelineMetadata(cursor="3"))
         assert await manager.load_processed_ids() == {"only-id"}
-        assert (await manager.load_metadata()).last_start_index == 3
+        assert (await manager.load_metadata()).cursor == "3"
 
 
 class TestAsyncSqliteStateManagerErrors:
@@ -190,10 +190,10 @@ class TestAsyncSqliteStateManagerDurability:
     @pytest.mark.asyncio
     async def test_flush_leaves_state_readable(self, manager):
         await manager.mark_processed("kept")
-        await manager.save_metadata(PipelineMetadata(last_start_index=9))
+        await manager.save_metadata(PipelineMetadata(cursor="9"))
         await manager.flush()
         assert await manager.load_processed_ids() == {"kept"}
-        assert (await manager.load_metadata()).last_start_index == 9
+        assert (await manager.load_metadata()).cursor == "9"
 
     @pytest.mark.asyncio
     async def test_aclose_is_safe_before_any_connection(self, manager, mocker):
@@ -224,13 +224,13 @@ class TestAsyncSqliteStateManagerDurability:
     @pytest.mark.asyncio
     async def test_state_survives_a_new_manager_instance(self, manager, tmp_path):
         await manager.mark_processed("persisted")
-        await manager.save_metadata(PipelineMetadata(last_start_index=17))
+        await manager.save_metadata(PipelineMetadata(cursor="17"))
         await manager.aclose()
 
         reopened = AsyncSqliteStateManager(tmp_path / "nested" / "state.db")
         try:
             assert await reopened.load_processed_ids() == {"persisted"}
-            assert (await reopened.load_metadata()).last_start_index == 17
+            assert (await reopened.load_metadata()).cursor == "17"
         finally:
             await reopened.aclose()
 
@@ -267,7 +267,7 @@ class TestAsyncSqliteStateManagerHeadIds:
     @pytest.mark.asyncio
     async def test_head_ids_and_offset_round_trip(self, manager):
         await manager.save_metadata(
-            PipelineMetadata(last_start_index=9, head_ids=["b", "a"], head_offset=4, tail_ids=["y", "z"])
+            PipelineMetadata(cursor="9", head_ids=["b", "a"], head_offset=4, tail_ids=["y", "z"])
         )
         reloaded = await manager.load_metadata()
         assert reloaded.head_ids == ["b", "a"]
@@ -287,7 +287,7 @@ class TestAsyncSqliteStateManagerHeadIds:
         upgraded = AsyncSqliteStateManager(path)
         try:
             reloaded = await upgraded.load_metadata()
-            assert (reloaded.last_run_at, reloaded.last_start_index) == ("then", 17)
+            assert (reloaded.last_run_at, reloaded.cursor) == ("then", "17")
             assert reloaded.head_ids == []
             assert reloaded.head_offset == 0
             assert reloaded.tail_ids == []

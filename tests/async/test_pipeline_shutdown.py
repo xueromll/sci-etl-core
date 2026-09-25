@@ -6,6 +6,7 @@ import threading
 
 import pytest
 
+from legacy_paging import page_through_search
 from sci_etl_core.exceptions import PipelineAborted, PipelineInterrupted, UpstreamError
 from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.extractors.async_base import AsyncExtractor
@@ -36,6 +37,7 @@ def _collaborators(mocker, pages):
     extractor.search = mocker.AsyncMock(return_value=b"<feed/>")
     extractor.parse_listing = mocker.Mock(side_effect=[(page, len(page)) for page in pages] + [([], 0)] * 5)
     extractor.fetch_full_text = mocker.AsyncMock(side_effect=lambda record: f"text-{record.record_id}")
+    page_through_search(mocker, extractor)
     relevance = mocker.Mock(spec=AsyncRelevanceFilter)
     relevance.is_relevant = mocker.AsyncMock(return_value=True)
     entity = mocker.Mock(spec=AsyncEntityExtractor)
@@ -44,9 +46,11 @@ def _collaborators(mocker, pages):
     exporter.export = mocker.AsyncMock()
     state = mocker.Mock(spec=AsyncStateManager)
     state.load_processed_ids = mocker.AsyncMock(return_value=set())
-    state.load_metadata = mocker.AsyncMock(return_value=PipelineMetadata(last_start_index=40))
+    state.load_metadata = mocker.AsyncMock(return_value=PipelineMetadata(cursor="40"))
     state.mark_processed = mocker.AsyncMock()
     state.save_metadata = mocker.AsyncMock()
+    state.failure_counts = mocker.AsyncMock(return_value={})
+    state.record_failure = mocker.AsyncMock(return_value=1)
     state.flush = mocker.AsyncMock()
     return {
         "extractor": extractor,
@@ -106,8 +110,8 @@ class TestShutdownDuringAPage:
         parts["extractor"].fetch_full_text.side_effect = fetch
         with pytest.raises(PipelineInterrupted):
             await pipeline.run(query="q", page_size=2, total_limit=10)
-        saved = [call.args[0].last_start_index for call in parts["state_manager"].save_metadata.await_args_list]
-        assert saved == [42, 42]
+        saved = [call.args[0].cursor for call in parts["state_manager"].save_metadata.await_args_list]
+        assert saved == ["42", "42"]
         parts["state_manager"].flush.assert_awaited_once()
 
     @pytest.mark.asyncio

@@ -5,6 +5,7 @@ from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Literal
 
+from sci_etl_core._deprecation import warn_logger_argument
 from sci_etl_core.exceptions import EmbeddingError, SearchQueryError
 from sci_etl_core.search.filters import SearchFilter, validate_filters
 from sci_etl_core.search.fusion import FusedHit, FusionParams, FusionStrategy, reciprocal_rank_fusion
@@ -125,6 +126,7 @@ class AsyncHybridSearcher:
         self._finder = finder
         self._strategy = strategy
         self._params = HybridParams() if params is None else params
+        warn_logger_argument("AsyncHybridSearcher", logger)
         self._log = logger or (lambda _msg: None)
 
     async def search(

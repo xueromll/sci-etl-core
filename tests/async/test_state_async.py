@@ -92,45 +92,45 @@ class TestAsyncFileStateManager:
     async def test_invalid_metadata_values_fall_back_to_defaults(self, manager, payload):
         manager._metadata_file.write_text(payload, encoding="utf-8")
         meta = await manager.load_metadata()
-        assert meta.last_start_index == 0
+        assert meta.cursor is None
         assert meta.last_run_at is None
 
     @pytest.mark.asyncio
     async def test_metadata_that_is_not_utf8_falls_back(self, manager):
         manager._metadata_file.write_bytes(b'{"last_start_index": \xff}')
-        assert (await manager.load_metadata()).last_start_index == 0
+        assert (await manager.load_metadata()).cursor is None
 
     @pytest.mark.asyncio
     async def test_metadata_defaults_when_absent(self, manager):
         meta = await manager.load_metadata()
-        assert meta.last_start_index == 0
+        assert meta.cursor is None
         assert meta.last_run_at is None
 
     @pytest.mark.asyncio
     async def test_metadata_round_trip_stamps_run_time(self, manager):
         meta = await manager.load_metadata()
-        meta.last_start_index = 50
+        meta.cursor = "50"
         await manager.save_metadata(meta)
         reloaded = await manager.load_metadata()
-        assert reloaded.last_start_index == 50
+        assert reloaded.cursor == "50"
         assert reloaded.last_run_at is not None
 
     @pytest.mark.asyncio
     async def test_run_time_is_stamped_with_a_utc_offset(self, manager):
-        await manager.save_metadata(PipelineMetadata(last_start_index=1))
+        await manager.save_metadata(PipelineMetadata(cursor="1"))
         reloaded = await manager.load_metadata()
         assert datetime.fromisoformat(reloaded.last_run_at).utcoffset() == timedelta(0)
 
     @pytest.mark.asyncio
     async def test_corrupted_metadata_falls_back(self, manager):
         manager._metadata_file.write_text("{ not valid json", encoding="utf-8")
-        assert (await manager.load_metadata()).last_start_index == 0
+        assert (await manager.load_metadata()).cursor is None
 
     @pytest.mark.asyncio
     async def test_saved_metadata_is_readable_json(self, manager):
-        await manager.save_metadata(PipelineMetadata(last_start_index=7))
+        await manager.save_metadata(PipelineMetadata(cursor="7"))
         payload = json.loads(manager._metadata_file.read_text(encoding="utf-8"))
-        assert payload["last_start_index"] == 7
+        assert (payload["cursor"], payload["schema_version"]) == ("7", 2)
         assert "last_run_date" in payload
 
 
@@ -138,7 +138,7 @@ class TestAsyncFileStateManagerHeadIds:
     @pytest.mark.asyncio
     async def test_head_ids_and_offset_round_trip(self, manager):
         await manager.save_metadata(
-            PipelineMetadata(last_start_index=9, head_ids=["b", "a"], head_offset=4, tail_ids=["y", "z"])
+            PipelineMetadata(cursor="9", head_ids=["b", "a"], head_offset=4, tail_ids=["y", "z"])
         )
         reloaded = await manager.load_metadata()
         assert reloaded.head_ids == ["b", "a"]
@@ -149,7 +149,7 @@ class TestAsyncFileStateManagerHeadIds:
     async def test_a_file_written_before_head_ids_existed_loads_with_defaults(self, manager):
         manager._metadata_file.write_text('{"last_start_index": 12, "last_run_date": "x"}', encoding="utf-8")
         reloaded = await manager.load_metadata()
-        assert reloaded.last_start_index == 12
+        assert reloaded.cursor == "12"
         assert reloaded.head_ids == []
         assert reloaded.head_offset == 0
 

@@ -5,6 +5,7 @@ import itertools
 
 import pytest
 
+from legacy_paging import page_through_search
 from sci_etl_core.exceptions import EmbeddingStoreError, LLMError, PipelineAborted, UpstreamError
 from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.extractors.async_base import AsyncExtractor
@@ -51,6 +52,7 @@ def _parts(mocker, pages, *, relevant=lambda record: True, entities=None):
     extractor.search = mocker.AsyncMock(return_value=b"<feed/>")
     extractor.parse_listing = mocker.Mock(side_effect=[(page, max(len(page), 1)) for page in pages] + [([], 0)] * 5)
     extractor.fetch_full_text = mocker.AsyncMock(side_effect=lambda record: record.record_id)
+    page_through_search(mocker, extractor)
     relevance = mocker.Mock(spec=AsyncRelevanceFilter)
     relevance.is_relevant = mocker.AsyncMock(side_effect=relevant)
     entity = mocker.Mock(spec=AsyncEntityExtractor)
@@ -62,6 +64,8 @@ def _parts(mocker, pages, *, relevant=lambda record: True, entities=None):
     state.load_metadata = mocker.AsyncMock(return_value=PipelineMetadata())
     state.mark_processed = mocker.AsyncMock()
     state.save_metadata = mocker.AsyncMock()
+    state.failure_counts = mocker.AsyncMock(return_value={})
+    state.record_failure = mocker.AsyncMock(return_value=1)
     state.flush = mocker.AsyncMock()
     return {
         "extractor": extractor,
@@ -94,8 +98,8 @@ class TestEvents:
             "PageFetched",
             "RunFinished",
         ]
-        assert events[0] == RunStarted("q", 0, 10, False)
-        assert events[1] == PageFetched(0, 3, 3)
+        assert events[0] == RunStarted(query="q", start_index=0, total_limit=10, newest_first=False, cursor=None)
+        assert events[1] == PageFetched(offset=0, entries=3, new_records=3, cursor=None, truncated=False)
         outcomes = [(event.record_id, event.outcome, event.entities) for event in events[2:5]]
         assert outcomes == [("a", "processed", 1), ("b", "irrelevant", 0), ("c", "processed", 1)]
         assert all(event.duration_seconds > 0 for event in events[2:5])
@@ -276,6 +280,9 @@ class TestMetricsModel:
         assert metrics.token_usage.requests == 1
 
     def test_token_usage_adds_and_subtracts(self):
-        total = TokenUsage(2, 10, 3) + TokenUsage(1, 5, 1)
-        assert total == TokenUsage(3, 15, 4)
-        assert total - TokenUsage(1, 5, 1) == TokenUsage(2, 10, 3)
+        later = TokenUsage(requests=1, prompt_tokens=5, completion_tokens=1)
+        total = TokenUsage(requests=2, prompt_tokens=10, completion_tokens=3) + later
+        assert total == TokenUsage(requests=3, prompt_tokens=15, completion_tokens=4)
+        assert total - TokenUsage(requests=1, prompt_tokens=5, completion_tokens=1) == TokenUsage(
+            requests=2, prompt_tokens=10, completion_tokens=3
+        )

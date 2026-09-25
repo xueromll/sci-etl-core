@@ -13,7 +13,7 @@ from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.extractors.async_base import AsyncExtractor
 from sci_etl_core.llm.extraction_async import AsyncEntityExtractor
 from sci_etl_core.llm.relevance_async import AsyncRelevanceFilter
-from sci_etl_core.models import PipelineMetadata, RawRecord
+from sci_etl_core.models import ListingPage, PipelineMetadata, RawRecord
 from sci_etl_core.pipeline_async import AsyncETLPipeline
 from sci_etl_core.state.async_base import AsyncStateManager
 
@@ -32,17 +32,22 @@ class ShiftingListing(AsyncExtractor):
         self._next_id += count
         self.entries = list(reversed(fresh)) + self.entries
 
-    async def search(self, query: str, max_results: int, start_index: int) -> bytes:
-        self.requested_offsets.append(start_index)
-        return ",".join(self.entries[start_index : start_index + max_results]).encode() or b"-"
+    def cursor_for_offset(self, offset: int) -> str:
+        return str(offset)
 
-    def parse_listing(self, raw_listing: bytes, seen_ids: set[str]) -> tuple[list[RawRecord], int]:
-        ids = [] if raw_listing == b"-" else raw_listing.decode().split(",")
-        records = [RawRecord(record_id, record_id, "abstract") for record_id in ids if record_id not in seen_ids]
-        return records, len(ids)
+    async def fetch_page(self, query: str, cursor: str | None, page_size: int) -> ListingPage:
+        offset = int(cursor or 0)
+        self.requested_offsets.append(offset)
+        ids = self.entries[offset : offset + page_size]
+        records = tuple(RawRecord(record_id=record_id, title=record_id, abstract="abstract") for record_id in ids)
+        return ListingPage(records=records, entries=len(ids), next_cursor=str(offset + len(ids)) if ids else None)
 
     async def fetch_full_text(self, record: RawRecord) -> str:
         return record.record_id
+
+
+def _backlog(metadata: PipelineMetadata) -> int:
+    return int(metadata.cursor or 0)
 
 
 class MemoryState(AsyncStateManager):
@@ -112,7 +117,7 @@ class TestNewestFirstResume:
         assert listing.requested_offsets == [0, 10, 20, 25]
         assert state.metadata.head_ids == listing.entries[:10]
         assert state.metadata.head_offset == 0
-        assert state.metadata.last_start_index == 25
+        assert _backlog(state.metadata) == 25
 
     @pytest.mark.asyncio
     async def test_new_submissions_are_picked_up_without_listing_the_middle_again(self):
@@ -125,13 +130,13 @@ class TestNewestFirstResume:
         assert state.processed == set(listing.entries)
         assert "3 new listing entries since the last run; resuming at 88" in lines
         assert state.metadata.head_ids == listing.entries[:10]
-        assert state.metadata.last_start_index == 98
+        assert _backlog(state.metadata) == 98
 
     @pytest.mark.asyncio
     async def test_a_backlog_left_by_a_limit_resumes_below_the_new_submissions(self):
         listing, state = ShiftingListing(40), MemoryState()
         assert await _run(listing, state, total_limit=20) == 20
-        assert state.metadata.last_start_index == 20
+        assert _backlog(state.metadata) == 20
         listing.publish(12)
         assert await _run(listing, state) == 32
         assert listing.requested_offsets == [0, 10, 20, 30, 40, 50, 52]
@@ -149,7 +154,7 @@ class TestNewestFirstResume:
         saved = state.metadata
         assert saved.head_ids == listing.entries[:10]
         assert saved.head_offset == 0
-        assert saved.last_start_index == 35
+        assert _backlog(saved) == 35
         assert saved.tail_ids == listing.entries[25:35]
         listing.publish(2)
         assert await _run(listing, state) == 3
@@ -167,7 +172,7 @@ class TestNewestFirstResume:
         assert await _run(listing, state, total_limit=10) == 10
         assert state.metadata.head_ids == before.head_ids
         assert state.metadata.head_offset == before.head_offset
-        assert state.metadata.last_start_index == before.last_start_index
+        assert _backlog(state.metadata) == _backlog(before)
         assert await _run(listing, state) == 5
         assert state.processed == set(listing.entries)
 
@@ -181,7 +186,7 @@ class TestNewestFirstResume:
         assert listing.requested_offsets == [0, 10, 20, 30]
         assert "Listing ended before the records last seen at its head; rescanned from offset 0" in lines
         assert state.metadata.head_ids == listing.entries[:10]
-        assert state.metadata.last_start_index == 30
+        assert _backlog(state.metadata) == 30
 
     @pytest.mark.asyncio
     async def test_a_failure_during_a_rescan_holds_the_saved_offset_at_its_page(self):
@@ -189,7 +194,7 @@ class TestNewestFirstResume:
         extraction = FlakyExtraction()
         extraction.failing = {listing.entries[14]}
         assert await _run(listing, state, extraction) == 29
-        assert state.metadata.last_start_index == 10
+        assert _backlog(state.metadata) == 10
 
     @pytest.mark.asyncio
     async def test_a_withdrawn_entry_moves_the_backlog_up(self):
@@ -248,7 +253,7 @@ class TestNewestFirstResume:
         extraction.failing = {listing.entries[39]}
         assert await _run(listing, state, extraction) == 19
         assert listing.requested_offsets == [0, 30, 40, 50, 59]
-        assert state.metadata.last_start_index == 30
+        assert _backlog(state.metadata) == 30
         assert state.metadata.tail_ids == []
         assert await _run(listing, state) == 1
         assert listing.requested_offsets == [0, 10, 20, 30, 40, 50, 59]

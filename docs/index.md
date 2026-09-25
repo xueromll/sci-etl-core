@@ -69,7 +69,8 @@ runs these pipelines from a single YAML file.
   for the next run, and records that keep failing while nothing is processed
   stop the run instead of burning through the rest of the listing.
 - **Resumable, crash-safe state** — plain-file or SQLite backends record
-  processed ids and the listing offset; CSV and metadata writes use atomic
+  processed ids, the listing cursor, and failed attempts, so a record that
+  keeps failing is quarantined; CSV and metadata writes use atomic
   renames. Newest-first listings pick up new papers without rescanning.
 - **Graceful shutdown** — Ctrl+C or SIGTERM lets in-flight records finish,
   flushes state, and raises `PipelineInterrupted`.

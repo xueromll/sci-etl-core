@@ -9,19 +9,19 @@ from typing import Any
 import httpx
 from lxml import etree
 
+from sci_etl_core._deprecation import warn_logger_argument
 from sci_etl_core.exceptions import MalformedResponseError, ParsingError
 from sci_etl_core.extractors._http import RetryingFetcher, parse_document
+from sci_etl_core.extractors._offsets import decimal_cursor, offset_from_cursor
 from sci_etl_core.extractors.async_base import AsyncExtractor
-from sci_etl_core.models import RawRecord
+from sci_etl_core.models import ListingPage, RawRecord
 from sci_etl_core.parsers._xml import local_name, parse_untrusted_xml
 from sci_etl_core.parsers.base import Parser
 from sci_etl_core.parsers.jats import JatsXmlParser
 from sci_etl_core.rate_limiter import RateLimiting
 
 _EUTILS = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
-_MAX_RETMAX = 10_000
-_MAX_RETSTART = 9_999
-_XML_PREAMBLE = re.compile(rb"^\s*(<\?xml[^>]*\?>)?\s*(<!DOCTYPE[^>]*>)?\s*", re.IGNORECASE)
+_MAX_RESULTS = 9_999
 _WHITESPACE = re.compile(r"\s+")
 _MONTHS = ("jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec")
 
@@ -30,7 +30,9 @@ class AsyncPubMedExtractor(AsyncExtractor):
     """Page through PubMed search results through NCBI's E-utilities, newest first by default.
 
     ``query`` is a PubMed search term, with the same syntax as the PubMed
-    website. Each listing page costs two requests: ``esearch`` for the ids and
+    website. Its cursors are decimal offsets, so it is an
+    :class:`~sci_etl_core.extractors.async_base.OffsetListing`. Each listing
+    page costs two requests: ``esearch`` for the ids and
     ``efetch`` for their records. NCBI allows 3 requests per second without an
     ``api_key`` and 10 with one; pass a ``rate_limiter`` that stays under that,
     and identify your project with ``tool`` and ``email``.
@@ -64,13 +66,18 @@ class AsyncPubMedExtractor(AsyncExtractor):
 
         ``full_text_parser`` reads PubMed Central's full text and defaults to
         :class:`~sci_etl_core.parsers.jats.JatsXmlParser`. E-utilities only
-        pages through the first 10,000 results of a search, so ``search``
-        returns an empty listing beyond them.
+        pages through the first 9,999 results of a search, so the listing is
+        ``truncated`` there.
+
+        .. deprecated:: 0.5.0
+            ``logger`` emits a :class:`DeprecationWarning`; 0.6.0 logs through
+            the standard :mod:`logging` module instead.
 
         Raises:
             ValueError: ``max_retries`` is less than 1 or ``max_retry_after`` is
                 negative.
         """
+        warn_logger_argument("AsyncPubMedExtractor", logger)
         self._log = logger or (lambda _msg: None)
         self._fetcher = RetryingFetcher(
             client,
@@ -87,59 +94,62 @@ class AsyncPubMedExtractor(AsyncExtractor):
         self._sort = sort
         self._full_text_parser = full_text_parser or JatsXmlParser()
 
-    async def search(self, query: str, max_results: int, start_index: int) -> bytes:
-        """Fetch the records at offsets ``start_index`` to ``start_index + max_results``.
+    def cursor_for_offset(self, offset: int) -> str:
+        """Return the decimal cursor of the listing page at ``offset``."""
+        return decimal_cursor(offset)
 
-        The page is returned as a ``<pubmed-listing>`` element whose
-        ``entries`` attribute is the number of ids the search returned, wrapped
-        around the ``efetch`` response, so a record PubMed no longer serves
-        still counts toward paging.
+    async def fetch_page(self, query: str, cursor: str | None, page_size: int) -> ListingPage:
+        """Fetch the records at the cursor's offset: ``esearch`` for their ids, then ``efetch`` for the records.
+
+        The page's ``entries`` is the number of ids the search returned, so a
+        record PubMed no longer serves still counts toward paging. The listing
+        ends on the page that reaches the search's result count. E-utilities
+        only serves the first 9,999 results of a search, so a page that
+        reaches that cap, or a cursor past it, is ``truncated`` and ends the
+        listing.
 
         Raises:
             UpstreamError: Every attempt failed transiently.
             ExtractionError: NCBI rejected the request.
-            MalformedResponseError: The ``esearch`` response could not be read.
+            MalformedResponseError: The ``esearch`` or ``efetch`` response
+                could not be read.
+            StaleCursorError: ``cursor`` is not a decimal offset.
         """
-        if start_index > _MAX_RETSTART:
-            self._log(f"PubMed only pages through the first 10,000 results; offset {start_index} is past them")
-            return b'<pubmed-listing entries="0"/>'
+        offset = offset_from_cursor(cursor)
+        if offset >= _MAX_RESULTS:
+            self._log(f"PubMed only pages through the first {_MAX_RESULTS:,} results; offset {offset} is past them")
+            return ListingPage(records=(), entries=0, next_cursor=None, truncated=True)
         params: dict[str, Any] = {
             "db": "pubmed",
             "term": query,
-            "retstart": start_index,
-            "retmax": min(max(1, max_results), _MAX_RETMAX - start_index),
+            "retstart": offset,
+            "retmax": min(max(1, page_size), _MAX_RESULTS - offset),
             "retmode": "json",
             **self._common,
         }
         if self._sort:
             params["sort"] = self._sort
-        ids = self._search_ids(await self._fetcher.fetch(f"{_EUTILS}/esearch.fcgi", "search", params))
+        ids, count = self._search_ids(await self._fetcher.fetch(f"{_EUTILS}/esearch.fcgi", "search", params))
         if not ids:
-            return b'<pubmed-listing entries="0"/>'
+            return ListingPage(records=(), entries=0, next_cursor=None)
         fetch_params = {"db": "pubmed", "id": ",".join(ids), "retmode": "xml", **self._common}
-        records = await self._fetcher.fetch(f"{_EUTILS}/efetch.fcgi", "record fetch", fetch_params)
-        body = _XML_PREAMBLE.sub(b"", records, count=1)
-        return b'<pubmed-listing entries="' + str(len(ids)).encode() + b'">' + body + b"</pubmed-listing>"
+        records = self._records(await self._fetcher.fetch(f"{_EUTILS}/efetch.fcgi", "record fetch", fetch_params))
+        end = offset + len(ids)
+        if count is not None and end >= count:
+            return ListingPage(records=records, entries=len(ids), next_cursor=None)
+        if end >= _MAX_RESULTS:
+            self._log(f"PubMed only pages through the first {_MAX_RESULTS:,} results; the listing stops at {end}")
+            return ListingPage(records=records, entries=len(ids), next_cursor=None, truncated=True)
+        return ListingPage(records=records, entries=len(ids), next_cursor=decimal_cursor(end))
 
-    def parse_listing(self, raw_listing: bytes, seen_ids: set[str]) -> tuple[list[RawRecord], int]:
-        """Parse a page returned by :meth:`search`.
-
-        Raises:
-            MalformedResponseError: The payload is not a ``<pubmed-listing>``.
-        """
+    def _records(self, payload: bytes) -> tuple[RawRecord, ...]:
         try:
-            root = parse_untrusted_xml(raw_listing, "PubMed listing")
+            root = parse_untrusted_xml(payload, "PubMed efetch response")
         except ParsingError as exc:
             raise MalformedResponseError(str(exc)) from exc
-        entries = root.get("entries", "")
-        if local_name(root) != "pubmed-listing" or not entries.isdigit():
-            raise MalformedResponseError("PubMed listing payload is not a <pubmed-listing>")
-        records: list[RawRecord] = []
-        for article in root.iter("PubmedArticle"):
-            record = self._record(article)
-            if record is not None and record.record_id not in seen_ids:
-                records.append(record)
-        return records, int(entries)
+        if local_name(root) != "PubmedArticleSet":
+            raise MalformedResponseError("PubMed efetch response is not a <PubmedArticleSet>")
+        return tuple(record for article in root.iter("PubmedArticle") if (record := self._record(article)))
 
     async def fetch_full_text(self, record: RawRecord) -> str:
         """Return the PubMed Central full text, or the abstract when there is none.
@@ -175,15 +185,17 @@ class AsyncPubMedExtractor(AsyncExtractor):
         return "\n\n".join(block for block in blocks if block)
 
     @staticmethod
-    def _search_ids(payload: bytes) -> list[str]:
+    def _search_ids(payload: bytes) -> tuple[list[str], int | None]:
         try:
-            decoded = json.loads(payload)
-            ids = decoded["esearchresult"]["idlist"]
+            result = json.loads(payload)["esearchresult"]
+            ids = result["idlist"]
         except (ValueError, KeyError, TypeError) as exc:
             raise MalformedResponseError("PubMed esearch response has no id list") from exc
         if not isinstance(ids, list):
             raise MalformedResponseError("PubMed esearch id list is not a list")
-        return [str(value) for value in ids if str(value).strip()]
+        count = result.get("count")
+        total = int(count) if isinstance(count, str) and count.isascii() and count.isdecimal() else None
+        return [str(value) for value in ids if str(value).strip()], total
 
     def _record(self, article: etree._Element) -> RawRecord | None:
         citation = article.find("MedlineCitation")

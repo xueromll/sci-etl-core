@@ -1,68 +1,92 @@
 """In-memory collaborators for the run-semantics tests.
 
 Each fake records what the pipeline asked of it, so a rule's test can assert
-on requests, saved offsets, and marked records instead of on mock call lists.
+on requests, saved cursors, and marked records instead of on mock call lists.
 """
 
 from __future__ import annotations
 
 import dataclasses
-import json
 from collections.abc import Iterable
 from typing import Any
 
-from sci_etl_core.exceptions import LLMError, MalformedResponseError
+from sci_etl_core.exceptions import LLMError, MalformedResponseError, StaleCursorError
 from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.extractors.async_base import AsyncExtractor
 from sci_etl_core.llm.extraction_async import AsyncEntityExtractor
 from sci_etl_core.llm.relevance_async import AsyncRelevanceFilter
-from sci_etl_core.models import PipelineMetadata, RawRecord
+from sci_etl_core.models import ListingPage, PipelineMetadata, RawRecord
 from sci_etl_core.observability import PipelineEvent
 from sci_etl_core.pipeline_async import AsyncETLPipeline
 from sci_etl_core.signals import ShutdownSignal
 from sci_etl_core.state.async_base import AsyncStateManager
-
-MALFORMED = b"malformed"
 
 
 def records(*record_ids: str) -> list[RawRecord]:
     return [RawRecord(record_id=record_id, title=f"title {record_id}", abstract="abstract") for record_id in record_ids]
 
 
-class OffsetListing(AsyncExtractor):
+class Listing(AsyncExtractor):
     """A listing served by offset from a list of records, like arXiv's.
 
-    With ``cap`` set, no entry at or past that offset is served, as OpenAlex
-    and PubMed stop at 10,000 results.
+    With ``cap`` set, no entry at or past that offset is served, and the page
+    that reaches the cap is ``truncated``, as OpenAlex and PubMed stop at their
+    result caps. ``stale`` cursors raise :class:`StaleCursorError`.
     """
 
     def __init__(self, listed: Iterable[RawRecord]) -> None:
         self.listed = list(listed)
         self.requests: list[int] = []
-        self.parses = 0
-        self.search_faults: dict[int, BaseException] = {}
-        self.missing_payloads: set[int] = set()
+        self.cursors: list[str | None] = []
+        self.fetch_faults: dict[int, BaseException] = {}
         self.malformed_pages: set[int] = set()
+        self.stale: set[str | None] = set()
         self.cap: int | None = None
+        self.ends_on_last_page = False
 
-    async def search(self, query: str, max_results: int, start_index: int) -> bytes | None:
-        self.requests.append(start_index)
-        if start_index in self.search_faults:
-            raise self.search_faults[start_index]
-        if start_index in self.missing_payloads:
-            return None
-        if start_index in self.malformed_pages:
-            return MALFORMED
-        end = start_index + max_results if self.cap is None else min(start_index + max_results, self.cap)
-        page = self.listed[start_index:end]
-        return json.dumps([dataclasses.asdict(record) for record in page]).encode()
+    def cursor_for_offset(self, offset: int) -> str:
+        return str(offset)
 
-    def parse_listing(self, raw_listing: bytes, seen_ids: set[str]) -> tuple[list[RawRecord], int]:
-        self.parses += 1
-        if raw_listing == MALFORMED:
+    async def fetch_page(self, query: str, cursor: str | None, page_size: int) -> ListingPage:
+        self.cursors.append(cursor)
+        if cursor in self.stale:
+            self.stale.discard(cursor)
+            raise StaleCursorError(f"cursor {cursor} expired")
+        offset = int(cursor or 0)
+        self.requests.append(offset)
+        if offset in self.fetch_faults:
+            raise self.fetch_faults[offset]
+        if offset in self.malformed_pages:
             raise MalformedResponseError("unreadable listing")
-        entries = [RawRecord(**entry) for entry in json.loads(raw_listing)]
-        return [entry for entry in entries if entry.record_id not in seen_ids], len(entries)
+        end = offset + page_size if self.cap is None else min(offset + page_size, self.cap)
+        page = self.listed[offset:end]
+        truncated = self.cap is not None and end >= self.cap and len(self.listed) > self.cap
+        at_end = self.ends_on_last_page and offset + len(page) >= len(self.listed)
+        next_cursor = None if not page or truncated or at_end else str(offset + len(page))
+        return ListingPage(records=tuple(page), entries=len(page), next_cursor=next_cursor, truncated=truncated)
+
+    async def fetch_full_text(self, record: RawRecord) -> str:
+        return f"text:{record.record_id}"
+
+
+class OpaqueListing(AsyncExtractor):
+    """A listing whose cursors are opaque tokens, like OpenAlex's, ending on the page without a next cursor."""
+
+    def __init__(self, listed: Iterable[RawRecord]) -> None:
+        self.listed = list(listed)
+        self.cursors: list[str | None] = []
+        self.stale: set[str | None] = set()
+
+    async def fetch_page(self, query: str, cursor: str | None, page_size: int) -> ListingPage:
+        self.cursors.append(cursor)
+        if cursor in self.stale:
+            self.stale.discard(cursor)
+            raise StaleCursorError(f"cursor {cursor} expired")
+        offset = 0 if cursor is None else int(cursor.removeprefix("token-"))
+        page = self.listed[offset : offset + page_size]
+        end = offset + len(page)
+        next_cursor = f"token-{end}" if end < len(self.listed) else None
+        return ListingPage(records=tuple(page), entries=len(page), next_cursor=next_cursor)
 
     async def fetch_full_text(self, record: RawRecord) -> str:
         return f"text:{record.record_id}"
@@ -113,7 +137,9 @@ class State(AsyncStateManager):
         self.processed = set(processed)
         self.metadata = metadata or PipelineMetadata()
         self.marked: list[str] = []
-        self.saved_offsets: list[int] = []
+        self.saved_cursors: list[str | None] = []
+        self.failures: dict[str, int] = {}
+        self.errors: dict[str, str] = {}
         self.flushes = 0
         self.flush_fault: BaseException | None = None
 
@@ -123,13 +149,22 @@ class State(AsyncStateManager):
     async def mark_processed(self, record_id: str) -> None:
         self.processed.add(record_id)
         self.marked.append(record_id)
+        self.failures.pop(record_id, None)
+
+    async def record_failure(self, record_id: str, error: str) -> int:
+        self.failures[record_id] = self.failures.get(record_id, 0) + 1
+        self.errors[record_id] = error
+        return self.failures[record_id]
+
+    async def failure_counts(self) -> dict[str, int]:
+        return dict(self.failures)
 
     async def load_metadata(self) -> PipelineMetadata:
         return copied(self.metadata)
 
     async def save_metadata(self, metadata: PipelineMetadata) -> None:
         self.metadata = copied(metadata)
-        self.saved_offsets.append(metadata.last_start_index)
+        self.saved_cursors.append(metadata.cursor)
 
     async def flush(self) -> None:
         self.flushes += 1
@@ -147,7 +182,7 @@ class Sleep:
 
 @dataclasses.dataclass
 class Run:
-    listing: OffsetListing
+    listing: Any
     relevance: Relevance
     entities: Entities
     exporter: Exporter
@@ -160,7 +195,8 @@ class Run:
     async def run(self, **arguments: Any) -> int:
         arguments.setdefault("query", "q")
         arguments.setdefault("sleep_between", 1.0)
-        return await self.pipeline.run(**arguments)
+        query = arguments.pop("query")
+        return await self.pipeline.run(query, **arguments)
 
 
 def build(
@@ -172,8 +208,9 @@ def build(
     max_concurrency: int = 6,
     memory_ingestor: Any = None,
     shutdown: ShutdownSignal | None = None,
+    listing: Any = None,
 ) -> Run:
-    listing = OffsetListing(listed)
+    listing = listing or Listing(listed)
     relevance = Relevance(irrelevant)
     entities = Entities(failing)
     exporter = Exporter()
@@ -182,17 +219,16 @@ def build(
     logged: list[str] = []
     events: list[PipelineEvent] = []
     pipeline = AsyncETLPipeline(
-        extractor=listing,
-        relevance_filter=relevance,
-        entity_extractor=entities,
-        exporter=exporter,
-        state_manager=state,
-        destination="unused",
+        listing,
+        relevance,
+        entities,
+        exporter,
+        state,
         max_concurrency=max_concurrency,
-        logger=logged.append,
         sleep=sleep,
         memory_ingestor=memory_ingestor,
         shutdown=shutdown,
         on_event=events.append,
     )
+    pipeline._log = logged.append
     return Run(listing, relevance, entities, exporter, state, sleep, logged, events, pipeline)

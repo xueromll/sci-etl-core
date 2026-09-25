@@ -7,10 +7,12 @@ from typing import Any
 
 import httpx
 
+from sci_etl_core._deprecation import warn_logger_argument
 from sci_etl_core.exceptions import MalformedResponseError
 from sci_etl_core.extractors._http import RetryingFetcher, parse_document
+from sci_etl_core.extractors._offsets import decimal_cursor, offset_from_cursor
 from sci_etl_core.extractors.async_base import AsyncExtractor
-from sci_etl_core.models import RawRecord
+from sci_etl_core.models import ListingPage, RawRecord
 from sci_etl_core.parsers.base import Parser
 from sci_etl_core.parsers.reference_trimmer import trim_after_references
 from sci_etl_core.rate_limiter import RateLimiting
@@ -25,6 +27,9 @@ _MAX_RESULTS = 1000
 
 class AsyncSemanticScholarExtractor(AsyncExtractor):
     """Page through Semantic Scholar's relevance search for papers.
+
+    Its cursors are decimal offsets, so it is an
+    :class:`~sci_etl_core.extractors.async_base.OffsetListing`.
 
     Each record's ``record_id`` is the Semantic Scholar paper id, and its
     ``metadata`` holds ``authors``, ``categories`` (fields of study),
@@ -60,12 +65,17 @@ class AsyncSemanticScholarExtractor(AsyncExtractor):
         ``year`` and ``fields_of_study`` are passed as Semantic Scholar's
         filters of the same names, such as ``"2020-"`` and ``"Physics"``. The
         relevance search returns at most the first 1,000 results, 100 at a
-        time, so ``search`` returns an empty listing beyond them.
+        time, so the listing is ``truncated`` there.
+
+        .. deprecated:: 0.5.0
+            ``logger`` emits a :class:`DeprecationWarning`; 0.6.0 logs through
+            the standard :mod:`logging` module instead.
 
         Raises:
             ValueError: ``max_retries`` is less than 1 or ``max_retry_after`` is
                 negative.
         """
+        warn_logger_argument("AsyncSemanticScholarExtractor", logger)
         self._log = logger or (lambda _msg: None)
         self._fetcher = RetryingFetcher(
             client,
@@ -81,33 +91,47 @@ class AsyncSemanticScholarExtractor(AsyncExtractor):
         self._pdf_parser = pdf_parser
         self._filters = {"year": year, "fieldsOfStudy": fields_of_study}
 
-    async def search(self, query: str, max_results: int, start_index: int) -> bytes:
-        """Fetch the papers at offsets ``start_index`` to ``start_index + max_results``.
+    def cursor_for_offset(self, offset: int) -> str:
+        """Return the decimal cursor of the listing page at ``offset``."""
+        return decimal_cursor(offset)
+
+    async def fetch_page(self, query: str, cursor: str | None, page_size: int) -> ListingPage:
+        """Fetch the papers at the cursor's offset, skipping papers without an id.
+
+        The listing ends on the page that reaches the search's ``total``, or on
+        a page with no papers. The relevance search serves only the first
+        1,000 results, so a page that reaches them, or a cursor past them, is
+        ``truncated`` and ends the listing. A response without ``data``, which
+        Semantic Scholar sends when nothing matches, is an empty page.
 
         Raises:
             UpstreamError: Every attempt failed transiently.
             ExtractionError: Semantic Scholar rejected the request.
-        """
-        limit = min(max(1, max_results), _MAX_LIMIT, _MAX_RESULTS - start_index)
-        if limit <= 0:
-            self._log(f"Semantic Scholar only returns the first {_MAX_RESULTS} results; {start_index} is past them")
-            return b'{"data": []}'
-        params: dict[str, Any] = {"query": query, "offset": start_index, "limit": limit, "fields": _FIELDS}
-        params.update({name: value for name, value in self._filters.items() if value})
-        return await self._fetcher.fetch(self.API_URL, "search", params)
-
-    def parse_listing(self, raw_listing: bytes, seen_ids: set[str]) -> tuple[list[RawRecord], int]:
-        """Parse a listing page, skipping papers already seen or without an id.
-
-        A response without ``data``, which Semantic Scholar sends when nothing
-        matches, is an empty listing.
-
-        Raises:
             MalformedResponseError: The payload is not a JSON object, or its
                 ``data`` is not a list.
+            StaleCursorError: ``cursor`` is not a decimal offset.
         """
+        offset = offset_from_cursor(cursor)
+        limit = min(max(1, page_size), _MAX_LIMIT, _MAX_RESULTS - offset)
+        if limit <= 0:
+            self._log(f"Semantic Scholar only returns the first {_MAX_RESULTS:,} results; {offset} is past them")
+            return ListingPage(records=(), entries=0, next_cursor=None, truncated=True)
+        params: dict[str, Any] = {"query": query, "offset": offset, "limit": limit, "fields": _FIELDS}
+        params.update({name: value for name, value in self._filters.items() if value})
+        papers, total = self._decode(await self._fetcher.fetch(self.API_URL, "search", params))
+        records = tuple(record for paper in papers if (record := self._record(paper)) is not None)
+        end = offset + len(papers)
+        if not papers or (total is not None and end >= total):
+            return ListingPage(records=records, entries=len(papers), next_cursor=None)
+        if end >= _MAX_RESULTS:
+            self._log(f"Semantic Scholar only returns the first {_MAX_RESULTS:,} results; the listing stops there")
+            return ListingPage(records=records, entries=len(papers), next_cursor=None, truncated=True)
+        return ListingPage(records=records, entries=len(papers), next_cursor=decimal_cursor(end))
+
+    @staticmethod
+    def _decode(payload: bytes) -> tuple[list[Any], int | None]:
         try:
-            decoded = json.loads(raw_listing)
+            decoded = json.loads(payload)
         except ValueError as exc:
             raise MalformedResponseError("Semantic Scholar response is not valid JSON") from exc
         if not isinstance(decoded, dict):
@@ -115,23 +139,22 @@ class AsyncSemanticScholarExtractor(AsyncExtractor):
         papers = decoded.get("data", [])
         if not isinstance(papers, list):
             raise MalformedResponseError("Semantic Scholar listing data is not a list")
-        records: list[RawRecord] = []
-        for paper in papers:
-            if not isinstance(paper, dict):
-                continue
-            record_id = paper.get("paperId")
-            if not isinstance(record_id, str) or not record_id or record_id in seen_ids:
-                continue
-            records.append(
-                RawRecord(
-                    record_id=record_id,
-                    title=str(paper.get("title") or ""),
-                    abstract=str(paper.get("abstract") or ""),
-                    source_url=paper.get("url") if isinstance(paper.get("url"), str) else None,
-                    metadata=self._metadata(paper),
-                )
-            )
-        return records, len(papers)
+        total = decoded.get("total")
+        return papers, total if isinstance(total, int) and not isinstance(total, bool) else None
+
+    def _record(self, paper: Any) -> RawRecord | None:
+        if not isinstance(paper, dict):
+            return None
+        record_id = paper.get("paperId")
+        if not isinstance(record_id, str) or not record_id:
+            return None
+        return RawRecord(
+            record_id=record_id,
+            title=str(paper.get("title") or ""),
+            abstract=str(paper.get("abstract") or ""),
+            source_url=paper.get("url") if isinstance(paper.get("url"), str) else None,
+            metadata=self._metadata(paper),
+        )
 
     async def fetch_full_text(self, record: RawRecord) -> str:
         """Return the open-access PDF's text, or the abstract when there is no usable PDF.

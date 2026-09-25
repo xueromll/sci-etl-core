@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import json
 import sqlite3
-from collections.abc import Iterable, Iterator
-from contextlib import contextmanager
+from collections.abc import Iterable
 
+from sci_etl_core._migrations import Migration, migrate, newer_schema_message, transaction
 from sci_etl_core.exceptions import SearchStoreError
 
 FACET_KEYS_SETTING = "facet_keys"
@@ -66,26 +66,8 @@ _V1_DDL: tuple[str, ...] = (
     """,
 )
 
-MIGRATIONS: tuple[tuple[int, tuple[str, ...]], ...] = ((1, _V1_DDL),)
+MIGRATIONS: tuple[Migration, ...] = ((1, _V1_DDL),)
 SCHEMA_VERSION = MIGRATIONS[-1][0]
-
-
-@contextmanager
-def transaction(connection: sqlite3.Connection, mode: str = "IMMEDIATE") -> Iterator[None]:
-    """Run the block in one explicit transaction on an autocommit connection.
-
-    ``mode`` is ``"IMMEDIATE"`` for a write, which takes the write lock up
-    front, or ``"DEFERRED"`` for a consistent read. The transaction is rolled
-    back if the block raises.
-    """
-    connection.execute(f"BEGIN {mode}")
-    try:
-        yield
-    except BaseException:
-        if connection.in_transaction:
-            connection.execute("ROLLBACK")
-        raise
-    connection.execute("COMMIT")
 
 
 def bootstrap(connection: sqlite3.Connection, facet_keys: Iterable[str]) -> None:
@@ -108,18 +90,11 @@ def bootstrap(connection: sqlite3.Connection, facet_keys: Iterable[str]) -> None
     connection.execute("PRAGMA foreign_keys=ON")
     connection.execute("PRAGMA journal_mode=WAL")
     connection.execute("PRAGMA synchronous=NORMAL")
-    version = connection.execute("PRAGMA user_version").fetchone()[0]
-    if version > SCHEMA_VERSION:
-        raise SearchStoreError(
-            f"The search index has schema version {version}, newer than version {SCHEMA_VERSION} "
-            "that this sci-etl-core supports; upgrade sci-etl-core to open it"
-        )
-    for target, statements in MIGRATIONS:
-        if version < target:
-            with transaction(connection):
-                for statement in statements:
-                    connection.execute(statement)
-                connection.execute(f"PRAGMA user_version = {target}")
+    migrate(
+        connection,
+        MIGRATIONS,
+        lambda found, supported: SearchStoreError(newer_schema_message("search index", found, supported)),
+    )
     if _is_untagged_and_empty(connection):
         with transaction(connection):
             if _is_untagged_and_empty(connection):

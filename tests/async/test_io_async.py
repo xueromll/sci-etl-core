@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from importlib import import_module
+
 import httpx
 import pandas as pd
 import pytest
@@ -72,7 +74,7 @@ class TestAsyncPlotlyExporter:
 
         fig = mocker.MagicMock()
         fig.to_html.return_value = "<html>fig</html>"
-        mocker.patch("sci_etl_core.exporters.plotly_async.px.scatter_3d", return_value=fig)
+        mocker.patch("plotly.express.scatter_3d", return_value=fig)
         frame = pd.DataFrame({"x": [1.0], "y": [2.0], "z": [3.0], "c": ["a"]})
         dest = tmp_path / "o.html"
         await AsyncPlotly3DExporter(_plotly_config()).export(frame, str(dest))
@@ -82,7 +84,7 @@ class TestAsyncPlotlyExporter:
     async def test_noop_when_frame_empty(self, mocker, tmp_path):
         from sci_etl_core.exporters.plotly_async import AsyncPlotly3DExporter
 
-        scatter = mocker.patch("sci_etl_core.exporters.plotly_async.px.scatter_3d")
+        scatter = mocker.patch("plotly.express.scatter_3d")
         frame = pd.DataFrame({"x": [None], "y": [None], "z": [None], "c": ["a"]})
         dest = tmp_path / "o.html"
         await AsyncPlotly3DExporter(_plotly_config()).export(frame, str(dest))
@@ -148,7 +150,7 @@ class TestAsyncPlotlyExporterStyling:
             marker={"sizemode": "diameter", "sizemin": 3},
             layout={"paper_bgcolor": "#0b0f19", "scene": {"aspectmode": "cube"}},
         )
-        scatter = mocker.spy(plotly_async.px, "scatter_3d")
+        scatter = mocker.spy(import_module("plotly.express"), "scatter_3d")
         destination = tmp_path / "map.html"
         await plotly_async.AsyncPlotly3DExporter(config).export(self._frame(), str(destination))
         figure = scatter.spy_return
@@ -172,7 +174,7 @@ class TestAsyncPlotlyExporterStyling:
 
         fig = mocker.MagicMock()
         fig.to_html.return_value = "<html></html>"
-        scatter = mocker.patch("sci_etl_core.exporters.plotly_async.px.scatter_3d", return_value=fig)
+        scatter = mocker.patch("plotly.express.scatter_3d", return_value=fig)
         await AsyncPlotly3DExporter(_plotly_config()).export(self._frame().assign(c="a"), str(tmp_path / "o.html"))
         assert set(scatter.call_args.kwargs) == {"x", "y", "z", "color", "size", "hover_name", "title"}
         fig.update_traces.assert_not_called()

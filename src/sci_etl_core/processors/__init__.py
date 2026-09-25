@@ -18,6 +18,9 @@ _EXPORTS: dict[str, str] = {
     "NumericRangeValidator": "sci_etl_core.processors.validation",
     "Processor": "sci_etl_core.processors.base",
     "ProcessorChain": "sci_etl_core.processors.base",
+    "Plotly3DSink": "sci_etl_core.processors.sinks",
+    "SqlTableSink": "sci_etl_core.processors.sinks",
+    "TableSink": "sci_etl_core.processors.sinks",
     "QualityFlagStep": "sci_etl_core.processors.quality",
     "RecordValidator": "sci_etl_core.processors.validation",
     "TableLayoutStep": "sci_etl_core.processors.shaping",
@@ -34,6 +37,7 @@ if TYPE_CHECKING:
     from sci_etl_core.processors.normalization import DefaultKeyNormalizer, KeyNormalizer, NormalizationStep
     from sci_etl_core.processors.quality import CompletenessStep, QualityFlagStep
     from sci_etl_core.processors.shaping import TableLayoutStep, ValueClipStep
+    from sci_etl_core.processors.sinks import Plotly3DSink, SqlTableSink, TableSink
     from sci_etl_core.processors.validation import (
         CompositeValidator,
         KeywordExclusionValidator,

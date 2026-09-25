@@ -2,26 +2,28 @@ from __future__ import annotations
 
 import asyncio
 import time
-import warnings
-from collections.abc import Callable, Coroutine, Iterable
+from collections.abc import Awaitable, Callable, Iterable
 from contextlib import AbstractContextManager, nullcontext
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING, Any, NoReturn
 
-from sci_etl_core._listing_head import NewestFirstCursor
+from sci_etl_core._deprecation import warn_deprecated, warn_logger_argument
+from sci_etl_core._listing_position import CursorPosition, NewestFirstPosition, listing_ends
+from sci_etl_core._protocols import SupportsAclose, UsageReporter
 from sci_etl_core.exceptions import (
     ExtractionError,
     MalformedResponseError,
     PipelineAborted,
     PipelineInterrupted,
+    StaleCursorError,
 )
 from sci_etl_core.exporters.async_base import AsyncExporter
-from sci_etl_core.extractors.async_base import AsyncExtractor
+from sci_etl_core.extractors.async_base import AsyncExtractor, OffsetListing
 from sci_etl_core.ingest_protocol import MEMORY_FAULTS, MemoryIngestor
 from sci_etl_core.llm.extraction_async import AsyncEntityExtractor
 from sci_etl_core.llm.relevance_async import AsyncRelevanceFilter
-from sci_etl_core.models import RawRecord, TokenUsage
+from sci_etl_core.models import ListingPage, PipelineMetadata, RawRecord, TokenUsage
 from sci_etl_core.observability import (
     PageFetched,
     PageFinished,
@@ -42,7 +44,11 @@ if TYPE_CHECKING:
 _STALLED_PAGES_BEFORE_ABORT = 2
 _STALL_MESSAGE = "Records kept failing and none could be processed"
 _INTERRUPT_MESSAGE = "Run stopped by a shutdown request"
+_STALE_AGAIN_MESSAGE = "The source rejected the listing cursor again after the listing restarted"
+_DEFAULT_PAGE_SIZE = 100
 _STOPPED = object()
+
+Position = CursorPosition | NewestFirstPosition
 
 
 class _Outcome(Enum):
@@ -81,15 +87,35 @@ class _PageBudget:
 class _PageResult:
     processed: int = 0
     deferred: int = 0
-    failures: list[BaseException] = field(default_factory=list)
+    failed: list[tuple[RawRecord, BaseException]] = field(default_factory=list)
 
     @property
     def complete(self) -> bool:
-        return not self.failures and not self.deferred
+        return not self.failed and not self.deferred
 
     @property
     def stalled(self) -> bool:
-        return bool(self.failures) and self.processed == 0
+        return bool(self.failed) and self.processed == 0
+
+
+class _Quarantine:
+    """Records skipped at listing time because they failed ``max_attempts`` times in earlier runs."""
+
+    def __init__(self, attempts: dict[str, int], max_attempts: int | None) -> None:
+        self._attempts = {} if max_attempts is None else {
+            record_id: count for record_id, count in attempts.items() if count >= max_attempts
+        }
+        self._reported: set[str] = set()
+
+    def holds(self, record_id: str) -> bool:
+        return record_id in self._attempts
+
+    def report(self, record_id: str) -> str | None:
+        """Return the log line for ``record_id`` the first time it is skipped in this run."""
+        if record_id in self._reported:
+            return None
+        self._reported.add(record_id)
+        return f"Record {record_id} skipped: quarantined after {self._attempts[record_id]} failed attempts"
 
 
 class AsyncETLPipeline:
@@ -100,7 +126,7 @@ class AsyncETLPipeline:
     text fetched and stored through the optional ``memory_ingestor``, its
     entities extracted and exported, and only then is marked processed, so a
     record that fails is retried on the next run. :meth:`run` describes paging,
-    limits, and aborts.
+    limits, failures, and aborts.
     """
 
     def __init__(
@@ -110,18 +136,22 @@ class AsyncETLPipeline:
         entity_extractor: AsyncEntityExtractor,
         exporter: AsyncExporter,
         state_manager: AsyncStateManager,
-        destination: str,
+        *,
+        destination: str | None = None,
         max_concurrency: int = 6,
         logger: Callable[[str], None] | None = None,
-        sleep: Any = asyncio.sleep,
-        closeables: Iterable[Any] | None = None,
+        sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
+        closeables: Iterable[SupportsAclose] = (),
         memory_ingestor: MemoryIngestor | None = None,
         shutdown: ShutdownSignal | None = None,
         on_event: Callable[[PipelineEvent], None] | None = None,
-        usage_sources: Iterable[Any] = (),
+        usage_sources: Iterable[UsageReporter] = (),
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
         """Wire the pipeline's collaborators together.
+
+        The five collaborators are positional; every other argument is
+        keyword-only.
 
         ``memory_ingestor`` is any :class:`~sci_etl_core.ingest_protocol.MemoryIngestor`,
         such as an ``AsyncChunkIngestor``, an ``AsyncSearchIndexer``, or an
@@ -154,22 +184,36 @@ class AsyncETLPipeline:
         LLM client and embedder, whose tokens used during a run are reported in
         :attr:`last_run_metrics`. ``clock`` measures durations.
 
+        ``destination`` is passed to the exporter's ``export`` with each
+        record's entities.
+
+        .. deprecated:: 0.5.0
+            ``destination`` and ``logger`` emit a :class:`DeprecationWarning`.
+            In 0.6.0 exporters take their destination when constructed, and
+            the pipeline logs through the standard :mod:`logging` module.
+
         Raises:
             ValueError: ``max_concurrency`` is less than 1. A zero-permit
                 semaphore would leave every record waiting forever.
         """
         if max_concurrency < 1:
             raise ValueError("max_concurrency must be a positive integer")
+        if destination is not None:
+            warn_deprecated(
+                "AsyncETLPipeline(destination=)",
+                "sci-etl-core 0.6.0 exporters take their destination when they are constructed",
+            )
+        warn_logger_argument("AsyncETLPipeline", logger)
         self._extractor = extractor
         self._relevance_filter = relevance_filter
         self._entity_extractor = entity_extractor
         self._exporter = exporter
         self._state_manager = state_manager
-        self._destination = destination
+        self._destination = destination or ""
         self._semaphore = asyncio.Semaphore(max_concurrency)
         self._log = logger or (lambda _msg: None)
         self._sleep = sleep
-        self._closeables = list(closeables or [])
+        self._closeables = list(closeables)
         self._memory_ingestor = memory_ingestor
         self._shutdown = shutdown
         self._on_event = on_event
@@ -179,16 +223,50 @@ class AsyncETLPipeline:
         self._last_run_metrics: RunMetrics | None = None
 
     @classmethod
-    def from_config(cls, pipeline: PipelineConfig, **arguments: Any) -> AsyncETLPipeline:
+    def from_config(
+        cls,
+        pipeline: PipelineConfig,
+        extractor: AsyncExtractor,
+        relevance_filter: AsyncRelevanceFilter,
+        entity_extractor: AsyncEntityExtractor,
+        exporter: AsyncExporter,
+        state_manager: AsyncStateManager,
+        *,
+        destination: str | None = None,
+        max_concurrency: int | None = None,
+        logger: Callable[[str], None] | None = None,
+        sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
+        closeables: Iterable[SupportsAclose] = (),
+        memory_ingestor: MemoryIngestor | None = None,
+        shutdown: ShutdownSignal | None = None,
+        on_event: Callable[[PipelineEvent], None] | None = None,
+        usage_sources: Iterable[UsageReporter] = (),
+        clock: Callable[[], float] = time.monotonic,
+    ) -> AsyncETLPipeline:
         """Build a pipeline whose ``max_concurrency`` comes from the ``pipeline`` config section.
 
-        ``arguments`` are the other constructor arguments, the collaborators
-        among them, and may override ``max_concurrency``. Pass the section's
+        The other arguments are the constructor's; ``max_concurrency``
+        overrides the section's value when given. Pass the section's
         :meth:`~sci_etl_core.config.PipelineConfig.run_arguments` to
         :meth:`run`.
         """
-        arguments.setdefault("max_concurrency", pipeline.max_concurrency)
-        return cls(**arguments)
+        return cls(
+            extractor,
+            relevance_filter,
+            entity_extractor,
+            exporter,
+            state_manager,
+            destination=destination,
+            max_concurrency=pipeline.max_concurrency if max_concurrency is None else max_concurrency,
+            logger=logger,
+            sleep=sleep,
+            closeables=closeables,
+            memory_ingestor=memory_ingestor,
+            shutdown=shutdown,
+            on_event=on_event,
+            usage_sources=usage_sources,
+            clock=clock,
+        )
 
     @property
     def last_run_metrics(self) -> RunMetrics | None:
@@ -201,7 +279,7 @@ class AsyncETLPipeline:
         return self._shutdown
 
     @property
-    def closeables(self) -> list[Any]:
+    def closeables(self) -> list[SupportsAclose]:
         """Resources whose ``aclose`` the owning facade should await on teardown."""
         return self._closeables
 
@@ -212,7 +290,7 @@ class AsyncETLPipeline:
     async def __aenter__(self) -> AsyncETLPipeline:
         return self
 
-    async def __aexit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
+    async def __aexit__(self, exc_type: object, exc: BaseException | None, tb: object) -> None:
         """Close every resource, even when an earlier one fails to close.
 
         A close failure is logged. It is raised only when the block itself
@@ -220,11 +298,8 @@ class AsyncETLPipeline:
         """
         errors: list[Exception] = []
         for resource in self._closeables:
-            aclose = getattr(resource, "aclose", None)
-            if aclose is None:
-                continue
             try:
-                await aclose()
+                await resource.aclose()
             except Exception as error:
                 self._log(f"Resource close failed: {error!r}")
                 errors.append(error)
@@ -234,56 +309,86 @@ class AsyncETLPipeline:
     async def run(
         self,
         query: str,
-        page_size: int | None = None,
+        *,
+        page_size: int = _DEFAULT_PAGE_SIZE,
         sleep_between: float = 0.0,
         total_limit: int | None = None,
-        max_records: int | None = None,
         start_index: int | None = None,
         newest_first: bool = False,
+        max_attempts: int | None = 3,
     ) -> int:
-        """Process listings until the ceiling is reached or the source is exhausted.
+        """Process listing pages until the ceiling is reached or the listing ends.
 
-        Paging resumes from the offset saved by the state manager unless
-        ``start_index`` is given. Pass ``0`` to rescan a listing whose order has
-        shifted since the last run: processed records are skipped by id, so a
-        rescan costs listing requests but never reprocesses a record.
+        Every argument after ``query`` is keyword-only. ``total_limit``
+        defaults to ``page_size``.
+
+        Paging resumes from the cursor saved by the state manager unless
+        ``start_index`` is given. Pass ``0`` to rescan a listing from its first
+        page: processed records are skipped by id, so a rescan costs listing
+        requests but never reprocesses a record. A ``start_index`` above 0
+        needs an extractor that pages by offset
+        (:class:`~sci_etl_core.extractors.async_base.OffsetListing`).
 
         Pass ``newest_first=True`` for a listing that puts new submissions
-        first, such as arXiv's. The run pages from offset 0 until it reaches
-        the records the previous run saw at the top of the listing, then jumps
-        to the saved offset moved down by the number of new submissions, less
-        one page to absorb entries removed from the listing, so the records in
-        between are not listed again. A run without saved head
-        records, such as the first one in this mode, rescans from offset 0, as
-        does a run that never finds them. The head records are saved through
-        :class:`~sci_etl_core.models.PipelineMetadata` next to the offset.
+        first, such as arXiv's; it too needs an ``OffsetListing`` extractor.
+        The run pages from offset 0 until it reaches the records the previous
+        run saw at the top of the listing, then jumps to the saved offset moved
+        down by the number of new submissions, less one page to absorb entries
+        removed from the listing, so the records in between are not listed
+        again. A run without saved head records, such as the first one in this
+        mode, rescans from offset 0, as does a run that never finds them. The
+        head records are saved through
+        :class:`~sci_etl_core.models.PipelineMetadata` next to the cursor.
 
-        The saved offset only moves past pages whose every record was settled.
+        The saved cursor only moves past pages whose every record was settled.
         Once a record fails, or is deferred because ``total_limit`` was reached,
-        the offset stays at the start of that page for the rest of the run, so
+        the cursor stays at the start of that page for the rest of the run, so
         the next run revisits the unsettled record instead of skipping it.
         ``total_limit`` is exact: no more relevant records are processed than
-        it allows. ``max_records`` is a deprecated alias that sets both
-        ``page_size`` and ``total_limit`` when they are not given. Records
-        whose ``record_id`` is missing or blank cannot be tracked and are
-        skipped with a log message. ``sleep_between`` is waited between pages,
-        never after the page that reaches ``total_limit``.
+        it allows. Records whose ``record_id`` is missing or blank cannot be
+        tracked and are skipped with a log message. ``sleep_between`` is waited
+        between pages, never after the page that reaches ``total_limit`` or
+        ends the listing.
+
+        A page with no next cursor, or with no entries, ends the listing, and
+        the run completes. An ``OffsetListing`` extractor then saves the offset
+        past the last entry, so entries appended later are found by the next
+        run; any other extractor saves no cursor, so the next run starts from
+        the first page. A page the source marks ``truncated``, because it
+        stopped at its own result cap, completes the run too, reports the cap
+        in :attr:`~sci_etl_core.observability.RunMetrics.listing_truncated` and
+        one log line, and saves no cursor, so the next run pages the reachable
+        results again instead of stopping at the cap.
+        :attr:`~sci_etl_core.models.PipelineMetadata.truncated` records it
+        until a run reaches the end of the listing without a cap. When the
+        source rejects the cursor with
+        :class:`~sci_etl_core.exceptions.StaleCursorError`, the run restarts
+        the listing from its first page, once per run.
+
+        With ``max_attempts`` set, a record's failed attempts are counted
+        through the state manager's ``record_failure``, and a listed record
+        whose attempts reached ``max_attempts`` in earlier runs is skipped as
+        quarantined: it is not processed, counts as settled, and is counted in
+        :attr:`~sci_etl_core.observability.RunMetrics.quarantined`. Failures
+        are counted only from pages that processed a record, or from stalled
+        pages that a later page of the run cleared, so an outage that fails
+        every record never quarantines one. ``max_attempts=None`` counts
+        nothing.
 
         With a ``shutdown`` signal, a shutdown request stops the run cleanly.
         Records already in flight are finished, records not yet started are
         left for the next run, and a pending listing fetch or wait between
-        pages is cancelled. The saved offset does not move past the page that
+        pages is cancelled. The saved cursor does not move past the page that
         was cut short, and :class:`PipelineInterrupted` is raised.
 
         State is flushed through the state manager's ``flush`` whenever a run
         ends, however it ends. A flush failure after the run itself failed is
         logged, so it never hides the original error.
 
-        The only clean exits are an empty listing and reaching ``total_limit``.
-        A page made up entirely of already-processed records is not the end of
-        the data, so paging moves past it. Any other interruption raises
+        A page made up entirely of processed or quarantined records is not the
+        end of the data, so paging moves past it. Any other interruption raises
         :class:`PipelineAborted` carrying the count processed so far, so a
-        transport fault can never be mistaken for end-of-data.
+        transport fault can never be mistaken for the end of the listing.
 
         A page on which records failed and none was processed is a stall. A
         single stall is tolerated, because one transient fault on a page of
@@ -291,34 +396,39 @@ class AsyncETLPipeline:
         page that processes a record clears it.
 
         Raises:
-            ValueError: ``start_index`` or ``total_limit`` is negative, the
-                resolved ``page_size`` is less than 1, or ``start_index`` is
-                given with ``newest_first``.
-            PipelineAborted: A listing could not be fetched or parsed, or
-                records kept failing with none processed: on a second page
-                before any progress, or on the last page before the listing
-                ended. That signals a systemic fault, such as a rejected API key
-                or an unwritable export, rather than one bad record, so the run
-                stops instead of spending calls on every remaining page.
+            ValueError: ``start_index`` or ``total_limit`` is negative,
+                ``page_size`` or ``max_attempts`` is less than 1,
+                ``start_index`` is given with ``newest_first``, or
+                ``newest_first`` or a ``start_index`` above 0 is used with an
+                extractor that is not an ``OffsetListing``. Raised before any
+                request.
+            PipelineAborted: A listing page could not be fetched or parsed, the
+                source rejected the cursor again after a restart, or records
+                kept failing with none processed: on a second page before any
+                progress, or on the last page of the listing. That signals a
+                systemic fault, such as a rejected API key or an unwritable
+                export, rather than one bad record, so the run stops instead of
+                spending calls on every remaining page.
             PipelineInterrupted: A shutdown was requested through ``shutdown``.
                 It subclasses :class:`PipelineAborted`.
         """
-        if max_records is not None:
-            warnings.warn(
-                "run(max_records=) is deprecated and will be removed in sci-etl-core 0.5.0; "
-                "pass page_size and total_limit",
-                DeprecationWarning,
-                stacklevel=2,
-            )
+        offsets = self._extractor if isinstance(self._extractor, OffsetListing) else None
         if start_index is not None and start_index < 0:
             raise ValueError("start_index must not be negative")
         if start_index is not None and newest_first:
             raise ValueError("start_index cannot be combined with newest_first")
-        page_size, total_limit = self._resolve_limits(page_size, total_limit, max_records)
         if page_size < 1:
             raise ValueError("page_size must be a positive integer")
+        if total_limit is None:
+            total_limit = page_size
         if total_limit < 0:
             raise ValueError("total_limit must not be negative")
+        if max_attempts is not None and max_attempts < 1:
+            raise ValueError("max_attempts must be a positive integer or None")
+        if offsets is None and newest_first:
+            raise ValueError(f"newest_first needs an OffsetListing extractor; {type(self._extractor).__name__} is not")
+        if offsets is None and start_index:
+            raise ValueError(f"start_index needs an OffsetListing extractor; {type(self._extractor).__name__} is not")
         self._metrics = RunMetrics()
         started = self._clock()
         usage_before = self._usage_total()
@@ -327,7 +437,7 @@ class AsyncETLPipeline:
             with self._signal_guard():
                 try:
                     processed = await self._run_pages(
-                        query, page_size, sleep_between, total_limit, start_index, newest_first
+                        query, page_size, sleep_between, total_limit, start_index, newest_first, max_attempts
                     )
                 except BaseException:
                     await self._flush_after_failure()
@@ -355,78 +465,132 @@ class AsyncETLPipeline:
         total_limit: int,
         start_index: int | None,
         newest_first: bool,
+        max_attempts: int | None,
     ) -> int:
         processed_ids = await self._state_manager.load_processed_ids()
+        attempts = await self._state_manager.failure_counts() if max_attempts is not None else {}
+        quarantine = _Quarantine(attempts, max_attempts)
         metadata = await self._state_manager.load_metadata()
-        cursor = NewestFirstCursor(metadata, page_size) if newest_first else None
-        if cursor is not None:
-            start_index = 0
-        elif start_index is None:
-            start_index = metadata.last_start_index
-        self._emit(RunStarted(query, start_index, total_limit, newest_first))
+        position = self._position(metadata, page_size, start_index, newest_first)
+        self._emit(
+            RunStarted(
+                query=query,
+                start_index=position.offset,
+                total_limit=total_limit,
+                newest_first=newest_first,
+                cursor=position.cursor,
+            )
+        )
         total_processed = 0
-        offset_settled = True
         stalled_pages = 0
         last_failure: BaseException | None = None
+        held_failures: list[tuple[RawRecord, BaseException]] = []
+        restarted = False
 
         while total_processed < total_limit:
             if self._stop_requested():
                 raise PipelineInterrupted(_INTERRUPT_MESSAGE, total_processed)
-            raw_listing = await self._unless_stopped(
-                self._fetch_listing(query, page_size, start_index, total_processed)
-            )
-            if raw_listing is _STOPPED:
-                raise PipelineInterrupted(_INTERRUPT_MESSAGE, total_processed)
-            records, total_in_listing = self._parse_listing(raw_listing, processed_ids, total_processed)
-            self._metrics.pages += 1
-            self._metrics.listed += total_in_listing
-            self._emit(PageFetched(start_index, total_in_listing, len(records)))
-            if total_in_listing == 0:
-                if cursor is None:
-                    break
-                was_scanning = cursor.scanning
-                resume_at = cursor.listing_ended()
+            cursor, offset = position.cursor, position.offset
+            try:
+                page = await self._unless_stopped(self._fetch_page(query, cursor, page_size, total_processed))
+            except StaleCursorError as exc:
+                if restarted:
+                    raise PipelineAborted(_STALE_AGAIN_MESSAGE, total_processed) from exc
+                restarted = True
+                self._log(f"The source no longer accepts cursor {cursor!r}; restarting the listing from its first page")
+                position.restart()
                 await self._state_manager.save_metadata(metadata)
-                if was_scanning:
-                    self._log("Listing ended before the records last seen at its head; rescanned from offset 0")
-                if resume_at is None:
-                    break
-                self._log(f"Records last seen before the saved offset have moved; paging on from {resume_at}")
-                start_index = resume_at
                 continue
+            if page is _STOPPED:
+                raise PipelineInterrupted(_INTERRUPT_MESSAGE, total_processed)
+            records = self._unprocessed(page, processed_ids, quarantine)
+            self._metrics.pages += 1
+            self._metrics.listed += page.entries
+            self._emit(
+                PageFetched(
+                    offset=offset,
+                    entries=page.entries,
+                    new_records=len(records),
+                    cursor=cursor,
+                    truncated=page.truncated,
+                )
+            )
+            if page.truncated and not self._metrics.listing_truncated:
+                self._metrics.listing_truncated = True
+                self._log("The source stopped the listing at its result cap; the next run starts from the first page")
 
-            page_started = self._clock()
-            page = await self._process_page(records, processed_ids, total_limit - total_processed)
-            self._emit(PageFinished(start_index, self._clock() - page_started, self._metrics.snapshot()))
-            total_processed += page.processed
-            if page.processed:
-                stalled_pages = 0
-            elif page.stalled:
-                stalled_pages += 1
-                last_failure = page.failures[-1]
-                if stalled_pages >= _STALLED_PAGES_BEFORE_ABORT:
-                    self._abort_stalled(total_processed, last_failure)
+            result = _PageResult()
+            if page.entries:
+                page_started = self._clock()
+                result = await self._process_page(records, processed_ids, total_limit - total_processed)
+                self._emit(
+                    PageFinished(
+                        offset=offset,
+                        duration_seconds=self._clock() - page_started,
+                        metrics=self._metrics.snapshot(),
+                        cursor=cursor,
+                    )
+                )
+                total_processed += result.processed
+                if result.processed:
+                    stalled_pages = 0
+                    await self._commit_failures([*held_failures, *result.failed], max_attempts)
+                    held_failures.clear()
+                elif result.stalled:
+                    stalled_pages += 1
+                    last_failure = result.failed[-1][1]
+                    held_failures.extend(result.failed)
+                    if stalled_pages >= _STALLED_PAGES_BEFORE_ABORT:
+                        self._abort_stalled(total_processed, last_failure)
+            if listing_ends(page) and stalled_pages:
+                self._abort_stalled(total_processed, last_failure)
 
-            if cursor is not None:
-                listed_ids = self._listed_ids(raw_listing, total_processed)
-                was_scanning, was_realigned = cursor.scanning, cursor.realigned
-                start_index = cursor.observe_page(start_index, listed_ids, total_in_listing, page.complete)
-                if was_scanning and not cursor.scanning:
-                    self._log(f"{cursor.shift} new listing entries since the last run; resuming at {start_index}")
-                if cursor.realigned and not was_realigned:
-                    self._log(f"Records last seen before the saved offset have moved; paging on from {start_index}")
-            else:
-                start_index += total_in_listing
-                offset_settled = offset_settled and page.complete
-                if offset_settled:
-                    metadata.last_start_index = start_index
+            if page.truncated:
+                position.truncate()
+                await self._state_manager.save_metadata(metadata)
+                break
+            more = position.advance(page, result.complete)
             await self._state_manager.save_metadata(metadata)
+            if not more:
+                break
             if total_processed < total_limit:
                 await self._unless_stopped(self._sleep(sleep_between))
-
-        if stalled_pages:
-            self._abort_stalled(total_processed, last_failure)
         return total_processed
+
+    def _position(
+        self, metadata: PipelineMetadata, page_size: int, start_index: int | None, newest_first: bool
+    ) -> Position:
+        offsets = self._extractor if isinstance(self._extractor, OffsetListing) else None
+        if newest_first and offsets is not None:
+            return NewestFirstPosition(metadata, page_size, offsets, self._log)
+        if start_index is None:
+            return CursorPosition(metadata, metadata.cursor, offsets)
+        cursor = offsets.cursor_for_offset(start_index) if offsets is not None and start_index else None
+        return CursorPosition(metadata, cursor, offsets)
+
+    def _unprocessed(self, page: ListingPage, processed_ids: set[str], quarantine: _Quarantine) -> list[RawRecord]:
+        records: list[RawRecord] = []
+        for record in page.records:
+            if record.record_id in processed_ids:
+                continue
+            if quarantine.holds(record.record_id):
+                message = quarantine.report(record.record_id)
+                if message is not None:
+                    self._metrics.quarantined += 1
+                    self._log(message)
+                continue
+            records.append(record)
+        return records
+
+    async def _commit_failures(
+        self, failures: list[tuple[RawRecord, BaseException]], max_attempts: int | None
+    ) -> None:
+        if max_attempts is None:
+            return
+        for record, error in failures:
+            attempts = await self._state_manager.record_failure(record.record_id, f"{type(error).__name__}: {error}")
+            if attempts >= max_attempts:
+                self._log(f"Record {record.record_id} failed {attempts} times; later runs skip it as quarantined")
 
     def _signal_guard(self) -> AbstractContextManager[Any]:
         if self._shutdown is None:
@@ -436,7 +600,7 @@ class AsyncETLPipeline:
     def _stop_requested(self) -> bool:
         return self._shutdown is not None and self._shutdown.triggered
 
-    async def _unless_stopped(self, work: Coroutine[Any, Any, Any]) -> Any:
+    async def _unless_stopped(self, work: Awaitable[Any]) -> Any:
         """Await ``work``, or cancel it and return ``_STOPPED`` once a shutdown is requested.
 
         Only work that settles no record state is raced this way: a listing
@@ -477,7 +641,7 @@ class AsyncETLPipeline:
         if usage_after is not None:
             self._metrics.token_usage = usage_after - (usage_before or TokenUsage())
         self._last_run_metrics = self._metrics.snapshot()
-        self._emit(RunFinished(self._metrics.snapshot()))
+        self._emit(RunFinished(metrics=self._metrics.snapshot()))
 
     def _record_finished(
         self,
@@ -490,7 +654,16 @@ class AsyncETLPipeline:
         self._metrics.count(outcome)
         self._metrics.entities_exported += entities
         duration = 0.0 if started is None else self._clock() - started
-        self._emit(RecordFinished(record.record_id, record.title, outcome, duration, entities, error))
+        self._emit(
+            RecordFinished(
+                record_id=record.record_id,
+                title=record.title,
+                outcome=outcome,
+                duration_seconds=duration,
+                entities=entities,
+                error=error,
+            )
+        )
 
     async def _flush_after_failure(self) -> None:
         try:
@@ -498,32 +671,19 @@ class AsyncETLPipeline:
         except Exception as error:
             self._log(f"State flush failed: {error!r}")
 
-    def _listed_ids(self, raw_listing: bytes, partial_count: int) -> list[str]:
-        records, _ = self._parse_listing(raw_listing, set(), partial_count)
-        return [record.record_id for record in records if record.record_id]
-
     @staticmethod
     def _abort_stalled(partial_count: int, cause: BaseException | None) -> NoReturn:
         raise PipelineAborted(_STALL_MESSAGE, partial_count) from cause
 
-    async def _fetch_listing(
-        self, query: str, page_size: int, start_index: int, partial_count: int
-    ) -> bytes:
+    async def _fetch_page(self, query: str, cursor: str | None, page_size: int, partial_count: int) -> ListingPage:
         try:
-            raw_listing = await self._extractor.search(query, page_size, start_index)
-        except ExtractionError as exc:
-            raise PipelineAborted("Listing fetch failed", partial_count) from exc
-        if not raw_listing:
-            raise PipelineAborted("Listing fetch returned no payload", partial_count)
-        return raw_listing
-
-    def _parse_listing(
-        self, raw_listing: bytes, processed_ids: set[str], partial_count: int
-    ) -> tuple[list[RawRecord], int]:
-        try:
-            return self._extractor.parse_listing(raw_listing, processed_ids)
+            return await self._extractor.fetch_page(query, cursor, page_size)
+        except StaleCursorError:
+            raise
         except MalformedResponseError as exc:
             raise PipelineAborted("Listing payload was malformed", partial_count) from exc
+        except ExtractionError as exc:
+            raise PipelineAborted("Listing fetch failed", partial_count) from exc
 
     async def _process_page(
         self, records: list[RawRecord], processed_ids: set[str], remaining: int
@@ -542,31 +702,15 @@ class AsyncETLPipeline:
             return_exceptions=True,
         )
         page = _PageResult()
-        for result in results:
+        for record, result in zip(trackable, results, strict=True):
             if isinstance(result, BaseException):
                 self._log(f"Record processing failed: {result!r}")
-                page.failures.append(result)
+                page.failed.append((record, result))
             elif result is _Outcome.DEFERRED:
                 page.deferred += 1
             elif result is _Outcome.PROCESSED:
                 page.processed += 1
         return page
-
-    @staticmethod
-    def _resolve_limits(
-        page_size: int | None, total_limit: int | None, max_records: int | None
-    ) -> tuple[int, int]:
-        """Resolve the per-request page size and the overall processing ceiling.
-
-        ``max_records`` is a backward-compatible alias: when supplied it seeds
-        both the page size and the total limit, matching the historic behavior
-        where a single value served both roles.
-        """
-        if page_size is None:
-            page_size = max_records if max_records is not None else 100
-        if total_limit is None:
-            total_limit = max_records if max_records is not None else page_size
-        return page_size, total_limit
 
     async def _process_record(
         self, record: RawRecord, processed_ids: set[str], budget: _PageBudget

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from enum import Enum
 
 from sci_etl_core.models import PipelineMetadata
@@ -19,12 +19,14 @@ class NewestFirstCursor:
     """Resume a newest-first listing whose entries shift down as submissions arrive.
 
     The metadata describes one listing snapshot: ``head_ids`` were seen from
-    position ``head_offset``, every entry before ``last_start_index`` was
-    settled, and ``tail_ids`` are the last entries before that offset.
+    position ``head_offset``, every entry before the offset in ``cursor``
+    was settled, and ``tail_ids`` are the last entries before that offset.
+    The cursor is written through ``cursor_for_offset``, and ``None`` stands
+    for offset 0.
 
     A run pages from offset 0 until one of the head ids turns up. Its new
     position gives the shift, the number of submissions that arrived since, so
-    the backlog now starts at ``last_start_index + shift``. The head scan goes
+    the backlog now starts at the saved offset plus the shift. The head scan goes
     on until it has passed every saved head id, and then the run jumps to
     the page just before that offset and checks that the tail ids are on it.
     If they are, everything between the head and that page was settled by
@@ -40,12 +42,13 @@ class NewestFirstCursor:
     offset 0 and the metadata is rebuilt from it.
     """
 
-    def __init__(self, metadata: PipelineMetadata, page_size: int) -> None:
+    def __init__(self, metadata: PipelineMetadata, page_size: int, cursor_for_offset: Callable[[int], str]) -> None:
         self._metadata = metadata
         self._page_size = page_size
+        self._cursor_for_offset = cursor_for_offset
         self._saved_ids = list(metadata.head_ids)
         self._saved_offset = metadata.head_offset
-        self._saved_backlog = metadata.last_start_index
+        self._saved_backlog = _decimal_offset(metadata.cursor)
         self._saved_tail = set(metadata.tail_ids)
         self._mode = _Mode.SCANNING if self._saved_ids else _Mode.RESCAN
         self._unsettled_head: tuple[int, list[str]] | None = None
@@ -116,10 +119,10 @@ class NewestFirstCursor:
         probe = self._saved_backlog + self.shift - self._page_size
         if self._saved_tail and probe > next_offset:
             self._mode = _Mode.PROBING
-            self._metadata.last_start_index = self._saved_backlog + self.shift
+            self._set_backlog(self._saved_backlog + self.shift)
             return probe
         self._mode = _Mode.BACKLOG
-        self._metadata.last_start_index, self._metadata.tail_ids = next_offset, tail
+        self._set_backlog(next_offset, tail)
         return next_offset
 
     def _observe_probe(
@@ -129,29 +132,33 @@ class NewestFirstCursor:
             return self._fall_back()
         self._mode = _Mode.BACKLOG
         if complete:
-            self._metadata.last_start_index, self._metadata.tail_ids = next_offset, tail
+            self._set_backlog(next_offset, tail)
         else:
             self._backlog_settled = False
-            self._metadata.last_start_index, self._metadata.tail_ids = page_start, []
+            self._set_backlog(page_start, [])
         return next_offset
 
     def _fall_back(self) -> int:
         self.realigned = True
         self._mode = _Mode.BACKLOG
-        self._metadata.last_start_index, self._metadata.tail_ids = self._head_end, self._head_end_tail
+        self._set_backlog(self._head_end, self._head_end_tail)
         return self._head_end
 
     def _settle_backlog(self, next_offset: int, tail: list[str], complete: bool) -> None:
         self._backlog_settled = self._backlog_settled and complete
         if self._backlog_settled:
-            self._metadata.last_start_index, self._metadata.tail_ids = next_offset, tail
+            self._set_backlog(next_offset, tail)
 
     def _adopt_scan(self) -> None:
         self._mode = _Mode.RESCAN
         self._metadata.head_ids = list(self._fresh_ids)
         self._metadata.head_offset = 0
-        self._metadata.last_start_index = self._scan_offset
-        self._metadata.tail_ids = list(self._scan_tail)
+        self._set_backlog(self._scan_offset, list(self._scan_tail))
+
+    def _set_backlog(self, offset: int, tail: list[str] | None = None) -> None:
+        self._metadata.cursor = self._cursor_for_offset(offset) if offset else None
+        if tail is not None:
+            self._metadata.tail_ids = tail
 
     def _locate(self, page_start: int, listed_ids: Sequence[str]) -> int | None:
         saved_positions = {record_id: self._saved_offset + index for index, record_id in enumerate(self._saved_ids)}
@@ -160,3 +167,9 @@ class NewestFirstCursor:
             if saved_position is not None:
                 return page_start + index - saved_position
         return None
+
+
+def _decimal_offset(cursor: str | None) -> int:
+    if cursor is None or not cursor.isascii() or not cursor.isdecimal():
+        return 0
+    return int(cursor)

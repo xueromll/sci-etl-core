@@ -25,7 +25,7 @@ def test_values_that_are_not_token_counts_are_ignored():
 
 def test_clients_that_do_not_track_usage_report_none():
     class EchoClient(AsyncLLMClient):
-        async def complete_json(self, system_prompt, user_content, timeout=None):
+        async def complete_json(self, system_prompt, user_content, timeout=None):  # noqa: ASYNC109
             return {}
 
     class ZeroEmbedder(AsyncEmbedder):

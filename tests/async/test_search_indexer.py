@@ -22,7 +22,13 @@ from sci_etl_core.search.store_base import SearchDocument
 from sci_etl_core.search.store_memory import InMemoryTextSearchStore
 from sci_etl_core.state.async_base import AsyncStateManager
 
-RECORD = RawRecord("r1", "Dwarf galaxies", "An abstract", "https://arxiv.org/abs/r1", {"categories": ["GA"]})
+RECORD = RawRecord(
+    record_id="r1",
+    title="Dwarf galaxies",
+    abstract="An abstract",
+    source_url="https://arxiv.org/abs/r1",
+    metadata={"categories": ["GA"]},
+)
 
 
 class _Recording:
@@ -56,7 +62,12 @@ class TestAsyncSearchIndexer:
     @pytest.mark.asyncio
     async def test_stores_the_title_abstract_text_and_a_copy_of_the_metadata(self):
         store = InMemoryTextSearchStore(facet_keys=("categories",))
-        record = RawRecord("r1", "Dwarf galaxies", "An abstract", metadata={"categories": ["GA"], "year": "2024"})
+        record = RawRecord(
+            record_id="r1",
+            title="Dwarf galaxies",
+            abstract="An abstract",
+            metadata={"categories": ["GA"], "year": "2024"},
+        )
         assert await AsyncSearchIndexer(store=store).ingest(record, "Full body") == 1
         record.metadata["year"] = "1999"
         metadata = {"categories": ["GA"], "year": "2024"}
@@ -66,7 +77,10 @@ class TestAsyncSearchIndexer:
     @pytest.mark.asyncio
     async def test_blank_fields_are_stored_as_empty_strings(self):
         store = InMemoryTextSearchStore()
-        assert await AsyncSearchIndexer(store).ingest(RawRecord("r1", "Title", "   "), "\n\t") == 1
+        assert (
+            await AsyncSearchIndexer(store).ingest(RawRecord(record_id="r1", title="Title", abstract="   "), "\n\t")
+            == 1
+        )
         assert await store.get_documents(["r1"]) == {"r1": SearchDocument("r1", "Title")}
 
     @pytest.mark.asyncio
@@ -75,7 +89,7 @@ class TestAsyncSearchIndexer:
         indexer = AsyncSearchIndexer(store)
         await indexer.ingest(RECORD, "body")
         assert await store.count() == 1
-        assert await indexer.ingest(RawRecord("r1", " ", ""), "\t\n") == 0
+        assert await indexer.ingest(RawRecord(record_id="r1", title=" ", abstract=""), "\t\n") == 0
         assert await store.count() == 0
 
     @pytest.mark.asyncio
@@ -226,6 +240,7 @@ def _arxiv_pipeline(mocker, ingestor, logged):
     state.load_metadata = mocker.AsyncMock(return_value=PipelineMetadata())
     state.mark_processed = mocker.AsyncMock()
     state.save_metadata = mocker.AsyncMock()
+    state.failure_counts = mocker.AsyncMock(return_value={})
 
     pipeline = AsyncETLPipeline(
         extractor=extractor,

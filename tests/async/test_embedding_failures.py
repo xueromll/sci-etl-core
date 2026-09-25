@@ -10,7 +10,7 @@ from sci_etl_core.exceptions import EmbeddingError
 from sci_etl_core.llm.relevance_embedding_async import AsyncEmbeddingRelevanceFilter
 from sci_etl_core.models import RawRecord
 
-RECORD = RawRecord("a", "T", "A")
+RECORD = RawRecord(record_id="a", title="T", abstract="A")
 
 
 class _ScriptedEmbedder(AsyncEmbedder):

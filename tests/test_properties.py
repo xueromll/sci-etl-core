@@ -30,7 +30,6 @@ from sci_etl_core.exceptions import SearchQueryError
 from sci_etl_core.exporters.csv_async import AsyncCsvUpsertExporter
 from sci_etl_core.extractors.arxiv_async import AsyncArxivExtractor
 from sci_etl_core.parsers.reference_trimmer import trim_after_references
-from sci_etl_core.pipeline_async import AsyncETLPipeline
 from sci_etl_core.processors.dedup import DeduplicationStep, NeighborMatcher
 from sci_etl_core.processors.normalization import DefaultKeyNormalizer, NormalizationStep
 from sci_etl_core.processors.quality import CompletenessStep, QualityFlagStep
@@ -671,65 +670,24 @@ class TestFileStateProperties:
 
         asyncio.run(scenario())
 
-    @given(start_index=st.integers(min_value=0, max_value=10**6))
+    @given(cursor=st.none() | st.text(max_size=40), truncated=st.booleans())
     @_FS_SETTINGS
-    def test_metadata_round_trips(self, start_index):
+    def test_metadata_round_trips(self, cursor, truncated):
         async def scenario():
             with tempfile.TemporaryDirectory() as directory:
                 state = AsyncFileStateManager(
                     Path(directory) / "ids.txt", Path(directory) / "meta.json"
                 )
                 metadata = await state.load_metadata()
-                metadata.last_start_index = start_index
+                metadata.cursor, metadata.truncated = cursor, truncated
                 await state.save_metadata(metadata)
                 reloaded = await state.load_metadata()
-                assert reloaded.last_start_index == start_index
+                assert (reloaded.cursor, reloaded.truncated) == (cursor, truncated)
                 assert reloaded.last_run_at is not None
 
         asyncio.run(scenario())
 
 
-_LIMIT = st.one_of(st.none(), st.integers(min_value=1, max_value=10_000))
-
-
-class TestResolveLimitsProperties:
-    @given(page_size=_LIMIT, total_limit=_LIMIT, max_records=_LIMIT)
-    def test_both_limits_are_always_resolved_to_positive_integers(
-        self, page_size, total_limit, max_records
-    ):
-        resolved_page, resolved_total = AsyncETLPipeline._resolve_limits(
-            page_size, total_limit, max_records
-        )
-        assert isinstance(resolved_page, int)
-        assert resolved_page > 0
-        assert isinstance(resolved_total, int)
-        assert resolved_total > 0
-
-    @given(page_size=_LIMIT, total_limit=_LIMIT, max_records=_LIMIT)
-    def test_an_explicit_limit_is_never_overridden(
-        self, page_size, total_limit, max_records
-    ):
-        resolved_page, resolved_total = AsyncETLPipeline._resolve_limits(
-            page_size, total_limit, max_records
-        )
-        if page_size is not None:
-            assert resolved_page == page_size
-        if total_limit is not None:
-            assert resolved_total == total_limit
-
-    @given(max_records=st.integers(min_value=1, max_value=10_000))
-    def test_the_max_records_alias_seeds_both_limits(self, max_records):
-        assert AsyncETLPipeline._resolve_limits(None, None, max_records) == (
-            max_records,
-            max_records,
-        )
-
-    @given(page_size=st.integers(min_value=1, max_value=10_000))
-    def test_a_lone_page_size_becomes_the_whole_budget(self, page_size):
-        assert AsyncETLPipeline._resolve_limits(page_size, None, None) == (
-            page_size,
-            page_size,
-        )
 
 
 _TRACKED = ["alpha", "beta", "gamma", "delta"]

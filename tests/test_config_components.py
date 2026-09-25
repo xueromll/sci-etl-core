@@ -26,54 +26,72 @@ from sci_etl_core.search.hybrid_async import HybridParams
 from sci_etl_core.search.store_base import BM25Weights
 
 
-class TestRenamedPipelineKeys:
-    @pytest.mark.parametrize(("old", "new"), [("max_records", "total_limit"), ("max_workers", "max_concurrency")])
-    def test_an_old_key_is_read_as_the_new_one_with_a_warning(self, old, new):
-        with pytest.warns(DeprecationWarning, match=f"pipeline.{old} is deprecated.*use pipeline.{new}"):
-            config = PipelineConfig.model_validate({old: 7})
-        assert getattr(config, new) == 7
+class TestStrictSections:
+    def test_a_mistyped_key_in_a_nested_section_is_rejected_and_named(self, tmp_path):
+        with pytest.raises(ConfigurationError, match=r"search\.bm25\.titel: Extra inputs are not permitted"):
+            validate_config(BaseAppConfig, {"search": {"bm25": {"titel": 3.0}}}, tmp_path / "c.yaml")
 
-    def test_both_names_with_the_same_value_are_accepted(self):
-        with pytest.warns(DeprecationWarning, match="pipeline.max_records is deprecated"):
-            config = PipelineConfig.model_validate({"max_records": 9, "total_limit": 9})
-        assert config.total_limit == 9
+    @pytest.mark.parametrize("old", ["max_records", "max_workers"])
+    def test_the_keys_renamed_in_0_4_are_rejected(self, old, tmp_path):
+        with pytest.raises(ConfigurationError, match=f"pipeline.{old}: Extra inputs are not permitted"):
+            validate_config(BaseAppConfig, {"pipeline": {old: 7}}, tmp_path / "c.yaml")
 
-    def test_both_names_with_different_values_are_a_configuration_error(self, tmp_path):
-        with (
-            pytest.warns(DeprecationWarning, match="pipeline.max_records is deprecated"),
-            pytest.raises(ConfigurationError, match="set only total_limit"),
-        ):
-            validate_config(BaseAppConfig, {"pipeline": {"max_records": 1, "total_limit": 2}}, tmp_path / "c.yaml")
+    def test_unknown_top_level_keys_are_kept_for_the_application(self):
+        config = BaseAppConfig.model_validate({"catalogue": {"anything": 1}})
+        assert config.model_extra == {"catalogue": {"anything": 1}}
 
-    def test_an_old_key_is_still_validated(self):
-        with (
-            pytest.warns(DeprecationWarning, match="pipeline.max_workers is deprecated"),
-            pytest.raises(ValueError, match="greater than or equal to 1"),
-        ):
-            PipelineConfig.model_validate({"max_workers": 0})
+    def test_a_subclass_that_opts_out_drops_unknown_section_keys_with_a_warning(self):
+        class LenientConfig(BaseAppConfig):
+            strict_sections = False
 
-    def test_a_subclass_that_forbids_extra_keys_still_accepts_an_old_key(self):
-        class StrictPipeline(PipelineConfig):
-            model_config = ConfigDict(extra="forbid")
+        raw = {
+            "pipeline": {"total_limit": 5, "max_records": 9},
+            "search": {"bm25": {"title": 2.0, "titel": 3.0}},
+            "extra_section": {"kept": True},
+        }
+        with pytest.warns(UserWarning, match="Ignoring unknown config key") as warned:
+            config = LenientConfig.model_validate(raw)
+        assert sorted(str(warning.message) for warning in warned) == [
+            "Ignoring unknown config key pipeline.max_records",
+            "Ignoring unknown config key search.bm25.titel",
+        ]
+        assert (config.pipeline.total_limit, config.search.bm25.title) == (5, 2.0)
+        assert config.model_extra == {"extra_section": {"kept": True}}
 
-        with pytest.warns(DeprecationWarning, match="pipeline.max_records is deprecated"):
-            assert StrictPipeline.model_validate({"max_records": 3}).total_limit == 3
+    def test_the_opt_out_leaves_a_section_that_is_not_a_mapping_to_validation(self):
+        class LenientConfig(BaseAppConfig):
+            strict_sections = False
+
+        with pytest.raises(ValueError, match="valid dictionary or instance of GraphConfig"):
+            LenientConfig.model_validate({"search": {"graph": "odd"}})
+
+    def test_the_opt_out_leaves_a_section_that_declares_its_own_extra_alone(self):
+        class OpenPipeline(PipelineConfig):
+            model_config = ConfigDict(extra="allow")
+
+        class LenientConfig(BaseAppConfig):
+            strict_sections = False
+            pipeline: OpenPipeline = OpenPipeline()
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            config = LenientConfig.model_validate({"pipeline": {"total_limit": 2, "custom": "x"}})
+        assert config.pipeline.model_extra == {"custom": "x"}
+
+    def test_a_strict_config_validates_a_non_mapping_as_before(self):
+        with pytest.raises(ValueError, match="valid dictionary or instance"):
+            BaseAppConfig.model_validate(["pipeline"])
+
+    def test_the_opt_out_passes_a_non_mapping_to_validation(self):
+        class LenientConfig(BaseAppConfig):
+            strict_sections = False
+
+        with pytest.raises(ValueError, match="valid dictionary or instance"):
+            LenientConfig.model_validate(["pipeline"])
 
     def test_a_section_that_is_not_a_mapping_is_still_rejected(self):
         with pytest.raises(ValueError, match="valid dictionary or instance"):
-            PipelineConfig.model_validate(["max_records", 1])
-
-    def test_new_keys_raise_no_warning(self):
-        with warnings.catch_warnings():
-            warnings.simplefilter("error")
-            PipelineConfig.model_validate({"total_limit": 1, "max_concurrency": 2})
-            PipelineConfig.model_validate(PipelineConfig())
-
-    @pytest.mark.parametrize(("old", "new"), [("max_records", "total_limit"), ("max_workers", "max_concurrency")])
-    def test_the_old_attribute_reads_the_new_field_with_a_warning(self, old, new):
-        config = PipelineConfig(total_limit=4, max_concurrency=5)
-        with pytest.warns(DeprecationWarning, match=f"{old} is deprecated; use {new}"):
-            assert getattr(config, old) == getattr(config, new)
+            PipelineConfig.model_validate(["total_limit", 1])
 
 
 class TestPipelineConfigRunArguments:
@@ -96,6 +114,7 @@ class TestPipelineConfigRunArguments:
             name: mocker.AsyncMock()
             for name in ("extractor", "relevance_filter", "entity_extractor", "exporter", "state_manager")
         }
+        collaborators["state_manager"].failure_counts.return_value = {}
         pipeline = AsyncETLPipeline.from_config(config, destination="out.csv", **collaborators)
         assert pipeline._semaphore._value == 3
         assert await pipeline.run(**config.run_arguments()) == 0
@@ -129,18 +148,16 @@ class TestPipelineConfigRunArguments:
         assert pipeline._run_timeout == 10
 
     @pytest.mark.asyncio
-    async def test_the_max_records_run_alias_warns(self, mocker):
+    async def test_the_max_records_run_alias_is_gone(self, mocker):
         pipeline = AsyncETLPipeline(
-            extractor=mocker.AsyncMock(),
-            relevance_filter=mocker.AsyncMock(),
-            entity_extractor=mocker.AsyncMock(),
-            exporter=mocker.AsyncMock(),
-            state_manager=mocker.AsyncMock(),
-            destination="out.csv",
+            mocker.AsyncMock(),
+            mocker.AsyncMock(),
+            mocker.AsyncMock(),
+            mocker.AsyncMock(),
+            mocker.AsyncMock(),
         )
-        with pytest.warns(DeprecationWarning, match="run\\(max_records=\\) is deprecated"):
-            with pytest.raises(ValueError, match="page_size must be a positive integer"):
-                await pipeline.run(query="q", max_records=0)
+        with pytest.raises(TypeError, match="max_records"):
+            await pipeline.run(query="q", max_records=0)
 
 
 class TestComponentsFromConfig:

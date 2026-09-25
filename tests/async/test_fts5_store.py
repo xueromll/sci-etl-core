@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import sqlite3
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -130,7 +130,7 @@ class TestWrites:
     @pytest.mark.asyncio
     async def test_indexed_at_is_the_injected_utc_time_in_iso_8601(self, tmp_path):
         path = tmp_path / "search.db"
-        moment = datetime(2026, 9, 15, 8, 20, 9, 59743, tzinfo=timezone.utc)
+        moment = datetime(2026, 9, 15, 8, 20, 9, 59743, tzinfo=UTC)
         async with opened(path, now=lambda: moment) as store:
             await store.index([document("r1")])
             assert raw(path, "SELECT indexed_at FROM documents") == [("2026-09-15T08:20:09.059743+00:00",)]
@@ -147,7 +147,7 @@ class TestWrites:
     async def test_metadata_json_cannot_hold_is_encoded_instead_of_failing_the_write(self, tmp_path):
         path = tmp_path / "search.db"
         async with opened(path) as store:
-            published = datetime(2026, 9, 15, tzinfo=timezone.utc)
+            published = datetime(2026, 9, 15, tzinfo=UTC)
             await store.index([document("r1", published=published, raw=b"x", author="Müller")])
             assert raw(path, "SELECT metadata FROM documents") == [
                 ('{"published": "2026-09-15T00:00:00+00:00", "raw": "b\'x\'", "author": "Müller"}',)

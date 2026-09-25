@@ -11,7 +11,7 @@ RecordOutcome = Literal["processed", "irrelevant", "deferred", "failed", "skippe
 RunOutcome = Literal["completed", "aborted", "interrupted", "cancelled", "failed"]
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, kw_only=True)
 class RunMetrics:
     """Counts and timings for one pipeline run.
 
@@ -19,7 +19,10 @@ class RunMetrics:
     ``processed``, ``irrelevant``, ``deferred``, ``failed``, and ``skipped``
     count records by :data:`RecordOutcome`. ``entities_exported`` counts the
     entities handed to the exporter, and ``memory_faults`` the memory ingest
-    faults that were logged without failing their record.
+    faults that were logged without failing their record. ``quarantined``
+    counts listed records skipped because they failed ``max_attempts`` times,
+    and ``listing_truncated`` is ``True`` when the source stopped the listing
+    at its result cap.
     ``duration_seconds`` is measured on a monotonic clock. ``token_usage`` is
     what the pipeline's ``usage_sources`` used during the run, or ``None``
     when it has none. ``outcome`` is ``None`` while the run is in progress.
@@ -34,6 +37,8 @@ class RunMetrics:
     skipped: int = 0
     entities_exported: int = 0
     memory_faults: int = 0
+    quarantined: int = 0
+    listing_truncated: bool = False
     duration_seconds: float = 0.0
     token_usage: TokenUsage | None = None
     outcome: RunOutcome | None = None
@@ -48,26 +53,40 @@ class RunMetrics:
         return replace(self, token_usage=usage)
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class RunStarted:
-    """A run began. ``start_index`` is the listing offset of its first request."""
+    """A run began.
+
+    ``cursor`` is the listing cursor of its first request, ``None`` for the
+    first page. ``start_index`` is the same position as a listing offset when
+    the extractor pages by offset, and ``None`` otherwise.
+    """
 
     query: str
-    start_index: int
+    start_index: int | None
     total_limit: int
     newest_first: bool
+    cursor: str | None = None
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class PageFetched:
-    """A listing page arrived with ``entries`` entries, ``new_records`` of them not yet processed."""
+    """A listing page arrived with ``entries`` entries, ``new_records`` of them not yet processed.
 
-    offset: int
+    ``cursor`` is the cursor the page was requested with, ``None`` for the
+    first page, and ``offset`` its listing offset when the extractor pages by
+    offset, or ``None``. ``truncated`` is ``True`` when the source stopped the
+    listing at its result cap on this page.
+    """
+
+    offset: int | None
     entries: int
     new_records: int
+    cursor: str | None = None
+    truncated: bool = False
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class RecordFinished:
     """A record left the pipeline for this run.
 
@@ -85,16 +104,20 @@ class RecordFinished:
     error: BaseException | None = None
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class PageFinished:
-    """Every record of the page at ``offset`` finished; ``metrics`` is the run so far."""
+    """Every record of a page finished; ``metrics`` is the run so far.
 
-    offset: int
+    ``cursor`` and ``offset`` locate the page as in :class:`PageFetched`.
+    """
+
+    offset: int | None
     duration_seconds: float
     metrics: RunMetrics = field(default_factory=RunMetrics)
+    cursor: str | None = None
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class RunFinished:
     """The run ended, however it ended; ``metrics.outcome`` says how."""
 

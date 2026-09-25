@@ -4,14 +4,23 @@ Every source has its own protocol, pagination model, ID scheme, and full-text
 formats, so each one gets its own `AsyncExtractor` rather than a single
 extractor with switches for every source.
 
-| Source | Extractor | Record id | Full text |
-|--------|-----------|-----------|-----------|
-| arXiv | `AsyncArxivExtractor` | arXiv id with version | LaTeX source, then PDF, then abstract |
-| PubMed | `AsyncPubMedExtractor` | PMID | PubMed Central JATS when the paper has a PMC id, else abstract |
-| Semantic Scholar | `AsyncSemanticScholarExtractor` | paper id | Open-access PDF with a `pdf_parser`, else abstract |
-| OpenAlex | `AsyncOpenAlexExtractor` | work id, such as `W2741809807` | Open-access PDF with a `pdf_parser`, else abstract |
-| bioRxiv, ChemRxiv | Not bundled | | Adapt `AsyncArxivExtractor` |
-| Crossref | Not bundled | | Implement your own `AsyncExtractor` |
+| Source | Extractor | Record id | Paging | Full text |
+|--------|-----------|-----------|--------|-----------|
+| arXiv | `AsyncArxivExtractor` | arXiv id with version | offsets | LaTeX source, then PDF, then abstract |
+| PubMed | `AsyncPubMedExtractor` | PMID | offsets, first 9,999 results | PubMed Central JATS when the paper has a PMC id, else abstract |
+| Semantic Scholar | `AsyncSemanticScholarExtractor` | paper id | offsets, first 1,000 results | Open-access PDF with a `pdf_parser`, else abstract |
+| OpenAlex | `AsyncOpenAlexExtractor` | work id, such as `W2741809807` | OpenAlex cursors, no cap | Open-access PDF with a `pdf_parser`, else abstract |
+| bioRxiv, ChemRxiv | Not bundled | | | Adapt `AsyncArxivExtractor` |
+| Crossref | Not bundled | | | Implement your own `AsyncExtractor` |
+
+An extractor that pages by offset is an `OffsetListing`, which `newest_first`
+runs and `run(start_index=)` above 0 need. When a source stops at its own
+result cap, its extractor marks the page that reaches the cap as `truncated`:
+the run completes, and the next run pages the reachable results again instead
+of stopping at the cap. Processed records are skipped by id, so that rescan
+costs listing requests, not LLM calls. To avoid it, narrow the query, for
+example by date range. [Run semantics](run-semantics.md#capped-listings) has
+the details.
 
 The bundled extractors share the retry behavior described in
 [Retries](retries.md) and take a `rate_limiter` ([Rate limiting](rate-limiting.md)).
@@ -33,15 +42,16 @@ extractor = AsyncPubMedExtractor(
     email="you@example.org",
     rate_limiter=build_rate_limiter(max_rate=9, time_period=1.0),
 )
-await pipeline.run(query="dark matter[tiab] AND 2020:2026[dp]", total_limit=200, newest_first=True)
+await pipeline.run("dark matter[tiab] AND 2020:2026[dp]", total_limit=200, newest_first=True)
 ```
 
 The query uses PubMed search syntax. Results are newest first (`sort="pub_date"`),
 so `newest_first=True` fits. Each listing page costs two requests, and NCBI
 allows 3 requests per second without an API key and 10 with one, so read the
 key from the environment and set a limiter below that. E-utilities pages
-through the first 10,000 results of a search. Metadata adds `journal`, and
-`doi` and `pmcid` when known; `categories` are MeSH headings.
+through the first 9,999 results of a search, even with its history server, so
+the page that reaches them is `truncated`. Metadata adds `journal`, and `doi`
+and `pmcid` when known; `categories` are MeSH headings.
 
 ## Semantic Scholar
 
@@ -61,12 +71,9 @@ extractor = AsyncSemanticScholarExtractor(
 ```
 
 The relevance search returns only its first 1,000 results and isn't ordered by
-date, so run it without `newest_first`. Metadata adds `venue`, and `doi`,
-`arxiv_id`, and `pmid` when known.
-
-A query that matches more results than a source serves stops at its cap, and
-later runs resume at the cap; see
-[capped listings](run-semantics.md#known-limitation-capped-listings).
+date, so run it without `newest_first`; the page that reaches the 1,000th
+result is `truncated`. Metadata adds `venue`, and `doi`, `arxiv_id`, and `pmid`
+when known.
 
 ## OpenAlex
 
@@ -78,12 +85,16 @@ extractor = AsyncOpenAlexExtractor(
     filter="type:article,from_publication_date:2020-01-01",
     mailto="you@example.org",
 )
-await pipeline.run(query="ultra-diffuse galaxies", total_limit=500, newest_first=True)
+await pipeline.run("ultra-diffuse galaxies", total_limit=500)
 ```
 
-Results are newest first by default (`sort="publication_date:desc"`).
-OpenAlex pages through the first 10,000 results. `mailto` joins OpenAlex's
-polite pool. Abstracts are rebuilt from OpenAlex's inverted index. Metadata
+Results are newest first by default (`sort="publication_date:desc"`). Paging
+uses OpenAlex's cursors, so a listing is not limited to its first 10,000
+results, but the extractor is not an `OffsetListing` and does not support
+`newest_first` runs. When a run reaches the end of the listing, the next run
+starts again from the first page and skips processed works by id. A cursor
+OpenAlex rejects restarts the listing once. `mailto` joins OpenAlex's polite
+pool. Abstracts are rebuilt from OpenAlex's inverted index. Metadata
 adds `doi`, `venue`, and `references`, the ids of the works a paper cites.
 
 ## Document formats
@@ -114,27 +125,39 @@ Both parse XML without resolving entities or fetching DTDs, and raise
 The pipeline works with any class that implements this contract:
 
 ```python
-from sci_etl_core import AsyncExtractor
+from sci_etl_core import AsyncExtractor, ListingPage
 from sci_etl_core.models import RawRecord
 
 
 class MySourceExtractor(AsyncExtractor):
-    async def search(self, query: str, max_results: int, start_index: int) -> bytes | None: ...
+    def cursor_for_offset(self, offset: int) -> str:
+        return str(offset)
 
-    def parse_listing(self, raw_listing: bytes, seen_ids: set[str]) -> tuple[list[RawRecord], int]: ...
+    async def fetch_page(self, query: str, cursor: str | None, page_size: int) -> ListingPage: ...
 
     async def fetch_full_text(self, record: RawRecord) -> str: ...
 ```
 
-- **`search`** returns one raw listing page. If the source can't be reached,
-  it raises `UpstreamError` instead of returning an empty value; if the source
-  rejects the request outright, it raises `ExtractionError`. Either one aborts
-  the run.
-- **`parse_listing`** returns the records whose ids aren't in `seen_ids`, plus
-  the number of entries on the page, counting the skipped ones. A count of `0`
-  ends the run. If the payload can't be read, it raises
-  `MalformedResponseError`.
+- **`fetch_page`** fetches and parses one page. `cursor=None` is the first
+  page; any other cursor is a `next_cursor` an earlier page returned, possibly
+  in an earlier run. It returns a `ListingPage` with every record it could
+  read, the number of entries on the page, counting entries it could not read,
+  and the next cursor, or `None` on the last page. The pipeline skips
+  processed records itself. A source that stopped at its own result cap
+  returns `truncated=True`.
+- Errors: if the source can't be reached, raise `UpstreamError` instead of
+  returning an empty page; if it rejects the request outright, raise
+  `ExtractionError`; if the payload can't be read, raise
+  `MalformedResponseError`. Each aborts the run. If the source no longer
+  accepts a cursor, raise `StaleCursorError`, and the run restarts the listing
+  from the first page once.
+- **`cursor_for_offset`** is only for a source that pages by offset. It makes
+  the extractor an `OffsetListing`; leave it out when the cursors are opaque
+  tokens.
 - **`fetch_full_text`** returns the best text available for a record.
+
+An extractor written for 0.4, with `search` and `parse_listing`, runs in 0.5.x
+through `LegacyExtractorAdapter`, which is deprecated and removed in 0.6.
 
 The full contract for every component type is listed under
 [Adding a new component](../project/contributing.md#adding-a-new-component),

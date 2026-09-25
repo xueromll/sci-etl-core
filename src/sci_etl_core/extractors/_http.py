@@ -66,6 +66,14 @@ class RetryingFetcher:
             raise ExtractionError(f"{self._source} rejected the {action} with status {response.status_code}")
         return response.content
 
+    async def response(self, url: str, action: str, params: Mapping[str, Any] | None = None) -> httpx.Response:
+        """Return the final response, successful or a status that retrying cannot fix.
+
+        Raises:
+            UpstreamError: Every attempt failed transiently.
+        """
+        return await self._get(url, action, params)
+
     async def fetch_optional(self, url: str, action: str, params: Mapping[str, Any] | None = None) -> bytes | None:
         """Return the body of a successful response, or ``None`` when the source says it will never succeed.
 

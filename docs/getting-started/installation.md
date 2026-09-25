@@ -1,6 +1,6 @@
 # Installation
 
-Python 3.10 or newer is required.
+Python 3.11 or newer is required.
 
 ```bash
 pip install "sci-etl-core[async,llm,pdf]"   # everything the Quick Start uses
@@ -26,8 +26,8 @@ the components you use:
 | `async` | `httpx`, `aiofiles`, `aiolimiter` | `AsyncArxivExtractor`, `AsyncPubMedExtractor`, `AsyncSemanticScholarExtractor`, `AsyncOpenAlexExtractor`, `build_async_client`, `AsyncCsvUpsertExporter`, `load_config_async`, `AioLimiterRateLimiter` |
 | `llm` | `openai`, `tiktoken` | `AsyncOpenAICompatibleClient`, token-based truncation |
 | `pdf` | `pdfplumber` | `PdfPlumberParser` |
-| `sql` | `sqlalchemy[asyncio]`, `aiosqlite` | `AsyncSqlTableExporter` |
-| `viz` | `plotly`, `aiofiles` | `AsyncPlotly3DExporter` |
+| `sql` | `sqlalchemy[asyncio]`, `aiosqlite` | `SqlTableSink`, and the deprecated `AsyncSqlTableExporter` |
+| `viz` | `plotly`, `aiofiles` | `Plotly3DSink`, and the deprecated `AsyncPlotly3DExporter` |
 | `cluster` | `scikit-learn`, `numpy` | `ClusteringStep` |
 | `embeddings` | `numpy`, `openai` | `AsyncOpenAIEmbedder`, the vector stores, `AsyncEmbeddingRelevanceFilter` |
 | `embeddings-local` | `numpy`, `sentence-transformers` | `AsyncSentenceTransformerEmbedder` |

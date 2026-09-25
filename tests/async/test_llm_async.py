@@ -163,12 +163,12 @@ class TestAsyncLLMRelevanceFilter:
     @pytest.mark.asyncio
     async def test_relevant_true(self, mocker):
         f = AsyncLLMRelevanceFilter(_async_llm(mocker, {"relevant": True}), "p")
-        assert await f.is_relevant(RawRecord("1", "t", "abstract")) is True
+        assert await f.is_relevant(RawRecord(record_id="1", title="t", abstract="abstract")) is True
 
     @pytest.mark.asyncio
     async def test_relevant_false(self, mocker):
         f = AsyncLLMRelevanceFilter(_async_llm(mocker, {"relevant": False}), "p")
-        assert await f.is_relevant(RawRecord("1", "t", "abstract")) is False
+        assert await f.is_relevant(RawRecord(record_id="1", title="t", abstract="abstract")) is False
 
     @pytest.mark.parametrize("default", [True, False])
     @pytest.mark.parametrize(
@@ -186,7 +186,7 @@ class TestAsyncLLMRelevanceFilter:
     @pytest.mark.asyncio
     async def test_unclear_verdict_uses_default_on_error(self, mocker, payload, default):
         f = AsyncLLMRelevanceFilter(_async_llm(mocker, payload), "p", default_on_error=default)
-        assert await f.is_relevant(RawRecord("1", "t", "abstract")) is default
+        assert await f.is_relevant(RawRecord(record_id="1", title="t", abstract="abstract")) is default
 
     @pytest.mark.parametrize(
         ("value", "expected"),
@@ -209,19 +209,19 @@ class TestAsyncLLMRelevanceFilter:
         f = AsyncLLMRelevanceFilter(
             _async_llm(mocker, {"relevant": value}), "p", default_on_error=not expected
         )
-        assert await f.is_relevant(RawRecord("1", "t", "abstract")) is expected
+        assert await f.is_relevant(RawRecord(record_id="1", title="t", abstract="abstract")) is expected
 
     @pytest.mark.parametrize("default", [True, False])
     @pytest.mark.asyncio
     async def test_empty_abstract_uses_default(self, mocker, default):
         f = AsyncLLMRelevanceFilter(_async_llm(mocker, {}), "p", default_on_empty_abstract=default)
-        assert await f.is_relevant(RawRecord("1", "t", "")) is default
+        assert await f.is_relevant(RawRecord(record_id="1", title="t", abstract="")) is default
 
     @pytest.mark.parametrize("default", [True, False])
     @pytest.mark.asyncio
     async def test_error_uses_default(self, mocker, default):
         f = AsyncLLMRelevanceFilter(_async_llm(mocker, exc=LLMError("boom")), "p", default_on_error=default)
-        assert await f.is_relevant(RawRecord("1", "t", "abstract")) is default
+        assert await f.is_relevant(RawRecord(record_id="1", title="t", abstract="abstract")) is default
 
 
 class TestAsyncLLMEntityExtractor:
@@ -337,4 +337,4 @@ class TestAsyncCancellationPropagation:
     async def test_relevance_filter_reraises_cancelled_error(self, mocker):
         f = AsyncLLMRelevanceFilter(_async_llm(mocker, exc=asyncio.CancelledError()), "p")
         with pytest.raises(asyncio.CancelledError):
-            await f.is_relevant(RawRecord("1", "t", "abstract"))
+            await f.is_relevant(RawRecord(record_id="1", title="t", abstract="abstract"))

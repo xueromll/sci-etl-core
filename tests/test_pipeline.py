@@ -4,6 +4,7 @@ import threading
 
 import pytest
 
+from legacy_paging import page_through_search
 from sci_etl_core.exceptions import MalformedResponseError, PipelineAborted, UpstreamError
 from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.extractors.async_base import AsyncExtractor
@@ -27,6 +28,7 @@ def _build(mocker, records, *, relevant=True, entities=None, max_workers=6):
     extractor.fetch_full_text = mocker.AsyncMock(
         side_effect=lambda r: f"text-{r.record_id}"
     )
+    page_through_search(mocker, extractor)
 
     relevance = mocker.Mock(spec=AsyncRelevanceFilter)
     relevance.is_relevant = mocker.AsyncMock(return_value=relevant)
@@ -42,10 +44,12 @@ def _build(mocker, records, *, relevant=True, entities=None, max_workers=6):
     state = mocker.Mock(spec=AsyncStateManager)
     state.load_processed_ids = mocker.AsyncMock(return_value=set())
     state.load_metadata = mocker.AsyncMock(
-        return_value=PipelineMetadata(last_start_index=0)
+        return_value=PipelineMetadata(cursor=None)
     )
     state.mark_processed = mocker.AsyncMock()
     state.save_metadata = mocker.AsyncMock()
+    state.failure_counts = mocker.AsyncMock(return_value={})
+    state.record_failure = mocker.AsyncMock(return_value=1)
 
     pipeline = ETLPipeline(
         extractor=extractor,
@@ -174,7 +178,7 @@ class TestPipelineContextManager:
             exporter=mocker.Mock(spec=AsyncExporter),
             state_manager=mocker.Mock(spec=AsyncStateManager),
             destination="out.csv",
-            closeables=[closeable, object()],
+            closeables=[closeable],
         )
         with pipeline as entered:
             assert entered is pipeline

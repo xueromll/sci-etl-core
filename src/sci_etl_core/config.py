@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
 import yaml
 from dotenv import find_dotenv, load_dotenv
@@ -23,8 +23,6 @@ if TYPE_CHECKING:
 
 T = TypeVar("T", bound="BaseAppConfig")
 
-_RENAMED_PIPELINE_KEYS: dict[str, str] = {"max_records": "total_limit", "max_workers": "max_concurrency"}
-
 
 class LLMConfig(BaseModel):
     """Chat-completion endpoint settings.
@@ -35,6 +33,8 @@ class LLMConfig(BaseModel):
     variable it names, and falls back to the YAML value when that is unset.
     ``timeout`` is in seconds.
     """
+
+    model_config = ConfigDict(extra="forbid")
 
     api_key: SecretStr = SecretStr("")
     base_url: str = "https://api.openai.com/v1"
@@ -47,6 +47,8 @@ class HttpConfig(BaseModel):
 
     ``user_agent`` defaults to ``sci-etl-core/<installed version>``.
     """
+
+    model_config = ConfigDict(extra="forbid")
 
     user_agent: str = DEFAULT_USER_AGENT
     max_retries: int = Field(default=3, ge=1)
@@ -68,6 +70,8 @@ class HttpConfig(BaseModel):
 class RateLimitConfig(BaseModel):
     """A concurrency cap, or a token bucket when ``max_rate`` is set."""
 
+    model_config = ConfigDict(extra="forbid")
+
     max_concurrency: int = Field(default=4, ge=1)
     max_rate: float | None = Field(default=None, gt=0)
     time_period: float = Field(default=1.0, gt=0)
@@ -88,12 +92,9 @@ class PipelineConfig(BaseModel):
     :meth:`run_arguments` returns the arguments for ``run()``.
     ``search_delay`` is the arXiv extractor's pause before each listing
     request.
-
-    .. deprecated:: 0.4.0
-        The keys ``max_records`` and ``max_workers`` are read as
-        ``total_limit`` and ``max_concurrency``, with a
-        :class:`DeprecationWarning`. They will stop being accepted in 0.5.0.
     """
+
+    model_config = ConfigDict(extra="forbid")
 
     search_query: str = ""
     total_limit: int = Field(default=100, ge=0)
@@ -102,42 +103,6 @@ class PipelineConfig(BaseModel):
     sleep_between: float = Field(default=5.0, ge=0)
     max_concurrency: int = Field(default=6, ge=1)
     newest_first: bool = False
-
-    @model_validator(mode="before")
-    @classmethod
-    def _read_renamed_keys(cls, data: Any) -> Any:
-        if not isinstance(data, dict):
-            return data
-        renamed = dict(data)
-        for old, new in _RENAMED_PIPELINE_KEYS.items():
-            if old not in renamed:
-                continue
-            warnings.warn(
-                f"pipeline.{old} is deprecated and will be removed in sci-etl-core 0.5.0; use pipeline.{new}",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            value = renamed.pop(old)
-            if new in renamed and renamed[new] != value:
-                raise ValueError(f"{old} and {new} are the same setting; set only {new}")
-            renamed[new] = value
-        return renamed
-
-    @property
-    def max_records(self) -> int:
-        """Deprecated alias of :attr:`total_limit`."""
-        warnings.warn(
-            "PipelineConfig.max_records is deprecated; use total_limit", DeprecationWarning, stacklevel=2
-        )
-        return self.total_limit
-
-    @property
-    def max_workers(self) -> int:
-        """Deprecated alias of :attr:`max_concurrency`."""
-        warnings.warn(
-            "PipelineConfig.max_workers is deprecated; use max_concurrency", DeprecationWarning, stacklevel=2
-        )
-        return self.max_concurrency
 
     def run_arguments(self) -> dict[str, Any]:
         """Return the keyword arguments for ``run()`` these settings describe.
@@ -157,6 +122,8 @@ class PipelineConfig(BaseModel):
 class BM25WeightsConfig(BaseModel):
     """Per-field BM25 weights, as :class:`~sci_etl_core.search.store_base.BM25Weights`."""
 
+    model_config = ConfigDict(extra="forbid")
+
     title: float = Field(default=10.0, ge=0, allow_inf_nan=False)
     abstract: float = Field(default=4.0, ge=0, allow_inf_nan=False)
     body: float = Field(default=1.0, ge=0, allow_inf_nan=False)
@@ -170,6 +137,8 @@ class BM25WeightsConfig(BaseModel):
 
 class FusionConfig(BaseModel):
     """Rank fusion settings, as :class:`~sci_etl_core.search.fusion.FusionParams`."""
+
+    model_config = ConfigDict(extra="forbid")
 
     k: int = Field(default=60, ge=1)
     weights: list[float] | None = None
@@ -188,6 +157,8 @@ class FusionConfig(BaseModel):
 class HybridConfig(BaseModel):
     """Candidate pool sizes, as :class:`~sci_etl_core.search.hybrid_async.HybridParams`."""
 
+    model_config = ConfigDict(extra="forbid")
+
     candidate_pool: int = Field(default=100, ge=1)
     chunk_pool_factor: int = Field(default=5, ge=1)
 
@@ -200,6 +171,8 @@ class HybridConfig(BaseModel):
 
 class GraphConfig(BaseModel):
     """Discovery graph bounds, as :class:`~sci_etl_core.search.graph.GraphParams`."""
+
+    model_config = ConfigDict(extra="forbid")
 
     depth: int = Field(default=2, ge=0)
     fanout: int = Field(default=8, ge=1)
@@ -225,6 +198,8 @@ class GraphConfig(BaseModel):
 class SearchConfig(BaseModel):
     """Settings for local search and discovery graphs."""
 
+    model_config = ConfigDict(extra="forbid")
+
     bm25: BM25WeightsConfig = Field(default_factory=BM25WeightsConfig)
     fusion: FusionConfig = Field(default_factory=FusionConfig)
     hybrid: HybridConfig = Field(default_factory=HybridConfig)
@@ -237,15 +212,70 @@ class BaseAppConfig(BaseModel):
     Unknown top-level keys are kept rather than rejected, so an application can
     read its own sections from the same YAML file. Subclass it to type those
     sections, and set ``extra="forbid"`` in the subclass to reject typos.
+
+    A key that a bundled section does not declare, such as
+    ``search.bm25.titel``, fails validation. A subclass that sets
+    ``strict_sections = False`` keeps the 0.4 behavior instead: such a key is
+    dropped with a :class:`UserWarning` naming it. A section type the
+    application defines itself validates as its own ``model_config`` says.
     """
 
     model_config = ConfigDict(extra="allow")
+
+    strict_sections: ClassVar[bool] = True
 
     llm: LLMConfig = Field(default_factory=LLMConfig)
     http: HttpConfig = Field(default_factory=HttpConfig)
     full_text: RateLimitConfig = Field(default_factory=RateLimitConfig)
     pipeline: PipelineConfig = Field(default_factory=PipelineConfig)
     search: SearchConfig = Field(default_factory=SearchConfig)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _drop_unknown_section_keys(cls, data: Any) -> Any:
+        if cls.strict_sections or not isinstance(data, dict):
+            return data
+        return _without_unknown_keys(cls, data, "")
+
+
+def _bundled_section(annotation: Any) -> type[BaseModel] | None:
+    if (
+        isinstance(annotation, type)
+        and issubclass(annotation, _BUNDLED_SECTIONS)
+        and annotation.model_config.get("extra") == "forbid"
+    ):
+        return annotation
+    return None
+
+
+def _without_unknown_keys(model: type[BaseModel], data: dict[str, Any], prefix: str) -> dict[str, Any]:
+    cleaned = dict(data)
+    for name, field in model.model_fields.items():
+        section = _bundled_section(field.annotation)
+        value = cleaned.get(name)
+        if section is None or not isinstance(value, dict):
+            continue
+        kept = {}
+        for key, item in value.items():
+            if key in section.model_fields:
+                kept[key] = item
+            else:
+                warnings.warn(f"Ignoring unknown config key {prefix}{name}.{key}", UserWarning, stacklevel=2)
+        cleaned[name] = _without_unknown_keys(section, kept, f"{prefix}{name}.")
+    return cleaned
+
+
+_BUNDLED_SECTIONS: tuple[type[BaseModel], ...] = (
+    LLMConfig,
+    HttpConfig,
+    RateLimitConfig,
+    PipelineConfig,
+    BM25WeightsConfig,
+    FusionConfig,
+    HybridConfig,
+    GraphConfig,
+    SearchConfig,
+)
 
 
 def load_yaml(path: Path) -> dict[str, Any]:

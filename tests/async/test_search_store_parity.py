@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import Counter
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -18,7 +18,7 @@ from sci_etl_core.search.tokenize import Unicode61Tokenizer
 BACKENDS = ["memory", "fts5"]
 NOT_RANKABLE = "A ranked search needs at least one term that is not negated"
 ARTICLE = "H-alpha photometry of nearby dwarf galaxies"
-PUBLISHED = datetime(2026, 9, 15, 8, 20, tzinfo=timezone.utc)
+PUBLISHED = datetime(2026, 9, 15, 8, 20, tzinfo=UTC)
 FACETS = ("categories", "year")
 FACET_DOCUMENTS = [
     SearchDocument("d1", title="galaxy", metadata={"categories": ["GA", "CO"], "year": "2025"}),

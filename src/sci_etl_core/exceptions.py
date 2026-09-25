@@ -25,6 +25,14 @@ class MalformedResponseError(ExtractionError):
     """
 
 
+class StaleCursorError(ExtractionError):
+    """Raised when a source no longer accepts a listing cursor it handed out earlier.
+
+    :class:`~sci_etl_core.pipeline_async.AsyncETLPipeline` restarts the
+    listing from its first page once per run when it sees this error.
+    """
+
+
 class ParsingError(SciEtlError):
     """Raised when a document parser fails to extract content."""
 
@@ -82,6 +90,14 @@ class SearchStoreError(SearchError):
 
     Kept distinct from :class:`SearchQueryError` so a storage fault is never
     mistaken for a malformed query.
+    """
+
+
+class StateStoreError(SciEtlError):
+    """Raised when a state file or database cannot be used as run state.
+
+    A bundled state manager raises it for a file written by a newer
+    sci-etl-core, whose schema version it does not know.
     """
 
 

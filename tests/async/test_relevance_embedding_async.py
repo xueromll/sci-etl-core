@@ -42,25 +42,25 @@ class TestAsyncEmbeddingRelevanceFilter:
         drop = AsyncEmbeddingRelevanceFilter(
             _TableEmbedder(_TABLE), ["concept"], default_on_empty_abstract=False
         )
-        assert await keep.is_relevant(RawRecord("c", "T", "")) is True
-        assert await drop.is_relevant(RawRecord("c", "T", "")) is False
+        assert await keep.is_relevant(RawRecord(record_id="c", title="T", abstract="")) is True
+        assert await drop.is_relevant(RawRecord(record_id="c", title="T", abstract="")) is False
 
     @pytest.mark.asyncio
     async def test_keeps_semantically_close_record(self):
         filt = AsyncEmbeddingRelevanceFilter(_TableEmbedder(_TABLE), ["concept"])
-        assert await filt.is_relevant(RawRecord("a", "T", "A")) is True
+        assert await filt.is_relevant(RawRecord(record_id="a", title="T", abstract="A")) is True
 
     @pytest.mark.asyncio
     async def test_drops_distant_record(self):
         filt = AsyncEmbeddingRelevanceFilter(_TableEmbedder(_TABLE), ["concept"])
-        assert await filt.is_relevant(RawRecord("b", "T", "B")) is False
+        assert await filt.is_relevant(RawRecord(record_id="b", title="T", abstract="B")) is False
 
     @pytest.mark.asyncio
     async def test_references_are_embedded_only_once(self):
         embedder = _TableEmbedder(_TABLE)
         filt = AsyncEmbeddingRelevanceFilter(embedder, ["concept"])
-        await filt.is_relevant(RawRecord("a", "T", "A"))
-        await filt.is_relevant(RawRecord("a", "T", "A"))
+        await filt.is_relevant(RawRecord(record_id="a", title="T", abstract="A"))
+        await filt.is_relevant(RawRecord(record_id="a", title="T", abstract="A"))
         assert embedder.calls.count(["concept"]) == 1
 
     @pytest.mark.asyncio
@@ -68,7 +68,7 @@ class TestAsyncEmbeddingRelevanceFilter:
         filt = AsyncEmbeddingRelevanceFilter(
             _FailingEmbedder(EmbeddingError("down")), ["concept"], default_on_error=False
         )
-        assert await filt.is_relevant(RawRecord("a", "T", "A")) is False
+        assert await filt.is_relevant(RawRecord(record_id="a", title="T", abstract="A")) is False
 
     @pytest.mark.asyncio
     async def test_cancellation_propagates(self):
@@ -76,4 +76,4 @@ class TestAsyncEmbeddingRelevanceFilter:
             _FailingEmbedder(asyncio.CancelledError()), ["concept"]
         )
         with pytest.raises(asyncio.CancelledError):
-            await filt.is_relevant(RawRecord("a", "T", "A"))
+            await filt.is_relevant(RawRecord(record_id="a", title="T", abstract="A"))

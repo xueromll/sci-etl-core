@@ -131,21 +131,21 @@ class TestListingStatus:
     async def test_rejected_request_is_not_retried_and_not_upstream(self):
         extractor, requested = _extractor({LISTING: httpx.Response(400, content=b"<feed/>")})
         with pytest.raises(ExtractionError, match="status 400") as excinfo:
-            await extractor.search("bad query", 10, 0)
+            await extractor._search("bad query", 10, 0)
         assert not isinstance(excinfo.value, UpstreamError)
         assert len(requested) == 1
 
     @pytest.mark.asyncio
     async def test_any_success_status_returns_the_payload(self):
         extractor, _ = _extractor({LISTING: httpx.Response(203, content=b"<feed/>")})
-        assert await extractor.search("q", 10, 0) == b"<feed/>"
+        assert await extractor._search("q", 10, 0) == b"<feed/>"
 
     @pytest.mark.asyncio
     async def test_no_backoff_after_the_final_retryable_attempt(self, mocker):
         sleep = mocker.AsyncMock()
         extractor, requested = _extractor({LISTING: httpx.Response(503)}, sleep=sleep, max_retries=3)
         with pytest.raises(UpstreamError, match="after 3 attempts"):
-            await extractor.search("q", 10, 0)
+            await extractor._search("q", 10, 0)
         assert len(requested) == 3
         assert [call.args[0] for call in sleep.await_args_list] == [0, 1.0, 2.0]
 
@@ -153,7 +153,7 @@ class TestListingStatus:
     async def test_redirect_loop_is_retried_then_reported_upstream(self):
         extractor, _ = _extractor({LISTING: httpx.Response(302, headers={"Location": LISTING})}, max_retries=2)
         with pytest.raises(UpstreamError) as excinfo:
-            await extractor.search("q", 10, 0)
+            await extractor._search("q", 10, 0)
         assert isinstance(excinfo.value.__cause__, httpx.TooManyRedirects)
 
 
@@ -169,7 +169,7 @@ class TestRetryAfter:
             logger=logged.append,
         )
         with pytest.raises(UpstreamError, match="after 2 attempts"):
-            await extractor.search("q", 10, 0)
+            await extractor._search("q", 10, 0)
         assert len(requested) == 2
         assert [call.args[0] for call in sleep.await_args_list] == [0, 7.0]
         assert any("arXiv search attempt 1 failed" in message and "retrying in 7 s" in message for message in logged)
@@ -184,7 +184,7 @@ class TestRetryAfter:
             max_retry_after=30,
         )
         with pytest.raises(UpstreamError):
-            await extractor.search("q", 10, 0)
+            await extractor._search("q", 10, 0)
         assert [call.args[0] for call in sleep.await_args_list] == [0, 30]
 
     @pytest.mark.asyncio
@@ -207,9 +207,7 @@ class TestRetryAfter:
 class TestListingParsing:
     def _parse(self, entries: str):
         extractor, _ = _extractor({})
-        return extractor.parse_listing(
-            f"<feed xmlns='http://www.w3.org/2005/Atom'>{entries}</feed>".encode(), set()
-        )
+        return extractor._parse_listing(f"<feed xmlns='http://www.w3.org/2005/Atom'>{entries}</feed>".encode())
 
     def test_landing_page_is_the_alternate_html_link(self):
         records, _ = self._parse(

@@ -8,10 +8,12 @@ from typing import TYPE_CHECKING, Any
 import httpx
 from bs4 import BeautifulSoup
 
+from sci_etl_core._deprecation import warn_logger_argument
 from sci_etl_core._retry_after import retry_after_from_headers, retry_delay
 from sci_etl_core.exceptions import ExtractionError, MalformedResponseError, ParsingError, UpstreamError
+from sci_etl_core.extractors._offsets import decimal_cursor, offset_from_cursor, offset_page
 from sci_etl_core.extractors.async_base import AsyncExtractor
-from sci_etl_core.models import RawRecord
+from sci_etl_core.models import ListingPage, RawRecord
 from sci_etl_core.parsers.base import Parser
 from sci_etl_core.parsers.reference_trimmer import trim_after_references
 from sci_etl_core.rate_limiter import RateLimiting, limiter_for
@@ -35,11 +37,13 @@ def _element_text(element: Any) -> str:
 class AsyncArxivExtractor(AsyncExtractor):
     """Page through the arXiv Atom API, newest submissions first, and fetch each article's full text.
 
-    Full text comes from the e-print LaTeX source or the PDF, with the abstract
-    as a last resort (:meth:`fetch_full_text`). Each record's ``metadata`` holds
-    the entry's categories, authors, and publication date
-    (:meth:`parse_listing`), which a text search store can filter and facet on.
-    The injected ``client`` is borrowed and never closed.
+    Its cursors are decimal offsets, so it is an
+    :class:`~sci_etl_core.extractors.async_base.OffsetListing` and supports
+    ``newest_first`` runs. Full text comes from the e-print LaTeX source or the
+    PDF, with the abstract as a last resort (:meth:`fetch_full_text`). Each
+    record's ``metadata`` holds the entry's categories, authors, and
+    publication date (:meth:`fetch_page`), which a text search store can
+    filter and facet on. The injected ``client`` is borrowed and never closed.
     """
 
     API_URL = "https://export.arxiv.org/api/query"
@@ -70,6 +74,10 @@ class AsyncArxivExtractor(AsyncExtractor):
         (``arxiv.org``) apart. The slot is released once the response arrives,
         so no slot is held while waiting to retry.
 
+        .. deprecated:: 0.5.0
+            ``logger`` emits a :class:`DeprecationWarning`; 0.6.0 logs through
+            the standard :mod:`logging` module instead.
+
         Raises:
             ValueError: ``max_retries`` is less than 1, which would fail every
                 request without making a single attempt, or
@@ -79,6 +87,7 @@ class AsyncArxivExtractor(AsyncExtractor):
             raise ValueError("max_retries must be a positive integer")
         if max_retry_after < 0:
             raise ValueError("max_retry_after must not be negative")
+        warn_logger_argument("AsyncArxivExtractor", logger)
         self._max_retry_after = max_retry_after
         self._client = client
         self._pdf_parser = pdf_parser
@@ -114,18 +123,37 @@ class AsyncArxivExtractor(AsyncExtractor):
         settings.update(options)
         return cls(client=client, pdf_parser=pdf_parser, latex_parser=latex_parser, **settings)
 
-    async def search(self, query: str, max_results: int, start_index: int) -> bytes:
-        """Fetch one listing page, retrying transient faults.
+    def cursor_for_offset(self, offset: int) -> str:
+        """Return the decimal cursor of the listing page at ``offset``."""
+        return decimal_cursor(offset)
+
+    async def fetch_page(self, query: str, cursor: str | None, page_size: int) -> ListingPage:
+        """Fetch and parse the listing page at the cursor's offset, retrying transient faults.
 
         Redirects are followed, so a moved endpoint is not mistaken for a
-        failure regardless of how the injected client was configured.
+        failure regardless of how the injected client was configured. The
+        listing continues until a page has no entries.
+
+        An entry without an ``<id>`` cannot be tracked as processed, so it is
+        skipped; it still counts toward the page's entries so paging advances.
+        A later version of an entry already on the page is skipped too. Each
+        record's ``metadata`` holds the entry's ``categories`` and ``authors``
+        as lists, and its ``published`` date and ``year`` as strings (see
+        :meth:`_listing_metadata`).
 
         Raises:
             UpstreamError: Every attempt failed. A transport fault is never
-                reported as an empty result.
+                reported as an empty page.
             ExtractionError: arXiv rejected the request with a status that
                 retrying cannot fix, such as ``400`` for a malformed query.
+            MalformedResponseError: The payload is empty or lacks a feed root.
+            StaleCursorError: ``cursor`` is not a decimal offset.
         """
+        offset = offset_from_cursor(cursor)
+        records, entries = self._parse_listing(await self._search(query, page_size, offset))
+        return offset_page(records, entries, offset)
+
+    async def _search(self, query: str, max_results: int, start_index: int) -> bytes:
         params: dict[str, str | int] = {
             "search_query": query,
             "start": start_index,
@@ -159,19 +187,7 @@ class AsyncArxivExtractor(AsyncExtractor):
         self._log(f"{message}: {last_error!r}")
         raise UpstreamError(message) from last_error
 
-    def parse_listing(self, raw_listing: bytes, seen_ids: set[str]) -> tuple[list[RawRecord], int]:
-        """Parse an Atom listing, treating an unreadable payload as an error.
-
-        An entry without an ``<id>`` cannot be tracked as processed, so it is
-        skipped; it still counts toward the page total so paging advances.
-
-        Each record's ``metadata`` holds the entry's ``categories`` and
-        ``authors`` as lists, and its ``published`` date and ``year`` as strings
-        (see :meth:`_listing_metadata`).
-
-        Raises:
-            MalformedResponseError: The payload is empty or lacks a feed root.
-        """
+    def _parse_listing(self, raw_listing: bytes) -> tuple[list[RawRecord], int]:
         soup = self._parse_feed(raw_listing)
         entries = soup.find_all("entry")
         if not entries:
@@ -182,7 +198,7 @@ class AsyncArxivExtractor(AsyncExtractor):
         for entry in entries:
             raw_id = entry.id.get_text(strip=True) if entry.id else ""
             record_id = self._normalize_id(raw_id)
-            if not record_id or record_id in seen_ids:
+            if not record_id:
                 continue
             base_id = self._strip_version(record_id)
             if base_id in seen_base_ids:

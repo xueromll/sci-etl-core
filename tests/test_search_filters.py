@@ -5,7 +5,7 @@ import json
 import os
 import subprocess
 import sys
-from datetime import date, datetime, time, timezone
+from datetime import UTC, date, datetime, time
 from pathlib import Path
 
 import pytest
@@ -223,7 +223,7 @@ class TestEncodeMetadata:
         assert json.loads(encode_metadata({"d": date(2026, 9, 15)})) == {"d": "2026-09-15"}
 
     def test_a_datetime_is_iso_8601_with_a_t_and_no_space(self):
-        value = json.loads(encode_metadata({"d": datetime(2026, 9, 15, 8, 20, tzinfo=timezone.utc)}))["d"]
+        value = json.loads(encode_metadata({"d": datetime(2026, 9, 15, 8, 20, tzinfo=UTC)}))["d"]
         assert value == "2026-09-15T08:20:00+00:00"
         assert "T" in value
         assert " " not in value

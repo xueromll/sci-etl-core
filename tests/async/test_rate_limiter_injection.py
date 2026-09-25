@@ -128,7 +128,7 @@ class TestArxivExtractorRateLimiting:
         client.get = get
         extractor = _arxiv(client, mocker, rate_limiter=limiter)
         extractor._sleep = sleep
-        assert await extractor.search("q", 10, 0) == b"<feed/>"
+        assert await extractor._search("q", 10, 0) == b"<feed/>"
         attempt = ["limiter:enter", "get", "limiter:exit"]
         assert journal == ["sleep", *attempt, "sleep", *attempt]
 
@@ -140,8 +140,8 @@ class TestArxivExtractorRateLimiting:
         client = mocker.Mock()
         client.get = mocker.AsyncMock(return_value=_http_response(200, b"payload"))
         extractor = _arxiv(client, mocker, rate_limiter=HostRateLimiter({"export.arxiv.org": api, "arxiv.org": site}))
-        await extractor.search("q", 10, 0)
-        await extractor.fetch_full_text(RawRecord("2401.00001v1", "t", "a"))
+        await extractor._search("q", 10, 0)
+        await extractor.fetch_full_text(RawRecord(record_id="2401.00001v1", title="t", abstract="a"))
         assert journal == ["api:enter", "api:exit", "site:enter", "site:exit"]
 
     @pytest.mark.asyncio
@@ -151,7 +151,7 @@ class TestArxivExtractorRateLimiting:
         client.get = mocker.AsyncMock(side_effect=httpx.ConnectError("down"))
         extractor = _arxiv(client, mocker, rate_limiter=limiter, max_retries=2)
         with pytest.raises(Exception, match="failed after 2 attempts"):
-            await extractor.search("q", 10, 0)
+            await extractor._search("q", 10, 0)
         assert limiter.inside == 0
         assert limiter.journal.count("limiter:enter") == 2
 
@@ -172,7 +172,7 @@ class TestArxivExtractorRateLimiting:
         for client in clients:
             client.get = get
         extractors = [_arxiv(client, mocker, rate_limiter=shared) for client in clients]
-        await asyncio.gather(*(extractor.search("q", 1, 0) for extractor in extractors for _ in range(3)))
+        await asyncio.gather(*(extractor._search("q", 1, 0) for extractor in extractors for _ in range(3)))
         assert peak == 1
 
 

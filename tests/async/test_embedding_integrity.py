@@ -264,7 +264,7 @@ class TestIngestorReplacesRecords:
     async def test_reingesting_shorter_text_removes_stale_chunks(self, kind, tmp_path):
         store = _store(kind, tmp_path)
         ingestor = AsyncChunkIngestor(SlidingWindowChunker(chunk_words=2, overlap_words=0), _UnitEmbedder(), store)
-        record = RawRecord("a", "t", "abstract")
+        record = RawRecord(record_id="a", title="t", abstract="abstract")
         try:
             assert await ingestor.ingest(record, "one two three four five six") == 3
             assert await ingestor.ingest(record, "one two") == 1
@@ -276,9 +276,9 @@ class TestIngestorReplacesRecords:
     async def test_empty_text_clears_only_that_record(self):
         store = InMemoryEmbeddingStore()
         ingestor = AsyncChunkIngestor(SlidingWindowChunker(chunk_words=2, overlap_words=0), _UnitEmbedder(), store)
-        await ingestor.ingest(RawRecord("a", "t", "abs"), "one two")
-        await ingestor.ingest(RawRecord("b", "t", "abs"), "three four")
-        assert await ingestor.ingest(RawRecord("a", "t", "abs"), "   ") == 0
+        await ingestor.ingest(RawRecord(record_id="a", title="t", abstract="abs"), "one two")
+        await ingestor.ingest(RawRecord(record_id="b", title="t", abstract="abs"), "three four")
+        assert await ingestor.ingest(RawRecord(record_id="a", title="t", abstract="abs"), "   ") == 0
         assert [hit.record_id for hit in await store.query([1.0, 0.0])] == ["b"]
 
     @pytest.mark.asyncio
@@ -287,5 +287,5 @@ class TestIngestorReplacesRecords:
         chunker = SlidingWindowChunker(chunk_words=2, overlap_words=0)
         ingestor = AsyncChunkIngestor(chunker, _UnitEmbedder(drop=1), store)
         with pytest.raises(EmbeddingError, match="1 vectors for 2 passages"):
-            await ingestor.ingest(RawRecord("a", "t", "abs"), "one two three four")
+            await ingestor.ingest(RawRecord(record_id="a", title="t", abstract="abs"), "one two three four")
         assert await store.count() == 0

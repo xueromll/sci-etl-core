@@ -84,7 +84,7 @@ Scholar, and OpenAlex extractors have no `from_config`; pass
 `config.http.max_retries` and `config.http.backoff_factor` to their
 constructors yourself. The pipeline takes `max_concurrency`, and `run_arguments()` returns
 `query`, `page_size`, `total_limit`, `sleep_between`, and `newest_first` for
-`run()`. `ETLPipeline.from_config` works the same way.
+`run()`; add `max_attempts` or `start_index` yourself when you need them. `ETLPipeline.from_config` works the same way.
 
 The search section builds the parameter dataclasses for
 [local search](../guide/search/index.md):
@@ -101,12 +101,32 @@ searcher = AsyncHybridSearcher(
 )
 ```
 
-## Renamed pipeline settings
+## Strict sections
 
-In 0.4, `pipeline.max_records` became `total_limit` and `pipeline.max_workers`
-became `max_concurrency`, the names `run()` and the pipeline use. The old keys
-still load, with a `DeprecationWarning`, until 0.5. Setting an old and a new key
-to different values is a `ConfigurationError`.
+Every section the library defines rejects a key it does not declare, so a typo
+fails loudly instead of being ignored. The `ConfigurationError` names the key:
+
+```text
+Invalid configuration in config.yaml:
+  search.bm25.titel: Extra inputs are not permitted
+```
+
+The keys `pipeline.max_records` and `pipeline.max_workers`, renamed in 0.4, are rejected
+the same way since 0.5; use `total_limit` and `max_concurrency`. An application
+that must still load a file with unknown keys in the library's sections sets
+`strict_sections = False` on its config class. Each unknown key is then
+dropped with a `UserWarning` that names it:
+
+```python
+from sci_etl_core import BaseAppConfig
+
+
+class MyConfig(BaseAppConfig):
+    strict_sections = False
+```
+
+Top-level sections your application adds are kept either way, and a section
+type you define yourself validates as its own `model_config` says.
 
 ## Details
 
@@ -120,7 +140,8 @@ to different values is a `ConfigurationError`.
   any `llm.api_key` in the YAML file, which is used only as a fallback. Keep
   keys out of config files anyway.
 - **Project-specific settings.** `BaseAppConfig` accepts extra top-level keys,
-  or you can subclass it.
+  or you can subclass it. Keys inside the library's own sections must be ones
+  those sections declare; see [Strict sections](#strict-sections).
 - **Async loading.** `load_config_async` takes the same arguments.
 - **Errors.** A missing or unparseable YAML file, a file whose top level isn't
   a mapping, and a validation failure all raise `ConfigurationError`.

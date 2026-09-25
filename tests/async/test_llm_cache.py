@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import sqlite3
 from contextlib import closing
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from hypothesis import given
@@ -34,7 +34,7 @@ class CountingClient(AsyncLLMClient):
     def usage(self) -> TokenUsage:
         return self._usage
 
-    async def complete_json(self, system_prompt, user_content, timeout=None):
+    async def complete_json(self, system_prompt, user_content, timeout=None):  # noqa: ASYNC109
         self.calls.append((system_prompt, user_content, timeout))
         self._usage.requests += 1
         if self._error is not None:
@@ -126,7 +126,7 @@ class TestAsyncSqliteLLMResponseCache:
     @pytest.mark.asyncio
     async def test_responses_survive_a_new_instance(self, tmp_path):
         path = tmp_path / "nested" / "cache.db"
-        stamp = datetime(2026, 9, 16, tzinfo=timezone.utc)
+        stamp = datetime(2026, 9, 16, tzinfo=UTC)
         first = AsyncSqliteLLMResponseCache(path, now=lambda: stamp)
         await first.set("k", {"relevant": False})
         await first.set("k", {"relevant": True})

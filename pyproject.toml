@@ -9,7 +9,7 @@ description = "Reusable, domain-agnostic ETL core for scientific text mining."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 keywords = ["etl", "pipeline", "text-mining", "scientific-literature", "data-extraction"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -18,7 +18,6 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -54,7 +53,7 @@ embeddings = ["numpy", "openai"]
 embeddings-local = ["numpy", "sentence-transformers"]
 search = []
 dev = ["pytest", "pytest-asyncio", "pytest-mock", "pytest-cov", "hypothesis"]
-lint = ["ruff", "mypy", "types-PyYAML", "types-requests", "types-aiofiles"]
+lint = ["ruff", "mypy", "types-PyYAML", "types-aiofiles"]
 docs = [
     "mkdocs>=1.6,<2",
     "mkdocs-material>=9.7,<10",
@@ -70,7 +69,6 @@ full = [
     "sqlalchemy[asyncio]>=2", "aiosqlite",
     "plotly",
     "scikit-learn", "numpy",
-    "requests",
 ]
 
 [tool.setuptools]
@@ -85,6 +83,9 @@ sci_etl_core = ["py.typed"]
 [tool.pytest.ini_options]
 markers = ["live: calls a real upstream source; deselected unless run with -m live"]
 addopts = "-m 'not live'"
+filterwarnings = [
+    'ignore:.* is deprecated and will be removed in sci-etl-core 0.6.0:DeprecationWarning',
+]
 
 [tool.coverage.report]
 fail_under = 100
@@ -93,7 +94,7 @@ exclude_also = ["if TYPE_CHECKING:"]
 
 [tool.ruff]
 line-length = 120
-target-version = "py310"
+target-version = "py311"
 src = ["src", "tests"]
 
 [tool.ruff.lint]

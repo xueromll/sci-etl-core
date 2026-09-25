@@ -86,9 +86,8 @@ async def client() -> AsyncIterator[httpx.AsyncClient]:
 async def test_source_lists_records_with_the_promised_metadata_and_full_text(client, source):
     extractor = source.build(client)
 
-    raw_listing = await extractor.search(source.query, PAGE_SIZE, 0)
-    assert raw_listing, f"{source.name} returned no listing payload"
-    records, entries = extractor.parse_listing(raw_listing, set())
+    page = await extractor.fetch_page(source.query, None, PAGE_SIZE)
+    records, entries = page.records, page.entries
 
     assert entries >= 1
     assert records, f"{source.name} listed {entries} entries but none parsed into a record"

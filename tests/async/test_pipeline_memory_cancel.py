@@ -28,4 +28,4 @@ class TestMemoryIngestCancellation:
             memory_ingestor=ingestor,
         )
         with pytest.raises(asyncio.CancelledError):
-            await pipeline._ingest_memory(RawRecord("a", "t", "abstract"), "body")
+            await pipeline._ingest_memory(RawRecord(record_id="a", title="t", abstract="abstract"), "body")

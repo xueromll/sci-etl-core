@@ -62,13 +62,12 @@ async def main() -> None:
         state_manager=AsyncFileStateManager("state/processed.txt", "state/metadata.json"),
         destination="results.csv",
         max_concurrency=4,
-        logger=print,
         closeables=[client, llm],
     )
 
     async with pipeline:
         try:
-            processed = await pipeline.run(query="all:galaxy", total_limit=50)
+            processed = await pipeline.run("all:galaxy", total_limit=50)
         except PipelineAborted as exc:
             print(f"Stopped early after {exc.partial_count} records: {exc}")
             return
@@ -80,26 +79,25 @@ asyncio.run(main())
 
 ## What a run does
 
-1. Fetches a listing page (`page_size` records, default 100) starting at the
-   offset saved by the state manager (or at `start_index=`, if given), and
-   skips records already processed. A page that holds only processed records
-   is passed over, not treated as the end of the data.
+1. Fetches a listing page (`page_size` records, default 100) at the cursor
+   saved by the state manager (or from the first page with `start_index=0`),
+   and skips records already processed. A page that holds only processed
+   records is passed over, not treated as the end of the data.
 2. For each remaining record, with at most `max_concurrency` in flight:
    relevance filter → full-text fetch → optional memory ingest → entity
    extraction → export → mark processed. Irrelevant records are marked
    processed without fetching full text. Records whose `record_id` is missing
    or blank can't be tracked, so they are skipped and logged.
-3. Saves the listing offset and repeats until `total_limit` relevant records
-   are processed or the listing is empty, waiting `sleep_between` seconds
-   (default 0) before each further page. The offset only moves past pages
-   whose records were all settled; see
-   [State, resuming, and errors](../guide/state.md).
+3. Saves the listing cursor and repeats until `total_limit` relevant records
+   are processed or the listing ends, waiting `sleep_between` seconds
+   (default 0) before each further page. The cursor only moves past pages
+   whose records were all settled, and a record that failed in 3 runs is
+   skipped as quarantined; see [State, resuming, and errors](../guide/state.md).
 
 `total_limit` counts **relevant** records only, is never exceeded, and defaults
-to `page_size`. `max_concurrency` and `page_size` must be at least 1 and
-`total_limit` must not be negative; other values raise `ValueError` before any
-request is made. The deprecated `max_records=` argument sets both values
-and will be removed in 0.5.
+to `page_size`. Every argument of `run()` after the query is keyword-only.
+`max_concurrency` and `page_size` must be at least 1 and `total_limit` must not
+be negative; other values raise `ValueError` before any request is made.
 `AsyncArxivExtractor` also waits `sleep_before_search` seconds (default 3)
 before every listing request, to respect arXiv's rate limits.
 

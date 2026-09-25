@@ -52,7 +52,7 @@ released free and open-source under the MIT License — not a commercial product
   
 ## Installation
 
-Python 3.10 or newer is required.
+Python 3.11 or newer is required.
 
 ```bash
 pip install "sci-etl-core[async,llm,pdf]"   # everything the example below uses
@@ -76,8 +76,8 @@ import them, so add an extra for each component group you use:
 | `async` | The bundled extractors, `build_async_client`, CSV export, `load_config_async` |
 | `llm` | `AsyncOpenAICompatibleClient`, token-based truncation |
 | `pdf` | `PdfPlumberParser` |
-| `sql` | `AsyncSqlTableExporter` |
-| `viz` | `AsyncPlotly3DExporter` |
+| `sql` | `SqlTableSink`, and the deprecated `AsyncSqlTableExporter` |
+| `viz` | `Plotly3DSink`, and the deprecated `AsyncPlotly3DExporter` |
 | `cluster` | `ClusteringStep` |
 | `embeddings` | `AsyncOpenAIEmbedder`, the vector stores, `AsyncEmbeddingRelevanceFilter` |
 | `embeddings-local` | `AsyncSentenceTransformerEmbedder` |
@@ -198,10 +198,10 @@ flowchart LR
 
 `AsyncETLPipeline` receives every collaborator through its constructor and
 depends only on the abstract interfaces, so any stage can be replaced by
-another implementation or a test double. It pages through the listing,
-processes up to `max_concurrency` records at a time, and marks a record
+another implementation or a test double. It pages through the listing by
+cursor, processes up to `max_concurrency` records at a time, and marks a record
 processed only after its entities are exported, so a failed record is retried
-on the next run. The
+on the next run, until it has failed in `max_attempts` runs. The
 [architecture guide](https://xueromll.github.io/sci-etl-core/latest/guide/architecture/)
 describes each layer.
 

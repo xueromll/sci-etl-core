@@ -104,7 +104,7 @@ class AsyncOpenAICompatibleClient(AsyncLLMClient):
         """Tokens reported across every response received so far, as a snapshot."""
         return replace(self._usage)
 
-    async def complete_json(self, system_prompt: str, user_content: str, timeout: int | None = None) -> dict[str, Any]:
+    async def complete_json(self, system_prompt: str, user_content: str, timeout: int | None = None) -> dict[str, Any]:  # noqa: ASYNC109
         """Request a JSON-mode completion and return the parsed object.
 
         An empty completion reads as ``{}``. Every response the API returns

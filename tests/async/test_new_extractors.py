@@ -1,12 +1,17 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import httpx
 import pytest
 
-from sci_etl_core.exceptions import ExtractionError, MalformedResponseError, ParsingError, UpstreamError
+from sci_etl_core.exceptions import (
+    ExtractionError,
+    MalformedResponseError,
+    ParsingError,
+    StaleCursorError,
+    UpstreamError,
+)
 from sci_etl_core.extractors import AsyncOpenAlexExtractor, AsyncPubMedExtractor, AsyncSemanticScholarExtractor
 from sci_etl_core.extractors._http import RetryingFetcher
 from sci_etl_core.extractors.openalex_async import reconstruct_abstract
@@ -160,50 +165,85 @@ def _work(number: int, **overrides):
 
 class TestOpenAlexExtractor:
     @pytest.mark.asyncio
-    async def test_search_maps_offsets_to_pages_and_drops_works_before_the_offset(self):
+    async def test_first_page_asks_for_cursor_star_and_returns_the_next_cursor(self):
         router = Router()
-        listing = {"meta": {}, "results": [_work(1), _work(2), _work(3)]}
+        listing = {"meta": {"next_cursor": "abc"}, "results": [_work(1), _work(2), _work(3)]}
         router.add(lambda request: True, httpx.Response(200, json=listing))
         extractor = AsyncOpenAlexExtractor(
             _client(router), filter="type:article", mailto="me@example.org", api_key="key", sleep=_no_sleep
         )
-        payload = await extractor.search("dark matter", 3, 4)
+        page = await extractor.fetch_page("dark matter", None, 3)
         params = router.requests[0].url.params
-        assert (params["search"], params["per-page"], params["page"]) == ("dark matter", "3", "2")
+        assert (params["search"], params["per-page"], params["cursor"]) == ("dark matter", "3", "*")
         assert (params["filter"], params["sort"], params["mailto"], params["api_key"]) == (
             "type:article", "publication_date:desc", "me@example.org", "key"
         )
-        records, entries = extractor.parse_listing(payload, set())
-        assert [record.record_id for record in records] == ["W2", "W3"]
-        assert entries == 2
+        assert [record.record_id for record in page.records] == ["W1", "W2", "W3"]
+        assert (page.entries, page.next_cursor, page.truncated) == (3, "abc", False)
+        assert not hasattr(extractor, "cursor_for_offset")
 
     @pytest.mark.asyncio
-    async def test_an_empty_query_and_no_sort_send_neither(self):
+    async def test_a_later_page_sends_its_cursor_and_the_last_page_has_no_next_cursor(self):
+        router = Router()
+        last = {"meta": {"next_cursor": None}, "results": [_work(4)]}
+        router.add(lambda request: True, httpx.Response(200, json=last))
+        page = await AsyncOpenAlexExtractor(_client(router), sleep=_no_sleep).fetch_page("q", "abc", 3)
+        assert router.requests[0].url.params["cursor"] == "abc"
+        assert (page.entries, page.next_cursor) == (1, None)
+
+    @pytest.mark.asyncio
+    async def test_a_page_without_works_ends_the_listing_even_with_a_next_cursor(self):
+        router = Router()
+        router.add(lambda request: True, httpx.Response(200, json={"meta": {"next_cursor": "more"}, "results": []}))
+        page = await AsyncOpenAlexExtractor(_client(router), sleep=_no_sleep).fetch_page("q", None, 3)
+        assert (page.records, page.entries, page.next_cursor) == ((), 0, None)
+
+    @pytest.mark.asyncio
+    async def test_an_empty_query_and_no_sort_send_neither_and_a_page_asks_for_at_most_200(self):
         router = Router()
         router.add(lambda request: True, httpx.Response(200, json={"results": "odd"}))
         extractor = AsyncOpenAlexExtractor(_client(router), sort=None, sleep=_no_sleep)
-        payload = await extractor.search("", 500, 0)
+        with pytest.raises(MalformedResponseError, match="no results list"):
+            await extractor.fetch_page("", None, 500)
         params = router.requests[0].url.params
         assert "search" not in params
         assert "sort" not in params
         assert params["per-page"] == "200"
-        with pytest.raises(MalformedResponseError, match="no results list"):
-            extractor.parse_listing(payload, set())
 
     @pytest.mark.asyncio
-    async def test_offsets_past_ten_thousand_are_an_empty_listing(self):
-        lines: list[str] = []
-        extractor = AsyncOpenAlexExtractor(_client(Router()), logger=lines.append)
-        assert extractor.parse_listing(await extractor.search("q", 200, 10_000), set()) == ([], 0)
-        assert "first 10,000 results" in lines[0]
+    async def test_a_decimal_cursor_saved_by_0_4_is_stale_without_a_request(self):
+        router = Router()
+        with pytest.raises(StaleCursorError, match="listing offset"):
+            await AsyncOpenAlexExtractor(_client(router), sleep=_no_sleep).fetch_page("q", "300", 10)
+        assert router.requests == []
 
-    def test_parse_listing_builds_records_with_metadata(self):
-        extractor = AsyncOpenAlexExtractor(_client(Router()))
-        payload = json.dumps(
-            {"results": [_work(1), _work(2), {"id": None}, "junk", _work(3, doi=None, primary_location=None)]}
-        ).encode()
-        records, entries = extractor.parse_listing(payload, {"W2"})
-        assert entries == 5
+    @pytest.mark.asyncio
+    async def test_a_cursor_openalex_rejects_is_stale(self):
+        router = Router()
+        rejection = {"error": "Pagination error.", "message": "Invalid cursor value"}
+        router.add(lambda request: True, httpx.Response(400, json=rejection))
+        with pytest.raises(StaleCursorError, match="no longer accepts cursor 'abc'"):
+            await AsyncOpenAlexExtractor(_client(router), sleep=_no_sleep).fetch_page("q", "abc", 10)
+
+    @pytest.mark.parametrize(
+        ("cursor", "body"), [(None, {"message": "Invalid cursor value"}), ("abc", {"error": "bad filter"})]
+    )
+    @pytest.mark.asyncio
+    async def test_other_rejections_are_extraction_errors(self, cursor, body):
+        router = Router()
+        router.add(lambda request: True, httpx.Response(400, json=body))
+        with pytest.raises(ExtractionError, match="rejected the search with status 400") as raised:
+            await AsyncOpenAlexExtractor(_client(router), sleep=_no_sleep).fetch_page("q", cursor, 10)
+        assert not isinstance(raised.value, StaleCursorError)
+
+    @pytest.mark.asyncio
+    async def test_pages_build_records_with_metadata_and_skip_works_without_an_id(self):
+        router = Router()
+        results = [_work(1), _work(2), {"id": None}, "junk", _work(3, doi=None, primary_location=None)]
+        router.add(lambda request: True, httpx.Response(200, json={"meta": {"next_cursor": "n"}, "results": results}))
+        page = await AsyncOpenAlexExtractor(_client(router), sleep=_no_sleep).fetch_page("q", None, 10)
+        assert page.entries == 5
+        records = page.records
         first = records[0]
         assert (first.record_id, first.title, first.abstract) == ("W1", "Work 1", "Dark matter and matter")
         assert first.source_url == "https://doi.org/10.1/1"
@@ -217,23 +257,30 @@ class TestOpenAlexExtractor:
             "references": ["W9"],
             "pdf_url": "https://oa.test/1.pdf",
         }
-        assert records[1].source_url is None
-        assert "doi" not in records[1].metadata
-        assert "venue" not in records[1].metadata
+        assert [record.record_id for record in records] == ["W1", "W2", "W3"]
+        assert records[2].source_url is None
+        assert "doi" not in records[2].metadata
+        assert "venue" not in records[2].metadata
 
-    def test_parse_listing_uses_the_landing_page_and_tolerates_sparse_works(self):
-        extractor = AsyncOpenAlexExtractor(_client(Router()))
+    @pytest.mark.asyncio
+    async def test_pages_use_the_landing_page_and_tolerate_sparse_works(self):
         sparse = {"id": "W5", "title": "Fallback title", "doi": "", "publication_year": True,
                   "primary_location": {"landing_page_url": "https://landing.test"}, "best_oa_location": {}}
-        records, _ = extractor.parse_listing(json.dumps({"results": [sparse]}).encode(), set())
-        assert records[0].title == "Fallback title"
-        assert records[0].source_url == "https://landing.test"
-        assert records[0].metadata == {"authors": [], "categories": []}
+        router = Router()
+        router.add(lambda request: True, httpx.Response(200, json={"meta": "odd", "results": [sparse]}))
+        page = await AsyncOpenAlexExtractor(_client(router), sleep=_no_sleep).fetch_page("q", None, 10)
+        assert page.records[0].title == "Fallback title"
+        assert page.records[0].source_url == "https://landing.test"
+        assert page.records[0].metadata == {"authors": [], "categories": []}
+        assert page.next_cursor is None
 
     @pytest.mark.parametrize("payload", [b"not json", b"[1]"])
-    def test_unreadable_listings_are_malformed(self, payload):
+    @pytest.mark.asyncio
+    async def test_unreadable_listings_are_malformed(self, payload):
+        router = Router()
+        router.add(lambda request: True, httpx.Response(200, content=payload))
         with pytest.raises(MalformedResponseError):
-            AsyncOpenAlexExtractor(_client(Router())).parse_listing(payload, set())
+            await AsyncOpenAlexExtractor(_client(router), sleep=_no_sleep).fetch_page("q", None, 10)
 
     def test_reconstruct_abstract_ignores_invalid_positions(self):
         assert reconstruct_abstract({"a": [1], "b": [0, -1, True, "x"], "c": "bad"}) == "b a"
@@ -244,7 +291,7 @@ class TestOpenAlexExtractor:
         router = Router()
         router.add(lambda request: request.url.host == "oa.test", httpx.Response(200, content=b"%PDF"))
         extractor = AsyncOpenAlexExtractor(_client(router), StubPdfParser(), sleep=_no_sleep)
-        record = RawRecord("W1", "t", "abstract", metadata={"pdf_url": "https://oa.test/1.pdf"})
+        record = RawRecord(record_id="W1", title="t", abstract="abstract", metadata={"pdf_url": "https://oa.test/1.pdf"})
         assert await extractor.fetch_full_text(record) == "PDF body."
 
     @pytest.mark.asyncio
@@ -255,11 +302,12 @@ class TestOpenAlexExtractor:
         lines: list[str] = []
         with_parser = AsyncOpenAlexExtractor(_client(router), StubPdfParser(error=True), logger=lines.append)
         without_parser = AsyncOpenAlexExtractor(_client(router))
-        missing = RawRecord("W1", "t", "abstract", metadata={"pdf_url": "https://oa.test/missing.pdf"})
-        unreadable = RawRecord("W2", "t", "abstract", metadata={"pdf_url": "https://oa.test/bad.pdf"})
+        missing = RawRecord(record_id="W1", title="t", abstract="abstract", metadata={"pdf_url": "https://oa.test/missing.pdf"})
+        unreadable = RawRecord(record_id="W2", title="t", abstract="abstract", metadata={"pdf_url": "https://oa.test/bad.pdf"})
         assert await with_parser.fetch_full_text(missing) == "abstract"
         assert await with_parser.fetch_full_text(unreadable) == "abstract"
-        assert await with_parser.fetch_full_text(RawRecord("W3", "t", "abstract")) == "abstract"
+        plain = RawRecord(record_id="W3", title="t", abstract="abstract")
+        assert await with_parser.fetch_full_text(plain) == "abstract"
         assert await without_parser.fetch_full_text(unreadable) == "abstract"
         assert "PDF unusable for 'W2': not a pdf" in lines
 
@@ -268,7 +316,9 @@ class TestOpenAlexExtractor:
         router = Router()
         router.add(lambda request: True, httpx.Response(200, content=b"%PDF"))
         extractor = AsyncOpenAlexExtractor(_client(router), StubPdfParser(text="  "))
-        record = RawRecord("W1", "t", "abstract", metadata={"pdf_url": "https://oa.test/1.pdf"})
+        record = RawRecord(
+            record_id="W1", title="t", abstract="abstract", metadata={"pdf_url": "https://oa.test/1.pdf"}
+        )
         assert await extractor.fetch_full_text(record) == "abstract"
 
 
@@ -293,38 +343,60 @@ def _paper(paper_id: str, **overrides):
 
 class TestSemanticScholarExtractor:
     @pytest.mark.asyncio
-    async def test_search_sends_offset_limit_fields_filters_and_key(self):
+    async def test_a_page_sends_offset_limit_fields_filters_and_key(self):
         router = Router()
-        router.add(lambda request: True, httpx.Response(200, json={"total": 2, "data": [_paper("a")]}))
+        router.add(lambda request: True, httpx.Response(200, json={"total": 5000, "data": [_paper("a")] * 50}))
         extractor = AsyncSemanticScholarExtractor(
             _client(router), api_key="secret", year="2020-", fields_of_study="Physics", sleep=_no_sleep
         )
-        payload = await extractor.search("ultra diffuse", 500, 950)
+        page = await extractor.fetch_page("ultra diffuse", "900", 500)
         request = router.requests[0]
         assert request.headers["x-api-key"] == "secret"
         params = request.url.params
-        assert (params["query"], params["offset"], params["limit"]) == ("ultra diffuse", "950", "50")
+        assert (params["query"], params["offset"], params["limit"]) == ("ultra diffuse", "900", "100")
         assert (params["year"], params["fieldsOfStudy"]) == ("2020-", "Physics")
         assert "openAccessPdf" in params["fields"]
-        assert extractor.parse_listing(payload, set())[1] == 1
+        assert (page.entries, page.next_cursor, page.truncated) == (50, "950", False)
+        assert extractor.cursor_for_offset(950) == "950"
 
     @pytest.mark.asyncio
-    async def test_offsets_past_the_first_thousand_are_an_empty_listing_without_a_request(self):
+    async def test_the_page_that_reaches_the_first_thousand_is_truncated(self):
+        router = Router()
+        router.add(lambda request: True, httpx.Response(200, json={"total": 5000, "data": [_paper("a")] * 50}))
+        lines: list[str] = []
+        extractor = AsyncSemanticScholarExtractor(_client(router), sleep=_no_sleep, logger=lines.append)
+        page = await extractor.fetch_page("q", "950", 100)
+        assert router.requests[0].url.params["limit"] == "50"
+        assert (page.entries, page.next_cursor, page.truncated) == (50, None, True)
+        assert "first 1,000 results" in lines[0]
+
+    @pytest.mark.asyncio
+    async def test_a_cursor_past_the_first_thousand_is_a_truncated_page_without_a_request(self):
         router = Router()
         lines: list[str] = []
         extractor = AsyncSemanticScholarExtractor(_client(router), logger=lines.append)
-        assert extractor.parse_listing(await extractor.search("q", 100, 1000), set()) == ([], 0)
+        page = await extractor.fetch_page("q", "1000", 100)
+        assert (page.records, page.entries, page.next_cursor, page.truncated) == ((), 0, None, True)
         assert router.requests == []
-        assert "first 1000 results" in lines[0]
+        assert "first 1,000 results" in lines[0]
 
-    def test_parse_listing_builds_records_with_metadata(self):
-        extractor = AsyncSemanticScholarExtractor(_client(Router()))
-        payload = json.dumps({"data": [_paper("a"), _paper("b"), {"paperId": 5}, "junk"]}).encode()
-        records, entries = extractor.parse_listing(payload, {"b"})
-        assert entries == 4
-        assert [record.record_id for record in records] == ["a"]
-        assert records[0].source_url == "https://www.semanticscholar.org/paper/a"
-        assert records[0].metadata == {
+    @pytest.mark.asyncio
+    async def test_the_page_that_reaches_the_total_ends_the_listing(self):
+        router = Router()
+        router.add(lambda request: True, httpx.Response(200, json={"total": 3, "data": [_paper("a"), _paper("b")]}))
+        page = await AsyncSemanticScholarExtractor(_client(router), sleep=_no_sleep).fetch_page("q", "1", 10)
+        assert (page.entries, page.next_cursor, page.truncated) == (2, None, False)
+
+    @pytest.mark.asyncio
+    async def test_pages_build_records_with_metadata(self):
+        router = Router()
+        payload = {"data": [_paper("a"), {"paperId": 5}, "junk"]}
+        router.add(lambda request: True, httpx.Response(200, json=payload))
+        page = await AsyncSemanticScholarExtractor(_client(router), sleep=_no_sleep).fetch_page("q", None, 10)
+        assert (page.entries, page.next_cursor) == (3, "3")
+        assert [record.record_id for record in page.records] == ["a"]
+        assert page.records[0].source_url == "https://www.semanticscholar.org/paper/a"
+        assert page.records[0].metadata == {
             "authors": ["Grace"],
             "categories": ["Physics", "Astronomy"],
             "published": "2023-05-01",
@@ -336,29 +408,43 @@ class TestSemanticScholarExtractor:
             "pdf_url": "https://oa.test/p.pdf",
         }
 
-    def test_sparse_papers_and_a_response_without_data(self):
-        extractor = AsyncSemanticScholarExtractor(_client(Router()))
+    @pytest.mark.asyncio
+    async def test_sparse_papers_and_a_response_without_data(self):
         sparse = {"paperId": "s", "title": None, "abstract": None, "url": None, "year": False, "openAccessPdf": None}
-        records, _ = extractor.parse_listing(json.dumps({"data": [sparse]}).encode(), set())
-        assert (records[0].title, records[0].abstract, records[0].source_url) == ("", "", None)
-        assert records[0].metadata == {"authors": [], "categories": []}
-        assert extractor.parse_listing(b'{"total": 0}', set()) == ([], 0)
+        router = Router()
+        router.add(
+            lambda request: True, httpx.Response(200, json={"data": [sparse]}), httpx.Response(200, json={"total": 0})
+        )
+        extractor = AsyncSemanticScholarExtractor(_client(router), sleep=_no_sleep)
+        page = await extractor.fetch_page("q", None, 10)
+        record = page.records[0]
+        assert (record.title, record.abstract, record.source_url) == ("", "", None)
+        assert record.metadata == {"authors": [], "categories": []}
+        empty = await extractor.fetch_page("q", "1", 10)
+        assert (empty.records, empty.entries, empty.next_cursor) == ((), 0, None)
 
     @pytest.mark.parametrize("payload", [b"<html>", b"[]", b'{"data": {}}'])
-    def test_unreadable_listings_are_malformed(self, payload):
+    @pytest.mark.asyncio
+    async def test_unreadable_listings_are_malformed(self, payload):
+        router = Router()
+        router.add(lambda request: True, httpx.Response(200, content=payload))
         with pytest.raises(MalformedResponseError):
-            AsyncSemanticScholarExtractor(_client(Router())).parse_listing(payload, set())
+            await AsyncSemanticScholarExtractor(_client(router), sleep=_no_sleep).fetch_page("q", None, 10)
 
     @pytest.mark.asyncio
     async def test_full_text_from_the_open_access_pdf_or_the_abstract(self):
         router = Router()
         router.add(lambda request: request.url.path == "/p.pdf", httpx.Response(200, content=b"%PDF"))
         extractor = AsyncSemanticScholarExtractor(_client(router), StubPdfParser(), sleep=_no_sleep)
-        with_pdf = RawRecord("a", "t", "abstract", metadata={"pdf_url": "https://oa.test/p.pdf"})
-        missing = RawRecord("b", "t", "abstract", metadata={"pdf_url": "https://oa.test/gone.pdf"})
+        with_pdf = RawRecord(
+            record_id="a", title="t", abstract="abstract", metadata={"pdf_url": "https://oa.test/p.pdf"}
+        )
+        missing = RawRecord(
+            record_id="b", title="t", abstract="abstract", metadata={"pdf_url": "https://oa.test/gone.pdf"}
+        )
         assert await extractor.fetch_full_text(with_pdf) == "PDF body."
         assert await extractor.fetch_full_text(missing) == "abstract"
-        assert await extractor.fetch_full_text(RawRecord("c", "t", "abstract")) == "abstract"
+        assert await extractor.fetch_full_text(RawRecord(record_id="c", title="t", abstract="abstract")) == "abstract"
         blank = AsyncSemanticScholarExtractor(_client(router), StubPdfParser(text=""))
         assert await blank.fetch_full_text(with_pdf) == "abstract"
 
@@ -408,38 +494,46 @@ EFETCH = b"""<?xml version="1.0" ?>
 
 
 class TestPubMedExtractor:
-    def _router(self, ids, efetch=EFETCH):
+    def _router(self, ids, efetch=EFETCH, count=None):
         router = Router()
+        result = {"idlist": ids} if count is None else {"idlist": ids, "count": count}
         router.add(
             lambda request: request.url.path.endswith("esearch.fcgi"),
-            httpx.Response(200, json={"esearchresult": {"idlist": ids}}),
+            httpx.Response(200, json={"esearchresult": result}),
         )
         router.add(lambda request: request.url.path.endswith("efetch.fcgi"), httpx.Response(200, content=efetch))
         return router
 
+    @staticmethod
+    def _article_set(articles: bytes) -> bytes:
+        return b"<PubmedArticleSet>" + articles + b"</PubmedArticleSet>"
+
     @pytest.mark.asyncio
-    async def test_search_runs_esearch_then_efetch_and_counts_the_ids(self):
-        router = self._router(["38000001", "38000002", "38000003", " "])
+    async def test_a_page_runs_esearch_then_efetch_and_counts_the_ids(self):
+        router = self._router(["38000001", "38000002", "38000003", " "], count="500")
         extractor = AsyncPubMedExtractor(_client(router), api_key="k", tool="sci-etl", email="me@example.org")
-        payload = await extractor.search("galaxies[mh]", 20, 40)
+        page = await extractor.fetch_page("galaxies[mh]", "40", 20)
         search, fetch = router.requests
         assert search.url.params["term"] == "galaxies[mh]"
         assert (search.url.params["retstart"], search.url.params["retmax"], search.url.params["sort"]) == (
-            "40", "20", "pub_date"
+            "40",
+            "20",
+            "pub_date",
         )
         assert (search.url.params["api_key"], search.url.params["tool"], search.url.params["email"]) == (
-            "k", "sci-etl", "me@example.org"
+            "k",
+            "sci-etl",
+            "me@example.org",
         )
         assert fetch.url.params["id"] == "38000001,38000002,38000003"
-        records, entries = extractor.parse_listing(payload, {"38000002"})
-        assert entries == 3
-        assert [record.record_id for record in records] == ["38000001"]
+        assert (page.entries, page.next_cursor, page.truncated) == (3, "43", False)
+        assert [record.record_id for record in page.records] == ["38000001", "38000002"]
+        assert extractor.cursor_for_offset(43) == "43"
 
-    def test_records_carry_title_labelled_abstract_and_metadata(self):
-        extractor = AsyncPubMedExtractor(_client(Router()))
-        listing = b'<pubmed-listing entries="4">' + EFETCH.split(b"?>", 1)[1].split(b">", 1)[1] + b"</pubmed-listing>"
-        records, _ = extractor.parse_listing(listing, set())
-        first, second = records
+    @pytest.mark.asyncio
+    async def test_records_carry_title_labelled_abstract_and_metadata(self):
+        page = await AsyncPubMedExtractor(_client(self._router(["38000001", "38000002"]))).fetch_page("q", None, 5)
+        first, second = page.records
         assert first.title == "Dwarf galaxies"
         assert first.abstract == "BACKGROUND: Why.\nRESULTS: What."
         assert first.source_url == "https://pubmed.ncbi.nlm.nih.gov/38000001/"
@@ -455,35 +549,49 @@ class TestPubMedExtractor:
         assert second.metadata == {"authors": [], "categories": [], "published": "2019", "year": "2019"}
 
     @pytest.mark.asyncio
-    async def test_no_ids_is_an_empty_listing_without_efetch(self):
+    async def test_no_ids_is_an_empty_page_without_efetch(self):
         router = self._router([])
-        extractor = AsyncPubMedExtractor(_client(router), sort=None)
-        payload = await extractor.search("nothing", 20, 0)
+        page = await AsyncPubMedExtractor(_client(router), sort=None).fetch_page("nothing", None, 20)
         assert "sort" not in router.requests[0].url.params
         assert len(router.requests) == 1
-        assert extractor.parse_listing(payload, set()) == ([], 0)
+        assert (page.records, page.entries, page.next_cursor) == ((), 0, None)
 
     @pytest.mark.asyncio
-    async def test_offsets_past_the_first_ten_thousand_are_an_empty_listing(self):
-        lines: list[str] = []
-        extractor = AsyncPubMedExtractor(_client(Router()), logger=lines.append)
-        assert extractor.parse_listing(await extractor.search("q", 20, 10_000), set()) == ([], 0)
-        assert "first 10,000 results" in lines[0]
+    async def test_the_page_that_reaches_the_search_count_ends_the_listing(self):
+        page = await AsyncPubMedExtractor(_client(self._router(["1", "2"], count="42"))).fetch_page("q", "40", 20)
+        assert (page.entries, page.next_cursor, page.truncated) == (2, None, False)
 
-    @pytest.mark.parametrize(
-        "payload", [b'{"esearchresult": {}}', b"not json", b'{"esearchresult": {"idlist": "x"}}']
-    )
+    @pytest.mark.asyncio
+    async def test_the_page_that_reaches_the_cap_is_truncated(self):
+        lines: list[str] = []
+        router = self._router(["1", "2"], count="50000")
+        page = await AsyncPubMedExtractor(_client(router), logger=lines.append).fetch_page("q", "9997", 20)
+        assert router.requests[0].url.params["retmax"] == "2"
+        assert (page.entries, page.next_cursor, page.truncated) == (2, None, True)
+        assert "first 9,999 results" in lines[0]
+
+    @pytest.mark.asyncio
+    async def test_a_cursor_past_the_cap_is_a_truncated_page_without_a_request(self):
+        lines: list[str] = []
+        router = Router()
+        page = await AsyncPubMedExtractor(_client(router), logger=lines.append).fetch_page("q", "9999", 20)
+        assert (page.records, page.entries, page.next_cursor, page.truncated) == ((), 0, None, True)
+        assert router.requests == []
+        assert "first 9,999 results" in lines[0]
+
+    @pytest.mark.parametrize("payload", [b'{"esearchresult": {}}', b"not json", b'{"esearchresult": {"idlist": "x"}}'])
     @pytest.mark.asyncio
     async def test_an_unreadable_esearch_response_is_malformed(self, payload):
         router = Router()
         router.add(lambda request: True, httpx.Response(200, content=payload))
         with pytest.raises(MalformedResponseError):
-            await AsyncPubMedExtractor(_client(router)).search("q", 5, 0)
+            await AsyncPubMedExtractor(_client(router)).fetch_page("q", None, 5)
 
-    @pytest.mark.parametrize("payload", [b"<oops", b"<PubmedArticleSet/>", b'<pubmed-listing entries="many"/>'])
-    def test_unreadable_listings_are_malformed(self, payload):
+    @pytest.mark.parametrize("payload", [b"<oops", b"<pubmed-listing/>"])
+    @pytest.mark.asyncio
+    async def test_an_unreadable_efetch_response_is_malformed(self, payload):
         with pytest.raises(MalformedResponseError):
-            AsyncPubMedExtractor(_client(Router())).parse_listing(payload, set())
+            await AsyncPubMedExtractor(_client(self._router(["1"], efetch=payload))).fetch_page("q", None, 5)
 
     @pytest.mark.parametrize(
         ("pub_date", "expected"),
@@ -494,30 +602,33 @@ class TestPubMedExtractor:
             (b"<Year>21</Year><MedlineDate>Spring</MedlineDate>", None),
         ],
     )
-    def test_publication_dates(self, pub_date, expected):
-        article = (
-            b"<pubmed-listing entries='1'><PubmedArticle><MedlineCitation><PMID>1</PMID><Article><Journal>"
+    @pytest.mark.asyncio
+    async def test_publication_dates(self, pub_date, expected):
+        article = self._article_set(
+            b"<PubmedArticle><MedlineCitation><PMID>1</PMID><Article><Journal>"
             b"<JournalIssue><PubDate>" + pub_date + b"</PubDate></JournalIssue></Journal>"
             b"<ArticleDate><Year>none</Year></ArticleDate></Article></MedlineCitation></PubmedArticle>"
-            b"</pubmed-listing>"
         )
-        records, _ = AsyncPubMedExtractor(_client(Router())).parse_listing(article, set())
-        assert records[0].metadata.get("published") == expected
+        page = await AsyncPubMedExtractor(_client(self._router(["1"], efetch=article))).fetch_page("q", None, 5)
+        assert page.records[0].metadata.get("published") == expected
 
-    def test_an_article_without_a_journal_issue_date(self):
-        article = (
-            b"<pubmed-listing entries='1'><PubmedArticle><MedlineCitation><PMID>1</PMID>"
-            b"<Article><Journal/></Article></MedlineCitation></PubmedArticle></pubmed-listing>"
+    @pytest.mark.asyncio
+    async def test_an_article_without_a_journal_issue_date(self):
+        article = self._article_set(
+            b"<PubmedArticle><MedlineCitation><PMID>1</PMID>"
+            b"<Article><Journal/></Article></MedlineCitation></PubmedArticle>"
         )
-        records, _ = AsyncPubMedExtractor(_client(Router())).parse_listing(article, set())
-        assert "published" not in records[0].metadata
+        page = await AsyncPubMedExtractor(_client(self._router(["1"], efetch=article))).fetch_page("q", None, 5)
+        assert "published" not in page.records[0].metadata
 
     @pytest.mark.asyncio
     async def test_full_text_is_read_from_pubmed_central_as_jats(self):
         router = Router()
         router.add(lambda request: request.url.params.get("db") == "pmc", httpx.Response(200, content=JATS))
         extractor = AsyncPubMedExtractor(_client(router))
-        text = await extractor.fetch_full_text(RawRecord("1", "t", "a", metadata={"pmcid": "PMC123"}))
+        text = await extractor.fetch_full_text(
+            RawRecord(record_id="1", title="t", abstract="a", metadata={"pmcid": "PMC123"})
+        )
         assert router.requests[0].url.params["id"] == "123"
         assert text.startswith("Dark matter in ultra-diffuse galaxies\n\nBackground")
         assert "Introduction" in text
@@ -534,10 +645,10 @@ class TestPubMedExtractor:
         lines: list[str] = []
         extractor = AsyncPubMedExtractor(_client(router), logger=lines.append)
         for pmcid in ("PMC1", "PMC2", "PMC3"):
-            assert await extractor.fetch_full_text(RawRecord("9", "t", "abstract", metadata={"pmcid": pmcid})) == (
-                "abstract"
-            )
-        assert await extractor.fetch_full_text(RawRecord("9", "t", "abstract")) == "abstract"
+            assert await extractor.fetch_full_text(
+                RawRecord(record_id="9", title="t", abstract="abstract", metadata={"pmcid": pmcid})
+            ) == ("abstract")
+        assert await extractor.fetch_full_text(RawRecord(record_id="9", title="t", abstract="abstract")) == "abstract"
         assert any("PMC full text unusable for '9'" in line for line in lines)
         assert "PMC has no full text for '9'" in lines
 
@@ -545,9 +656,12 @@ class TestPubMedExtractor:
     async def test_a_custom_full_text_parser_is_used_as_is(self):
         router = Router()
         router.add(lambda request: True, httpx.Response(200, content=b"<x/>"))
-        record = RawRecord("1", "t", "abstract", metadata={"pmcid": "PMC5"})
-        assert await AsyncPubMedExtractor(_client(router), full_text_parser=StubPdfParser("custom")).fetch_full_text(
-            record
-        ) == "custom"
+        record = RawRecord(record_id="1", title="t", abstract="abstract", metadata={"pmcid": "PMC5"})
+        assert (
+            await AsyncPubMedExtractor(_client(router), full_text_parser=StubPdfParser("custom")).fetch_full_text(
+                record
+            )
+            == "custom"
+        )
         blank = AsyncPubMedExtractor(_client(router), full_text_parser=StubPdfParser(""))
         assert await blank.fetch_full_text(record) == "abstract"

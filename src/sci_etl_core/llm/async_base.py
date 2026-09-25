@@ -16,7 +16,7 @@ class AsyncLLMClient(ABC):
     """
 
     @abstractmethod
-    async def complete_json(self, system_prompt: str, user_content: str, timeout: int | None = None) -> dict[str, Any]:
+    async def complete_json(self, system_prompt: str, user_content: str, timeout: int | None = None) -> dict[str, Any]:  # noqa: ASYNC109
         """Send a chat completion request and return the parsed JSON object.
 
         Raises:

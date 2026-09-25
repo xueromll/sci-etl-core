@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 
 from sci_etl_core._atomic_io import atomic_write_text
+from sci_etl_core._deprecation import warn_deprecated
 from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.processors.normalization import KeyNormalizer
 
@@ -53,6 +54,11 @@ class AsyncCsvUpsertExporter(AsyncExporter):
     Keys come from LLM output, so by default any key a spreadsheet would treat
     as a formula is written with a leading apostrophe and restored on reload.
     Value columns are numeric and need no escaping.
+
+    .. deprecated:: 0.5.0
+        Constructing it emits a :class:`DeprecationWarning`. It will be
+        removed in 0.6.0, which adds its replacement, ``AsyncCsvExporter``;
+        keep using it until then.
     """
 
     def __init__(
@@ -63,6 +69,9 @@ class AsyncCsvUpsertExporter(AsyncExporter):
         numeric_clip: dict[str, tuple[float, float]] | None = None,
         escape_formulas: bool = True,
     ) -> None:
+        warn_deprecated(
+            "AsyncCsvUpsertExporter", "its replacement is AsyncCsvExporter (0.6.0), so keep using it until you upgrade"
+        )
         self._key_column = key_column
         self._value_columns = value_columns
         self._normalizer = normalizer

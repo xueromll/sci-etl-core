@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pandas as pd
 
+from legacy_paging import page_through_search
 from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.extractors.async_base import AsyncExtractor
 from sci_etl_core.llm.extraction_async import AsyncEntityExtractor
@@ -21,6 +22,7 @@ def _pipeline(mocker, records, *, max_workers=4):
     extractor.fetch_full_text = mocker.AsyncMock(
         side_effect=lambda r: f"text-{r.record_id}"
     )
+    page_through_search(mocker, extractor)
 
     relevance = mocker.Mock(spec=AsyncRelevanceFilter)
     relevance.is_relevant = mocker.AsyncMock(return_value=True)
@@ -34,9 +36,10 @@ def _pipeline(mocker, records, *, max_workers=4):
     state = mocker.Mock(spec=AsyncStateManager)
     state.load_processed_ids = mocker.AsyncMock(return_value=set())
     state.load_metadata = mocker.AsyncMock(
-        return_value=PipelineMetadata(last_start_index=0)
+        return_value=PipelineMetadata(cursor=None)
     )
     state.mark_processed = mocker.AsyncMock()
+    state.failure_counts = mocker.AsyncMock(return_value={})
 
     pipeline = ETLPipeline(
         extractor=extractor,

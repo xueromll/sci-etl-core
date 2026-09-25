@@ -14,7 +14,7 @@ pipeline = AsyncETLPipeline(
     exporter=exporter,
     state_manager=state_manager,
     destination="results.csv",
-    shutdown=ShutdownSignal(logger=print),
+    shutdown=ShutdownSignal(),
 )
 
 try:
@@ -29,7 +29,7 @@ puts the previous handlers back afterwards.
 - **First signal:** no new record starts. Records already in flight finish
   and are marked processed; records that hadn't started stay unmarked for the
   next run. A pending listing request or the wait between pages is cancelled
-  at once. The saved offset doesn't move past the page that was cut short.
+  at once. The saved cursor doesn't move past the page that was cut short.
   State is flushed, and `run()` raises `PipelineInterrupted` carrying the
   number of records processed.
 - **Second signal:** restores the previous handler and terminates immediately.

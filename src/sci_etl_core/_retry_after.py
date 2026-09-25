@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
 from typing import Any
 
@@ -23,8 +23,8 @@ def parse_retry_after(value: Any, now: datetime | None = None) -> float | None:
     except (TypeError, ValueError, IndexError, OverflowError):
         return None
     if moment.tzinfo is None:
-        moment = moment.replace(tzinfo=timezone.utc)
-    reference = now if now is not None else datetime.now(timezone.utc)
+        moment = moment.replace(tzinfo=UTC)
+    reference = now if now is not None else datetime.now(UTC)
     return max((moment - reference).total_seconds(), 0.0)
 
 

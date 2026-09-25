@@ -52,6 +52,8 @@ _EXPORTS: dict[str, str] = {
     "SearchError": "sci_etl_core.exceptions",
     "SearchQueryError": "sci_etl_core.exceptions",
     "SearchStoreError": "sci_etl_core.exceptions",
+    "StaleCursorError": "sci_etl_core.exceptions",
+    "StateStoreError": "sci_etl_core.exceptions",
     "UpstreamError": "sci_etl_core.exceptions",
     "AsyncExporter": "sci_etl_core.exporters.async_base",
     "Exporter": "sci_etl_core.exporters.base",
@@ -60,6 +62,7 @@ _EXPORTS: dict[str, str] = {
     "ScatterPlotConfig": "sci_etl_core.exporters.plotly_async",
     "AsyncSqlTableExporter": "sci_etl_core.exporters.sql_async",
     "AsyncExtractor": "sci_etl_core.extractors.async_base",
+    "OffsetListing": "sci_etl_core.extractors.async_base",
     "AsyncArxivExtractor": "sci_etl_core.extractors.arxiv_async",
     "AsyncOpenAlexExtractor": "sci_etl_core.extractors.openalex_async",
     "AsyncPubMedExtractor": "sci_etl_core.extractors.pubmed_async",
@@ -85,6 +88,7 @@ _EXPORTS: dict[str, str] = {
     "AsyncEmbeddingRelevanceFilter": "sci_etl_core.llm.relevance_embedding_async",
     "configure_logging": "sci_etl_core.log_utils",
     "RunMetrics": "sci_etl_core.observability",
+    "ListingPage": "sci_etl_core.models",
     "PipelineMetadata": "sci_etl_core.models",
     "RawRecord": "sci_etl_core.models",
     "TokenUsage": "sci_etl_core.models",
@@ -147,6 +151,8 @@ if TYPE_CHECKING:
         SearchError,
         SearchQueryError,
         SearchStoreError,
+        StaleCursorError,
+        StateStoreError,
         UpstreamError,
     )
     from sci_etl_core.exporters.async_base import AsyncExporter
@@ -155,7 +161,7 @@ if TYPE_CHECKING:
     from sci_etl_core.exporters.plotly_async import AsyncPlotly3DExporter, ScatterPlotConfig
     from sci_etl_core.exporters.sql_async import AsyncSqlTableExporter
     from sci_etl_core.extractors.arxiv_async import AsyncArxivExtractor
-    from sci_etl_core.extractors.async_base import AsyncExtractor
+    from sci_etl_core.extractors.async_base import AsyncExtractor, OffsetListing
     from sci_etl_core.extractors.base import Extractor
     from sci_etl_core.extractors.openalex_async import AsyncOpenAlexExtractor
     from sci_etl_core.extractors.pubmed_async import AsyncPubMedExtractor
@@ -176,7 +182,7 @@ if TYPE_CHECKING:
     from sci_etl_core.llm.relevance_async import AsyncLLMRelevanceFilter, AsyncRelevanceFilter
     from sci_etl_core.llm.relevance_embedding_async import AsyncEmbeddingRelevanceFilter
     from sci_etl_core.log_utils import configure_logging
-    from sci_etl_core.models import PipelineMetadata, RawRecord, TokenUsage
+    from sci_etl_core.models import ListingPage, PipelineMetadata, RawRecord, TokenUsage
     from sci_etl_core.observability import RunMetrics
     from sci_etl_core.parsers.base import Parser, TableParser
     from sci_etl_core.pipeline import ETLPipeline

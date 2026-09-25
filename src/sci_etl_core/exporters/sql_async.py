@@ -3,6 +3,7 @@ from __future__ import annotations
 import pandas as pd
 from sqlalchemy.ext.asyncio import create_async_engine
 
+from sci_etl_core._deprecation import warn_deprecated
 from sci_etl_core.exporters.async_base import AsyncExporter
 
 
@@ -12,10 +13,16 @@ class AsyncSqlTableExporter(AsyncExporter):
     It takes a ``DataFrame``, not the pipeline's ``list[dict]`` of entities, so
     it serves post-processing output rather than
     :class:`~sci_etl_core.pipeline_async.AsyncETLPipeline` directly.
+
+    .. deprecated:: 0.5.0
+        Constructing it emits a :class:`DeprecationWarning`. It will be
+        removed in 0.6.0; use
+        :class:`~sci_etl_core.processors.sinks.SqlTableSink` instead.
     """
 
     def __init__(self, table_name: str, if_exists: str = "append") -> None:
         """Target ``table_name``; ``if_exists`` is passed to ``DataFrame.to_sql``."""
+        warn_deprecated("AsyncSqlTableExporter", "use sci_etl_core.processors.sinks.SqlTableSink instead")
         self._table_name = table_name
         self._if_exists = if_exists
 

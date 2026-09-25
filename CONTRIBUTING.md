@@ -19,8 +19,8 @@ source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -e ".[full,dev]"
 ```
 
-- **Python 3.10+** is required; the codebase uses `X | Y` unions and
-  `slots=True` dataclasses.
+- **Python 3.11+** is required; the codebase uses `X | Y` unions and
+  `slots=True`, `kw_only=True` dataclasses.
 - **Why `[full]`:** the suite exercises every bundled component.
 - **Not needed for tests:** `sentence-transformers` and a real SQL driver are
   mocked or stubbed.
@@ -246,14 +246,14 @@ Most contributions plug into an existing abstract base class:
 
 | Component | Subclass | Implement | Contract |
 |-----------|----------|-----------|----------|
-| Extractor | `AsyncExtractor` | `async search`, `parse_listing` (**synchronous**), `async fetch_full_text` | Raise `UpstreamError` when the source can't be reached after retries, `ExtractionError` when it rejects a request outright, and `MalformedResponseError` for an unreadable listing. Return `([], 0)` only for a genuinely empty listing. Skip ids in `seen_ids`, and skip entries that have no id. |
+| Extractor | `AsyncExtractor` | `async fetch_page(query, cursor, page_size) -> ListingPage`, `async fetch_full_text`; `cursor_for_offset` when the cursors are decimal offsets | Return every entry it can read: the pipeline skips processed ids. Count entries without an id in `entries`, return `next_cursor=None` on the last page, and `truncated=True` on the page that reaches the source's own result cap. Raise `UpstreamError` when the source can't be reached after retries, `ExtractionError` when it rejects a request outright, `MalformedResponseError` for an unreadable listing, and `StaleCursorError` for a cursor the source no longer accepts. |
 | Parser | `Parser` (optionally `TableParser`) | `extract_text(content: bytes) -> str` | Synchronous; callers run it in a worker thread. Raise `ParsingError` for bytes it can't read. |
 | LLM client | `AsyncLLMClient` | `async complete_json(system_prompt, user_content, timeout)` | Return the parsed JSON object; raise `LLMError` on failure or when the body isn't a JSON object. |
 | LLM response cache | `AsyncLLMResponseCache` | `async get(key)`, `async set(key, response)`, `async clear()` | `get` returns `None` for a missing key. Return copies, so a caller changing a response can't change the cache. Raise `LLMCacheError` for a storage fault; `CachingLLMClient` logs it and calls the LLM instead. Add `aclose()` if you hold connections. |
 | Relevance filter | `AsyncRelevanceFilter` | `async is_relevant(record)` | Re-raise `CancelledError`. |
 | Entity extractor | `AsyncEntityExtractor` | `async extract(text) -> list[dict]` | Each dict becomes one export row. Raise on failure instead of returning `[]`, so the record is retried. |
 | Exporter | `AsyncExporter` | `async export(data, destination)` | As a pipeline exporter it receives `list[dict]`, concurrently; serialize writes. |
-| State manager | `AsyncStateManager` | `load_processed_ids`, `mark_processed`, `load_metadata`, `save_metadata` | Concurrency-safe. Override `flush()` if you buffer; add `aclose()` if you hold connections. |
+| State manager | `AsyncStateManager` | `load_processed_ids`, `mark_processed`, `load_metadata`, `save_metadata` | Concurrency-safe. Override `record_failure` and `failure_counts` to support quarantine; the defaults track nothing. Record a schema version and refuse a file from a newer release. Override `flush()` if you buffer; add `aclose()` if you hold connections. |
 | Embedder | `AsyncEmbedder` | `async embed(texts) -> list[list[float]]` | One vector per input, same order; raise `EmbeddingError`. |
 | Vector store | `AsyncEmbeddingStore` | `add`, `delete_record`, `query`, `count` | Replace chunks with the same `(record_id, chunk_index)`; `delete_record` removes all of a record's chunks. Override `replace_record` (delete then add by default) if your backend can do both atomically. Never return hits with non-finite scores. Match `InMemoryEmbeddingStore` for `top_k`, `min_score`, and `exclude_record_id`. Serialize use of a shared connection, and raise `EmbeddingStoreError`. Implement `iter_records` (passages in `chunk_index` order, records in `record_id` order, no vectors) if the text index should be backfillable from your store. |
 | Chunker | `TextChunker` | `chunk(text) -> list[str]` | Ordered passages covering the text. |

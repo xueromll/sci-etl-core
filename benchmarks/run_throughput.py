@@ -43,6 +43,7 @@ from sci_etl_core import (  # noqa: E402
     AsyncExtractor,
     AsyncFileStateManager,
     AsyncRelevanceFilter,
+    ListingPage,
     RawRecord,
 )
 from sci_etl_core.processors import DefaultKeyNormalizer  # noqa: E402
@@ -58,18 +59,17 @@ class SyntheticListing(AsyncExtractor):
     def __init__(self, size: int) -> None:
         self._size = size
 
-    async def search(self, query: str, max_results: int, start_index: int) -> bytes:
-        end = min(start_index + max_results, self._size)
-        return f"{start_index}:{end}".encode()
+    def cursor_for_offset(self, offset: int) -> str:
+        return str(offset)
 
-    def parse_listing(self, raw_listing: bytes, seen_ids: set[str]) -> tuple[list[RawRecord], int]:
-        start, end = (int(bound) for bound in raw_listing.decode().split(":"))
-        records = [
+    async def fetch_page(self, query: str, cursor: str | None, page_size: int) -> ListingPage:
+        start = int(cursor or 0)
+        end = min(start + page_size, self._size)
+        records = tuple(
             RawRecord(record_id=f"r{index}", title=f"record {index}", abstract="synthetic")
             for index in range(start, end)
-            if f"r{index}" not in seen_ids
-        ]
-        return records, end - start
+        )
+        return ListingPage(records=records, entries=end - start, next_cursor=str(end) if end < self._size else None)
 
     async def fetch_full_text(self, record: RawRecord) -> str:
         return record.record_id

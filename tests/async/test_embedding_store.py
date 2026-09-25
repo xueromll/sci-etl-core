@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from legacy_paging import page_through_search
 from sci_etl_core.embeddings.async_base import AsyncEmbedder
 from sci_etl_core.embeddings.chunking import SlidingWindowChunker
 from sci_etl_core.embeddings.finder_async import AsyncSimilarArticleFinder
@@ -163,7 +164,7 @@ class TestAsyncChunkIngestor:
         ingestor = AsyncChunkIngestor(
             SlidingWindowChunker(chunk_words=2, overlap_words=1), embedder, store
         )
-        record = RawRecord("a", "Title", "abstract", source_url="http://x")
+        record = RawRecord(record_id="a", title="Title", abstract="abstract", source_url="http://x")
         stored = await ingestor.ingest(record, "one two three")
         assert stored == 2
         assert await store.count() == 2
@@ -175,7 +176,7 @@ class TestAsyncChunkIngestor:
         embedder = _FakeEmbedder({})
         store = InMemoryEmbeddingStore()
         ingestor = AsyncChunkIngestor(SlidingWindowChunker(), embedder, store)
-        assert await ingestor.ingest(RawRecord("a", "t", "abs"), "   ") == 0
+        assert await ingestor.ingest(RawRecord(record_id="a", title="t", abstract="abs"), "   ") == 0
         assert embedder.calls == []
 
 
@@ -207,8 +208,9 @@ class TestAsyncSimilarArticleFinder:
 def _pipeline(mocker, *, relevant=True):
     extractor = mocker.Mock(spec=AsyncExtractor)
     extractor.search = mocker.AsyncMock(return_value=b"<feed/>")
-    records = [RawRecord("1", "t", "a")]
+    records = [RawRecord(record_id="1", title="t", abstract="a")]
     extractor.parse_listing = mocker.Mock(side_effect=[(records, 1), ([], 0)])
+    page_through_search(mocker, extractor)
     extractor.fetch_full_text = mocker.AsyncMock(return_value="full body text")
 
     relevance = mocker.Mock(spec=AsyncRelevanceFilter)
@@ -222,9 +224,11 @@ def _pipeline(mocker, *, relevant=True):
 
     state = mocker.Mock(spec=AsyncStateManager)
     state.load_processed_ids = mocker.AsyncMock(return_value=set())
-    state.load_metadata = mocker.AsyncMock(return_value=PipelineMetadata(last_start_index=0))
+    state.load_metadata = mocker.AsyncMock(return_value=PipelineMetadata(cursor=None))
     state.mark_processed = mocker.AsyncMock()
     state.save_metadata = mocker.AsyncMock()
+    state.failure_counts = mocker.AsyncMock(return_value={})
+    state.record_failure = mocker.AsyncMock(return_value=1)
 
     ingestor = mocker.Mock()
     ingestor.ingest = mocker.AsyncMock(return_value=2)
@@ -274,7 +278,13 @@ class TestChunkIngestorMetadata:
     async def test_chunks_keep_only_the_title_and_source_url_whatever_the_record_metadata(self):
         store = InMemoryEmbeddingStore()
         ingestor = AsyncChunkIngestor(SlidingWindowChunker(chunk_words=10), _FakeEmbedder({"a b": [1.0, 0.0]}), store)
-        record = RawRecord("1", "Title", "abstract", "https://arxiv.org/abs/1", {"categories": ["GA"], "year": "2025"})
+        record = RawRecord(
+            record_id="1",
+            title="Title",
+            abstract="abstract",
+            source_url="https://arxiv.org/abs/1",
+            metadata={"categories": ["GA"], "year": "2025"},
+        )
         assert await ingestor.ingest(record, "a b") == 1
         (hit,) = await store.query([1.0, 0.0])
         assert hit.metadata == {"title": "Title", "source_url": "https://arxiv.org/abs/1"}

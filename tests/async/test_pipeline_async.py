@@ -16,6 +16,7 @@ from sci_etl_core.exceptions import (
     UpstreamError,
 )
 from sci_etl_core.exporters.async_base import AsyncExporter
+from sci_etl_core.extractors._legacy import LegacyExtractorAdapter
 from sci_etl_core.extractors.async_base import AsyncExtractor
 from sci_etl_core.ingest_async import AsyncCompositeIngestor
 from sci_etl_core.llm.extraction_async import AsyncEntityExtractor
@@ -46,12 +47,15 @@ def _build(mocker, records, *, relevant=True, entities=None, max_concurrency=6, 
 
     state = mocker.Mock(spec=AsyncStateManager)
     state.load_processed_ids = mocker.AsyncMock(return_value=set())
-    state.load_metadata = mocker.AsyncMock(return_value=PipelineMetadata(last_start_index=0))
+    state.load_metadata = mocker.AsyncMock(return_value=PipelineMetadata(cursor=None))
     state.mark_processed = mocker.AsyncMock()
     state.save_metadata = mocker.AsyncMock()
 
+    state.failure_counts = mocker.AsyncMock(return_value={})
+    state.record_failure = mocker.AsyncMock(return_value=1)
+
     pipeline = AsyncETLPipeline(
-        extractor=extractor,
+        extractor=LegacyExtractorAdapter(extractor),
         relevance_filter=relevance,
         entity_extractor=entity,
         exporter=exporter,
@@ -69,7 +73,7 @@ def _marked(state) -> list[str]:
 
 
 def _saved_offset(state) -> int:
-    return state.save_metadata.await_args.args[0].last_start_index
+    return int(state.save_metadata.await_args.args[0].cursor or 0)
 
 
 class TestAsyncPipelineHappyPath:
@@ -126,7 +130,7 @@ class TestAsyncPipelineFailureSignaling:
     async def test_aborts_when_search_returns_no_payload(self, mocker):
         pipeline, extractor, *_ = _build(mocker, _records(1))
         extractor.search = mocker.AsyncMock(return_value=None)
-        with pytest.raises(PipelineAborted, match="no payload") as excinfo:
+        with pytest.raises(PipelineAborted, match="Listing fetch failed") as excinfo:
             await pipeline.run(query="q", page_size=10, total_limit=10, sleep_between=0)
         assert excinfo.value.partial_count == 0
 
@@ -212,7 +216,7 @@ class TestAsyncPipelineOffsetIntegrity:
 
         entity.extract = mocker.AsyncMock(side_effect=extract)
         assert await pipeline.run(query="q", page_size=2, total_limit=10) == 3
-        assert state.save_metadata.await_count == 2
+        assert state.save_metadata.await_count == 3
         assert _saved_offset(state) == 0
         assert "0" not in _marked(state)
 
@@ -361,7 +365,7 @@ class TestAsyncPipelineContextManager:
         closeable = mocker.Mock()
         closeable.aclose = mocker.AsyncMock()
         pipeline, *_ = _build(mocker, _records(0))
-        pipeline._closeables = [closeable, object()]
+        pipeline._closeables = [closeable]
         async with pipeline as entered:
             assert entered is pipeline
         closeable.aclose.assert_awaited_once()
@@ -413,14 +417,14 @@ class TestAsyncPipelineResume:
     @pytest.mark.asyncio
     async def test_saved_offset_is_used_by_default(self, mocker):
         pipeline, extractor, _, _, _, state = _build(mocker, _records(1))
-        state.load_metadata = mocker.AsyncMock(return_value=PipelineMetadata(last_start_index=40))
+        state.load_metadata = mocker.AsyncMock(return_value=PipelineMetadata(cursor="40"))
         await pipeline.run(query="q", page_size=5, total_limit=5)
         assert extractor.search.await_args_list[0].args[2] == 40
 
     @pytest.mark.asyncio
     async def test_start_index_overrides_saved_offset(self, mocker):
         pipeline, extractor, _, _, _, state = _build(mocker, _records(1))
-        state.load_metadata = mocker.AsyncMock(return_value=PipelineMetadata(last_start_index=40))
+        state.load_metadata = mocker.AsyncMock(return_value=PipelineMetadata(cursor="40"))
         await pipeline.run(query="q", page_size=5, total_limit=5, start_index=0)
         assert extractor.search.await_args_list[0].args[2] == 0
 
@@ -521,12 +525,11 @@ class TestAsyncPipelineArgumentValidation:
         with pytest.raises(ValueError, match="max_concurrency"):
             _build(mocker, [], max_concurrency=max_concurrency)
 
-    @pytest.mark.filterwarnings("ignore:run\\(max_records=\\) is deprecated:DeprecationWarning")
     @pytest.mark.parametrize(
         ("limits", "message"),
         [
             ({"page_size": 0}, "page_size"),
-            ({"max_records": 0}, "page_size"),
+            ({"max_attempts": 0}, "max_attempts"),
             ({"total_limit": -1}, "total_limit"),
         ],
     )

@@ -25,19 +25,18 @@ reloads the file; other tools reading the CSV see it. Pass
 Cleanup, scoring, and plots are a separate step over a DataFrame:
 
 ```python
-import asyncio
-
 import pandas as pd
 
-from sci_etl_core import AsyncPlotly3DExporter, ScatterPlotConfig
 from sci_etl_core.processors import (
     CompletenessStep,
     DeduplicationStep,
     DefaultKeyNormalizer,
     NormalizationStep,
+    Plotly3DSink,
     ProcessorChain,
     QualityFlagStep,
 )
+from sci_etl_core.processors.sinks import ScatterPlotConfig
 
 frame = pd.read_csv("results.csv", dtype={"name": str})
 clean = ProcessorChain(
@@ -49,7 +48,7 @@ clean = ProcessorChain(
     ]
 ).process(frame)
 
-plot = AsyncPlotly3DExporter(
+plot = Plotly3DSink(
     ScatterPlotConfig(
         x_column="value_a",
         y_column="value_b",
@@ -57,9 +56,10 @@ plot = AsyncPlotly3DExporter(
         color_column="quality_flag",
         hover_name_column="name",
         title="Corpus overview",
-    )
+    ),
+    "overview.html",
 )
-asyncio.run(plot.export(clean, "overview.html"))
+plot.write(clean)
 ```
 
 `clean` then looks like this:
@@ -70,14 +70,19 @@ asyncio.run(plot.export(clean, "overview.html"))
 | objectb   | Object B | 9.1     |         | 50.0             | Needs Review   |
 | objectc   | Object C |         |         | 0.0              | Low Confidence |
 
-The Plotly exporter drops rows that are missing any axis value.
+`Plotly3DSink` drops rows that are missing any axis value, writes nothing when
+no row remains, and replaces the HTML file atomically. It needs the `viz`
+extra when constructed; importing `sci_etl_core.processors.sinks` needs only
+the `processors` dependencies. The sinks are blocking, so call `write` through
+`asyncio.to_thread` from async code. `AsyncPlotly3DExporter`, the 0.4 way to
+write this plot, is deprecated and will be removed in 0.6.0.
 
 ### Styling the plot
 
 `ScatterPlotConfig` also controls hover text and colors:
 
 ```python
-from sci_etl_core import ScatterPlotConfig
+from sci_etl_core.processors.sinks import ScatterPlotConfig
 
 config = ScatterPlotConfig(
     x_column="x",
@@ -144,8 +149,10 @@ config = ScatterPlotConfig(
       label_field="name",
   )
   ```
-- **`AsyncSqlTableExporter(table_name)`** writes a DataFrame to a SQLAlchemy
-  async URL, e.g.
-  `await AsyncSqlTableExporter("entities").export(clean, "sqlite+aiosqlite:///results.db")`.
-  Like the Plotly exporter, it takes a DataFrame, so use it after
-  post-processing rather than as the pipeline's exporter.
+- **`SqlTableSink(url, table_name)`** writes a DataFrame to a database
+  through a synchronous SQLAlchemy URL, in one transaction, e.g.
+  `SqlTableSink("sqlite:///results.db", "entities").write(clean)`. It needs
+  the `sql` extra when constructed. Like `Plotly3DSink`, it takes a
+  DataFrame, so use it after post-processing rather than as the pipeline's
+  exporter. It replaces `AsyncSqlTableExporter`, which is deprecated and will
+  be removed in 0.6.0.

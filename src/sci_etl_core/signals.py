@@ -8,6 +8,8 @@ from contextlib import contextmanager, suppress
 from types import FrameType
 from typing import Any
 
+from sci_etl_core._deprecation import warn_logger_argument
+
 DEFAULT_SIGNALS: tuple[signal.Signals, ...] = tuple(
     member
     for member in (getattr(signal, "SIGINT", None), getattr(signal, "SIGTERM", None))
@@ -34,6 +36,7 @@ class ShutdownSignal:
         signals: Iterable[signal.Signals] = DEFAULT_SIGNALS,
         logger: Callable[[str], None] | None = None,
     ) -> None:
+        warn_logger_argument("ShutdownSignal", logger)
         self._signals = tuple(signals)
         self._log = logger or (lambda _msg: None)
         self._event = asyncio.Event()

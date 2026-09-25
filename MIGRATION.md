@@ -28,6 +28,7 @@ prompts, fields, and domain rules for your own.
 - [Step 9: Delete the old code](#step-9-delete-the-old-code)
 - [Upgrading to 0.3](#upgrading-to-03)
 - [Upgrading to 0.4](#upgrading-to-04)
+- [Upgrading to 0.5](#upgrading-to-05)
 - [What the migration uncovered](#what-the-migration-uncovered)
 - [Adapting this to your field](#adapting-this-to-your-field)
 
@@ -988,6 +989,192 @@ them again through the same pipeline with an entity extractor that returns
 nothing, a relevance filter that skips papers already in the text index, and
 a separate state manager (`indexed_arxiv_ids.txt`, `indexing_meta.json`), so
 the galaxy catalogue and its processed ids are left alone.
+
+## Upgrading to 0.5
+
+0.5 changes the run contract: how extractors page, what the state saves, and
+how the pipeline is constructed. The data contract, meaning entities and
+exporters, changes once more in 0.6. Require the new minor and Python 3.11:
+
+```text
+sci-etl-core[async,llm,pdf]>=0.5.0,<0.6
+```
+
+State written by 0.4 needs no conversion. `AsyncSqliteStateManager` upgrades
+its database in place, and `AsyncFileStateManager` reads the old metadata file
+and rewrites it in the new format on the next save. Either way the saved offset
+becomes the cursor, so the next run resumes where the last one stopped.
+
+### Extractors return parsed pages
+
+`search` and `parse_listing` are replaced by one `fetch_page`, which returns a
+`ListingPage`. The pipeline now skips processed records itself, so an
+extractor returns every entry it can read. A source that pages by offset
+implements `cursor_for_offset` too, which makes it an `OffsetListing`.
+
+Before:
+
+```python
+class MyExtractor(AsyncExtractor):
+    async def search(self, query: str, max_results: int, start_index: int) -> bytes | None:
+        return await self._client.get_page(query, start_index, max_results)
+
+    def parse_listing(self, raw_listing: bytes, seen_ids: set[str]) -> tuple[list[RawRecord], int]:
+        entries = parse(raw_listing)
+        return [entry for entry in entries if entry.record_id not in seen_ids], len(entries)
+```
+
+After:
+
+```python
+class MyExtractor(AsyncExtractor):
+    def cursor_for_offset(self, offset: int) -> str:
+        return str(offset)
+
+    async def fetch_page(self, query: str, cursor: str | None, page_size: int) -> ListingPage:
+        offset = int(cursor or 0)
+        entries = parse(await self._client.get_page(query, offset, page_size))
+        return ListingPage(
+            records=tuple(entries),
+            entries=len(entries),
+            next_cursor=str(offset + len(entries)) if entries else None,
+        )
+```
+
+A source with opaque continuation tokens returns the token as `next_cursor`
+and leaves out `cursor_for_offset`. A source that stops at its own result cap
+returns `truncated=True` and `next_cursor=None` on the page that reaches it.
+Until an extractor is ported, `LegacyExtractorAdapter(MyOldExtractor())` runs
+it unchanged in 0.5.x, with a `DeprecationWarning`; 0.6 removes the adapter.
+
+A wrapper that forwards to another extractor, such as a progress logger,
+forwards `fetch_page`, and `cursor_for_offset` too when it wraps an
+`OffsetListing`:
+
+```python
+class LoggingExtractor(AsyncExtractor):
+    def cursor_for_offset(self, offset: int) -> str:
+        return self._inner.cursor_for_offset(offset)
+
+    async def fetch_page(self, query: str, cursor: str | None, page_size: int) -> ListingPage:
+        self._log(f"Fetching listing page at cursor {cursor or 'start'}")
+        return await self._inner.fetch_page(query, cursor, page_size)
+```
+
+`newest_first=True` and `start_index` above 0 need an `OffsetListing` and raise
+`ValueError` before any request otherwise. `AsyncArxivExtractor`,
+`AsyncPubMedExtractor`, and `AsyncSemanticScholarExtractor` are
+`OffsetListing`s. `AsyncOpenAlexExtractor` now pages with OpenAlex cursors, so
+it reaches past the first 10,000 works but no longer supports `newest_first`;
+its first 0.5 run restarts the listing once from the first page, because the
+offset 0.4 saved is not an OpenAlex cursor.
+
+### What the state saves
+
+`PipelineMetadata.cursor` replaces `last_start_index`. Code that reads the
+saved position reads the cursor, which is a decimal offset for an
+`OffsetListing`:
+
+```python
+metadata = await state.load_metadata()
+saved_offset = int(metadata.cursor or 0)
+```
+
+The progress events gain `cursor`. `RunStarted.start_index`,
+`PageFetched.offset`, and `PageFinished.offset` still hold the listing offset
+for an `OffsetListing` and are `None` for any other extractor.
+
+### Capped listings start over
+
+PubMed stops at 9,999 results, Semantic Scholar at 1,000. In 0.4 a run that
+reached the cap saved the cap as its offset, and every later run ended there at
+once. In 0.5 the page that reaches the cap ends the run `"completed"`,
+`RunMetrics.listing_truncated` reports it, and the saved cursor is reset, so
+the next run pages the reachable results again: processed records are skipped
+by id, so the rescan costs listing requests, not LLM calls. Narrow the query,
+for example by date, to avoid the rescan.
+
+### Records that keep failing are quarantined
+
+A record that fails in 3 runs, each on a page that processed another record, is
+skipped as quarantined from the next run on and counted in
+`RunMetrics.quarantined`. Failures on a page where nothing was processed, as
+during an outage or with a rejected API key, are never counted. To keep the
+0.4 behavior, retrying every failed record forever:
+
+```python
+await pipeline.run(query, page_size=100, total_limit=500, max_attempts=None)
+```
+
+A third-party state manager keeps working unchanged: the new
+`record_failure` and `failure_counts` have defaults that track nothing, so it
+never quarantines.
+
+### Keyword arguments
+
+`AsyncETLPipeline` and `ETLPipeline` take the five collaborators positionally,
+or by name, and everything else by keyword. `run` takes `query` and then
+keywords only, and `max_records=` is gone:
+
+```python
+pipeline = AsyncETLPipeline(
+    extractor,
+    relevance_filter,
+    entity_extractor,
+    exporter,
+    state_manager,
+    destination="results.csv",
+    max_concurrency=4,
+)
+await pipeline.run("all:galaxy", page_size=50, total_limit=200)
+```
+
+`RawRecord`, `PipelineMetadata`, `TokenUsage`, `RunMetrics`, and the events
+are keyword-only, so `RawRecord("id", "title", "abstract")` becomes
+`RawRecord(record_id="id", title="title", abstract="abstract")`.
+
+### Strict config sections
+
+A key that a bundled section does not declare now fails validation and is
+named in the `ConfigurationError`, so a typo such as `search.bm25.titel` or the
+earlier key `pipeline.max_records` no longer passes silently. Rename
+`pipeline.max_records` to `total_limit` and `pipeline.max_workers` to
+`max_concurrency`. An application that must accept unknown keys for now opts
+out on its config class, and each dropped key is reported with a `UserWarning`:
+
+```python
+class CatalogueConfig(BaseAppConfig):
+    strict_sections = False
+```
+
+Top-level sections the application defines are kept as before.
+
+### Table sinks
+
+`AsyncSqlTableExporter` and `AsyncPlotly3DExporter` took a `DataFrame` and
+could not run in the pipeline. Their replacements are blocking sinks for
+post-processing output:
+
+```python
+from sci_etl_core.processors.sinks import Plotly3DSink, ScatterPlotConfig, SqlTableSink
+
+catalogue = chain.process(raw_table)
+SqlTableSink("sqlite:///catalogue.db", "galaxies", if_exists="replace").write(catalogue)
+Plotly3DSink(ScatterPlotConfig("x", "y", "z", color_column="size"), "catalogue.html").write(catalogue)
+```
+
+### Deprecations with no replacement before 0.6
+
+These warn in 0.5.x and keep working. Their replacements ship in 0.6, so there
+is nothing to change yet: the `destination` argument, `AsyncExporter.export`
+and `AsyncCsvUpsertExporter` (replaced by the exporter lifecycle and
+`AsyncCsvExporter`), and every `logger=` argument and `configure_logging`
+(replaced by the standard `logging` module). The blocking contracts and their
+`Sync*Adapter`s warn as well; move to the async contracts, which every
+component already implements.
+
+`build_retrying_session` is removed, and the `full` extra no longer installs
+`requests`.
 
 ## What the migration uncovered
 

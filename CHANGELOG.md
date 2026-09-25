@@ -5,6 +5,96 @@ All notable changes to sci-etl-core are recorded here. The format follows
 [Semantic Versioning](https://semver.org/). Until 1.0, a minor release may
 change behavior; each such change is listed under **Changed**.
 
+## [Unreleased]
+
+The 0.5.0 run contract. MIGRATION.md, "Upgrading to 0.5", covers every item
+below that needs a change in calling code.
+
+### Added
+
+- `ListingPage`, the parsed page `AsyncExtractor.fetch_page` returns, with an
+  opaque `next_cursor` and a `truncated` flag for a source that stopped at its
+  own result cap.
+- `OffsetListing`, the protocol of an extractor whose cursors are decimal
+  offsets. `newest_first` runs and `run(start_index=)` above 0 need it.
+- `StaleCursorError`, raised by an extractor that no longer accepts a cursor,
+  and `StateStoreError`, raised by a state manager for a file written by a newer
+  sci-etl-core.
+- `LegacyExtractorAdapter`, which runs an extractor written against the 0.4
+  `search` and `parse_listing` contract. It is deprecated on arrival.
+- Failure tracking: `AsyncStateManager.record_failure` and `failure_counts`,
+  with defaults that track nothing; `run(max_attempts=3)`; and
+  `RunMetrics.quarantined`. Both bundled state managers store the attempts and
+  the last error per record, truncated to 4,096 characters.
+- `RunMetrics.listing_truncated`, `PageFetched.truncated`, and
+  `PipelineMetadata.truncated` report a listing that stopped at a result cap.
+  `RunStarted`, `PageFetched`, and `PageFinished` gain `cursor`.
+- `BaseAppConfig.strict_sections`, the opt-out from strict config sections.
+- `SqlTableSink` and `Plotly3DSink` in `sci_etl_core.processors.sinks`, blocking
+  `TableSink`s that take a post-processed `DataFrame`.
+- Schema versions in `PRAGMA user_version` for the SQLite state database, the
+  SQLite LLM cache, and the SQLite embedding store, and a `schema_version` key
+  in the file state's metadata. Each store refuses a file written by a newer
+  release.
+
+### Changed
+
+- `AsyncExtractor` has `fetch_page(query, cursor, page_size)` in place of
+  `search` and `parse_listing`, and no longer receives the processed ids: the
+  pipeline skips processed records itself and parses each listing page once.
+- `PipelineMetadata.cursor` replaces `last_start_index`. Both bundled state
+  managers read a file written by 0.4 and turn its saved offset into the cursor.
+- `AsyncOpenAlexExtractor` pages with OpenAlex cursors, so a listing is no
+  longer limited to its first 10,000 works. It is not an `OffsetListing`, so it
+  no longer supports `newest_first` runs, and an offset saved by 0.4 restarts
+  its listing from the first page once.
+- `AsyncPubMedExtractor` and `AsyncSemanticScholarExtractor` mark the page that
+  reaches their result cap, 9,999 and 1,000 results, as `truncated`, and end
+  the listing on the page that reaches the search's result count.
+  `AsyncPubMedExtractor` no longer requests the offset 9,999, which E-utilities
+  rejects.
+- A listing that stops at a result cap completes the run and resets the saved
+  cursor, so the next run pages the reachable results again instead of ending
+  at the cap. A stale cursor restarts the listing from its first page once per
+  run.
+- A record that fails in `max_attempts` runs, on pages that processed another
+  record, is skipped as quarantined in later runs. Pass `max_attempts=None` for
+  the 0.4 behavior.
+- `AsyncETLPipeline` and `ETLPipeline` take the five collaborators positionally
+  and every other argument by keyword, with typed `sleep`, `closeables`, and
+  `usage_sources`. Every argument of `run` after `query` is keyword-only, and
+  `page_size` defaults to 100. Both `from_config` methods list their arguments
+  instead of taking `**arguments`.
+- `RawRecord`, `PipelineMetadata`, `TokenUsage`, `RunMetrics`, and every event
+  dataclass are keyword-only.
+- A key a bundled config section does not declare, such as
+  `search.bm25.titel`, fails validation.
+- sci-etl-core requires Python 3.11 or newer.
+
+### Deprecated
+
+These still work in 0.5.x, emit a `DeprecationWarning`, and are removed in
+0.6.0:
+
+- every `logger=` argument, and `configure_logging`;
+- the blocking `Extractor`, `StateManager`, `Exporter`, `LLMClient`,
+  `RelevanceFilter`, and `EntityExtractor` contracts, when subclassed outside
+  the library, and the `Sync*Adapter`s;
+- `LegacyExtractorAdapter`;
+- `AsyncETLPipeline(destination=)`;
+- `AsyncExporter.export` and `AsyncCsvUpsertExporter`, whose replacements
+  arrive in 0.6.0;
+- `AsyncSqlTableExporter` and `AsyncPlotly3DExporter`, replaced by
+  `SqlTableSink` and `Plotly3DSink`.
+
+### Removed
+
+- The config keys `pipeline.max_records` and `pipeline.max_workers`, the
+  `PipelineConfig.max_records` and `max_workers` properties, and
+  `run(max_records=)`.
+- `sci_etl_core.http.build_retrying_session`, `requests` from the `full` extra,
+  and `types-requests` from the `lint` extra.
+
 ## [0.4.1] - 2026-09-25
 
 ### Changed
@@ -256,6 +346,7 @@ extractor, OpenAI-compatible chat and embedding clients, PDF, LaTeX, and HTML
 parsers, CSV, SQL, and Plotly exporters, dataframe processors and validators,
 file and SQLite state, semantic memory, and the udg-catalogue migration guide.
 
+[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.4.1...HEAD
 [0.4.1]: https://github.com/xueromll/sci-etl-core/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/xueromll/sci-etl-core/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/xueromll/sci-etl-core/compare/v0.2.0...v0.3.0

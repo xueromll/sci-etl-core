@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
+from sci_etl_core._deprecation import warn_logger_argument
 from sci_etl_core.exceptions import LLMError
 from sci_etl_core.llm._chunking import truncate_to_tokens
 from sci_etl_core.llm.async_base import AsyncLLMClient
@@ -61,6 +62,7 @@ class AsyncLLMEntityExtractor(AsyncEntityExtractor):
         entities.
         """
         self._validator = validator
+        warn_logger_argument("AsyncLLMEntityExtractor", logger)
         self._log = logger or (lambda _msg: None)
         self._label_field = label_field
         self._llm_client = llm_client

@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable
 
+from sci_etl_core._deprecation import warn_logger_argument
 from sci_etl_core.ingest_protocol import MEMORY_FAULTS, MemoryIngestor
 from sci_etl_core.models import RawRecord
 from sci_etl_core.search.index_async import AsyncSearchIndexer
@@ -42,6 +43,7 @@ class AsyncCompositeIngestor:
                 "pass the chunk ingestor first"
             )
         self._ingestors = ingestors
+        warn_logger_argument("AsyncCompositeIngestor", logger)
         self._log = logger or (lambda _msg: None)
 
     async def ingest(self, record: RawRecord, text: str) -> int:

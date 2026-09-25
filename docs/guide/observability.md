@@ -27,6 +27,8 @@ finally:
 | `processed`, `irrelevant`, `deferred`, `failed`, `skipped` | Records by outcome; `deferred` records wait for the next run because of `total_limit` or a shutdown, and `skipped` records had no id |
 | `entities_exported` | Entities handed to the exporter |
 | `memory_faults` | Memory ingest faults that were logged without failing their record |
+| `quarantined` | Listed records skipped because they failed `max_attempts` times in earlier runs, each counted once per run |
+| `listing_truncated` | `True` when the source stopped the listing at its result cap |
 | `duration_seconds` | Wall time of the run |
 | `token_usage` | Tokens the `usage_sources` used during this run, or `None` without sources |
 | `outcome` | `completed`, `aborted`, `interrupted`, `cancelled`, or `failed` |
@@ -49,7 +51,7 @@ def report(event):
     if isinstance(event, RecordFinished) and event.outcome == "failed":
         print(f"{event.record_id} failed after {event.duration_seconds:.1f} s: {event.error!r}")
     elif isinstance(event, PageFinished):
-        print(f"page at {event.offset}: {event.metrics.processed} processed so far")
+        print(f"page at {event.cursor or 'start'}: {event.metrics.processed} processed so far")
     elif isinstance(event, RunFinished):
         print(f"run {event.metrics.outcome}")
 
@@ -59,11 +61,16 @@ pipeline = AsyncETLPipeline(..., on_event=report)
 
 | Event | When |
 |-------|------|
-| `RunStarted(query, start_index, total_limit, newest_first)` | Before the first listing request |
-| `PageFetched(offset, entries, new_records)` | A listing page arrived; `new_records` aren't processed yet |
+| `RunStarted(query, start_index, total_limit, newest_first, cursor)` | Before the first listing request |
+| `PageFetched(offset, entries, new_records, cursor, truncated)` | A listing page arrived; `new_records` aren't processed yet, and `truncated` marks the page where the source stopped at its result cap |
 | `RecordFinished(record_id, title, outcome, duration_seconds, entities, error)` | A record left the pipeline for this run |
-| `PageFinished(offset, duration_seconds, metrics)` | Every record of a page finished; `metrics` is the run so far |
+| `PageFinished(offset, duration_seconds, metrics, cursor)` | Every record of a page finished; `metrics` is the run so far |
 | `RunFinished(metrics)` | The run ended, however it ended |
+
+`cursor` is the listing cursor a page was requested with, `None` for the first
+page. `start_index` and `offset` hold the same position as a listing offset
+when the extractor pages by offset, and are `None` otherwise. Every event and
+`RunMetrics` is a keyword-only dataclass.
 
 The handler runs on the event loop, so keep it quick: hand slow work, such as
 a network call, to a queue. An exception it raises is logged as

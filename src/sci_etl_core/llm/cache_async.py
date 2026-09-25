@@ -8,20 +8,27 @@ from abc import ABC, abstractmethod
 from collections import OrderedDict
 from collections.abc import Callable
 from dataclasses import dataclass, replace
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from sci_etl_core._deprecation import warn_logger_argument
+from sci_etl_core._migrations import Migration, migrate, newer_schema_message
 from sci_etl_core._sqlite_async import AsyncSqliteRunner
 from sci_etl_core.exceptions import LLMCacheError
 from sci_etl_core.llm.async_base import AsyncLLMClient
 from sci_etl_core.models import TokenUsage
 
-_CACHE_SCHEMA = (
-    "CREATE TABLE IF NOT EXISTS llm_responses ("
-    " key TEXT PRIMARY KEY,"
-    " response TEXT NOT NULL,"
-    " created_at TEXT NOT NULL)"
+_MIGRATIONS: tuple[Migration, ...] = (
+    (
+        1,
+        (
+            "CREATE TABLE IF NOT EXISTS llm_responses ("
+            " key TEXT PRIMARY KEY,"
+            " response TEXT NOT NULL,"
+            " created_at TEXT NOT NULL)",
+        ),
+    ),
 )
 
 
@@ -92,14 +99,15 @@ class AsyncSqliteLLMResponseCache(AsyncLLMResponseCache):
 
     The file and its parent folder are created on first use, and responses are
     stored as JSON. Every SQLite failure, including a file that is not a
-    database, raises :class:`~sci_etl_core.exceptions.LLMCacheError`. Close it
-    with :meth:`aclose`, for example by listing it in the pipeline's
+    database or a file written by a newer sci-etl-core, raises
+    :class:`~sci_etl_core.exceptions.LLMCacheError`. The file records its schema
+    version in ``PRAGMA user_version``. Close it with :meth:`aclose`, for example by listing it in the pipeline's
     ``closeables``. Use each instance from one event loop.
     """
 
     def __init__(self, path: str | Path, now: Callable[[], datetime] | None = None) -> None:
         self._path = Path(path)
-        self._now = now or (lambda: datetime.now(timezone.utc))
+        self._now = now or (lambda: datetime.now(UTC))
         self._runner = AsyncSqliteRunner(self._open_connection, error_factory=LLMCacheError)
 
     async def get(self, key: str) -> dict[str, Any] | None:
@@ -152,7 +160,11 @@ class AsyncSqliteLLMResponseCache(AsyncLLMResponseCache):
         connection = sqlite3.connect(self._path, check_same_thread=False, isolation_level=None)
         try:
             connection.execute("PRAGMA journal_mode=WAL")
-            connection.execute(_CACHE_SCHEMA)
+            migrate(
+                connection,
+                _MIGRATIONS,
+                lambda found, supported: LLMCacheError(newer_schema_message("LLM response cache", found, supported)),
+            )
         except BaseException:
             connection.close()
             raise
@@ -204,6 +216,7 @@ class CachingLLMClient(AsyncLLMClient):
         self._client = client
         self._cache = cache
         self._model = resolved
+        warn_logger_argument("CachingLLMClient", logger)
         self._log = logger or (lambda _msg: None)
         self._stats = CacheStats()
 
@@ -221,7 +234,7 @@ class CachingLLMClient(AsyncLLMClient):
     def usage(self) -> TokenUsage | None:
         return self._client.usage
 
-    async def complete_json(self, system_prompt: str, user_content: str, timeout: int | None = None) -> dict[str, Any]:
+    async def complete_json(self, system_prompt: str, user_content: str, timeout: int | None = None) -> dict[str, Any]:  # noqa: ASYNC109
         """Return the cached response, or ask the wrapped client and cache its answer.
 
         Raises:

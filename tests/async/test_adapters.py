@@ -34,7 +34,7 @@ class _Extractor(Extractor):
     def parse_listing(self, raw_listing: bytes, seen_ids: set[str]) -> tuple[list[RawRecord], int]:
         if not raw_listing.endswith(b":0"):
             return [], 0
-        records = [RawRecord(str(i), f"t{i}", f"a{i}") for i in range(3)]
+        records = [RawRecord(record_id=str(i), title=f"t{i}", abstract=f"a{i}") for i in range(3)]
         return [record for record in records if record.record_id not in seen_ids], len(records)
 
     def fetch_full_text(self, record: RawRecord) -> str:
@@ -92,15 +92,20 @@ class TestSyncAdapters:
     async def test_extractor_adapter_runs_full_text_in_a_worker_thread(self):
         extractor = _Extractor()
         adapter = SyncExtractorAdapter(extractor)
-        listing = await adapter.search("q", 3, 0)
-        records, total = adapter.parse_listing(listing, set())
-        assert (len(records), total) == (3, 3)
-        assert await adapter.fetch_full_text(records[0]) == "text-0"
+        page = await adapter.fetch_page("q", None, 3)
+        assert (len(page.records), page.entries, page.next_cursor) == (3, 3, "3")
+        assert await adapter.fetch_full_text(page.records[0]) == "text-0"
+        assert adapter.cursor_for_offset(3) == "3"
         assert extractor.fetch_threads[0] is not threading.current_thread()
 
     @pytest.mark.asyncio
     async def test_relevance_and_entity_adapters_delegate(self):
-        assert await SyncRelevanceFilterAdapter(_Relevance()).is_relevant(RawRecord("0", "t", "a")) is True
+        assert (
+            await SyncRelevanceFilterAdapter(_Relevance()).is_relevant(
+                RawRecord(record_id="0", title="t", abstract="a")
+            )
+            is True
+        )
         assert await SyncEntityExtractorAdapter(_Entities()).extract("body") == [{"name": "body"}]
 
     @pytest.mark.asyncio
@@ -109,10 +114,10 @@ class TestSyncAdapters:
         await SyncExporterAdapter(exporter).export([{"name": "x"}], "dest")
         adapter = SyncStateManagerAdapter(state)
         await adapter.mark_processed("7")
-        await adapter.save_metadata(PipelineMetadata(last_start_index=4))
+        await adapter.save_metadata(PipelineMetadata(cursor="4"))
         assert exporter.rows == [("dest", "x")]
         assert await adapter.load_processed_ids() == {"7"}
-        assert (await adapter.load_metadata()).last_start_index == 4
+        assert (await adapter.load_metadata()).cursor == "4"
 
     @pytest.mark.asyncio
     async def test_llm_client_adapter_forwards_timeout_from_a_worker_thread(self):
@@ -136,4 +141,4 @@ class TestSyncAdapters:
         assert await pipeline.run(query="q", page_size=3, total_limit=10) == 2
         assert sorted(name for _, name in exporter.rows) == ["text-0", "text-2"]
         assert state.ids == {"0", "1", "2"}
-        assert state.metadata.last_start_index == 3
+        assert state.metadata.cursor == "3"
