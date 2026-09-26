@@ -3351,7 +3351,7 @@ limits. The first run after upgrading misses the LLM cache once. See
   <code>arXiv LaTeX fetch for '2401.00001v1' failed after 3 attempts</code>.</li>
 <li><code>AsyncSqliteFts5Store.search</code> raises <code>SearchQueryError</code> naming the SQLite
   version when SQLite fails to highlight a field-scoped <code>NEAR</code> group inside
-  <code>OR</code>, as SQLite 3.50.4 does for some documents. It raised <code>SearchStoreError</code>
+  <code>OR</code> or <code>NOT</code>, as SQLite 3.50.4 does for some documents. It raised <code>SearchStoreError</code>
   with "database disk image is malformed", which reads as a corrupt index.</li>
 <li><code>CachingLLMClient</code> no longer replays a response the entity extractor or the
   relevance filter rejected. The rejected response was cached, so every retry

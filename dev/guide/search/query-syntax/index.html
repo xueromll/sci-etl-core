@@ -2642,11 +2642,11 @@ text stores. In a hybrid search its words are embedded like the rest of the
 query, except its prefix terms. <code>describe</code> returns a group as one <code>QueryChip</code> whose <code>near</code> is its
 distance.</p>
 <p>One exception on <code>AsyncSqliteFts5Store</code>: some SQLite builds, including
-3.50.4, fail to highlight a field-scoped group inside <code>OR</code>, such as
-<code>dwarf OR title:NEAR(dwarf halo)</code>, for some documents. The search then raises
-<code>SearchQueryError</code> naming the SQLite version. Drop the field scope from the
-group, or search each <code>OR</code> alternative separately. <code>filter_ids</code> and the
-in-memory store are unaffected.</p>
+3.50.4, fail to highlight a field-scoped group inside <code>OR</code> or <code>NOT</code>, such as
+<code>dwarf OR title:NEAR(dwarf halo)</code> or <code>dwarf -title:NEAR(dwarf halo)</code>, for some
+documents. The search then raises <code>SearchQueryError</code> naming the SQLite
+version. Drop the field scope from the group, or search each <code>OR</code> alternative
+separately. <code>filter_ids</code> and the in-memory store are unaffected.</p>
 <h2 id="parsing">Parsing<a class="headerlink" href="#parsing" title="Permanent link">&para;</a></h2>
 <p>Parsing is pure and synchronous, so a query bar can run it on every keystroke.
 A malformed query raises <code>SearchQueryError</code>, whose <code>position</code> and <code>token</code> point
