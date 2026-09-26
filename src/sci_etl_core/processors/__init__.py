@@ -22,9 +22,12 @@ _EXPORTS: dict[str, str] = {
     "SqlTableSink": "sci_etl_core.processors.sinks",
     "TableSink": "sci_etl_core.processors.sinks",
     "QualityFlagStep": "sci_etl_core.processors.quality",
+    "ScatterPlotConfig": "sci_etl_core.processors.sinks",
     "RecordValidator": "sci_etl_core.processors.validation",
     "TableLayoutStep": "sci_etl_core.processors.shaping",
+    "ValidationResult": "sci_etl_core.processors.validation",
     "ValueClipStep": "sci_etl_core.processors.shaping",
+    "Violation": "sci_etl_core.processors.validation",
 }
 
 __all__ = list(_EXPORTS)
@@ -37,10 +40,12 @@ if TYPE_CHECKING:
     from sci_etl_core.processors.normalization import DefaultKeyNormalizer, KeyNormalizer, NormalizationStep
     from sci_etl_core.processors.quality import CompletenessStep, QualityFlagStep
     from sci_etl_core.processors.shaping import TableLayoutStep, ValueClipStep
-    from sci_etl_core.processors.sinks import Plotly3DSink, SqlTableSink, TableSink
+    from sci_etl_core.processors.sinks import Plotly3DSink, ScatterPlotConfig, SqlTableSink, TableSink
     from sci_etl_core.processors.validation import (
         CompositeValidator,
         KeywordExclusionValidator,
         NumericRangeValidator,
         RecordValidator,
+        ValidationResult,
+        Violation,
     )

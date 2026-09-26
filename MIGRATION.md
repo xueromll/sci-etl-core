@@ -4,7 +4,7 @@ This guide lists what changes for existing code when you move to a new
 release of `sci-etl-core`, newest release first. [CHANGELOG.md](CHANGELOG.md)
 lists every change, including the additions that need no action.
 
-Pin a minor release range, such as `sci-etl-core>=0.5.0,<0.6`, and raise the
+Pin a minor release range, such as `sci-etl-core>=0.6.0,<0.7`, and raise the
 upper bound after your tests pass on the next minor release. Moving from one
 minor release to a later one, apply each section in between, oldest first.
 
@@ -12,12 +12,239 @@ To move an existing research pipeline onto the library for the first time,
 follow the worked example in
 [Migrating a pipeline](https://xueromll.github.io/sci-etl-core/latest/guide/migrating-a-pipeline/).
 
+- [Upgrading to 0.6](#upgrading-to-06)
 - [Upgrading to 0.5.1](#upgrading-to-051)
 - [Upgrading to 0.5](#upgrading-to-05)
 - [Upgrading to 0.4](#upgrading-to-04)
 - [Upgrading to 0.3](#upgrading-to-03)
 
 ---
+
+## Upgrading to 0.6
+
+0.6 changes the data contract: what an entity extractor returns, how an
+exporter receives entities, how the library logs, and what a base install
+contains. It is the last release before 1.0 that breaks an existing contract.
+Require the new minor with the extras you use:
+
+```text
+sci-etl-core[config,async,arxiv,llm,pdf,processors]>=0.6.0,<0.7
+```
+
+State files and databases, LLM caches, embedding stores, and text indexes
+written by 0.5 open unchanged. Cached LLM answers stay valid: a request
+without a schema has the same cache key it had in 0.5.1.
+
+### Install the extras you import
+
+The base install now requires only Pydantic. PyYAML and python-dotenv moved
+to the `config` extra, Beautiful Soup and lxml to `arxiv`, `html`, and `xml`,
+and pandas to `processors`. `aiofiles` and `aiosqlite` are no longer installed
+by any extra. Importing a component whose extra is missing raises
+`ModuleNotFoundError` naming the package:
+
+| You use | Add the extra |
+|---------|---------------|
+| `load_config`, `load_config_async`, `load_yaml` | `config` |
+| `AsyncArxivExtractor` | `async`, `arxiv` |
+| `AsyncPubMedExtractor` | `async`, `xml` |
+| `JatsXmlParser`, `DocxParser` | `xml` |
+| `HtmlTextParser`, or `AsyncLLMEntityExtractor` on full text that starts with markup | `html` |
+| anything in `sci_etl_core.processors` except the validators | `processors` |
+
+`full` still installs every bundled component except local embeddings.
+
+### `.env` files are read only when asked
+
+`load_config` and `load_config_async` no longer look for a `.env` file
+implicitly. Pass the file, or ask for the lookup:
+
+```python
+from pathlib import Path
+
+from sci_etl_core import BaseAppConfig, load_config
+
+config = load_config(BaseAppConfig, Path("config.yaml"), load_env=True)
+config = load_config(BaseAppConfig, Path("config.yaml"), Path(".env"))
+```
+
+Without either, the API key must already be in the environment.
+
+### Exporters take the record and their destination
+
+`AsyncExporter.export(data, destination)` is replaced by a lifecycle. The
+pipeline calls `open()` before the first listing request, `write(record,
+entities)` for every processed record, including one with no entities,
+`flush()` after each page, and `aclose()` when the run ends, however it ends.
+An exporter takes its destination when it is constructed, so the pipeline's
+`destination=` argument is gone:
+
+```python
+from sci_etl_core import AsyncCsvExporter, AsyncETLPipeline
+
+pipeline = AsyncETLPipeline(
+    extractor,
+    relevance_filter,
+    entity_extractor,
+    AsyncCsvExporter("results.csv", columns=["name", "value_a", "value_b"]),
+    state_manager,
+)
+```
+
+`AsyncCsvUpsertExporter` is removed. Its replacement, `AsyncCsvExporter`, does
+not merge rows: it writes one row per entity with the `record_id` of the
+paper it came from, keeps other keys in an `extra` column, and writes values
+unchanged, so a value is never clipped, coerced, or dropped, and two papers
+that report one object give two rows. Merge in post-processing, where the
+choice is explicit:
+
+```python
+import pandas as pd
+
+from sci_etl_core.processors import DeduplicationStep, DefaultKeyNormalizer, NormalizationStep, ProcessorChain
+
+raw = pd.read_csv("results.csv", dtype={"record_id": str, "name": str})
+one_row_per_name = ProcessorChain(
+    [NormalizationStep("name", DefaultKeyNormalizer()), DeduplicationStep("_norm_key")]
+).process(raw)
+```
+
+The CSV file is written when the run ends; during a run, pages go to
+`results.csv.journal`, which the next run replays if a run crashed. Add
+`*.journal` to `.gitignore` next to your output. The new file's header is
+`record_id`, your columns, and `extra`, so start a new file rather than
+pointing the exporter at one `AsyncCsvUpsertExporter` wrote; the exporter
+refuses a file with another header. `AsyncJsonlExporter` writes one JSON line
+per record instead.
+
+A custom exporter implements `write` and, if it buffers, sets
+`durable_writes = False` and implements `flush`:
+
+```python
+from sci_etl_core import AsyncExporter
+
+
+class DatabaseExporter(AsyncExporter):
+    def __init__(self, database):
+        self.database = database
+
+    async def write(self, record, entities):
+        await self.database.replace_rows(record.record_id, list(entities))
+```
+
+`write` must be idempotent, since a crash can repeat a record, and a record
+with no entities should clear what an earlier write stored. A record is
+marked processed only once its entities are durable: right after `write`, or
+after the page's `flush` when `durable_writes` is `False`. A `write` fault
+fails the record and counts one attempt, a `flush` fault leaves the page's
+written records unsettled without counting an attempt, and an `open` fault
+aborts the run before any request. [Run semantics](https://xueromll.github.io/sci-etl-core/latest/guide/run-semantics/)
+numbers these as R20 to R23.
+
+`AsyncSqlTableExporter` and `AsyncPlotly3DExporter` are removed; use
+`SqlTableSink` and `Plotly3DSink` from `sci_etl_core.processors.sinks`, as
+[Table sinks](#table-sinks) shows. `ScatterPlotConfig` is imported from
+`sci_etl_core.processors`.
+
+### Entity extractors are typed and record-aware
+
+`AsyncEntityExtractor` is generic in its entity type, and the pipeline calls
+`extract_record(record, text)`, whose default calls `extract(text)`. An
+extractor that overrides only `extract` needs no change. A wrapper around
+another extractor should delegate `extract_record` too, so it keeps working
+around an extractor that needs the record, such as `AsyncLLMClaimExtractor`:
+
+```python
+from sci_etl_core import AsyncEntityExtractor
+
+
+class ValidatedEntityExtractor(AsyncEntityExtractor):
+    def __init__(self, inner, validator):
+        self.inner = inner
+        self.validator = validator
+        self.requires_record = inner.requires_record
+
+    async def extract(self, text):
+        return [entity for entity in await self.inner.extract(text) if self.validator.is_valid(entity)]
+
+    async def extract_record(self, record, text):
+        entities = await self.inner.extract_record(record, text)
+        return [entity for entity in entities if self.validator.is_valid(entity)]
+```
+
+Such a wrapper is usually no longer needed: `AsyncLLMEntityExtractor` takes a
+`validator`, logs every rejection with its reasons, and can keep rejected
+entities in a rejection store. Every argument after `system_prompt` is now
+keyword-only.
+
+To validate entities against a Pydantic model and receive model instances,
+pass `schema=`; see
+[Typed entities and validation](https://xueromll.github.io/sci-etl-core/latest/guide/typed-entities/).
+A custom `AsyncLLMClient` that wraps another should forward
+`complete_structured` and accept `schema=` in `invalidate`.
+
+### Validators say why
+
+`RecordValidator.validate(entity)` returns a `ValidationResult` of
+`Violation`s. A validator that implements only `is_valid` keeps working. One
+that already computes a reason, such as a `rejection_reason` method, can
+override `validate` instead, and the reason reaches the log and the rejection
+store:
+
+```python
+from sci_etl_core.processors import RecordValidator, ValidationResult, Violation
+
+
+class RangeValidator(RecordValidator):
+    def is_valid(self, record):
+        return self.validate(record).ok
+
+    def validate(self, record):
+        radius = record.get("radius_kpc")
+        if radius is not None and not 0.1 <= float(radius) <= 20.0:
+            violation = Violation(code="out-of-range", field="radius_kpc", severity="error", message=f"radius {radius} kpc")
+            return ValidationResult(violations=(violation,))
+        return ValidationResult()
+```
+
+### Logging goes through the `logging` module
+
+Every `logger=` argument is removed: from `AsyncETLPipeline`, `ETLPipeline`,
+the four extractors, `AsyncLLMEntityExtractor`, `CachingLLMClient`,
+`AsyncCompositeIngestor`, `AsyncHybridSearcher`, and `ShutdownSignal`.
+`configure_logging` and `sci_etl_core.log_utils` are removed, and so is
+`AsyncETLPipeline.log`. Each module logs under its own name below the
+`sci_etl_core` logger, so configure logging in the application:
+
+```python
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(asctime)s] [%(levelname)s] %(name)s - %(message)s",
+    handlers=[logging.FileHandler("output/pipeline.log", encoding="utf-8"), logging.StreamHandler()],
+)
+```
+
+Messages keep their wording. `CachingLLMClient` took `logger` as its fourth
+positional argument; a call that passed it positionally now fails with a
+`TypeError`.
+
+### Removed names
+
+The 0.5 deprecations are removed: the blocking contracts `Extractor`,
+`StateManager`, `Exporter`, `LLMClient`, `RelevanceFilter`, and
+`EntityExtractor`; their adapters `SyncExtractorAdapter`,
+`SyncRelevanceFilterAdapter`, `SyncEntityExtractorAdapter`,
+`SyncExporterAdapter`, `SyncStateManagerAdapter`, and `SyncLLMClientAdapter`;
+`LegacyExtractorAdapter`; `AsyncExporter.export` and the `destination`
+argument; `AsyncCsvUpsertExporter`, `AsyncSqlTableExporter`, and
+`AsyncPlotly3DExporter`; and `configure_logging`. Implement the async
+contracts, running blocking work inside them with `asyncio.to_thread`.
+`ETLPipeline` stays, and runs the async pipeline from blocking code as before.
+
+From 0.6 on, a deprecated name keeps working for at least two minor releases
+before it is removed.
 
 ## Upgrading to 0.5.1
 

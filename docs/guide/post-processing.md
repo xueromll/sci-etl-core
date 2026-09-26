@@ -1,28 +1,45 @@
 # Post-processing and visualization
 
-## The CSV exporter
+## The exporters
 
-The pipeline's exporter receives each record's entities as a `list[dict]`, and
-`AsyncCsvUpsertExporter` is the built-in exporter that accepts that shape. It
-keeps one row per normalized key: later records only fill empty cells, value
-columns are converted to floats (anything non-numeric becomes empty), and
-optional `numeric_clip` bounds clamp them.
+The pipeline writes each processed record's entities to its exporter, with
+the record they came from, and a record with no entities too. Two exporters
+are bundled, and neither merges, coerces, or clips a value, so a conflict
+between papers stays visible until you decide how to resolve it.
 
-The exporter reads the existing file (which must be UTF-8) before its first
-write. If that read fails, for example because of a different encoding or a
-malformed row, the export raises and the file is left untouched instead of
-being overwritten. On Windows, a write is retried for about a second and a
-half while another program holds the file open.
+**`AsyncCsvExporter(path, columns)`** writes one row per entity. The first
+column is `record_id`, then the `columns` you name, then `extra`, which holds
+every other key of the entity as a JSON object. Values are written as the
+model returned them, so `"3.2 ± 0.4"` stays text and `2.9` stays `2.9`.
+Writing a record again replaces all of its rows. The file is rendered once,
+when the run ends; during the run each page is appended to
+`<path>.journal`, which a crashed run leaves behind and the next run replays
+before anything else. An existing file must be UTF-8 and have the same
+header, or the run aborts before its first request instead of overwriting it.
+On Windows, the final rename is retried for about a second and a half while
+another program holds the file open.
 
-Keys come straight from LLM output, so a key a spreadsheet would run as a
-formula (starting with `=`, `+`, `-`, `@`, a tab, or a carriage return) is
-written with a leading apostrophe. The exporter strips it again when it
-reloads the file; other tools reading the CSV see it. Pass
-`escape_formulas=False` to write keys unchanged.
+Cells a spreadsheet would run as a formula (starting with `=`, `+`, `-`, `@`,
+a tab, or a carriage return) are written with a leading apostrophe, which the
+exporter strips again when it reloads the file; other tools reading the CSV
+see it. Pass `escape_formulas=False` to write cells unchanged.
+
+**`AsyncJsonlExporter(path)`** appends one JSON line per written record, with
+its `record_id`, `title`, `source_url`, and `entities`. A record written again
+appends another line, and `read_jsonl_export(path)` keeps the last line for
+each record. Use it when entities are nested or you want the paper's title and
+link next to them.
+
+Both accept entities as dicts, Pydantic models, dataclass instances, or
+claims. To keep evidence and provenance in a queryable store instead, write
+claims to an `AsyncClaimStoreExporter`; see [Claims and provenance](claims.md).
 
 ## Cleaning and plotting
 
-Cleanup, scoring, and plots are a separate step over a DataFrame:
+Cleanup, deduplication, scoring, and plots are a separate step over a
+DataFrame. The exporter's table has one row per paper and entity, so this is
+where you choose how rows about the same object from different papers become
+one:
 
 ```python
 import pandas as pd
@@ -38,7 +55,9 @@ from sci_etl_core.processors import (
 )
 from sci_etl_core.processors.sinks import ScatterPlotConfig
 
-frame = pd.read_csv("results.csv", dtype={"name": str})
+frame = pd.read_csv("results.csv", dtype={"record_id": str, "name": str}, keep_default_na=False, na_values=[""])
+for column in ("value_a", "value_b"):
+    frame[column] = pd.to_numeric(frame[column], errors="coerce")
 clean = ProcessorChain(
     [
         NormalizationStep("name", DefaultKeyNormalizer()),  # adds _norm_key
@@ -62,7 +81,14 @@ plot = Plotly3DSink(
 plot.write(clean)
 ```
 
-`clean` then looks like this:
+`pd.to_numeric(..., errors="coerce")` turns text such as `"3.2 ± 0.4"` into
+an empty cell, so decide first whether such values need parsing instead.
+`DeduplicationStep` keeps the first row of each key and fills its empty cells
+from the others, so sort the rows first when one source should win. Pass
+`source_column="record_id"` to add a `sources` column that lists every paper
+merged into each row. The raw
+table stays on disk as the record of what each paper reported. `clean` then
+looks like this:
 
 | _norm_key | name     | value_a | value_b | completeness_pct | quality_flag   |
 |-----------|----------|---------|---------|------------------|----------------|
@@ -73,9 +99,8 @@ plot.write(clean)
 `Plotly3DSink` drops rows that are missing any axis value, writes nothing when
 no row remains, and replaces the HTML file atomically. It needs the `viz`
 extra when constructed; importing `sci_etl_core.processors.sinks` needs only
-the `processors` dependencies. The sinks are blocking, so call `write` through
-`asyncio.to_thread` from async code. `AsyncPlotly3DExporter`, the 0.4 way to
-write this plot, is deprecated and will be removed in 0.6.0.
+the `processors` extra. The sinks are blocking, so call `write` through
+`asyncio.to_thread` from async code.
 
 ### Styling the plot
 
@@ -120,17 +145,20 @@ config = ScatterPlotConfig(
   your own `FeatureExtractor`.
 - **`ValueClipStep(bounds)`** clamps numeric columns into ranges, such as
   `{"fraction": (0.0, 1.0)}`, turning values that aren't numbers into empty
-  cells. It does during post-processing what the CSV exporter's `numeric_clip`
-  does during export.
+  cells. Clamping hides an out-of-range value behind a plausible one, so
+  prefer rejecting such values with a validator during extraction.
 - **`TableLayoutStep(sort_by, leading_columns, hidden_prefixes)`** prepares a
   table for publishing: it sorts rows by `(column, ascending)` pairs with
   missing values last, drops helper columns such as `_norm_key` by prefix, and
   moves the `leading_columns` to the front.
 - **Record validators** check individual entity dicts: `NumericRangeValidator`,
-  `KeywordExclusionValidator`, and `CompositeValidator`. Pass one to
-  `AsyncLLMEntityExtractor(validator=...)` to drop invalid entities before
-  export; each rejection is logged through its `logger`, labelled by the
-  `label_field` value when you name one:
+  `KeywordExclusionValidator`, and `CompositeValidator`. `validate(entity)`
+  returns a `ValidationResult` whose `violations` name the field and the rule
+  each rejection broke; `CompositeValidator` collects the violations of every
+  validator it holds. Pass one to `AsyncLLMEntityExtractor(validator=...)` to
+  drop invalid entities before export. Each rejection is logged with its
+  reasons, labelled by the `label_field` value when you name one, and stored
+  for review when you pass a rejection store as `rejections=`:
 
   ```python
   from sci_etl_core import AsyncLLMEntityExtractor
@@ -145,14 +173,16 @@ config = ScatterPlotConfig(
               NumericRangeValidator({"ra": (0.0, 360.0)}),
           ]
       ),
-      logger=print,
       label_field="name",
   )
   ```
+
+  A validator of your own subclasses `RecordValidator` and implements
+  `is_valid`; override `validate` too, to report reasons other than
+  "rejected".
 - **`SqlTableSink(url, table_name)`** writes a DataFrame to a database
   through a synchronous SQLAlchemy URL, in one transaction, e.g.
   `SqlTableSink("sqlite:///results.db", "entities").write(clean)`. It needs
   the `sql` extra when constructed. Like `Plotly3DSink`, it takes a
   DataFrame, so use it after post-processing rather than as the pipeline's
-  exporter. It replaces `AsyncSqlTableExporter`, which is deprecated and will
-  be removed in 0.6.0.
+  exporter.

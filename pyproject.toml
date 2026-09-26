@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sci-etl-core"
-version = "0.5.1"
+version = "0.6.0.dev0"
 description = "A Python library for turning scientific papers from any field into structured, searchable data."
 readme = "README.md"
 license = "MIT"
@@ -40,11 +40,6 @@ classifiers = [
 
 dependencies = [
     "pydantic>=2",
-    "pyyaml",
-    "python-dotenv",
-    "beautifulsoup4",
-    "lxml",
-    "pandas",
 ]
 
 [project.urls]
@@ -54,17 +49,22 @@ Repository = "https://github.com/xueromll/sci-etl-core"
 Issues = "https://github.com/xueromll/sci-etl-core/issues"
 
 [project.optional-dependencies]
-async = ["httpx", "aiofiles", "aiolimiter"]
+config = ["pyyaml", "python-dotenv"]
+async = ["httpx", "aiolimiter"]
+arxiv = ["beautifulsoup4", "lxml"]
+xml = ["lxml"]
+html = ["beautifulsoup4"]
+processors = ["pandas", "numpy"]
 llm = ["openai", "tiktoken"]
 pdf = ["pdfplumber"]
-sql = ["sqlalchemy[asyncio]>=2", "aiosqlite"]
-viz = ["plotly", "aiofiles"]
+sql = ["sqlalchemy>=2"]
+viz = ["plotly"]
 cluster = ["scikit-learn", "numpy"]
 embeddings = ["numpy", "openai"]
 embeddings-local = ["numpy", "sentence-transformers"]
 search = []
 dev = ["pytest", "pytest-asyncio", "pytest-mock", "pytest-cov", "hypothesis"]
-lint = ["ruff", "mypy", "types-PyYAML", "types-aiofiles"]
+lint = ["ruff", "mypy", "types-PyYAML"]
 docs = [
     "mkdocs>=1.6,<2",
     "mkdocs-material>=9.7,<10",
@@ -74,10 +74,13 @@ docs = [
     "ruff",
 ]
 full = [
-    "httpx", "aiofiles", "aiolimiter",
+    "pyyaml", "python-dotenv",
+    "httpx", "aiolimiter",
+    "beautifulsoup4", "lxml",
+    "pandas",
     "openai", "tiktoken",
     "pdfplumber",
-    "sqlalchemy[asyncio]>=2", "aiosqlite",
+    "sqlalchemy>=2",
     "plotly",
     "scikit-learn", "numpy",
 ]
@@ -94,10 +97,6 @@ sci_etl_core = ["py.typed"]
 [tool.pytest.ini_options]
 markers = ["live: calls a real upstream source; deselected unless run with -m live"]
 addopts = "-m 'not live'"
-filterwarnings = [
-    'ignore:.* is deprecated and will be removed in sci-etl-core 0.6.0:DeprecationWarning',
-    'ignore:.* is deprecated and will be removed in sci-etl-core 0.6.0:PendingDeprecationWarning',
-]
 
 [tool.coverage.report]
 fail_under = 100

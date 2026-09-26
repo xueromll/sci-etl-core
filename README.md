@@ -34,13 +34,19 @@ released free and open-source under the MIT License — not a commercial product
 
 - **Composable building blocks** — extractors, parsers, LLM clients, embedding
   memory, processors, exporters, and state managers behind abstract base
-  classes, with `Sync*Adapter` wrappers for existing blocking implementations.
-  Run the whole pipeline, or use only the parts you need, such as search.
+  classes. Run the whole pipeline, or use only the parts you need, such as
+  search.
 - **Async-first orchestration** through `AsyncETLPipeline`, with bounded
   concurrency, resumable crash-safe state, graceful shutdown, polite retries
   that honor `Retry-After`, shared and per-host rate limits, progress events
   and run metrics, and explicit failure signaling through `PipelineAborted`.
   `ETLPipeline` runs the same pipeline from blocking code.
+- **Typed extraction** — describe an entity with a Pydantic model, and the
+  extractor requests JSON-schema structured output where the provider supports
+  it, validates every entity, and records why it rejected one.
+- **Claims and provenance** — each extracted value can carry its paper, the
+  sentence it was read from, and the model, prompt, and schema that produced
+  it, in a claim store you can query and update record by record.
 - **LLM response caching** in memory or SQLite, so a rerun doesn't pay for the
   same prompt twice.
 - **Semantic memory and local search** — embed full texts into a vector store,
@@ -48,39 +54,46 @@ released free and open-source under the MIT License — not a commercial product
   similarity, filter by metadata facets, and grow graphs of related papers.
 - **Concrete implementations included** — arXiv, PubMed, Semantic Scholar,
   and OpenAlex extractors; OpenAI-compatible chat and embedding clients; PDF,
-  LaTeX, HTML, DOCX, and JATS XML parsers; CSV, SQL, and Plotly exporters;
-  dataframe processors and record validators.
-- **Typed configuration** from YAML and `.env`, an offline test suite at 100%
-  coverage, and PEP 561 type information.
+  LaTeX, HTML, DOCX, and JATS XML parsers; CSV and JSON Lines exporters; SQL
+  and Plotly table sinks; dataframe processors and record validators.
+- **Typed configuration** from YAML and environment variables, an offline test
+  suite at 100% coverage, and PEP 561 type information.
   
 ## Installation
 
 Python 3.11 or newer is required.
 
 ```bash
-pip install "sci-etl-core[async,llm,pdf]"   # everything the example below uses
-pip install "sci-etl-core[full]"            # every bundled component except local embeddings
+pip install "sci-etl-core[async,arxiv,llm,pdf]"   # everything the example below uses
+pip install "sci-etl-core[full]"                  # every bundled component except local embeddings
 ```
 
 With Poetry or uv:
 
 ```bash
-poetry add "sci-etl-core[async,llm,pdf]"
-uv add "sci-etl-core[async,llm,pdf]"
+poetry add "sci-etl-core[async,arxiv,llm,pdf]"
+uv add "sci-etl-core[async,arxiv,llm,pdf]"
 ```
 
-The base install covers configuration, both pipelines, state, the sync
-adapters, HTML, LaTeX, DOCX, and JATS XML parsing, Boolean search, and the
-pandas processors. Components load their optional dependencies only when you
-import them, so add an extra for each component group you use:
+The base install requires only Pydantic. It covers both pipelines, the
+component contracts, the configuration models, state, the LLM response caches,
+the CSV and JSON Lines exporters, claims and provenance, record validators,
+LaTeX parsing, and Boolean search. A component that needs another package
+imports it when you import the component, so add an extra for each component
+group you use:
 
 | Extra | Needed for |
 |-------|------------|
-| `async` | The bundled extractors, `build_async_client`, CSV export, `load_config_async` |
+| `config` | `load_config` and `load_config_async`, which read YAML and `.env` files |
+| `async` | The bundled extractors, `build_async_client` |
+| `arxiv` | `AsyncArxivExtractor`, together with `async` |
+| `xml` | `JatsXmlParser`, `DocxParser`, and `AsyncPubMedExtractor`, together with `async` |
+| `html` | `HtmlTextParser`, which the entity extractor uses for full text that starts with markup |
+| `processors` | The pandas processors and table sinks |
 | `llm` | `AsyncOpenAICompatibleClient`, token-based truncation |
 | `pdf` | `PdfPlumberParser` |
-| `sql` | `SqlTableSink`, and the deprecated `AsyncSqlTableExporter` |
-| `viz` | `Plotly3DSink`, and the deprecated `AsyncPlotly3DExporter` |
+| `sql` | `SqlTableSink`, together with `processors` |
+| `viz` | `Plotly3DSink`, together with `processors` |
 | `cluster` | `ClusteringStep` |
 | `embeddings` | `AsyncOpenAIEmbedder`, the vector stores, `AsyncEmbeddingRelevanceFilter` |
 | `embeddings-local` | `AsyncSentenceTransformerEmbedder` |
@@ -100,7 +113,7 @@ import os
 
 from sci_etl_core import (
     AsyncArxivExtractor,
-    AsyncCsvUpsertExporter,
+    AsyncCsvExporter,
     AsyncETLPipeline,
     AsyncFileStateManager,
     AsyncLLMEntityExtractor,
@@ -109,7 +122,6 @@ from sci_etl_core import (
 )
 from sci_etl_core.http_async import build_async_client
 from sci_etl_core.parsers import LatexTarballParser, PdfPlumberParser
-from sci_etl_core.processors import DefaultKeyNormalizer
 
 RELEVANCE_PROMPT = 'Does the paper report measurements of galaxies? Reply with JSON: {"relevant": true} or {"relevant": false}.'
 EXTRACTION_PROMPT = 'Extract every measured object. Reply with JSON: {"items": [{"name": "...", "value_a": 0.0}]}.'
@@ -122,9 +134,8 @@ async def main() -> None:
         extractor=AsyncArxivExtractor(client=client, pdf_parser=PdfPlumberParser(), latex_parser=LatexTarballParser()),
         relevance_filter=AsyncLLMRelevanceFilter(llm_client=llm, system_prompt=RELEVANCE_PROMPT),
         entity_extractor=AsyncLLMEntityExtractor(llm_client=llm, system_prompt=EXTRACTION_PROMPT),
-        exporter=AsyncCsvUpsertExporter(key_column="name", value_columns=["value_a"], normalizer=DefaultKeyNormalizer()),
+        exporter=AsyncCsvExporter("results.csv", columns=["name", "value_a"]),
         state_manager=AsyncFileStateManager("state/processed.txt", "state/metadata.json"),
-        destination="results.csv",
         closeables=[client, llm],
     )
     async with pipeline:
@@ -135,15 +146,17 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-The [quick start](https://xueromll.github.io/sci-etl-core/latest/getting-started/quick-start/)
+`results.csv` gets one row per extracted value, tagged with the arXiv id of
+the paper it came from, so two papers that disagree about an object give two
+rows. The [quick start](https://xueromll.github.io/sci-etl-core/latest/getting-started/quick-start/)
 explains what a run does, how it resumes, and what the prompts must ask for.
 
 ## Configuration
 
 Settings load from a YAML file into Pydantic models, and the LLM API key comes
-from the `LLM_API_KEY` environment variable, which a `.env` file can supply.
-Validation errors raise `ConfigurationError`, naming each failing key without
-echoing its value.
+from the `LLM_API_KEY` environment variable. Pass `load_env=True` to read a
+`.env` file into the environment first. Validation errors raise
+`ConfigurationError`, naming each failing key without echoing its value.
 
 ```yaml
 llm:
@@ -168,7 +181,7 @@ class ProjectConfig(BaseAppConfig):
     output_csv: str = "results.csv"
 
 
-config = load_config(ProjectConfig, Path("config.yaml"))
+config = load_config(ProjectConfig, Path("config.yaml"), load_env=True)
 llm = AsyncOpenAICompatibleClient.from_config(config.llm)
 run_arguments = config.pipeline.run_arguments()
 ```
@@ -203,8 +216,8 @@ flowchart LR
 depends only on the abstract interfaces, so any stage can be replaced by
 another implementation or a test double. It pages through the listing by
 cursor, processes up to `max_concurrency` records at a time, and marks a record
-processed only after its entities are exported, so a failed record is retried
-on the next run, until it has failed in `max_attempts` runs. The
+processed only once the exporter holds its entities durably, so a failed
+record is retried on the next run, until it has failed in `max_attempts` runs. The
 [architecture guide](https://xueromll.github.io/sci-etl-core/latest/guide/architecture/)
 describes each layer.
 

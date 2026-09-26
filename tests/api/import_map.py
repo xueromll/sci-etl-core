@@ -8,8 +8,9 @@ from outside the repository so the checkout is not importable::
 
 Each name is imported in a fresh interpreter. The map is printed as a
 Markdown table, and appended to the GitHub job summary when one is available.
-It records the current state and never fails: release-plan §3.4 turns it into
-an assertion once the base install shrinks to ``pydantic``.
+The base install requires only ``pydantic``, so a name may need an extra. The
+script exits with status 1 when a name fails for any other reason: a missing
+module that no extra provides, or an error other than a missing module.
 """
 
 from __future__ import annotations
@@ -27,6 +28,7 @@ from pathlib import Path
 
 PACKAGES = (
     "sci_etl_core",
+    "sci_etl_core.claims",
     "sci_etl_core.embeddings",
     "sci_etl_core.exporters",
     "sci_etl_core.extractors",
@@ -117,6 +119,15 @@ def render(outcomes: list[Outcome], extras: dict[str, list[str]]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def unexplained(outcomes: list[Outcome], extras: dict[str, list[str]]) -> list[Outcome]:
+    """Return the outcomes an extra does not explain: errors, and missing modules no extra provides."""
+    return [
+        outcome
+        for outcome in outcomes
+        if outcome.error is not None or (outcome.missing is not None and extra_for(outcome.missing, extras) == "?")
+    ]
+
+
 def main() -> None:
     extras = extras_by_distribution(Path(sys.argv[1]))
     with ThreadPoolExecutor(max_workers=8) as pool:
@@ -127,6 +138,11 @@ def main() -> None:
     if summary:
         with open(summary, "a", encoding="utf-8") as handle:
             handle.write(report)
+    failures = unexplained(outcomes, extras)
+    for outcome in failures:
+        print(f"Unexplained import failure: {outcome.path}: {outcome.error or outcome.missing}", file=sys.stderr)
+    if failures:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

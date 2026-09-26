@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import re
-from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 import httpx
 from bs4 import BeautifulSoup
 
-from sci_etl_core._deprecation import warn_logger_argument
 from sci_etl_core.exceptions import MalformedResponseError, ParsingError, UpstreamError
 from sci_etl_core.extractors._http import RetryingFetcher
 from sci_etl_core.extractors._offsets import decimal_cursor, offset_from_cursor, offset_page
@@ -17,6 +16,8 @@ from sci_etl_core.models import ListingPage, RawRecord
 from sci_etl_core.parsers.base import Parser
 from sci_etl_core.parsers.reference_trimmer import trim_after_references
 from sci_etl_core.rate_limiter import RateLimiting
+
+_logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from sci_etl_core.config import HttpConfig, PipelineConfig, RateLimitConfig
@@ -52,7 +53,6 @@ class AsyncArxivExtractor(AsyncExtractor):
         max_retries: int = 3,
         backoff_factor: float = 2.0,
         sleep_before_search: float = 3.0,
-        logger: Callable[[str], None] | None = None,
         sleep: Any = asyncio.sleep,
         max_retry_after: float = 60.0,
         rate_limiter: RateLimiting | None = None,
@@ -73,10 +73,6 @@ class AsyncArxivExtractor(AsyncExtractor):
         (``arxiv.org``) apart. The slot is released once the response arrives,
         so no slot is held while waiting to retry.
 
-        .. deprecated:: 0.5.0
-            ``logger`` emits a :class:`PendingDeprecationWarning`; 0.6.0 logs through
-            the standard :mod:`logging` module instead.
-
         With ``max_download_bytes``, a response body is read only up to that
         many bytes, so a huge listing or e-print cannot exhaust memory. A
         larger listing page raises
@@ -89,8 +85,6 @@ class AsyncArxivExtractor(AsyncExtractor):
                 ``max_retry_after`` is negative, or ``max_download_bytes`` is
                 less than 1.
         """
-        warn_logger_argument("AsyncArxivExtractor", logger)
-        self._log = logger or (lambda _msg: None)
         self._fetcher = RetryingFetcher(
             client,
             "arXiv",
@@ -98,7 +92,6 @@ class AsyncArxivExtractor(AsyncExtractor):
             backoff_factor=backoff_factor,
             max_retry_after=max_retry_after,
             sleep=sleep,
-            logger=self._log,
             rate_limiter=rate_limiter,
             max_bytes=max_download_bytes,
         )
@@ -127,7 +120,7 @@ class AsyncArxivExtractor(AsyncExtractor):
         :meth:`~sci_etl_core.config.RateLimitConfig.build_limiter`. Without
         ``full_text`` the extractor has no rate limiter, and a pipeline with
         ``max_concurrency`` 6 downloads six papers from arxiv.org at once.
-        ``options`` pass any other constructor argument, such as ``logger`` or
+        ``options`` pass any other constructor argument, such as
         ``rate_limiter``, and override a value taken from the config.
         """
         settings: dict[str, Any] = {"max_retries": http.max_retries, "backoff_factor": http.backoff_factor}
@@ -327,7 +320,7 @@ class AsyncArxivExtractor(AsyncExtractor):
         try:
             text = await asyncio.to_thread(parser.extract_text, content)
         except ParsingError as exc:
-            self._log(f"{label} unusable for {record_id!r}: {exc}")
+            _logger.warning(f"{label} unusable for {record_id!r}: {exc}")
             return None
         return text or None
 

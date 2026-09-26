@@ -9,7 +9,7 @@ import os
 
 from sci_etl_core import (
     AsyncArxivExtractor,
-    AsyncCsvUpsertExporter,
+    AsyncCsvExporter,
     AsyncFileStateManager,
     AsyncLLMEntityExtractor,
     AsyncLLMRelevanceFilter,
@@ -19,7 +19,6 @@ from sci_etl_core import (
 )
 from sci_etl_core.http_async import build_async_client
 from sci_etl_core.parsers import LatexTarballParser, PdfPlumberParser
-from sci_etl_core.processors import DefaultKeyNormalizer
 
 RELEVANCE_PROMPT = (
     "Decide whether the paper reports measurements of galaxies. "
@@ -45,13 +44,8 @@ with ETLPipeline(
     ),
     relevance_filter=AsyncLLMRelevanceFilter(llm_client=llm, system_prompt=RELEVANCE_PROMPT),
     entity_extractor=AsyncLLMEntityExtractor(llm_client=llm, system_prompt=EXTRACTION_PROMPT),
-    exporter=AsyncCsvUpsertExporter(
-        key_column="name",
-        value_columns=["value_a", "value_b"],
-        normalizer=DefaultKeyNormalizer(),
-    ),
+    exporter=AsyncCsvExporter("results.csv", columns=["name", "value_a", "value_b"]),
     state_manager=AsyncFileStateManager("state/processed.txt", "state/metadata.json"),
-    destination="results.csv",
     closeables=[client, llm],
     run_timeout=3600,
 ) as pipeline:
@@ -65,9 +59,9 @@ print(f"Processed {processed} relevant records")
 
 - **There are no blocking versions of individual components.** To call an
   extractor, client, or exporter directly from synchronous code, wrap the calls
-  in a coroutine and run it with `asyncio.run`. To plug your own blocking
-  implementations into a pipeline, see
-  [Synchronous components](../guide/sync-components.md).
+  in a coroutine and run it with `asyncio.run`. To plug blocking code into a
+  pipeline, implement the async interface and run the blocking work inside it
+  with `asyncio.to_thread`, as the bundled parsers and processors are called.
 - **`run_timeout`** is in seconds and unlimited by default. When it expires,
   the run is cancelled and `TimeoutError` is raised.
 - **Event loop.** `ETLPipeline` runs the pipeline on a shared background

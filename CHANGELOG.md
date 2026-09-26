@@ -6,6 +6,102 @@ All notable changes to sci-etl-core are recorded here. The format follows
 change behavior; each such change is listed under **Changed**.
 
 
+## [Unreleased]
+
+This release changes the data contract: entity extractors can return typed
+entities, exporters receive each record with its entities, the library logs
+through the standard `logging` module, and a base install needs only
+Pydantic. It adds claims with evidence and provenance. See "Upgrading to 0.6"
+in MIGRATION.md.
+
+### Added
+
+- **Exporter lifecycle.** `AsyncExporter` has `open()`, `write(record,
+  entities)`, `flush()`, and `aclose()`, and `durable_writes` says whether
+  `write` or `flush` makes entities durable. The pipeline marks a record
+  processed only once its entities are durable, so a crash can repeat a record
+  but never lose one.
+- `AsyncCsvExporter`, which writes one row per entity with the `record_id` of
+  its paper, keeps every other key in an `extra` column, and never merges,
+  clips, or coerces a value. It renders the file once per run from an
+  append-only journal, so export time grows linearly with the number of
+  records.
+- `AsyncJsonlExporter`, which appends one JSON line per record, and
+  `read_jsonl_export`, which reads the last line of each record back.
+- **Typed entities.** `AsyncLLMEntityExtractor(schema=Model)` validates every
+  entity against a Pydantic model and returns model instances. It requests
+  JSON-schema structured output through the new
+  `AsyncLLMClient.complete_structured`, which
+  `AsyncOpenAICompatibleClient(structured_output=True)` and
+  `LLMConfig.structured_output` turn on for endpoints that support it.
+  `entity_list_schema` builds the requested schema.
+- **Rejection reasons.** `RecordValidator.validate` returns a
+  `ValidationResult` of `Violation`s naming the field and rule of each
+  rejection. The bundled validators report their rules, and
+  `CompositeValidator.validate` collects the violations of every validator.
+  Rejections are logged with their reasons.
+- `AsyncEntityExtractor.extract_record(record, text)` and `requires_record`,
+  for extractors that need the record. The pipeline calls `extract_record`.
+- `AsyncLLMEntityExtractor.prepare` returns the text the model is sent, and
+  `stamp` describes the model, prompt, schema, and library release behind its
+  entities. `rejections=` keeps rejected entities in a rejection store.
+- `response_cache_key(schema=, variant=)` and `CachingLLMClient(variant=)`.
+  The schema of a typed request joins the cache key.
+- `sci_etl_core.claims` (provisional): `Claim`, `ClaimDraft`, `EvidenceSpan`,
+  `ExtractionStamp`, `locate_quote`, `AsyncLLMClaimExtractor`, the
+  `InMemoryClaimStore` and `AsyncSqliteClaimStore` claim stores,
+  `AsyncClaimStoreExporter`, and the `InMemoryRejectionStore` and
+  `AsyncSqliteRejectionStore` rejection stores.
+- `DeduplicationStep(source_column=)` adds a `sources` column listing the
+  distinct sources, such as the `record_id` of each paper, of every row merged
+  into each output row.
+- `ExportError`, `ClaimError`, and `ClaimStoreError`.
+- The `config`, `arxiv`, `xml`, `html`, and `processors` extras.
+- `load_config(load_env=True)` and `load_config_async(load_env=True)`.
+
+### Changed
+
+- **Breaking:** exporters take their destination when they are constructed,
+  and implement `write(record, entities)` instead of `export(data,
+  destination)`. The pipeline no longer takes `destination`.
+- **Breaking:** the pipeline writes every processed record to the exporter,
+  including one with no entities, so an exporter can clear rows a
+  re-extraction no longer finds.
+- **Breaking:** the pipeline opens the exporter before the first listing
+  request, flushes it after every page, and flushes and closes it before
+  flushing state however the run ends. An `open` fault aborts the run; a
+  `flush` fault leaves the page's records unsettled without counting an
+  attempt against them.
+- **Breaking:** the base install requires only `pydantic`. Install the
+  `config` extra for `load_config`, `arxiv` for `AsyncArxivExtractor`, `xml`
+  for the PubMed extractor and the JATS and DOCX parsers, `html` for
+  `HtmlTextParser`, and `processors` for the pandas processors and table sinks.
+- **Breaking:** `load_config` and `load_config_async` read a `.env` file only
+  when given `env_path` or `load_env=True`.
+- **Breaking:** every module logs through `logging.getLogger(__name__)` under
+  the `sci_etl_core` logger, at `WARNING` for failed and skipped records,
+  `ERROR` for sink and state faults, and `INFO` for routine notes. The
+  library configures no handlers.
+- **Breaking:** `AsyncEntityExtractor` and `AsyncExporter` are generic in the
+  entity type, and every `AsyncLLMEntityExtractor` argument after
+  `system_prompt` is keyword-only.
+- `AsyncLLMClient.invalidate` takes `schema=` for a typed request.
+- The `async` extra no longer installs `aiofiles`, and the `sql` extra no
+  longer installs `aiosqlite`.
+
+### Removed
+
+- The blocking `Extractor`, `StateManager`, `Exporter`, `LLMClient`,
+  `RelevanceFilter`, and `EntityExtractor` interfaces and the `Sync*Adapter`
+  classes.
+- `LegacyExtractorAdapter`.
+- `AsyncExporter.export` and the pipeline's `destination` argument.
+- `AsyncCsvUpsertExporter`; use `AsyncCsvExporter`.
+- `AsyncSqlTableExporter` and `AsyncPlotly3DExporter`; use `SqlTableSink` and
+  `Plotly3DSink`. `ScatterPlotConfig` is imported from
+  `sci_etl_core.processors`.
+- Every `logger=` argument, `configure_logging`, and `AsyncETLPipeline.log`.
+
 ## [0.5.1] - 2026-09-26
 
 This release stops LLM responses that carry no answer from settling a record,

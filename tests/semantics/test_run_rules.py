@@ -7,7 +7,7 @@ moved.
 from __future__ import annotations
 
 import pytest
-from harness import OpaqueListing, ScriptedLLM, State, build, records
+from harness import Entities, Exporter, OpaqueListing, ScriptedLLM, State, build, records
 
 from sci_etl_core.exceptions import (
     EmbeddingError,
@@ -512,3 +512,213 @@ async def test_r19_relevance_fault_in_a_filter_failing_closed_fails_the_record()
     assert await run.state.load_processed_ids() == {"ok"}
     assert await run.state.failure_counts() == {"outage": 1}
     assert run.entities.extracted == ["ok"]
+
+
+class Crash(BaseException):
+    """Stands for the process dying between a write and the flush that would cover it."""
+
+
+@pytest.mark.asyncio
+async def test_r9_shutdown_flushes_the_exporter_and_marks_only_what_the_flush_covered():
+    shutdown = ShutdownSignal(signals=())
+    exporter = Exporter(durable_writes=False)
+    run = build(records("a", "b", "c", "d"), max_concurrency=1, shutdown=shutdown, exporter=exporter)
+
+    async def request_during_first_record(record_id: str) -> None:
+        if record_id == "a":
+            shutdown.request()
+
+    run.entities.before_extract = request_during_first_record
+
+    with pytest.raises(PipelineInterrupted):
+        await run.run(page_size=4, total_limit=10)
+
+    assert run.state.marked == ["a"]
+    assert exporter.exported == [{"record": "a"}]
+    assert exporter.calls == ["open", "write a", "flush", "flush", "aclose"]
+
+
+@pytest.mark.asyncio
+async def test_r10_the_exporter_is_flushed_and_closed_before_state_however_the_run_ends():
+    completed = build(records("a"))
+    completed.state.calls = completed.exporter.calls
+    await completed.run(page_size=1, total_limit=10)
+
+    aborted = build(records("a"))
+    aborted.state.calls = aborted.exporter.calls
+    aborted.listing.fetch_faults[0] = UpstreamError("source unreachable")
+    with pytest.raises(PipelineAborted):
+        await aborted.run(page_size=1, total_limit=10)
+
+    assert completed.exporter.calls[-3:] == ["flush", "aclose", "state flush"]
+    assert aborted.exporter.calls == ["open", "flush", "aclose", "state flush"]
+
+
+@pytest.mark.asyncio
+async def test_r10_an_exporter_close_fault_is_raised_after_state_is_flushed_when_the_run_succeeded():
+    run = build(records("a"))
+    run.exporter.close_fault = OSError("disk full")
+
+    with pytest.raises(OSError, match="disk full"):
+        await run.run(page_size=1, total_limit=10)
+
+    assert run.state.flushes == 1
+    assert run.state.marked == ["a"]
+    assert "Exporter aclose failed: OSError('disk full')" in run.logged
+    assert run.pipeline.last_run_metrics.outcome == "failed"
+
+
+@pytest.mark.asyncio
+async def test_r10_an_exporter_close_fault_never_hides_the_original_error():
+    run = build(records("a"))
+    run.exporter.close_fault = OSError("disk full")
+    run.listing.fetch_faults[0] = UpstreamError("source unreachable")
+
+    with pytest.raises(PipelineAborted, match="Listing fetch failed"):
+        await run.run(page_size=1, total_limit=10)
+
+    assert "Exporter aclose failed: OSError('disk full')" in run.logged
+
+
+@pytest.mark.parametrize("durable_writes", [True, False])
+@pytest.mark.asyncio
+async def test_r20_a_record_is_marked_only_once_its_entities_are_durable(durable_writes):
+    exporter = Exporter(durable_writes=durable_writes)
+    run = build(records("a", "b"), exporter=exporter, max_concurrency=1)
+    marked_at: dict[str, list[str]] = {}
+    mark = run.state.mark_processed
+
+    async def mark_and_note(record_id: str) -> None:
+        marked_at[record_id] = list(exporter.calls)
+        await mark(record_id)
+
+    run.state.mark_processed = mark_and_note
+
+    await run.run(page_size=2, total_limit=10)
+
+    if durable_writes:
+        assert marked_at == {"a": ["open", "write a"], "b": ["open", "write a", "write b"]}
+    else:
+        assert marked_at["a"][-1] == marked_at["b"][-1] == "flush"
+    assert exporter.exported == [{"record": "a"}, {"record": "b"}]
+
+
+@pytest.mark.asyncio
+async def test_r20_a_crash_between_write_and_flush_loses_no_record():
+    state = State()
+    crashing = Exporter(durable_writes=False)
+    crashing.flush_faults.append(Crash())
+    with pytest.raises(Crash):
+        await build(records("a", "b"), exporter=crashing, state=state).run(page_size=2, total_limit=10)
+
+    assert state.processed == set()
+
+    rerun = build(records("a", "b"), state=State(processed=state.processed))
+    await rerun.run(page_size=2, total_limit=10)
+
+    assert sorted(entity["record"] for entity in rerun.exporter.exported) == ["a", "b"]
+
+
+@pytest.mark.parametrize("durable_writes", [True, False])
+@pytest.mark.asyncio
+async def test_r21_a_write_fault_fails_the_record_and_counts_one_attempt(durable_writes):
+    exporter = Exporter(durable_writes=durable_writes)
+    exporter.write_faults["a"] = OSError("disk full")
+    run = build(records("a", "b"), exporter=exporter)
+
+    assert await run.run(page_size=2, total_limit=10) == 1
+
+    assert await run.state.load_processed_ids() == {"b"}
+    assert await run.state.failure_counts() == {"a": 1}
+    assert run.state.metadata.cursor is None
+
+
+@pytest.mark.parametrize("durable_writes", [True, False])
+@pytest.mark.asyncio
+async def test_r21_a_flush_fault_counts_no_attempt_and_stalls_the_page(durable_writes):
+    exporter = Exporter(durable_writes=durable_writes)
+    exporter.flush_faults.append(OSError("disk full"))
+    run = build(records("a", "b", "c", "d"), exporter=exporter)
+
+    assert await run.run(page_size=2, total_limit=10) == (4 if durable_writes else 2)
+
+    assert await run.state.failure_counts() == {}
+    assert run.state.metadata.cursor == ("4" if durable_writes else None)
+    assert "Exporter flush failed: OSError('disk full')" in run.logged
+    if not durable_writes:
+        assert await run.state.load_processed_ids() == {"c", "d"}
+        outcomes = [event.outcome for event in run.events if isinstance(event, RecordFinished)]
+        assert outcomes[:2] == ["failed", "failed"]
+
+
+@pytest.mark.asyncio
+async def test_r21_two_consecutive_failed_flushes_abort_under_r5():
+    exporter = Exporter(durable_writes=False)
+    exporter.flush_faults.extend([OSError("disk full"), OSError("disk full")])
+    run = build(records("a", "b", "c", "d"), exporter=exporter)
+
+    with pytest.raises(PipelineAborted, match="kept failing") as aborted:
+        await run.run(page_size=2, total_limit=10)
+
+    assert isinstance(aborted.value.__cause__, OSError)
+    assert await run.state.load_processed_ids() == set()
+
+
+@pytest.mark.asyncio
+async def test_r21_records_a_failed_flush_left_unsettled_are_repeated_on_the_next_run():
+    state = State()
+    exporter = Exporter(durable_writes=False)
+    exporter.flush_faults.append(OSError("disk full"))
+    first = build(records("a", "b"), exporter=exporter, state=state)
+    with pytest.raises(PipelineAborted):
+        await first.run(page_size=2, total_limit=10)
+
+    second = build(records("a", "b"), state=state)
+    assert await second.run(page_size=2, total_limit=10) == 2
+    assert await state.load_processed_ids() == {"a", "b"}
+
+
+@pytest.mark.asyncio
+async def test_r21_write_faults_reach_quarantine_after_max_attempts():
+    state = State()
+    for attempt in range(3):
+        exporter = Exporter()
+        exporter.write_faults["poison"] = OSError("cannot store")
+        run = build([*records("poison"), *records(f"ok{attempt}")], exporter=exporter, state=state)
+        await run.run(page_size=2, total_limit=10, max_attempts=3)
+
+    final = build([*records("poison"), *records("new")], state=state)
+    await final.run(page_size=2, total_limit=10, max_attempts=3)
+
+    assert state.failures == {"poison": 3}
+    assert "poison" not in final.relevance.asked
+    assert final.pipeline.last_run_metrics.quarantined == 1
+
+
+@pytest.mark.asyncio
+async def test_r22_an_open_fault_aborts_the_run_before_any_listing_request():
+    run = build(records("a"))
+    run.exporter.open_fault = OSError("read-only file system")
+
+    with pytest.raises(PipelineAborted, match="Exporter could not open") as aborted:
+        await run.run(page_size=1, total_limit=10)
+
+    assert isinstance(aborted.value.__cause__, OSError)
+    assert aborted.value.partial_count == 0
+    assert run.listing.requests == []
+    assert run.exporter.calls == ["open"]
+    assert run.state.flushes == 1
+
+
+@pytest.mark.asyncio
+async def test_r23_every_processed_record_is_written_including_one_with_no_entities():
+    class NothingFor(Entities):
+        async def extract(self, text):
+            return [] if str(text).endswith("empty") else await super().extract(text)
+
+    run = build(records("found", "empty", "skip"), irrelevant=["skip"], entities=NothingFor())
+
+    await run.run(page_size=3, total_limit=10)
+
+    assert run.exporter.written == {"found": [{"record": "found"}], "empty": []}
+    assert "write skip" not in run.exporter.calls

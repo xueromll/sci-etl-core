@@ -7,6 +7,8 @@ from sci_etl_core.processors.validation import (
     KeywordExclusionValidator,
     NumericRangeValidator,
     RecordValidator,
+    ValidationResult,
+    Violation,
 )
 
 
@@ -169,3 +171,86 @@ class TestCompositeValidator:
         assert CompositeValidator([first, second]).is_valid({"x": 1}) is False
         first.is_valid.assert_called_once()
         second.is_valid.assert_not_called()
+
+
+class HasAnyMeasurement(RecordValidator):
+    def is_valid(self, record):
+        return any(record.get(field) is not None for field in ("radius", "mass"))
+
+
+def _error(code, field, message):
+    return Violation(code=code, field=field, severity="error", message=message)
+
+
+class TestValidationResult:
+    def test_empty_result_is_ok(self):
+        assert ValidationResult().ok is True
+
+    def test_a_warning_alone_is_ok(self):
+        warning = Violation(code="unusual", field="ra", severity="warning", message="unusual value")
+        assert ValidationResult(violations=(warning,)).ok is True
+
+    def test_an_error_is_not_ok(self):
+        assert ValidationResult(violations=(_error("rejected", None, "no"),)).ok is False
+
+
+class TestValidate:
+    def test_default_wraps_is_valid_for_a_subclass_that_overrides_only_is_valid(self):
+        validator = HasAnyMeasurement()
+
+        assert validator.validate({"radius": 1.0}) == ValidationResult()
+        assert validator.validate({"name": "DF2"}) == ValidationResult(
+            violations=(_error("rejected", None, "Rejected by HasAnyMeasurement"),)
+        )
+
+    @pytest.mark.parametrize(
+        ("name", "expected"),
+        [
+            ("Real Object", ValidationResult()),
+            ("n/a", ValidationResult(violations=(_error("null-key", "name", "name is missing, empty, or null-like"),))),
+            (
+                "the mock galaxy",
+                ValidationResult(
+                    violations=(_error("forbidden-keyword", "name", "name contains the forbidden keyword 'mock'"),)
+                ),
+            ),
+        ],
+    )
+    def test_keyword_validator_names_the_rule(self, keyword_validator, name, expected):
+        assert keyword_validator.validate({"name": name}) == expected
+
+    def test_keyword_validator_names_a_multi_word_phrase(self):
+        validator = KeywordExclusionValidator(key_field="name", forbidden_keywords=["dwarf galaxy"])
+
+        result = validator.validate({"name": "A Dwarf Galaxy candidate"})
+
+        assert result.violations[0].message == "name contains the forbidden keyword 'dwarf galaxy'"
+
+    def test_range_validator_reports_every_failing_field(self):
+        validator = NumericRangeValidator({"ra": (0.0, 360.0), "dec": (-90.0, 90.0), "z": (0.0, 10.0)})
+
+        result = validator.validate({"ra": 400.0, "dec": "north", "z": 0.5})
+
+        assert result.violations == (
+            _error("out-of-range", "ra", "ra is 400, outside [0, 360]"),
+            _error("not-a-number", "dec", "dec is not a number"),
+        )
+        assert validator.is_valid({"ra": 400.0}) is False
+
+    @pytest.mark.parametrize(
+        "record",
+        [{"name": "Real", "ra": 10.0}, {"name": "mock", "ra": 10.0}, {"name": "Real", "ra": -1.0}, {"name": ""}],
+    )
+    def test_bundled_validate_agrees_with_is_valid(self, keyword_validator, record):
+        for validator in (keyword_validator, NumericRangeValidator({"ra": (0.0, 360.0)})):
+            assert validator.validate(record).ok is validator.is_valid(record)
+
+    def test_composite_collects_every_violation_in_order(self):
+        composite = CompositeValidator(
+            [KeywordExclusionValidator(key_field="name", forbidden_keywords=["mock"]), HasAnyMeasurement()]
+        )
+
+        result = composite.validate({"name": "mock 1"})
+
+        assert [violation.code for violation in result.violations] == ["forbidden-keyword", "rejected"]
+        assert composite.validate({"name": "Real", "mass": 1.0}).ok is True

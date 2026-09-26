@@ -3,8 +3,8 @@
 Python 3.11 or newer is required.
 
 ```bash
-pip install "sci-etl-core[async,llm,pdf]"   # everything the Quick Start uses
-pip install "sci-etl-core[full]"            # every bundled component except local embeddings
+pip install "sci-etl-core[async,arxiv,llm,pdf]"   # everything the Quick Start uses
+pip install "sci-etl-core[full]"                  # every bundled component except local embeddings
 ```
 
 From a clone:
@@ -13,25 +13,31 @@ From a clone:
 pip install -e ".[full]"
 ```
 
-The base install covers configuration, both pipelines, graceful shutdown,
-progress events and run metrics, the state backends, the sync adapters, HTML,
-LaTeX, DOCX, and JATS XML parsing, LLM response caching, text chunking,
-Boolean text search, rank fusion, discovery graphs, and the pandas processor
-steps. Components load
-their optional dependencies only when you import them, so add the extras for
-the components you use:
+The base install requires only Pydantic. It covers both pipelines, graceful
+shutdown, progress events and run metrics, the component contracts, the
+configuration models, the state backends, LLM response caching, the CSV and
+JSON Lines exporters, claims and provenance, record validators, LaTeX parsing,
+text chunking, Boolean text search, rank fusion, and discovery graphs. A
+component that needs another package imports it when you import the
+component, so add the extras for the components you use:
 
 | Extra | Adds | Needed for |
 |-------|------|------------|
-| `async` | `httpx`, `aiofiles`, `aiolimiter` | `AsyncArxivExtractor`, `AsyncPubMedExtractor`, `AsyncSemanticScholarExtractor`, `AsyncOpenAlexExtractor`, `build_async_client`, `AsyncCsvUpsertExporter`, `load_config_async`, `AioLimiterRateLimiter` |
+| `config` | `pyyaml`, `python-dotenv` | `load_config`, `load_config_async`, `load_yaml` |
+| `async` | `httpx`, `aiolimiter` | `AsyncArxivExtractor`, `AsyncPubMedExtractor`, `AsyncSemanticScholarExtractor`, `AsyncOpenAlexExtractor`, `build_async_client`, `AioLimiterRateLimiter` |
+| `arxiv` | `beautifulsoup4`, `lxml` | `AsyncArxivExtractor`, which also needs `async` |
+| `xml` | `lxml` | `JatsXmlParser`, `DocxParser`, and `AsyncPubMedExtractor`, which also needs `async` |
+| `html` | `beautifulsoup4` | `HtmlTextParser`, which `AsyncLLMEntityExtractor` uses by default for full text that starts with markup |
+| `processors` | `pandas`, `numpy` | every step in `sci_etl_core.processors` except the validators, and the table sinks |
 | `llm` | `openai`, `tiktoken` | `AsyncOpenAICompatibleClient`, token-based truncation |
 | `pdf` | `pdfplumber` | `PdfPlumberParser` |
-| `sql` | `sqlalchemy[asyncio]`, `aiosqlite` | `SqlTableSink`, and the deprecated `AsyncSqlTableExporter` |
-| `viz` | `plotly`, `aiofiles` | `Plotly3DSink`, and the deprecated `AsyncPlotly3DExporter` |
-| `cluster` | `scikit-learn`, `numpy` | `ClusteringStep` |
+| `sql` | `sqlalchemy` | `SqlTableSink`, which also needs `processors` |
+| `viz` | `plotly` | `Plotly3DSink`, which also needs `processors` |
+| `cluster` | `scikit-learn`, `numpy` | `ClusteringStep`, which also needs `processors` |
 | `embeddings` | `numpy`, `openai` | `AsyncOpenAIEmbedder`, the vector stores, `AsyncEmbeddingRelevanceFilter` |
 | `embeddings-local` | `numpy`, `sentence-transformers` | `AsyncSentenceTransformerEmbedder` |
 | `search` | nothing | nothing extra: `sci_etl_core.search` needs only the standard library, so this extra just records why the package is installed |
+| `full` | every package above except `sentence-transformers` | every bundled component except local embeddings |
 | `dev` | pytest and plugins, `hypothesis` | running the test suite |
 | `lint` | `ruff`, `mypy`, type stubs | linting and type-checking the source |
 | `docs` | MkDocs, Material for MkDocs, mkdocstrings, mkdocs-click, mike, `ruff` | building this documentation site |

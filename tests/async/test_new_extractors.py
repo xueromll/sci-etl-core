@@ -6,6 +6,7 @@ from pathlib import Path
 import httpx
 import pytest
 
+from log_capture import capture_logs
 from sci_etl_core.exceptions import (
     ExtractionError,
     MalformedResponseError,
@@ -77,7 +78,7 @@ class TestRetryingFetcher:
     def _fetcher(self, router, lines, **kwargs):
         options = dict(max_retries=3, backoff_factor=2.0, max_retry_after=5.0, sleep=_no_sleep)
         options.update(kwargs)
-        return RetryingFetcher(_client(router), "Source", logger=lines.append, rate_limiter=None, **options)
+        return RetryingFetcher(_client(router), "Source", rate_limiter=None, **options)
 
     @pytest.mark.asyncio
     async def test_retries_throttling_and_server_errors_then_succeeds(self):
@@ -93,7 +94,7 @@ class TestRetryingFetcher:
         async def sleep(delay):
             waits.append(delay)
 
-        lines: list[str] = []
+        lines = capture_logs()
         fetcher = self._fetcher(router, lines, sleep=sleep, headers={"x-api-key": "k"})
         assert await fetcher.fetch("https://source.test/x", "search", {"q": "a b"}) == b"ok"
         assert waits == [4.0, 2.0]
@@ -113,7 +114,7 @@ class TestRetryingFetcher:
     async def test_an_optional_fetch_reads_a_permanent_rejection_as_unavailable(self):
         router = Router()
         router.add(lambda request: True, httpx.Response(404))
-        lines: list[str] = []
+        lines = capture_logs()
         assert await self._fetcher(router, lines).fetch_optional("https://source.test/x", "PDF download") is None
         assert lines == ["Source PDF download unavailable: status 404"]
 
@@ -121,7 +122,7 @@ class TestRetryingFetcher:
     async def test_exhausted_retries_raise_upstream_error(self):
         router = Router()
         router.add(lambda request: True, httpx.Response(503))
-        lines: list[str] = []
+        lines = capture_logs()
         with pytest.raises(UpstreamError, match="Source search failed after 2 attempts"):
             await self._fetcher(router, lines, max_retries=2).fetch("https://source.test/x", "search")
         assert lines[-1].startswith("Source search failed after 2 attempts")
@@ -133,7 +134,7 @@ class TestRetryingFetcher:
         limiter = CountingLimiter()
         fetcher = RetryingFetcher(
             _client(router), "Source", max_retries=3, backoff_factor=1, max_retry_after=1, sleep=_no_sleep,
-            logger=lambda _line: None, rate_limiter=limiter,
+            rate_limiter=limiter,
         )
         await fetcher.fetch("https://source.test/x", "search")
         assert limiter.entered == 2
@@ -169,7 +170,7 @@ class TestRetryingFetcher:
         bomb = gzip.compress(b"\0" * 1_000_000)
         router = Router()
         router.add(lambda request: True, httpx.Response(200, content=bomb, headers={"Content-Encoding": "gzip"}))
-        lines: list[str] = []
+        lines = capture_logs()
         fetcher = self._fetcher(router, lines, max_bytes=len(bomb) * 2)
         assert await fetcher.fetch_optional("https://source.test/x", "PDF download") is None
         assert lines == [f"Source PDF download unavailable: response body exceeds {len(bomb) * 2} bytes"]
@@ -343,8 +344,8 @@ class TestOpenAlexExtractor:
         router = Router()
         router.add(lambda request: request.url.path == "/missing.pdf", httpx.Response(404))
         router.add(lambda request: request.url.path == "/bad.pdf", httpx.Response(200, content=b"x"))
-        lines: list[str] = []
-        with_parser = AsyncOpenAlexExtractor(_client(router), StubPdfParser(error=True), logger=lines.append)
+        lines = capture_logs()
+        with_parser = AsyncOpenAlexExtractor(_client(router), StubPdfParser(error=True))
         without_parser = AsyncOpenAlexExtractor(_client(router))
         missing = RawRecord(record_id="W1", title="t", abstract="abstract", metadata={"pdf_url": "https://oa.test/missing.pdf"})
         unreadable = RawRecord(record_id="W2", title="t", abstract="abstract", metadata={"pdf_url": "https://oa.test/bad.pdf"})
@@ -407,8 +408,8 @@ class TestSemanticScholarExtractor:
     async def test_the_page_that_reaches_the_first_thousand_is_truncated(self):
         router = Router()
         router.add(lambda request: True, httpx.Response(200, json={"total": 5000, "data": [_paper("a")] * 50}))
-        lines: list[str] = []
-        extractor = AsyncSemanticScholarExtractor(_client(router), sleep=_no_sleep, logger=lines.append)
+        lines = capture_logs()
+        extractor = AsyncSemanticScholarExtractor(_client(router), sleep=_no_sleep)
         page = await extractor.fetch_page("q", "950", 100)
         assert router.requests[0].url.params["limit"] == "50"
         assert (page.entries, page.next_cursor, page.truncated) == (50, None, True)
@@ -417,8 +418,8 @@ class TestSemanticScholarExtractor:
     @pytest.mark.asyncio
     async def test_a_cursor_past_the_first_thousand_is_a_truncated_page_without_a_request(self):
         router = Router()
-        lines: list[str] = []
-        extractor = AsyncSemanticScholarExtractor(_client(router), logger=lines.append)
+        lines = capture_logs()
+        extractor = AsyncSemanticScholarExtractor(_client(router))
         page = await extractor.fetch_page("q", "1000", 100)
         assert (page.records, page.entries, page.next_cursor, page.truncated) == ((), 0, None, True)
         assert router.requests == []
@@ -607,18 +608,18 @@ class TestPubMedExtractor:
 
     @pytest.mark.asyncio
     async def test_the_page_that_reaches_the_cap_is_truncated(self):
-        lines: list[str] = []
+        lines = capture_logs()
         router = self._router(["1", "2"], count="50000")
-        page = await AsyncPubMedExtractor(_client(router), logger=lines.append).fetch_page("q", "9997", 20)
+        page = await AsyncPubMedExtractor(_client(router)).fetch_page("q", "9997", 20)
         assert router.requests[0].url.params["retmax"] == "2"
         assert (page.entries, page.next_cursor, page.truncated) == (2, None, True)
         assert "first 9,999 results" in lines[0]
 
     @pytest.mark.asyncio
     async def test_a_cursor_past_the_cap_is_a_truncated_page_without_a_request(self):
-        lines: list[str] = []
+        lines = capture_logs()
         router = Router()
-        page = await AsyncPubMedExtractor(_client(router), logger=lines.append).fetch_page("q", "9999", 20)
+        page = await AsyncPubMedExtractor(_client(router)).fetch_page("q", "9999", 20)
         assert (page.records, page.entries, page.next_cursor, page.truncated) == ((), 0, None, True)
         assert router.requests == []
         assert "first 9,999 results" in lines[0]
@@ -686,8 +687,8 @@ class TestPubMedExtractor:
             httpx.Response(200, content=b"<pmc-articleset><article><front/></article></pmc-articleset>"),
         )
         router.add(lambda request: request.url.params.get("id") == "3", httpx.Response(400))
-        lines: list[str] = []
-        extractor = AsyncPubMedExtractor(_client(router), logger=lines.append)
+        lines = capture_logs()
+        extractor = AsyncPubMedExtractor(_client(router))
         for pmcid in ("PMC1", "PMC2", "PMC3"):
             assert await extractor.fetch_full_text(
                 RawRecord(record_id="9", title="t", abstract="abstract", metadata={"pmcid": pmcid})

@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
+from log_capture import capture_logs
 from sci_etl_core.signals import DEFAULT_SIGNALS, ShutdownSignal
 
 TEST_SIGNAL = signal.SIGTERM
@@ -82,18 +83,18 @@ class TestShutdownSignalInstallation:
 
     @pytest.mark.asyncio
     async def test_logs_when_no_handler_can_be_installed(self, mocker):
-        logged: list[str] = []
+        logged = capture_logs()
         loop = asyncio.get_running_loop()
         mocker.patch.object(loop, "add_signal_handler", side_effect=NotImplementedError)
-        shutdown = ShutdownSignal(signals=(TEST_SIGNAL,), logger=logged.append)
+        shutdown = ShutdownSignal(signals=(TEST_SIGNAL,))
         with patch.object(signal, "signal", side_effect=ValueError("denied")):
             with shutdown.guard():
                 assert shutdown._previous == {}
         assert any("unavailable" in message for message in logged)
 
     def test_install_is_skipped_off_the_main_thread(self):
-        logged: list[str] = []
-        shutdown = ShutdownSignal(signals=(TEST_SIGNAL,), logger=logged.append)
+        logged = capture_logs()
+        shutdown = ShutdownSignal(signals=(TEST_SIGNAL,))
 
         async def install() -> None:
             shutdown.install()
@@ -152,8 +153,8 @@ class TestShutdownSignalHandlerCapture:
 class TestShutdownSignalDelivery:
     @pytest.mark.asyncio
     async def test_loop_delivery_sets_the_flag_and_logs(self):
-        logged: list[str] = []
-        shutdown = ShutdownSignal(signals=(TEST_SIGNAL,), logger=logged.append)
+        logged = capture_logs()
+        shutdown = ShutdownSignal(signals=(TEST_SIGNAL,))
         with shutdown.guard():
             shutdown._on_loop_signal(TEST_SIGNAL)
             assert shutdown.triggered is True
@@ -202,9 +203,9 @@ class TestShutdownSignalEscalation:
         raise_signal.assert_called_once_with(TEST_SIGNAL)
 
     def test_escalation_is_logged(self, mocker):
-        logged: list[str] = []
+        logged = capture_logs()
         mocker.patch("sci_etl_core.signals.signal.raise_signal")
-        shutdown = ShutdownSignal(signals=(), logger=logged.append)
+        shutdown = ShutdownSignal(signals=())
         shutdown.request()
         shutdown._on_loop_signal(TEST_SIGNAL)
         assert any("again" in message for message in logged)

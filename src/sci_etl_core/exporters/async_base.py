@@ -1,37 +1,65 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any
+from collections.abc import Sequence
+from typing import ClassVar, Generic, TypeVar
 
-from sci_etl_core._deprecation import is_bundled, warn_advance_notice
+from sci_etl_core.models import RawRecord
+
+E = TypeVar("E", contravariant=True)
 
 
-class AsyncExporter(ABC):
-    """Contract for a sink that persists extracted data.
+class AsyncExporter(ABC, Generic[E]):
+    """A sink for one run's entities.
 
-    :class:`~sci_etl_core.pipeline_async.AsyncETLPipeline` calls :meth:`export`
-    once per relevant record with that record's entities as a
-    ``list[dict[str, Any]]``, possibly from several records concurrently. An
-    implementation used in a pipeline must accept that shape and serialize its
-    own writes.
+    :class:`~sci_etl_core.pipeline_async.AsyncETLPipeline` calls :meth:`open`
+    once when a run starts, :meth:`write` once per processed record, possibly
+    for several records concurrently, :meth:`flush` after each page, and
+    :meth:`aclose` when the run ends, however it ends. An exporter takes its
+    destination when it is constructed.
 
-    .. deprecated:: 0.5.0
-        :meth:`export` is replaced in 0.6.0 by an exporter lifecycle of
-        ``open``, ``write`` per record, ``flush`` per page, and ``aclose``.
-        Subclassing it outside sci-etl-core emits a
-        :class:`PendingDeprecationWarning` as advance notice; there is nothing to
-        migrate to before 0.6.0.
+    Delivery is at least once: a crash can repeat a record, never lose one.
+    With ``durable_writes = True``, :meth:`write` returns only once the
+    entities are durable, and the pipeline marks the record processed right
+    after it. With ``durable_writes = False``, :meth:`write` may buffer, and
+    the pipeline marks the page's written records processed only after
+    :meth:`flush` returns.
     """
 
-    def __init_subclass__(cls, **kwargs: Any) -> None:
-        super().__init_subclass__(**kwargs)
-        if not is_bundled(cls):
-            warn_advance_notice(
-                "AsyncExporter.export",
-                "sci-etl-core 0.6.0 replaces it with the open, write, flush, and aclose lifecycle",
-                stacklevel=3,
-            )
+    durable_writes: ClassVar[bool] = True
+
+    async def open(self) -> None:
+        """Prepare the sink before the run's first listing request; the default does nothing.
+
+        A fault here aborts the run before any listing request.
+        """
 
     @abstractmethod
-    async def export(self, data: Any, destination: str) -> None:
-        """Persist data to the given destination without blocking the event loop."""
+    async def write(self, record: RawRecord, entities: Sequence[E]) -> None:
+        """Store ``entities`` for ``record``.
+
+        The pipeline calls it for every processed record, including one with
+        no entities, so a sink can clear rows a re-extracted record no longer
+        has. It must be idempotent: repeating a ``write`` with the same
+        arguments, including after one that raised partway, leaves the sink as
+        a single successful ``write`` would. Each sink documents which write
+        wins when a repeat carries different entities.
+
+        A fault here fails the record, which is retried on the next run and
+        counts one failed attempt.
+        """
+
+    async def flush(self) -> None:
+        """Make every earlier ``write`` durable; the default does nothing.
+
+        A fault here leaves the records written since the last successful
+        ``flush`` unsettled, counts no failed attempt against them, and makes
+        the page a stalled page.
+        """
+
+    async def aclose(self) -> None:
+        """Finish the run's output and release resources; the default does nothing.
+
+        The pipeline calls :meth:`flush` first. A fault here is raised only
+        when the run itself succeeded.
+        """

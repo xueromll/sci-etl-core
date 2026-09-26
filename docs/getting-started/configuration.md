@@ -1,6 +1,7 @@
 # Configuration
 
-Settings load from a YAML file and a `.env` file into Pydantic models:
+Settings load from a YAML file, and optionally a `.env` file, into Pydantic
+models. Loading needs the `config` extra:
 
 ```python
 from pathlib import Path
@@ -39,7 +40,7 @@ search:
 
 | Section | Model | Fields (defaults) | Builds |
 |---------|-------|-------------------|--------|
-| `llm` | `LLMConfig` | `api_key`, `base_url` (`https://api.openai.com/v1`), `model` (`gpt-4o-mini`), `timeout` (120) | `AsyncOpenAICompatibleClient.from_config` |
+| `llm` | `LLMConfig` | `api_key`, `base_url` (`https://api.openai.com/v1`), `model` (`gpt-4o-mini`), `timeout` (120), `structured_output` (false) | `AsyncOpenAICompatibleClient.from_config` |
 | `http` | `HttpConfig` | `user_agent` (`sci-etl-core/<installed version>`), `max_retries` (3), `backoff_factor` (2.0), `timeout` (25) | `build_client()`, `AsyncArxivExtractor.from_config` |
 | `full_text` | `RateLimitConfig` | `max_concurrency` (4), `max_rate` (unset), `time_period` (1.0) | `build_limiter()`, `AsyncArxivExtractor.from_config` |
 | `pipeline` | `PipelineConfig` | `search_query` (`""`), `total_limit` (100), `page_size` (100), `search_delay` (3.0), `sleep_between` (5.0), `max_concurrency` (6), `newest_first` (false) | `AsyncETLPipeline.from_config`, `run_arguments()`, `AsyncArxivExtractor.from_config` |
@@ -70,7 +71,6 @@ pipeline = AsyncETLPipeline.from_config(
     entity_extractor=entity_extractor,
     exporter=exporter,
     state_manager=state_manager,
-    destination="results.csv",
 )
 await pipeline.run(**config.pipeline.run_arguments())
 ```
@@ -79,9 +79,11 @@ await pipeline.run(**config.pipeline.run_arguments())
 from `http`, `search_delay` from `pipeline`, and its `rate_limiter` from
 `full_text`. Leave out `full_text` and the extractor has no rate limiter, so a
 pipeline with `max_concurrency` 6 downloads six papers from arxiv.org at once. `AsyncOpenAICompatibleClient`
-takes `api_key` (the loaded `SecretStr` as-is), `base_url`, `model`, and
-`timeout` as `default_timeout`. Both accept any other constructor argument,
-such as `logger` or `rate_limiter`, as a keyword. The PubMed, Semantic
+takes `api_key` (the loaded `SecretStr` as-is), `base_url`, `model`,
+`structured_output`, and `timeout` as `default_timeout`. Set
+`structured_output: true` only for an endpoint that accepts a `json_schema`
+response format, such as OpenAI's; DeepSeek's does not. Both accept any other
+constructor argument, such as `rate_limiter`, as a keyword. The PubMed, Semantic
 Scholar, and OpenAlex extractors have no `from_config`; pass
 `config.http.max_retries` and `config.http.backoff_factor` to their
 constructors yourself. The pipeline takes `max_concurrency`, and `run_arguments()` returns
@@ -133,11 +135,14 @@ type you define yourself validates as its own `model_config` says.
 ## Details
 
 - **API key.** The key comes from the `LLM_API_KEY` environment variable
-  (choose another with `api_key_env_var=`), which can be loaded from a `.env`
-  file: the one you pass, or else the first `.env` found from the current
-  working directory upward. It is stored as a Pydantic `SecretStr`, so it doesn't
-  show up in reprs or logs. Variables already set in the environment take
-  precedence over `.env`; copy `.env.example` to get started.
+  (choose another with `api_key_env_var=`). A `.env` file is read into the
+  environment only when you ask: pass its path as `env_path`, or pass
+  `load_env=True` to use the first `.env` found from the current working
+  directory upward. Without either, `load_config` never reads a `.env` file,
+  so importing and configuring the library changes no environment variable.
+  The key is stored as a Pydantic `SecretStr`, so it doesn't show up in reprs
+  or logs. Variables already set in the environment take precedence over
+  `.env`; copy `.env.example` to get started.
 - **The environment wins over YAML.** When the variable is set, it overrides
   any `llm.api_key` in the YAML file, which is used only as a fallback. Keep
   keys out of config files anyway.

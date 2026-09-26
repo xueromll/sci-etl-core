@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from collections.abc import Mapping
 from dataclasses import replace
 from typing import TYPE_CHECKING, Any
 
@@ -19,6 +20,7 @@ if TYPE_CHECKING:
     from sci_etl_core.config import LLMConfig
 
 _RETRYABLE = (APITimeoutError, APIConnectionError, RateLimitError, InternalServerError)
+_SCHEMA_NAME = "response"
 
 
 class AsyncOpenAICompatibleClient(AsyncLLMClient):
@@ -39,6 +41,7 @@ class AsyncOpenAICompatibleClient(AsyncLLMClient):
         sleep: Any = asyncio.sleep,
         max_retry_after: float = 60.0,
         rate_limiter: RateLimiting | None = None,
+        structured_output: bool = False,
     ) -> None:
         """Configure the client.
 
@@ -75,13 +78,15 @@ class AsyncOpenAICompatibleClient(AsyncLLMClient):
         self._usage = TokenUsage()
         self._base_url = base_url
         self._rate_limiter = rate_limiter
+        self._structured_output = structured_output
 
     @classmethod
     def from_config(cls, llm: LLMConfig, **options: Any) -> AsyncOpenAICompatibleClient:
         """Build a client from the ``llm`` config section.
 
-        The section supplies ``api_key``, ``base_url``, ``model``, and
-        ``timeout`` as ``default_timeout``. ``options`` pass any other
+        The section supplies ``api_key``, ``base_url``, ``model``,
+        ``structured_output``, and ``timeout`` as ``default_timeout``.
+        ``options`` pass any other
         constructor argument, such as ``rate_limiter``, and override a value
         taken from the config.
         """
@@ -90,6 +95,7 @@ class AsyncOpenAICompatibleClient(AsyncLLMClient):
             "base_url": llm.base_url,
             "model": llm.model,
             "default_timeout": llm.timeout,
+            "structured_output": llm.structured_output,
         }
         settings.update(options)
         return cls(**settings)
@@ -110,6 +116,11 @@ class AsyncOpenAICompatibleClient(AsyncLLMClient):
         return self._temperature
 
     @property
+    def structured_output(self) -> bool:
+        """Whether :meth:`complete_structured` requests JSON-schema structured output."""
+        return self._structured_output
+
+    @property
     def usage(self) -> TokenUsage:
         """Tokens reported across every response received so far, as a snapshot."""
         return replace(self._usage)
@@ -126,7 +137,33 @@ class AsyncOpenAICompatibleClient(AsyncLLMClient):
                 empty completion is not evidence of an empty answer, so it
                 fails the record instead of settling it.
         """
-        requested_format: Any = self.response_format
+        return await self._complete(system_prompt, user_content, timeout, self.response_format)
+
+    async def complete_structured(
+        self,
+        system_prompt: str,
+        user_content: str,
+        schema: Mapping[str, Any],
+        timeout: int | None = None,  # noqa: ASYNC109
+    ) -> dict[str, Any]:
+        """Request an answer matching ``schema``: as structured output when enabled, in JSON mode otherwise.
+
+        Raises:
+            LLMError: As for :meth:`complete_json`.
+        """
+        if not self._structured_output:
+            return await self.complete_json(system_prompt, user_content, timeout)
+        requested = {"type": "json_schema", "json_schema": {"name": _SCHEMA_NAME, "schema": dict(schema)}}
+        return await self._complete(system_prompt, user_content, timeout, requested)
+
+    async def _complete(
+        self,
+        system_prompt: str,
+        user_content: str,
+        timeout: int | None,  # noqa: ASYNC109
+        response_format: dict[str, Any],
+    ) -> dict[str, Any]:
+        requested_format: Any = response_format
         last_error: Exception | None = None
         for attempt in range(self._max_retries):
             try:

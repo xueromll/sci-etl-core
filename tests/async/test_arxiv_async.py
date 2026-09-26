@@ -5,6 +5,7 @@ import itertools
 import httpx
 import pytest
 
+from log_capture import capture_logs
 from sci_etl_core.exceptions import MalformedResponseError, StaleCursorError, UpstreamError
 from sci_etl_core.extractors.arxiv_async import AsyncArxivExtractor
 from sci_etl_core.models import RawRecord
@@ -92,9 +93,9 @@ class TestAsyncArxivSearch:
 
     @pytest.mark.asyncio
     async def test_raises_upstream_error_after_exhausting_retries(self, mocker):
-        logged: list[str] = []
+        logged = capture_logs()
         client = _client(mocker, side_effect=httpx.TimeoutException("timeout"))
-        extractor = _build(client, mocker, max_retries=3, logger=logged.append)
+        extractor = _build(client, mocker, max_retries=3)
         with pytest.raises(UpstreamError, match="after 3 attempts") as excinfo:
             await extractor._search("q", 10, 0)
         assert isinstance(excinfo.value.__cause__, httpx.TimeoutException)
@@ -292,9 +293,9 @@ class TestAsyncArxivFetchFullText:
 
     @pytest.mark.asyncio
     async def test_network_failure_raises_instead_of_falling_back(self, mocker):
-        logged: list[str] = []
+        logged = capture_logs()
         client = _client(mocker, side_effect=httpx.ConnectError("down"))
-        extractor = _build(client, mocker, logger=logged.append)
+        extractor = _build(client, mocker)
         record = RawRecord(record_id="2401.4", title="t", abstract="safe fallback")
         with pytest.raises(UpstreamError, match=r"2401\.4"):
             await extractor.fetch_full_text(record)

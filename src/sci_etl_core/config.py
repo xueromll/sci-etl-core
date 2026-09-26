@@ -5,8 +5,6 @@ import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
-import yaml
-from dotenv import find_dotenv, load_dotenv
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, ValidationError, model_validator
 
 from sci_etl_core._user_agent import DEFAULT_USER_AGENT
@@ -31,7 +29,8 @@ class LLMConfig(BaseModel):
     builds a client from them. ``api_key`` is a :class:`~pydantic.SecretStr`, so it never appears in a
     ``repr`` or a log line. :func:`load_config` takes it from the environment
     variable it names, and falls back to the YAML value when that is unset.
-    ``timeout`` is in seconds.
+    ``timeout`` is in seconds. Set ``structured_output`` only for an endpoint
+    that accepts a ``json_schema`` response format.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -40,6 +39,7 @@ class LLMConfig(BaseModel):
     base_url: str = "https://api.openai.com/v1"
     model: str = "gpt-4o-mini"
     timeout: int = Field(default=120, gt=0)
+    structured_output: bool = False
 
 
 class HttpConfig(BaseModel):
@@ -295,10 +295,14 @@ def load_yaml(path: Path) -> dict[str, Any]:
 def parse_yaml(text: str, source: Path) -> dict[str, Any]:
     """Parse YAML text that must hold a mapping; an empty document is ``{}``.
 
+    Needs the ``config`` extra.
+
     Raises:
         ConfigurationError: The text is not valid YAML or its top level is not
             a mapping.
     """
+    import yaml
+
     try:
         raw = yaml.safe_load(text)
     except yaml.YAMLError as exc:
@@ -338,20 +342,38 @@ def load_config(
     yaml_path: Path,
     env_path: Path | None = None,
     api_key_env_var: str = "LLM_API_KEY",
+    *,
+    load_env: bool = False,
 ) -> T:
-    """Load and validate a config from YAML plus a ``.env`` file.
+    """Load and validate a config from a YAML file and the environment.
 
-    Without ``env_path``, ``.env`` is looked up from the current working
-    directory upward, so the caller's project is searched rather than the
-    location the library is installed in.
+    The API key comes from the environment variable ``api_key_env_var``, as
+    :func:`apply_api_key` describes. A ``.env`` file is read into the
+    environment first only when asked: the file at ``env_path``, or, with
+    ``load_env=True``, the first ``.env`` found from the current working
+    directory upward. Variables already set are not overwritten. Needs the
+    ``config`` extra.
 
     Raises:
         ConfigurationError: The YAML file is missing or unreadable, or the
             configuration fails validation.
     """
-    load_dotenv(env_path if env_path is not None else find_dotenv(usecwd=True))
+    load_env_file(env_path, load_env=load_env)
     raw = apply_api_key(load_yaml(yaml_path), api_key_env_var)
     return validate_config(config_cls, raw, yaml_path)
+
+
+def load_env_file(env_path: Path | None, *, load_env: bool) -> None:
+    """Read ``env_path``, or with ``load_env`` the nearest ``.env`` above the working directory, into the environment.
+
+    Does nothing when neither is given. Needs the ``config`` extra when it
+    reads a file.
+    """
+    if env_path is None and not load_env:
+        return
+    from dotenv import find_dotenv, load_dotenv
+
+    load_dotenv(env_path if env_path is not None else find_dotenv(usecwd=True))
 
 
 def validate_config(config_cls: type[T], raw: dict[str, Any], source: Path) -> T:

@@ -4,13 +4,6 @@ import inspect
 
 import pytest
 
-from sci_etl_core._adapters import (
-    SyncEntityExtractorAdapter,
-    SyncExporterAdapter,
-    SyncExtractorAdapter,
-    SyncRelevanceFilterAdapter,
-    SyncStateManagerAdapter,
-)
 from sci_etl_core.embeddings.async_base import AsyncEmbedder
 from sci_etl_core.embeddings.chunking import SlidingWindowChunker, TextChunker
 from sci_etl_core.embeddings.openai_compatible_async import AsyncOpenAIEmbedder
@@ -19,15 +12,13 @@ from sci_etl_core.embeddings.store_base import AsyncEmbeddingStore
 from sci_etl_core.embeddings.store_memory import InMemoryEmbeddingStore
 from sci_etl_core.embeddings.store_sqlite_async import AsyncSqliteEmbeddingStore
 from sci_etl_core.exporters.async_base import AsyncExporter
-from sci_etl_core.exporters.csv_async import AsyncCsvUpsertExporter
-from sci_etl_core.exporters.plotly_async import AsyncPlotly3DExporter
-from sci_etl_core.exporters.sql_async import AsyncSqlTableExporter
+from sci_etl_core.exporters.csv_async import AsyncCsvExporter
+from sci_etl_core.exporters.jsonl_async import AsyncJsonlExporter
 from sci_etl_core.extractors.arxiv_async import AsyncArxivExtractor
 from sci_etl_core.extractors.async_base import AsyncExtractor
 from sci_etl_core.extractors.openalex_async import AsyncOpenAlexExtractor
 from sci_etl_core.extractors.pubmed_async import AsyncPubMedExtractor
 from sci_etl_core.extractors.semantic_scholar_async import AsyncSemanticScholarExtractor
-from sci_etl_core.llm._adapters import SyncLLMClientAdapter
 from sci_etl_core.llm.async_base import AsyncLLMClient
 from sci_etl_core.llm.extraction_async import AsyncEntityExtractor, AsyncLLMEntityExtractor
 from sci_etl_core.llm.openai_compatible_async import AsyncOpenAICompatibleClient
@@ -76,16 +67,9 @@ CASES: list[tuple[type, type]] = [
     (Processor, NormalizationStep),
     (Processor, CompletenessStep),
     (Processor, QualityFlagStep),
-    (AsyncExporter, AsyncCsvUpsertExporter),
-    (AsyncExporter, AsyncPlotly3DExporter),
-    (AsyncExporter, AsyncSqlTableExporter),
+    (AsyncExporter, AsyncCsvExporter),
+    (AsyncExporter, AsyncJsonlExporter),
     (AsyncStateManager, AsyncFileStateManager),
-    (AsyncExtractor, SyncExtractorAdapter),
-    (AsyncRelevanceFilter, SyncRelevanceFilterAdapter),
-    (AsyncEntityExtractor, SyncEntityExtractorAdapter),
-    (AsyncExporter, SyncExporterAdapter),
-    (AsyncStateManager, SyncStateManagerAdapter),
-    (AsyncLLMClient, SyncLLMClientAdapter),
     (AsyncRelevanceFilter, AsyncLLMRelevanceFilter),
     (AsyncRelevanceFilter, AsyncEmbeddingRelevanceFilter),
     (AsyncEntityExtractor, AsyncLLMEntityExtractor),

@@ -27,6 +27,12 @@ class DeduplicationStep(Processor):
     Matched pairs only fill the kept row's gaps. When a pair names a row that
     was already merged away as the one to keep, its values flow into the row
     that absorbed it, so a chain of matches never discards data.
+
+    With ``source_column``, such as the ``record_id`` column an exporter
+    writes, each output row gains ``sources_column``: the distinct non-empty
+    ``source_column`` values of every input row merged into it, sorted and
+    joined with ``"; "``. The column says which papers a merged row came from,
+    though each value in the row is still the first one found.
     """
 
     def __init__(
@@ -35,19 +41,25 @@ class DeduplicationStep(Processor):
         matcher: NeighborMatcher | None = None,
         match_threshold: float = 0.0,
         mergeable_columns: list[str] | None = None,
+        *,
+        source_column: str | None = None,
+        sources_column: str = "sources",
     ) -> None:
         self._norm_key_column = norm_key_column
         self._matcher = matcher
         self._match_threshold = match_threshold
         self._mergeable_columns = mergeable_columns
+        self._source_column = source_column
+        self._sources_column = sources_column
 
     def process(self, frame: pd.DataFrame) -> pd.DataFrame:
         if frame.empty:
             return frame
 
         grouped = self._collapse_keys(frame)
+        sources = self._group_sources(frame)
         if self._matcher is None:
-            return grouped
+            return self._with_sources(grouped, sources)
 
         requested = self._mergeable_columns or list(frame.columns)
         merge_columns = [
@@ -62,17 +74,37 @@ class DeduplicationStep(Processor):
             for column in merge_columns:
                 if pd.isna(grouped.at[keeper, column]) and pd.notna(grouped.at[drop_idx, column]):
                     grouped.at[keeper, column] = grouped.at[drop_idx, column]
+            if sources is not None:
+                sources[keeper] |= sources[drop_idx]
             dropped.add(drop_idx)
             absorbed_by[drop_idx] = keeper
 
-        return grouped.drop(index=list(dropped)).reset_index(drop=True)
+        return self._with_sources(grouped, sources).drop(index=list(dropped)).reset_index(drop=True)
 
-    def _collapse_keys(self, frame: pd.DataFrame) -> pd.DataFrame:
+    def _labels(self, frame: pd.DataFrame) -> np.ndarray:
         keys = frame[self._norm_key_column]
         keyed = (keys.notna() & (keys != "")).to_numpy()
         codes, uniques = pd.factorize(keys.where(keyed), sort=True)
-        labels = np.where(keyed, codes, len(uniques) + np.arange(len(frame)))
-        grouped = frame.groupby(labels, sort=True).first().reset_index(drop=True)
+        labels: np.ndarray = np.where(keyed, codes, len(uniques) + np.arange(len(frame)))
+        return labels
+
+    def _group_sources(self, frame: pd.DataFrame) -> list[set[str]] | None:
+        if self._source_column is None:
+            return None
+        values = frame[self._source_column]
+        return [
+            {str(value) for value in group if pd.notna(value) and str(value) != ""}
+            for _label, group in values.groupby(self._labels(frame), sort=True)
+        ]
+
+    def _with_sources(self, grouped: pd.DataFrame, sources: list[set[str]] | None) -> pd.DataFrame:
+        if sources is None:
+            return grouped
+        grouped[self._sources_column] = ["; ".join(sorted(found)) for found in sources]
+        return grouped
+
+    def _collapse_keys(self, frame: pd.DataFrame) -> pd.DataFrame:
+        grouped = frame.groupby(self._labels(frame), sort=True).first().reset_index(drop=True)
         ordered = [self._norm_key_column, *(column for column in grouped.columns if column != self._norm_key_column)]
         return grouped[ordered]
 

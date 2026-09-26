@@ -5,10 +5,11 @@ import threading
 import pytest
 
 from legacy_paging import page_through_search
+from log_capture import capture_logs
+from pipeline_doubles import entity_extractor as scripted_entities
 from sci_etl_core.exceptions import MalformedResponseError, PipelineAborted, UpstreamError
 from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.extractors.async_base import AsyncExtractor
-from sci_etl_core.llm.extraction_async import AsyncEntityExtractor
 from sci_etl_core.llm.relevance_async import AsyncRelevanceFilter
 from sci_etl_core.models import PipelineMetadata, RawRecord
 from sci_etl_core.pipeline import ETLPipeline
@@ -33,13 +34,12 @@ def _build(mocker, records, *, relevant=True, entities=None, max_workers=6):
     relevance = mocker.Mock(spec=AsyncRelevanceFilter)
     relevance.is_relevant = mocker.AsyncMock(return_value=relevant)
 
-    entity_extractor = mocker.Mock(spec=AsyncEntityExtractor)
+    entity_extractor = scripted_entities(mocker)
     entity_extractor.extract = mocker.AsyncMock(
         return_value=entities if entities is not None else [{"name": "X"}]
     )
 
     exporter = mocker.Mock(spec=AsyncExporter)
-    exporter.export = mocker.AsyncMock()
 
     state = mocker.Mock(spec=AsyncStateManager)
     state.load_processed_ids = mocker.AsyncMock(return_value=set())
@@ -57,7 +57,6 @@ def _build(mocker, records, *, relevant=True, entities=None, max_workers=6):
         entity_extractor=entity_extractor,
         exporter=exporter,
         state_manager=state,
-        destination="out.csv",
         max_concurrency=max_workers,
         sleep=mocker.AsyncMock(),
     )
@@ -68,7 +67,7 @@ class TestPipelineHappyPath:
     def test_processes_relevant_records_and_exports(self, mocker):
         pipeline, _, _, _, exporter, state = _build(mocker, _records(3))
         assert pipeline.run(query="q", page_size=3, total_limit=3, sleep_between=0) == 3
-        assert exporter.export.call_count == 3
+        assert exporter.write.call_count == 3
         assert state.mark_processed.call_count == 3
 
     def test_skips_irrelevant_without_fetching_or_exporting(self, mocker):
@@ -77,13 +76,13 @@ class TestPipelineHappyPath:
         )
         assert pipeline.run(query="q", page_size=2, total_limit=2, sleep_between=0) == 0
         extractor.fetch_full_text.assert_not_called()
-        exporter.export.assert_not_called()
+        exporter.write.assert_not_called()
         assert state.mark_processed.call_count == 2
 
-    def test_no_export_when_extraction_yields_nothing(self, mocker):
+    def test_a_record_with_no_entities_is_still_written(self, mocker):
         pipeline, _, _, _, exporter, _ = _build(mocker, _records(2), entities=[])
         assert pipeline.run(query="q", page_size=2, total_limit=2, sleep_between=0) == 2
-        exporter.export.assert_not_called()
+        assert [call.args[1] for call in exporter.write.call_args_list] == [[], []]
 
     def test_stops_when_listing_is_exhausted(self, mocker):
         pipeline, extractor, *_ = _build(mocker, _records(1))
@@ -140,8 +139,7 @@ class TestPipelineResilience:
             return [{"name": "ok"}]
 
         entity_extractor.extract = mocker.AsyncMock(side_effect=flaky)
-        logged: list[str] = []
-        pipeline._async._log = logged.append
+        logged = capture_logs()
         assert pipeline.run(query="q", page_size=3, total_limit=3, sleep_between=0) >= 2
         assert any("failed" in m.lower() for m in logged)
 
@@ -174,10 +172,9 @@ class TestPipelineContextManager:
         pipeline = ETLPipeline(
             extractor=extractor,
             relevance_filter=mocker.Mock(spec=AsyncRelevanceFilter),
-            entity_extractor=mocker.Mock(spec=AsyncEntityExtractor),
+            entity_extractor=scripted_entities(mocker),
             exporter=mocker.Mock(spec=AsyncExporter),
             state_manager=mocker.Mock(spec=AsyncStateManager),
-            destination="out.csv",
             closeables=[closeable, object()],
         )
         with pipeline as entered:

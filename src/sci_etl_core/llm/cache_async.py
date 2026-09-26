@@ -3,21 +3,23 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import logging
 import sqlite3
 from abc import ABC, abstractmethod
 from collections import OrderedDict
-from collections.abc import Callable, Mapping
+from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from sci_etl_core._deprecation import warn_logger_argument
 from sci_etl_core._migrations import Migration, migrate, newer_schema_message
 from sci_etl_core._sqlite_async import AsyncSqliteRunner
 from sci_etl_core.exceptions import LLMCacheError
 from sci_etl_core.llm.async_base import AsyncLLMClient
 from sci_etl_core.models import TokenUsage
+
+_logger = logging.getLogger(__name__)
 
 _MIGRATIONS: tuple[Migration, ...] = (
     (
@@ -40,22 +42,26 @@ def response_cache_key(
     base_url: str | None = None,
     temperature: float | None = None,
     response_format: Mapping[str, Any] | None = None,
+    schema: Mapping[str, Any] | None = None,
+    variant: str = "",
 ) -> str:
     """Return the cache key for a completion.
 
     The key is a SHA-256 hex digest of the model, the endpoint's ``base_url``,
-    the sampling ``temperature``, the requested ``response_format``, and both
-    prompts, so an answer cached for one provider, temperature, or format is
-    never served for another.
+    the sampling ``temperature``, the requested ``response_format``, the JSON
+    Schema the answer must match, a ``variant`` label, and both prompts, so an
+    answer cached for one provider, temperature, format, or schema is never
+    served for another. The schema is serialized with sorted keys, so equal
+    schemas give one key. ``variant`` keeps apart answers a caller wants kept
+    apart, such as repeated samples of one request. Without a schema and with
+    an empty variant, the key is the one sci-etl-core 0.5.1 computed.
     """
     sampling = None if temperature is None else float(temperature)
     requested = None if response_format is None else dict(response_format)
-    payload = json.dumps(
-        [model, base_url, sampling, requested, system_prompt, user_content],
-        ensure_ascii=False,
-        separators=(",", ":"),
-        sort_keys=True,
-    )
+    parts: list[Any] = [model, base_url, sampling, requested, system_prompt, user_content]
+    if schema is not None or variant:
+        parts.append({"schema": None if schema is None else dict(schema), "variant": variant})
+    payload = json.dumps(parts, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
@@ -233,7 +239,8 @@ class CachingLLMClient(AsyncLLMClient):
     """Serve repeated completions from a cache instead of calling the LLM again.
 
     A request is keyed on ``model``, ``base_url``, ``temperature``,
-    ``response_format``, and both prompts (:func:`response_cache_key`).
+    ``response_format``, the schema of a :meth:`complete_structured` request,
+    ``variant``, and both prompts (:func:`response_cache_key`).
     ``base_url``, ``temperature``, and ``response_format`` are read from the
     wrapped client's attributes of those names, as
     :class:`~sci_etl_core.llm.openai_compatible_async.AsyncOpenAICompatibleClient`
@@ -258,11 +265,14 @@ class CachingLLMClient(AsyncLLMClient):
         client: AsyncLLMClient,
         cache: AsyncLLMResponseCache,
         model: str | None = None,
-        logger: Callable[[str], None] | None = None,
+        *,
+        variant: str = "",
     ) -> None:
         """Wrap ``client``.
 
         ``model`` defaults to the wrapped client's ``model`` attribute.
+        ``variant`` joins every key, so caching clients with different
+        variants over one cache never serve one another's answers.
 
         Raises:
             ValueError: ``model`` is not given and the client has no ``model``
@@ -277,8 +287,7 @@ class CachingLLMClient(AsyncLLMClient):
         self._base_url: str | None = _optional_attribute(client, "base_url", str)
         self._temperature: float | None = _optional_attribute(client, "temperature", (int, float))
         self._response_format: dict[str, Any] | None = _optional_attribute(client, "response_format", dict)
-        warn_logger_argument("CachingLLMClient", logger)
-        self._log = logger or (lambda _msg: None)
+        self._variant = variant
         self._stats = CacheStats()
 
     @property
@@ -316,38 +325,65 @@ class CachingLLMClient(AsyncLLMClient):
         Raises:
             LLMError: The wrapped client failed; nothing is cached.
         """
-        key = self._key(system_prompt, user_content)
+        return await self._complete(
+            self._key(system_prompt, user_content, None),
+            lambda: self._client.complete_json(system_prompt, user_content, timeout),
+        )
+
+    async def complete_structured(
+        self,
+        system_prompt: str,
+        user_content: str,
+        schema: Mapping[str, Any],
+        timeout: int | None = None,  # noqa: ASYNC109
+    ) -> dict[str, Any]:
+        """Return the answer cached for this schema, or ask the wrapped client and cache its answer.
+
+        Raises:
+            LLMError: The wrapped client failed; nothing is cached.
+        """
+        return await self._complete(
+            self._key(system_prompt, user_content, schema),
+            lambda: self._client.complete_structured(system_prompt, user_content, schema, timeout),
+        )
+
+    async def _complete(self, key: str, request: Callable[[], Awaitable[dict[str, Any]]]) -> dict[str, Any]:
         cached = await self._cached(key)
         if cached is not None:
             self._stats.hits += 1
             return cached
         self._stats.misses += 1
-        response = await self._client.complete_json(system_prompt, user_content, timeout)
+        response = await request()
         try:
             await self._cache.set(key, response)
         except asyncio.CancelledError:
             raise
         except Exception as error:
             self._stats.faults += 1
-            self._log(f"LLM cache set failed: {error!r}")
+            _logger.warning(f"LLM cache set failed: {error!r}")
         return response
 
-    async def invalidate(self, system_prompt: str, user_content: str) -> None:
+    async def invalidate(
+        self, system_prompt: str, user_content: str, *, schema: Mapping[str, Any] | None = None
+    ) -> None:
         """Remove the cached response to this request and tell the wrapped client.
 
         A cache failure is logged as ``LLM cache delete failed: <error>`` and
         counted in :attr:`stats`; it never raises.
         """
         try:
-            await self._cache.delete(self._key(system_prompt, user_content))
+            await self._cache.delete(self._key(system_prompt, user_content, schema))
         except asyncio.CancelledError:
             raise
         except Exception as error:
             self._stats.faults += 1
-            self._log(f"LLM cache delete failed: {error!r}")
-        await self._client.invalidate(system_prompt, user_content)
+            _logger.warning(f"LLM cache delete failed: {error!r}")
+        if schema is None:
+            await self._client.invalidate(system_prompt, user_content)
+        else:
+            await self._client.invalidate(system_prompt, user_content, schema=schema)
 
-    def _key(self, system_prompt: str, user_content: str) -> str:
+    def _key(self, system_prompt: str, user_content: str, schema: Mapping[str, Any] | None) -> str:
         return response_cache_key(
             self._model,
             system_prompt,
@@ -355,6 +391,8 @@ class CachingLLMClient(AsyncLLMClient):
             base_url=self._base_url,
             temperature=self._temperature,
             response_format=self._response_format,
+            schema=schema,
+            variant=self._variant,
         )
 
     async def _cached(self, key: str) -> dict[str, Any] | None:
@@ -364,5 +402,5 @@ class CachingLLMClient(AsyncLLMClient):
             raise
         except Exception as error:
             self._stats.faults += 1
-            self._log(f"LLM cache get failed: {error!r}")
+            _logger.warning(f"LLM cache get failed: {error!r}")
             return None

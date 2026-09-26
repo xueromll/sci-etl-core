@@ -2,14 +2,13 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import re
-from collections.abc import Callable
 from typing import Any
 
 import httpx
 from lxml import etree
 
-from sci_etl_core._deprecation import warn_logger_argument
 from sci_etl_core.exceptions import MalformedResponseError, ParsingError
 from sci_etl_core.extractors._http import RetryingFetcher, parse_document
 from sci_etl_core.extractors._offsets import decimal_cursor, offset_from_cursor
@@ -19,6 +18,8 @@ from sci_etl_core.parsers._xml import local_name, parse_untrusted_xml
 from sci_etl_core.parsers.base import Parser
 from sci_etl_core.parsers.jats import JatsXmlParser
 from sci_etl_core.rate_limiter import RateLimiting
+
+_logger = logging.getLogger(__name__)
 
 _EUTILS = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
 _MAX_RESULTS = 9_999
@@ -59,7 +60,6 @@ class AsyncPubMedExtractor(AsyncExtractor):
         backoff_factor: float = 2.0,
         max_retry_after: float = 60.0,
         sleep: Any = asyncio.sleep,
-        logger: Callable[[str], None] | None = None,
         rate_limiter: RateLimiting | None = None,
         max_download_bytes: int | None = None,
     ) -> None:
@@ -70,10 +70,6 @@ class AsyncPubMedExtractor(AsyncExtractor):
         pages through the first 9,999 results of a search, so the listing is
         ``truncated`` there.
 
-        .. deprecated:: 0.5.0
-            ``logger`` emits a :class:`PendingDeprecationWarning`; 0.6.0 logs through
-            the standard :mod:`logging` module instead.
-
         With ``max_download_bytes``, a response body is read only up to that
         many bytes, so a huge response cannot exhaust memory. A larger listing
         page raises :class:`~sci_etl_core.exceptions.ExtractionError`; a larger
@@ -83,8 +79,6 @@ class AsyncPubMedExtractor(AsyncExtractor):
             ValueError: ``max_retries`` is less than 1, ``max_retry_after`` is
                 negative, or ``max_download_bytes`` is less than 1.
         """
-        warn_logger_argument("AsyncPubMedExtractor", logger)
-        self._log = logger or (lambda _msg: None)
         self._fetcher = RetryingFetcher(
             client,
             "PubMed",
@@ -92,7 +86,6 @@ class AsyncPubMedExtractor(AsyncExtractor):
             backoff_factor=backoff_factor,
             max_retry_after=max_retry_after,
             sleep=sleep,
-            logger=self._log,
             rate_limiter=rate_limiter,
             max_bytes=max_download_bytes,
         )
@@ -124,7 +117,9 @@ class AsyncPubMedExtractor(AsyncExtractor):
         """
         offset = offset_from_cursor(cursor)
         if offset >= _MAX_RESULTS:
-            self._log(f"PubMed only pages through the first {_MAX_RESULTS:,} results; offset {offset} is past them")
+            _logger.warning(
+                f"PubMed only pages through the first {_MAX_RESULTS:,} results; offset {offset} is past them"
+            )
             return ListingPage(records=(), entries=0, next_cursor=None, truncated=True)
         params: dict[str, Any] = {
             "db": "pubmed",
@@ -145,7 +140,7 @@ class AsyncPubMedExtractor(AsyncExtractor):
         if count is not None and end >= count:
             return ListingPage(records=records, entries=len(ids), next_cursor=None)
         if end >= _MAX_RESULTS:
-            self._log(f"PubMed only pages through the first {_MAX_RESULTS:,} results; the listing stops at {end}")
+            _logger.warning(f"PubMed only pages through the first {_MAX_RESULTS:,} results; the listing stops at {end}")
             return ListingPage(records=records, entries=len(ids), next_cursor=None, truncated=True)
         return ListingPage(records=records, entries=len(ids), next_cursor=decimal_cursor(end))
 
@@ -176,17 +171,17 @@ class AsyncPubMedExtractor(AsyncExtractor):
             return record.abstract
         if isinstance(self._full_text_parser, JatsXmlParser):
             return await self._jats_full_text(self._full_text_parser, content, record)
-        text = await parse_document(self._full_text_parser, content, "PMC full text", record, self._log)
+        text = await parse_document(self._full_text_parser, content, "PMC full text", record)
         return text or record.abstract
 
     async def _jats_full_text(self, parser: JatsXmlParser, content: bytes, record: RawRecord) -> str:
         try:
             article = await asyncio.to_thread(parser.parse_article, content)
         except ParsingError as exc:
-            self._log(f"PMC full text unusable for {record.record_id!r}: {exc}")
+            _logger.warning(f"PMC full text unusable for {record.record_id!r}: {exc}")
             return record.abstract
         if not article.sections:
-            self._log(f"PMC has no full text for {record.record_id!r}")
+            _logger.info(f"PMC has no full text for {record.record_id!r}")
             return record.abstract
         blocks = [article.title or record.title, article.abstract or record.abstract, article.body_text()]
         return "\n\n".join(block for block in blocks if block)

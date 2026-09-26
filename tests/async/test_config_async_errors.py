@@ -17,7 +17,7 @@ class TestAsyncConfigErrors:
     )
     @pytest.mark.asyncio
     async def test_unusable_yaml_raises_configuration_error(self, mocker, tmp_path, text, message):
-        mocker.patch.object(config_async, "load_dotenv")
+        mocker.patch("dotenv.load_dotenv")
         path = tmp_path / "c.yaml"
         path.write_text(text, encoding="utf-8")
         with pytest.raises(ConfigurationError, match=message):
@@ -25,7 +25,7 @@ class TestAsyncConfigErrors:
 
     @pytest.mark.asyncio
     async def test_invalid_values_are_reported_by_key(self, mocker, tmp_path):
-        mocker.patch.object(config_async, "load_dotenv")
+        mocker.patch("dotenv.load_dotenv")
         path = tmp_path / "c.yaml"
         path.write_text("pipeline:\n  max_concurrency: 0\n", encoding="utf-8")
         expected = r"pipeline\.max_concurrency: Input should be greater than or equal to 1"
@@ -34,11 +34,13 @@ class TestAsyncConfigErrors:
 
     @pytest.mark.asyncio
     async def test_dotenv_lookup_starts_at_the_working_directory(self, mocker, tmp_path):
-        load = mocker.patch.object(config_async, "load_dotenv")
-        find = mocker.patch.object(config_async, "find_dotenv", return_value="/project/.env")
+        load = mocker.patch("dotenv.load_dotenv")
+        find = mocker.patch("dotenv.find_dotenv", return_value="/project/.env")
         path = tmp_path / "c.yaml"
         path.write_text("", encoding="utf-8")
         await config_async.load_config_async(BaseAppConfig, path)
+        load.assert_not_called()
+        await config_async.load_config_async(BaseAppConfig, path, load_env=True)
         find.assert_called_once_with(usecwd=True)
         load.assert_called_once_with("/project/.env")
 

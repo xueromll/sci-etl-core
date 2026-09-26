@@ -36,7 +36,6 @@ text_store = AsyncSqliteFts5Store("search.db", facet_keys=("categories", "year")
 ingestor = AsyncCompositeIngestor(
     AsyncChunkIngestor(chunker=SlidingWindowChunker(), embedder=embedder, store=vector_store),
     AsyncSearchIndexer(store=text_store),
-    logger=print,
 )
 
 
@@ -55,7 +54,6 @@ Add the ingestor to the pipeline from the
 ```python
 pipeline = AsyncETLPipeline(
     ...,
-    logger=print,
     memory_ingestor=ingestor,
     closeables=[client, llm, embedder, vector_store, text_store],
 )
@@ -65,11 +63,10 @@ pipeline = AsyncETLPipeline(
   reason `vector_store` does, because this is a one-shot script: the pipeline
   owns both stores, so `show_matches` must run inside `async with pipeline`. A
   long-lived application follows [Store ownership](store-ownership.md) instead.
-- **One log stream.** The same `logger` goes to the composite and the
-  pipeline, so memory faults appear in one stream. A `SearchStoreError` while
-  indexing is logged as `Memory ingest failed for <record_id> in
-  AsyncSearchIndexer: ...`, and the record's chunks are still embedded and its
-  entities still exported. An embedding fault likewise leaves the text index
+- **Memory faults.** A `SearchStoreError` while indexing is logged as a
+  warning, `Memory ingest failed for <record_id> in AsyncSearchIndexer: ...`,
+  on the `sci_etl_core.ingest_async` logger, and the record's chunks are still
+  embedded and its entities still exported. An embedding fault likewise leaves the text index
   unaffected. A `SearchQueryError` is not a memory fault and fails the record.
 - **Ingestor order.** `AsyncCompositeIngestor` returns its first ingestor's
   count, so pass the chunk ingestor first; an `AsyncSearchIndexer` in first

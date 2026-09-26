@@ -160,9 +160,6 @@ class MySourceExtractor(AsyncExtractor):
   tokens.
 - **`fetch_full_text`** returns the best text available for a record.
 
-An extractor written for 0.4, with `search` and `parse_listing`, runs in 0.5.x
-through `LegacyExtractorAdapter`, which is deprecated and removed in 0.6.
-
 The full contract for every component type is listed under
 [Adding a new component](../project/contributing.md#adding-a-new-component),
 and the [extractor API reference](../reference/extractors.md) documents the

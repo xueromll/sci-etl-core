@@ -14,7 +14,7 @@ from sci_etl_core import (
 )
 
 cache = AsyncSqliteLLMResponseCache("cache/llm.db")
-llm = CachingLLMClient(AsyncOpenAICompatibleClient.from_config(config.llm), cache, logger=print)
+llm = CachingLLMClient(AsyncOpenAICompatibleClient.from_config(config.llm), cache)
 
 relevance_filter = AsyncLLMRelevanceFilter(llm, relevance_prompt)
 entity_extractor = AsyncLLMEntityExtractor(llm, extraction_prompt)
@@ -26,10 +26,18 @@ closed at the end of the run.
 ## How requests are matched
 
 A request is keyed on the model name, the endpoint's `base_url`, the
-temperature, the response format, and both prompts, hashed with SHA-256; the
-timeout isn't part of the key. A changed system prompt, a changed paper text,
-a different model, a different provider, a different temperature, or a
-different response format is a miss.
+temperature, the response format, the JSON Schema of a typed request, the
+client's `variant`, and both prompts, hashed with SHA-256; the timeout isn't
+part of the key. A changed system prompt, a changed paper text, a different
+model, a different provider, a different temperature, a different response
+format, or a changed entity schema is a miss. The schema is serialized with
+sorted keys, so an equal schema written in another order still hits. A request
+without a schema and with an empty `variant` has the same key it had in
+0.5.1.
+
+`CachingLLMClient(..., variant="sample-2")` keeps its answers apart from those
+of a client with another variant over the same cache, for example to ask a
+question twice on purpose.
 
 `CachingLLMClient` reads `base_url`, `temperature`, and `response_format` from
 the client it wraps. `AsyncOpenAICompatibleClient` exposes all three. Every
@@ -67,8 +75,9 @@ fault.
 
 The cache never fails a completion. If reading or writing it raises, the error
 is logged as `LLM cache get failed: ...`, `LLM cache set failed: ...`, or
-`LLM cache delete failed: ...` and the
-request goes to the LLM as if nothing were cached. `stats` counts `hits`,
+`LLM cache delete failed: ...`, at `WARNING` on the
+`sci_etl_core.llm.cache_async` logger, and the request goes to the LLM as if
+nothing were cached. `stats` counts `hits`,
 `misses`, and `faults`, and `usage` is the wrapped client's, so cache hits cost
 no tokens:
 

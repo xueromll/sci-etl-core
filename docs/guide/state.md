@@ -32,9 +32,12 @@ no cursor, so the next run starts from the first page.
 [Run semantics](run-semantics.md) lists every rule a run follows, each with
 the test that checks it.
 
-Records are exported before they are marked processed, so a crash between the
-two re-exports that record on the next run. `AsyncCsvUpsertExporter` absorbs
-this; an appending exporter of your own should tolerate duplicates.
+A record is marked processed only once the exporter holds its entities
+durably: right after `write` for an exporter with `durable_writes = True`,
+and after the page's `flush` otherwise. A crash in between repeats the record
+on the next run and never loses it. The bundled exporters replace a record's
+earlier output when it is written again, so the repeat is harmless; an
+exporter of your own must be idempotent the same way.
 
 `AsyncFileStateManager` raises `OSError` when a state file exists but can't be
 read, rather than treating it as empty. It rejects record ids that contain a
@@ -124,7 +127,10 @@ reprocesses nothing.
 | The source stops at its result cap | `run()` returns the count normally; the next run starts from the first page |
 | The source rejects a saved cursor (`StaleCursorError`) | the listing restarts from the first page; a second rejection in the run raises `PipelineAborted` |
 | Listing page holds only already-processed or quarantined records | paging continues with the next page |
-| One record raises, e.g. a transient full-text failure | logged through `logger`; record left unmarked; saved cursor held at its page; the attempt counted; other records continue |
+| One record raises, e.g. a transient full-text failure | logged as a warning; record left unmarked; saved cursor held at its page; the attempt counted; other records continue |
+| The exporter's `write` raises for a record | as above: the record fails and the attempt is counted |
+| The exporter's `flush` raises | logged as an error; the records the flush would have made durable stay unmarked, no attempt is counted against them, and the page counts as stalled |
+| The exporter's `open` raises | `run()` raises `PipelineAborted` before any listing request |
 | Records on one page fail and none on it is processed, but a later page processes a record | paging continues; the failed records stay unmarked for the next run |
 | Records fail with none processed on a second page since the last page that processed a record, or on the last page of the listing, e.g. a rejected API key or an unreadable CSV | `run()` raises `PipelineAborted` (cause: the last record's error) |
 | A shutdown is requested through `shutdown` | `run()` raises `PipelineInterrupted`; see [Graceful shutdown](shutdown.md) |

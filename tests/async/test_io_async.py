@@ -8,7 +8,7 @@ import pytest
 
 from sci_etl_core.config import BaseAppConfig
 from sci_etl_core.exceptions import ConfigurationError
-from sci_etl_core.exporters.plotly_async import ScatterPlotConfig
+from sci_etl_core.processors.sinks import Plotly3DSink, ScatterPlotConfig
 
 
 class TestAsyncConfig:
@@ -16,7 +16,7 @@ class TestAsyncConfig:
     async def test_loads_yaml_and_defaults(self, mocker, tmp_path):
         from sci_etl_core import config_async as ca
 
-        mocker.patch.object(ca, "load_dotenv")
+        mocker.patch("dotenv.load_dotenv")
         mocker.patch.dict("os.environ", {"LLM_API_KEY": ""})
         path = tmp_path / "c.yaml"
         path.write_text("pipeline:\n  total_limit: 5\n", encoding="utf-8")
@@ -28,7 +28,7 @@ class TestAsyncConfig:
     async def test_env_api_key_applied(self, mocker, tmp_path):
         from sci_etl_core import config_async as ca
 
-        mocker.patch.object(ca, "load_dotenv")
+        mocker.patch("dotenv.load_dotenv")
         mocker.patch.dict("os.environ", {"LLM_API_KEY": "secret"})
         path = tmp_path / "c.yaml"
         path.write_text("llm:\n  api_key: from-yaml\n", encoding="utf-8")
@@ -39,7 +39,7 @@ class TestAsyncConfig:
     async def test_missing_file_raises(self, mocker, tmp_path):
         from sci_etl_core import config_async as ca
 
-        mocker.patch.object(ca, "load_dotenv")
+        mocker.patch("dotenv.load_dotenv")
         with pytest.raises(ConfigurationError, match="not found"):
             await ca.load_config_async(BaseAppConfig, tmp_path / "nope.yaml")
 
@@ -47,7 +47,7 @@ class TestAsyncConfig:
     async def test_invalid_configuration_raises(self, mocker, tmp_path):
         from sci_etl_core import config_async as ca
 
-        mocker.patch.object(ca, "load_dotenv")
+        mocker.patch("dotenv.load_dotenv")
         mocker.patch.dict("os.environ", {"LLM_API_KEY": ""})
         path = tmp_path / "c.yaml"
         path.write_text("pipeline:\n  total_limit: not-an-int\n", encoding="utf-8")
@@ -67,56 +67,26 @@ def _plotly_config():
     return ScatterPlotConfig(x_column="x", y_column="y", z_column="z", color_column="c")
 
 
-class TestAsyncPlotlyExporter:
-    @pytest.mark.asyncio
-    async def test_writes_html_for_valid_frame(self, mocker, tmp_path):
-        from sci_etl_core.exporters.plotly_async import AsyncPlotly3DExporter
-
+class TestPlotly3DSink:
+    def test_writes_html_for_valid_frame(self, mocker, tmp_path):
         fig = mocker.MagicMock()
         fig.to_html.return_value = "<html>fig</html>"
         mocker.patch("plotly.express.scatter_3d", return_value=fig)
         frame = pd.DataFrame({"x": [1.0], "y": [2.0], "z": [3.0], "c": ["a"]})
         dest = tmp_path / "o.html"
-        await AsyncPlotly3DExporter(_plotly_config()).export(frame, str(dest))
+        Plotly3DSink(_plotly_config(), dest).write(frame)
         assert dest.read_text(encoding="utf-8").startswith("<html>")
 
-    @pytest.mark.asyncio
-    async def test_noop_when_frame_empty(self, mocker, tmp_path):
-        from sci_etl_core.exporters.plotly_async import AsyncPlotly3DExporter
-
+    def test_noop_when_frame_empty(self, mocker, tmp_path):
         scatter = mocker.patch("plotly.express.scatter_3d")
         frame = pd.DataFrame({"x": [None], "y": [None], "z": [None], "c": ["a"]})
         dest = tmp_path / "o.html"
-        await AsyncPlotly3DExporter(_plotly_config()).export(frame, str(dest))
+        Plotly3DSink(_plotly_config(), dest).write(frame)
         scatter.assert_not_called()
         assert not dest.exists()
 
 
-class TestAsyncSqlExporter:
-    @pytest.mark.asyncio
-    async def test_writes_via_run_sync(self, mocker):
-        from sci_etl_core.exporters.sql_async import AsyncSqlTableExporter
-
-        connection = mocker.AsyncMock()
-        begin_cm = mocker.MagicMock()
-        begin_cm.__aenter__ = mocker.AsyncMock(return_value=connection)
-        begin_cm.__aexit__ = mocker.AsyncMock(return_value=False)
-        engine = mocker.Mock()
-        engine.begin.return_value = begin_cm
-        engine.dispose = mocker.AsyncMock()
-        create = mocker.patch(
-            "sci_etl_core.exporters.sql_async.create_async_engine", return_value=engine
-        )
-        frame = mocker.MagicMock(spec=pd.DataFrame)
-        await AsyncSqlTableExporter(table_name="t", if_exists="replace").export(
-            frame, "sqlite+aiosqlite:///:memory:"
-        )
-        create.assert_called_once_with("sqlite+aiosqlite:///:memory:")
-        connection.run_sync.assert_awaited_once()
-        engine.dispose.assert_awaited_once()
-
-
-class TestAsyncPlotlyExporterStyling:
+class TestPlotly3DSinkStyling:
     @staticmethod
     def _frame():
         return pd.DataFrame(
@@ -131,10 +101,7 @@ class TestAsyncPlotlyExporterStyling:
             }
         )
 
-    @pytest.mark.asyncio
-    async def test_real_figure_carries_hover_data_template_scale_range_and_label(self, mocker, tmp_path):
-        from sci_etl_core.exporters import plotly_async
-
+    def test_real_figure_carries_hover_data_template_scale_range_and_label(self, mocker, tmp_path):
         config = ScatterPlotConfig(
             x_column="x",
             y_column="y",
@@ -152,7 +119,7 @@ class TestAsyncPlotlyExporterStyling:
         )
         scatter = mocker.spy(import_module("plotly.express"), "scatter_3d")
         destination = tmp_path / "map.html"
-        await plotly_async.AsyncPlotly3DExporter(config).export(self._frame(), str(destination))
+        Plotly3DSink(config, destination).write(self._frame())
         figure = scatter.spy_return
         trace = figure.data[0]
         assert [list(row) for row in trace.customdata] == [["first", 1.0], ["second", 4.0]]
@@ -168,14 +135,11 @@ class TestAsyncPlotlyExporterStyling:
         assert html.startswith(("<!doctype html>", "<html>"))
         assert html.rstrip().endswith("</html>")
 
-    @pytest.mark.asyncio
-    async def test_defaults_pass_no_styling_options(self, mocker, tmp_path):
-        from sci_etl_core.exporters.plotly_async import AsyncPlotly3DExporter
-
+    def test_defaults_pass_no_styling_options(self, mocker, tmp_path):
         fig = mocker.MagicMock()
         fig.to_html.return_value = "<html></html>"
         scatter = mocker.patch("plotly.express.scatter_3d", return_value=fig)
-        await AsyncPlotly3DExporter(_plotly_config()).export(self._frame().assign(c="a"), str(tmp_path / "o.html"))
+        Plotly3DSink(_plotly_config(), tmp_path / "o.html").write(self._frame().assign(c="a"))
         assert set(scatter.call_args.kwargs) == {"x", "y", "z", "color", "size", "hover_name", "title"}
         fig.update_traces.assert_not_called()
         fig.update_layout.assert_called_once()

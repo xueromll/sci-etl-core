@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable, Sequence
+import logging
+from collections.abc import Awaitable, Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Literal
 
-from sci_etl_core._deprecation import warn_logger_argument
 from sci_etl_core.exceptions import EmbeddingError, SearchQueryError
 from sci_etl_core.search.filters import SearchFilter, validate_filters
 from sci_etl_core.search.fusion import FusedHit, FusionParams, FusionStrategy, reciprocal_rank_fusion
@@ -13,6 +13,8 @@ from sci_etl_core.search.parser import parse_ranked_query, parse_semantic_query
 from sci_etl_core.search.query import Node, semantic_text
 from sci_etl_core.search.snippets import passage_snippet
 from sci_etl_core.search.store_base import AsyncTextSearchStore, SearchDocument, TextHit
+
+_logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from sci_etl_core.embeddings.finder_async import AsyncSimilarArticleFinder
@@ -103,7 +105,6 @@ class AsyncHybridSearcher:
         strategy: FusionStrategy = reciprocal_rank_fusion,
         params: HybridParams | None = None,
         fusion: FusionParams | None = None,
-        logger: Callable[[str], None] | None = None,
     ) -> None:
         """Configure the searcher; ``finder`` may be ``None`` to search the text index alone.
 
@@ -113,8 +114,8 @@ class AsyncHybridSearcher:
         :class:`~sci_etl_core.exceptions.SearchQueryError`.
 
         ``fusion.weights``, when given, weighs the lexical and the semantic list,
-        in that order. ``logger`` receives the line logged when a hybrid search
-        falls back to lexical results.
+        in that order. A hybrid search that falls back to lexical results logs
+        a warning.
 
         Raises:
             ValueError: ``fusion.weights`` does not hold exactly two weights.
@@ -126,8 +127,6 @@ class AsyncHybridSearcher:
         self._finder = finder
         self._strategy = strategy
         self._params = HybridParams() if params is None else params
-        warn_logger_argument("AsyncHybridSearcher", logger)
-        self._log = logger or (lambda _msg: None)
 
     async def search(
         self,
@@ -187,7 +186,7 @@ class AsyncHybridSearcher:
         degraded: tuple[str, ...] = ()
         articles = results.get("semantic")
         if isinstance(articles, EmbeddingError) and mode == "hybrid":
-            self._log(f"Semantic search failed; showing lexical results only: {articles!r}")
+            _logger.warning(f"Semantic search failed; showing lexical results only: {articles!r}")
             degraded = ("semantic",)
             articles = None
         elif isinstance(articles, BaseException):

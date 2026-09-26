@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import math
 import time
 from collections.abc import Awaitable, Callable, Coroutine, Iterable
@@ -10,6 +11,8 @@ from typing import TYPE_CHECKING, Any
 from sci_etl_core._protocols import SupportsAclose, UsageReporter
 from sci_etl_core._sync_bridge import bridge_loop, run_sync
 from sci_etl_core.pipeline_async import AsyncETLPipeline
+
+_logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from sci_etl_core.config import PipelineConfig
@@ -38,13 +41,11 @@ class ETLPipeline:
         self,
         extractor: AsyncExtractor,
         relevance_filter: AsyncRelevanceFilter,
-        entity_extractor: AsyncEntityExtractor,
-        exporter: AsyncExporter,
+        entity_extractor: AsyncEntityExtractor[Any],
+        exporter: AsyncExporter[Any],
         state_manager: AsyncStateManager,
         *,
-        destination: str | None = None,
         max_concurrency: int = 6,
-        logger: Callable[[str], None] | None = None,
         sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
         closeables: Iterable[SupportsAclose] = (),
         memory_ingestor: MemoryIngestor | None = None,
@@ -60,9 +61,7 @@ class ETLPipeline:
             entity_extractor,
             exporter,
             state_manager,
-            destination=destination,
             max_concurrency=max_concurrency,
-            logger=logger,
             sleep=sleep,
             closeables=closeables,
             memory_ingestor=memory_ingestor,
@@ -79,13 +78,11 @@ class ETLPipeline:
         pipeline: PipelineConfig,
         extractor: AsyncExtractor,
         relevance_filter: AsyncRelevanceFilter,
-        entity_extractor: AsyncEntityExtractor,
-        exporter: AsyncExporter,
+        entity_extractor: AsyncEntityExtractor[Any],
+        exporter: AsyncExporter[Any],
         state_manager: AsyncStateManager,
         *,
-        destination: str | None = None,
         max_concurrency: int | None = None,
-        logger: Callable[[str], None] | None = None,
         sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
         closeables: Iterable[SupportsAclose] = (),
         memory_ingestor: MemoryIngestor | None = None,
@@ -102,9 +99,7 @@ class ETLPipeline:
             entity_extractor,
             exporter,
             state_manager,
-            destination=destination,
             max_concurrency=pipeline.max_concurrency if max_concurrency is None else max_concurrency,
-            logger=logger,
             sleep=sleep,
             closeables=closeables,
             memory_ingestor=memory_ingestor,
@@ -184,8 +179,8 @@ class ETLPipeline:
         except (RuntimeError, TimeoutError) as error:
             with suppress(RuntimeError):
                 closing.close()
-            self._async.log(f"Resource close skipped: {error!r}")
+            _logger.warning(f"Resource close skipped: {error!r}")
         except Exception as error:
-            self._async.log(f"Resource close failed: {error!r}")
+            _logger.error(f"Resource close failed: {error!r}")
             return error
         return None

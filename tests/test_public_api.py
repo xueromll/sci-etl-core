@@ -16,6 +16,7 @@ SRC = Path(__file__).resolve().parents[1] / "src"
 
 PACKAGES = [
     "sci_etl_core",
+    "sci_etl_core.claims",
     "sci_etl_core.embeddings",
     "sci_etl_core.exporters",
     "sci_etl_core.extractors",
@@ -26,13 +27,15 @@ PACKAGES = [
     "sci_etl_core.state",
 ]
 
-# numpy is absent from this list on purpose: pandas, a core dependency,
-# requires it, so no real install is ever without it.
 _OPTIONAL = (
-    "aiofiles",
     "aiolimiter",
+    "bs4",
+    "dotenv",
     "httpx",
+    "lxml",
+    "numpy",
     "openai",
+    "pandas",
     "pdfplumber",
     "plotly",
     "requests",
@@ -40,6 +43,7 @@ _OPTIONAL = (
     "sklearn",
     "sqlalchemy",
     "tiktoken",
+    "yaml",
 )
 
 _PROBE = textwrap.dedent(
@@ -86,10 +90,9 @@ def test_every_public_name_resolves():
         ("AsyncSqliteStateManager", "sci_etl_core.state.sqlite_async"),
         ("RateLimitConfig", "sci_etl_core.config"),
         ("ShutdownSignal", "sci_etl_core.signals"),
-        ("SyncExtractorAdapter", "sci_etl_core._adapters"),
-        ("SyncLLMClientAdapter", "sci_etl_core.llm._adapters"),
-        ("EntityExtractor", "sci_etl_core.llm.base"),
-        ("RelevanceFilter", "sci_etl_core.llm.base"),
+        ("AsyncCsvExporter", "sci_etl_core.exporters.csv_async"),
+        ("AsyncJsonlExporter", "sci_etl_core.exporters.jsonl_async"),
+        ("RecordValidator", "sci_etl_core.processors.validation"),
     ],
 )
 def test_package_root_reexports_the_defining_object(name, module):
@@ -141,17 +144,21 @@ class TestInstallFootprint:
                 PipelineInterrupted,
                 SearchConfig,
                 ShutdownSignal,
-                SyncExporterAdapter,
+                AsyncCsvExporter,
+                AsyncJsonlExporter,
                 load_config,
             )
+            from sci_etl_core.claims import AsyncSqliteClaimStore, Claim, InMemoryRejectionStore
             from sci_etl_core.embeddings import AsyncChunkIngestor, SlidingWindowChunker
-            from sci_etl_core.parsers import HtmlTextParser, LatexTarballParser
+            from sci_etl_core.llm import AsyncLLMEntityExtractor, response_cache_key
+            from sci_etl_core.parsers import LatexTarballParser
             from sci_etl_core.processors import (
-                DeduplicationStep,
-                NormalizationStep,
-                QualityFlagStep,
-                TableLayoutStep,
-                ValueClipStep,
+                CompositeValidator,
+                KeywordExclusionValidator,
+                NumericRangeValidator,
+                RecordValidator,
+                ValidationResult,
+                Violation,
             )
             from sci_etl_core.rate_limiter import HostRateLimiter
             from sci_etl_core.search import parse_query
@@ -165,13 +172,39 @@ class TestInstallFootprint:
         assert result.returncode != 0
         assert "httpx" in result.stderr
 
-    def test_quick_start_imports_with_the_async_llm_and_pdf_extras(self):
+    @pytest.mark.parametrize(
+        ("code", "extra_modules"),
+        [
+            ("from sci_etl_core.processors import DeduplicationStep", {"pandas", "numpy"}),
+            ("from sci_etl_core.parsers import HtmlTextParser", {"bs4"}),
+            ("from sci_etl_core.parsers import JatsXmlParser", {"lxml"}),
+            ("from sci_etl_core.config import load_yaml; load_yaml.__call__", set()),
+        ],
+    )
+    def test_components_import_with_only_their_extra(self, code, extra_modules):
+        assert _run_with_only(extra_modules, code).returncode == 0
+
+    def test_load_config_needs_the_config_extra_only_when_called(self, tmp_path):
+        config = tmp_path / "config.yaml"
+        config.write_text("llm:\n  model: m\n", encoding="utf-8")
+        code = (
+            "from pathlib import Path; from sci_etl_core import BaseAppConfig, load_config; "
+            f"load_config(BaseAppConfig, Path({str(config)!r}))"
+        )
+
+        without = _run_with_only(set(), code)
+        with_extra = _run_with_only({"yaml"}, code)
+
+        assert "No module named 'yaml'" in without.stderr
+        assert with_extra.returncode == 0, with_extra.stderr
+
+    def test_quick_start_imports_with_the_async_arxiv_llm_and_pdf_extras(self):
         result = _run_with_only(
-            {"aiofiles", "aiolimiter", "httpx", "openai", "pdfplumber", "tiktoken"},
+            {"aiolimiter", "bs4", "httpx", "lxml", "openai", "pdfplumber", "tiktoken"},
             """
             from sci_etl_core import (
                 AsyncArxivExtractor,
-                AsyncCsvUpsertExporter,
+                AsyncCsvExporter,
                 AsyncLLMEntityExtractor,
                 AsyncLLMRelevanceFilter,
                 AsyncOpenAICompatibleClient,

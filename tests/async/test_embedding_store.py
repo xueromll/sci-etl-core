@@ -3,6 +3,8 @@ from __future__ import annotations
 import pytest
 
 from legacy_paging import page_through_search
+from log_capture import capture_logs
+from pipeline_doubles import entity_extractor as scripted_entities
 from sci_etl_core.embeddings.async_base import AsyncEmbedder
 from sci_etl_core.embeddings.chunking import SlidingWindowChunker
 from sci_etl_core.embeddings.finder_async import AsyncSimilarArticleFinder
@@ -13,7 +15,6 @@ from sci_etl_core.embeddings.store_sqlite_async import AsyncSqliteEmbeddingStore
 from sci_etl_core.exceptions import EmbeddingStoreError
 from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.extractors.async_base import AsyncExtractor
-from sci_etl_core.llm.extraction_async import AsyncEntityExtractor
 from sci_etl_core.llm.relevance_async import AsyncRelevanceFilter
 from sci_etl_core.models import PipelineMetadata, RawRecord
 from sci_etl_core.pipeline_async import AsyncETLPipeline
@@ -226,11 +227,10 @@ def _pipeline(mocker, *, relevant=True):
     relevance = mocker.Mock(spec=AsyncRelevanceFilter)
     relevance.is_relevant = mocker.AsyncMock(return_value=relevant)
 
-    entity = mocker.Mock(spec=AsyncEntityExtractor)
+    entity = scripted_entities(mocker)
     entity.extract = mocker.AsyncMock(return_value=[{"name": "X"}])
 
     exporter = mocker.Mock(spec=AsyncExporter)
-    exporter.export = mocker.AsyncMock()
 
     state = mocker.Mock(spec=AsyncStateManager)
     state.load_processed_ids = mocker.AsyncMock(return_value=set())
@@ -249,7 +249,6 @@ def _pipeline(mocker, *, relevant=True):
         entity_extractor=entity,
         exporter=exporter,
         state_manager=state,
-        destination="out.csv",
         sleep=mocker.AsyncMock(),
         memory_ingestor=ingestor,
     )
@@ -277,8 +276,7 @@ class TestPipelineTwoStageIngestion:
     async def test_ingest_failure_is_logged_not_fatal(self, mocker):
         pipeline, _, ingestor = _pipeline(mocker, relevant=True)
         ingestor.ingest = mocker.AsyncMock(side_effect=EmbeddingStoreError("db locked"))
-        logged: list[str] = []
-        pipeline._log = logged.append
+        logged = capture_logs()
         assert await pipeline.run(query="q", page_size=1, total_limit=1, sleep_between=0) == 1
         assert any("memory ingest failed" in message.lower() for message in logged)
 

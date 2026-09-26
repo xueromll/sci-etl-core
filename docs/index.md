@@ -70,9 +70,8 @@ field of science.
 - **Pluggable async interfaces** for every stage: `AsyncExtractor`, `Parser`,
   `AsyncLLMClient`, `AsyncRelevanceFilter`, `AsyncEntityExtractor`,
   `AsyncExporter`, `AsyncStateManager`, plus `AsyncEmbedder`, `TextChunker`,
-  and `AsyncEmbeddingStore` for semantic memory. Existing blocking
-  implementations plug in through `Sync*Adapter` wrappers. Run the whole
-  pipeline, or use only the parts you need, such as search.
+  and `AsyncEmbeddingStore` for semantic memory. Run the whole pipeline, or
+  use only the parts you need, such as search.
 - **Async-first orchestration** — every component is an `async`
   implementation. `AsyncETLPipeline` processes records with bounded
   concurrency, and `ETLPipeline` runs the same pipeline from blocking code.
@@ -94,6 +93,10 @@ field of science.
 - **Progress events, metrics, and token usage** — typed per-record events,
   run metrics with counts, durations, and failures, and the tokens each run
   used.
+- **Typed extraction and claims** — describe an entity with a Pydantic model
+  to get validated, typed entities and the reasons behind every rejection, or
+  extract claims that keep the paper, evidence sentence, and model behind each
+  value.
 - **LLM response caching** — an in-memory or SQLite cache answers repeated
   prompts without another API call.
 - **Semantic memory (optional)** — chunk and embed full texts into an
@@ -103,14 +106,14 @@ field of science.
   index that needs only the standard library, hybrid search that fuses BM25
   with embedding similarity, metadata facets, and graphs of related papers.
 - **Dependency injection everywhere** — HTTP clients, parsers, models,
-  prompts, and destinations are constructor arguments.
+  prompts, schemas, and output paths are constructor arguments.
 - **Concrete implementations included** — arXiv, PubMed, Semantic Scholar,
   and OpenAlex extractors; OpenAI-compatible chat and embedding clients; local
   sentence-transformers embedder; PDF / LaTeX / HTML / DOCX / JATS XML parsers;
-  CSV upsert, SQL table, and 3D Plotly exporters; dataframe processors and
-  record validators.
-- **Typed configuration** from YAML + `.env` with Pydantic validation and
-  `SecretStr` API keys.
+  CSV and JSON Lines exporters; SQL table and 3D Plotly sinks; dataframe
+  processors and record validators.
+- **Typed configuration** from YAML and environment variables with Pydantic
+  validation and `SecretStr` API keys.
 - **Offline test suite** — pytest with mocks, Hypothesis property tests, and
   ABC conformance tests.
 - **PEP 561 typed** (`py.typed`) for downstream type checking.

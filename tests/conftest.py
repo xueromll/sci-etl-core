@@ -41,7 +41,14 @@ def _install_sqlalchemy_stub() -> None:
 
 _install_sqlalchemy_stub()
 
+from log_capture import release_captures  # noqa: E402
 from sci_etl_core.models import RawRecord  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def _release_log_captures():
+    yield
+    release_captures()
 
 
 @pytest.fixture

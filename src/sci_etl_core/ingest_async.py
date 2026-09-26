@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable
+import logging
 
-from sci_etl_core._deprecation import warn_logger_argument
 from sci_etl_core.ingest_protocol import MEMORY_FAULTS, MemoryIngestor
 from sci_etl_core.models import RawRecord
 from sci_etl_core.search.index_async import AsyncSearchIndexer
+
+_logger = logging.getLogger(__name__)
 
 
 class AsyncCompositeIngestor:
@@ -20,11 +21,11 @@ class AsyncCompositeIngestor:
     cancels every backend.
 
     Log lines read ``Memory ingest failed for <record_id> in <IngestorClass>:
-    <error>``. Pass the pipeline's own logger, so memory faults share one
-    stream. The composite borrows its ingestors and never closes anything.
+    <error>``, at ``WARNING`` on the ``sci_etl_core.ingest_async`` logger. The
+    composite borrows its ingestors and never closes anything.
     """
 
-    def __init__(self, *ingestors: MemoryIngestor, logger: Callable[[str], None] | None = None) -> None:
+    def __init__(self, *ingestors: MemoryIngestor) -> None:
         """Combine ``ingestors``, which then run concurrently on every record.
 
         ``ingest`` returns the first ingestor's count, so the first ingestor
@@ -43,8 +44,6 @@ class AsyncCompositeIngestor:
                 "pass the chunk ingestor first"
             )
         self._ingestors = ingestors
-        warn_logger_argument("AsyncCompositeIngestor", logger)
-        self._log = logger or (lambda _msg: None)
 
     async def ingest(self, record: RawRecord, text: str) -> int:
         """Return the first ingestor's count, or 0 if its memory fault was absorbed."""
@@ -62,5 +61,5 @@ class AsyncCompositeIngestor:
         try:
             return await ingestor.ingest(record, text)
         except MEMORY_FAULTS as exc:
-            self._log(f"Memory ingest failed for {record.record_id} in {type(ingestor).__name__}: {exc!r}")
+            _logger.warning(f"Memory ingest failed for {record.record_id} in {type(ingestor).__name__}: {exc!r}")
             return 0

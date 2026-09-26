@@ -1,10 +1,11 @@
 # Quick start
 
 This example searches arXiv, asks an LLM which papers are relevant, extracts
-measurements from their full text, and upserts them into a CSV. It needs the
-`async`, `llm`, and `pdf` extras, and reads the API key from the `LLM_API_KEY`
-environment variable, so the key never appears in source code. To load it from
-a `.env` file instead, see [Configuration](configuration.md).
+measurements from their full text, and writes them to a CSV with one row per
+measurement. It needs the `async`, `arxiv`, `llm`, and `pdf` extras, and reads
+the API key from the `LLM_API_KEY` environment variable, so the key never
+appears in source code. To load it from a `.env` file instead, see
+[Configuration](configuration.md).
 
 ```python
 import asyncio
@@ -12,7 +13,7 @@ import os
 
 from sci_etl_core import (
     AsyncArxivExtractor,
-    AsyncCsvUpsertExporter,
+    AsyncCsvExporter,
     AsyncETLPipeline,
     AsyncFileStateManager,
     AsyncLLMEntityExtractor,
@@ -22,7 +23,6 @@ from sci_etl_core import (
 )
 from sci_etl_core.http_async import build_async_client
 from sci_etl_core.parsers import LatexTarballParser, PdfPlumberParser
-from sci_etl_core.processors import DefaultKeyNormalizer
 
 RELEVANCE_PROMPT = (
     "Decide whether the paper reports measurements of galaxies. "
@@ -54,13 +54,8 @@ async def main() -> None:
         entity_extractor=AsyncLLMEntityExtractor(
             llm_client=llm, system_prompt=EXTRACTION_PROMPT
         ),
-        exporter=AsyncCsvUpsertExporter(
-            key_column="name",
-            value_columns=["value_a", "value_b"],
-            normalizer=DefaultKeyNormalizer(),
-        ),
+        exporter=AsyncCsvExporter("results.csv", columns=["name", "value_a", "value_b"]),
         state_manager=AsyncFileStateManager("state/processed.txt", "state/metadata.json"),
-        destination="results.csv",
         max_concurrency=4,
         closeables=[client, llm],
     )
@@ -85,11 +80,15 @@ asyncio.run(main())
    records is passed over, not treated as the end of the data.
 2. For each remaining record, with at most `max_concurrency` in flight:
    relevance filter → full-text fetch → optional memory ingest → entity
-   extraction → export → mark processed. Irrelevant records are marked
-   processed without fetching full text. Records whose `record_id` is missing
-   or blank can't be tracked, so they are skipped and logged.
-3. Saves the listing cursor and repeats until `total_limit` relevant records
-   are processed or the listing ends, waiting `sleep_between` seconds
+   extraction → write to the exporter → mark processed. A record with no
+   entities is written too, so an exporter can clear rows a re-extraction no
+   longer finds. Irrelevant records are marked processed without fetching full
+   text. Records whose `record_id` is missing or blank can't be tracked, so
+   they are skipped and logged.
+3. Flushes the exporter, which makes the page's rows durable; an exporter that
+   buffers, such as `AsyncCsvExporter`, has its records marked processed only
+   now. Then saves the listing cursor and repeats until `total_limit` relevant
+   records are processed or the listing ends, waiting `sleep_between` seconds
    (default 0) before each further page. The cursor only moves past pages
    whose records were all settled, and a record that failed in 3 runs is
    skipped as quarantined; see [State, resuming, and errors](../guide/state.md).
@@ -101,8 +100,10 @@ be negative; other values raise `ValueError` before any request is made.
 `AsyncArxivExtractor` also waits `sleep_before_search` seconds (default 3)
 before every listing request, to respect arXiv's rate limits.
 
-On exit, `async with pipeline` awaits `aclose()` on every entry in
-`closeables` that has one — the HTTP client, the LLM client, and any
+When the run ends, however it ends, the exporter is flushed and closed:
+`AsyncCsvExporter` writes `results.csv` then, and keeps a
+`results.csv.journal` during the run. On exit, `async with pipeline` awaits
+`aclose()` on every entry in `closeables` that has one — the HTTP client, the LLM client, and any
 `AsyncSqliteStateManager`, `AsyncSqliteEmbeddingStore`, or
 `AsyncSqliteFts5Store` you use.
 
@@ -124,8 +125,10 @@ reads:
   Any other value there raises `LLMError`, so the record is retried. An empty
   completion, and a response with several keys but no `result_key`, raise
   `LLMError` too, so name the key in the prompt.
-- `AsyncCsvUpsertExporter` takes each item's `key_column` value as the row key,
-  so the extraction prompt must ask for that field.
+- `AsyncCsvExporter` writes the keys named in `columns` to their own columns
+  and every other key to the `extra` column as JSON, so no value is dropped.
+  Pass a Pydantic model as `schema=` to have every entity validated; see
+  [Typed entities](../guide/typed-entities.md).
 
 ## Next steps
 
@@ -133,5 +136,7 @@ reads:
   [`ETLPipeline`](blocking-usage.md).
 - Load the settings from YAML and `.env` with
   [typed configuration](configuration.md).
+- Keep the paper and evidence sentence behind every value with
+  [claims and provenance](../guide/claims.md).
 - Clean and plot the CSV with the
   [post-processing steps](../guide/post-processing.md).

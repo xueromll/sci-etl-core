@@ -7,6 +7,7 @@ import tarfile
 import httpx
 import pytest
 
+from log_capture import capture_logs
 from sci_etl_core.exceptions import ExtractionError, UpstreamError
 from sci_etl_core.extractors.arxiv_async import AsyncArxivExtractor
 from sci_etl_core.models import RawRecord
@@ -93,23 +94,22 @@ class TestEprintFormats:
 
     @pytest.mark.asyncio
     async def test_pdf_only_submission_falls_back_to_the_pdf(self):
-        logged: list[str] = []
+        logged = capture_logs()
         pdf = httpx.Response(200, content=_pdf(["PDF body text"]))
         extractor, _ = _extractor(
-            {EPRINT: httpx.Response(200, content=_pdf(["eprint"])), PDF: pdf}, logger=logged.append
+            {EPRINT: httpx.Response(200, content=_pdf(["eprint"])), PDF: pdf}
         )
         assert "PDF body text" in await extractor.fetch_full_text(RECORD)
         assert any("LaTeX unusable" in message for message in logged)
 
     @pytest.mark.asyncio
     async def test_unreadable_artifacts_fall_back_to_the_abstract(self):
-        logged: list[str] = []
+        logged = capture_logs()
         extractor, _ = _extractor(
             {
                 EPRINT: httpx.Response(200, content=b"not an archive"),
                 PDF: httpx.Response(200, content=b"<html>captcha</html>"),
             },
-            logger=logged.append,
         )
         assert await extractor.fetch_full_text(RECORD) == "abstract fallback"
         assert any("PDF unusable" in message for message in logged)
@@ -120,8 +120,8 @@ class TestEprintFormats:
             EPRINT: httpx.Response(200, content=b"x" * 4096),
             PDF: httpx.Response(200, content=_pdf(["Small PDF body"])),
         }
-        logged: list[str] = []
-        extractor, _requested = _extractor(routes, max_download_bytes=2048, logger=logged.append)
+        logged = capture_logs()
+        extractor, _requested = _extractor(routes, max_download_bytes=2048)
         assert "Small PDF body" in await extractor.fetch_full_text(RECORD)
         assert any("LaTeX fetch" in line and "exceeds 2048 bytes" in line for line in logged)
 
@@ -179,12 +179,11 @@ class TestRetryAfter:
     @pytest.mark.asyncio
     async def test_listing_retry_waits_as_long_as_arxiv_asks(self, mocker):
         sleep = mocker.AsyncMock()
-        logged: list[str] = []
+        logged = capture_logs()
         extractor, requested = _extractor(
             {LISTING: httpx.Response(429, headers={"Retry-After": "7"})},
             sleep=sleep,
             max_retries=2,
-            logger=logged.append,
         )
         with pytest.raises(UpstreamError, match="after 2 attempts"):
             await extractor._search("q", 10, 0)

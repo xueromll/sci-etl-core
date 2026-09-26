@@ -47,10 +47,15 @@ pip install -e ".[full,dev]"
   relies on `UpstreamError` and `MalformedResponseError` to tell faults apart
   from the end of the data.
 - **Be safe under concurrency.** The pipeline calls relevance filters, entity
-  extractors, `export`, and `mark_processed` concurrently. Serialize shared
-  writes with an `asyncio.Lock`, and write files with
-  `_atomic_io.atomic_write_text`. `AsyncCsvUpsertExporter` and
+  extractors, an exporter's `write`, and `mark_processed` concurrently.
+  Serialize shared writes with an `asyncio.Lock`, and write files with
+  `_atomic_io.atomic_write_text`. `AsyncCsvExporter` and
   `AsyncFileStateManager` are good models.
+- **Log through the module logger.** Each module logs with
+  `_logger = logging.getLogger(__name__)`, at `WARNING` for anything that
+  changes what a run produces or costs, `ERROR` for a sink or store fault the
+  run reports, and `INFO` for routine notes. Never configure handlers or
+  levels; that is the application's job.
 - **Keep optional imports lazy.** Each package `__init__.py` maps public names
   to their modules in `_EXPORTS` and loads them on first access, so importing
   one component never requires another's optional dependencies. Register new
@@ -250,11 +255,11 @@ Most contributions plug into an existing abstract base class:
 |-----------|----------|-----------|----------|
 | Extractor | `AsyncExtractor` | `async fetch_page(query, cursor, page_size) -> ListingPage`, `async fetch_full_text`; `cursor_for_offset` when the cursors are decimal offsets | Return every entry it can read: the pipeline skips processed ids. Count entries without an id in `entries`, return `next_cursor=None` on the last page, and `truncated=True` on the page that reaches the source's own result cap. Raise `UpstreamError` when the source can't be reached after retries, `ExtractionError` when it rejects a request outright, `MalformedResponseError` for an unreadable listing, and `StaleCursorError` for a cursor the source no longer accepts. |
 | Parser | `Parser` (optionally `TableParser`) | `extract_text(content: bytes) -> str` | Synchronous; callers run it in a worker thread. Raise `ParsingError` for bytes it can't read. |
-| LLM client | `AsyncLLMClient` | `async complete_json(system_prompt, user_content, timeout)` | Return the parsed JSON object; raise `LLMError` on failure or when the body isn't a JSON object. |
+| LLM client | `AsyncLLMClient` | `async complete_json(system_prompt, user_content, timeout)`; optionally `complete_structured(..., schema, timeout)` and `invalidate(..., schema=None)` | Return the parsed JSON object; raise `LLMError` on failure or when the body isn't a JSON object. Override `complete_structured` when the provider supports JSON-schema output; the default calls `complete_json`. |
 | LLM response cache | `AsyncLLMResponseCache` | `async get(key)`, `async set(key, response)`, `async clear()` | `get` returns `None` for a missing key. Return copies, so a caller changing a response can't change the cache. Raise `LLMCacheError` for a storage fault; `CachingLLMClient` logs it and calls the LLM instead. Add `aclose()` if you hold connections. |
 | Relevance filter | `AsyncRelevanceFilter` | `async is_relevant(record)` | Re-raise `CancelledError`. |
-| Entity extractor | `AsyncEntityExtractor` | `async extract(text) -> list[dict]` | Each dict becomes one export row. Raise on failure instead of returning `[]`, so the record is retried. |
-| Exporter | `AsyncExporter` | `async export(data, destination)` | As a pipeline exporter it receives `list[dict]`, concurrently; serialize writes. |
+| Entity extractor | `AsyncEntityExtractor[E]` | `async extract(text) -> Sequence[E]`; `extract_record(record, text)` when the record is needed | The pipeline calls `extract_record`, whose default calls `extract`. Raise on failure instead of returning `[]`, so the record is retried. An extractor that needs the record sets `requires_record = True`; a wrapper delegates to the inner `extract_record`. |
+| Exporter | `AsyncExporter[E]` | `async write(record, entities)`; optionally `open`, `flush`, `aclose`, and `durable_writes` | Take the destination in the constructor. `write` runs for every processed record, including one with no entities, possibly concurrently, and must be idempotent. With `durable_writes = False`, `flush` must make every earlier write durable. |
 | State manager | `AsyncStateManager` | `load_processed_ids`, `mark_processed`, `load_metadata`, `save_metadata` | Concurrency-safe. Override `record_failure` and `failure_counts` to support quarantine; the defaults track nothing. Record a schema version and refuse a file from a newer release. Override `flush()` if you buffer; add `aclose()` if you hold connections. |
 | Embedder | `AsyncEmbedder` | `async embed(texts) -> list[list[float]]` | One vector per input, same order; raise `EmbeddingError`. |
 | Vector store | `AsyncEmbeddingStore` | `add`, `delete_record`, `query`, `count` | Replace chunks with the same `(record_id, chunk_index)`; `delete_record` removes all of a record's chunks. Override `replace_record` (delete then add by default) if your backend can do both atomically. Never return hits with non-finite scores. Match `InMemoryEmbeddingStore` for `top_k`, `min_score`, and `exclude_record_id`. Serialize use of a shared connection, and raise `EmbeddingStoreError`. Implement `iter_records` (passages in `chunk_index` order, records in `record_id` order, no vectors) if the text index should be backfillable from your store. |
@@ -262,7 +267,7 @@ Most contributions plug into an existing abstract base class:
 | Text search store | `AsyncTextSearchStore` | `facet_keys` property, `index`, `delete_record`, `search`, `filter_ids`, `get_documents`, `facet_counts`, `count` | Take parsed queries, never text. Reject a query `search` can't rank with `require_rankable`. Order equal scores by `record_id`, and apply filters before `limit`. Raise `ValueError` before any I/O for a filter or facet key outside `facet_keys` or two filters on one key (`validate_filters`, `validate_facet_keys`). Accept `MetadataFilter` and `RangeFilter`, compare ranges with `tag_in_range`, and fill `TextHit.snippets` for every field with a highlighted match. Override `range_counts` (one `filter_ids` per range by default) if you can count in one read. Match `InMemoryTextSearchStore`'s results, and raise `SearchStoreError`. |
 | Edge source | `AsyncEdgeSource` | `kind` property, `async neighbours(record_ids, limit)` | Map every requested id, even one with no neighbors, to up to `limit` `(record_id, weight)` pairs, best first, where a higher weight means more related. Never close the stores you were given. |
 | Processor | `Processor` | `process(frame) -> DataFrame` | Don't mutate the input frame. |
-| Validator | `RecordValidator` | `is_valid(record) -> bool` | Operates on one entity dict. |
+| Validator | `RecordValidator` | `is_valid(record) -> bool`; optionally `validate(record) -> ValidationResult` | Operates on one entity dict. Override `validate` to name the field and rule of each rejection; it must reject exactly what `is_valid` rejects. |
 
 Register the new class in its subpackage's `_EXPORTS` map and `TYPE_CHECKING`
 imports. A new module also needs an entry on its page under `docs/reference/`. If it's a primary user-facing class, add it to

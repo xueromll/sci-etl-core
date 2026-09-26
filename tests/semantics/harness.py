@@ -10,6 +10,7 @@ import dataclasses
 from collections.abc import Callable, Iterable
 from typing import Any
 
+from log_capture import capture_logs
 from sci_etl_core.exceptions import LLMError, MalformedResponseError, StaleCursorError
 from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.extractors.async_base import AsyncExtractor
@@ -134,11 +135,48 @@ class ScriptedLLM(AsyncLLMClient):
 
 
 class Exporter(AsyncExporter):
-    def __init__(self) -> None:
-        self.exported: list[dict[str, Any]] = []
+    """Records every lifecycle call in ``calls``; ``exported`` holds the entities that became durable.
 
-    async def export(self, data: Any, destination: str) -> None:
-        self.exported.extend(data)
+    With ``durable_writes=False``, written entities are buffered until
+    :meth:`flush`, and a failed flush keeps them buffered. ``write_faults``
+    fail the write of a record id, and each entry of ``flush_faults`` fails
+    one flush.
+    """
+
+    def __init__(self, *, durable_writes: bool = True) -> None:
+        self.durable_writes = durable_writes
+        self.exported: list[dict[str, Any]] = []
+        self.written: dict[str, list[Any]] = {}
+        self.calls: list[str] = []
+        self.write_faults: dict[str, BaseException] = {}
+        self.flush_faults: list[BaseException] = []
+        self.open_fault: BaseException | None = None
+        self.close_fault: BaseException | None = None
+        self._buffer: list[dict[str, Any]] = []
+
+    async def open(self) -> None:
+        self.calls.append("open")
+        if self.open_fault is not None:
+            raise self.open_fault
+
+    async def write(self, record: RawRecord, entities: Any) -> None:
+        self.calls.append(f"write {record.record_id}")
+        if record.record_id in self.write_faults:
+            raise self.write_faults[record.record_id]
+        self.written[record.record_id] = list(entities)
+        (self.exported if self.durable_writes else self._buffer).extend(entities)
+
+    async def flush(self) -> None:
+        self.calls.append("flush")
+        if self.flush_faults:
+            raise self.flush_faults.pop(0)
+        self.exported.extend(self._buffer)
+        self._buffer.clear()
+
+    async def aclose(self) -> None:
+        self.calls.append("aclose")
+        if self.close_fault is not None:
+            raise self.close_fault
 
 
 def copied(metadata: PipelineMetadata) -> PipelineMetadata:
@@ -155,6 +193,7 @@ class State(AsyncStateManager):
         self.errors: dict[str, str] = {}
         self.flushes = 0
         self.flush_fault: BaseException | None = None
+        self.calls: list[str] | None = None
 
     async def load_processed_ids(self) -> set[str]:
         return set(self.processed)
@@ -181,6 +220,8 @@ class State(AsyncStateManager):
 
     async def flush(self) -> None:
         self.flushes += 1
+        if self.calls is not None:
+            self.calls.append("state flush")
         if self.flush_fault is not None:
             raise self.flush_fault
 
@@ -224,14 +265,15 @@ def build(
     listing: Any = None,
     relevance: AsyncRelevanceFilter | None = None,
     entities: AsyncEntityExtractor | None = None,
+    exporter: Exporter | None = None,
 ) -> Run:
     listing = listing or Listing(listed)
     relevance = relevance or Relevance(irrelevant)
     entities = entities or Entities(failing)
-    exporter = Exporter()
+    exporter = exporter or Exporter()
     state = state or State()
     sleep = Sleep()
-    logged: list[str] = []
+    logged = capture_logs()
     events: list[PipelineEvent] = []
     pipeline = AsyncETLPipeline(
         listing,
@@ -245,5 +287,4 @@ def build(
         shutdown=shutdown,
         on_event=events.append,
     )
-    pipeline._log = logged.append
     return Run(listing, relevance, entities, exporter, state, sleep, logged, events, pipeline)

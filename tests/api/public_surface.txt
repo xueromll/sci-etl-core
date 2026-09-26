@@ -1,33 +1,45 @@
 class sci_etl_core.AsyncArxivExtractor(sci_etl_core.extractors.async_base.AsyncExtractor)
 sci_etl_core.AsyncArxivExtractor.API_URL = 'https://export.arxiv.org/api/query'
-def sci_etl_core.AsyncArxivExtractor.__init__(self, client: httpx.AsyncClient, pdf_parser: Parser, latex_parser: Parser, max_retries: int = 3, backoff_factor: float = 2.0, sleep_before_search: float = 3.0, logger: Callable[[str], None] | None = None, sleep: Any = asyncio.tasks.sleep, max_retry_after: float = 60.0, rate_limiter: RateLimiting | None = None, max_download_bytes: int | None = None) -> None
+def sci_etl_core.AsyncArxivExtractor.__init__(self, client: httpx.AsyncClient, pdf_parser: Parser, latex_parser: Parser, max_retries: int = 3, backoff_factor: float = 2.0, sleep_before_search: float = 3.0, sleep: Any = asyncio.tasks.sleep, max_retry_after: float = 60.0, rate_limiter: RateLimiting | None = None, max_download_bytes: int | None = None) -> None
 def sci_etl_core.AsyncArxivExtractor.cursor_for_offset(self, offset: int) -> str
 async def sci_etl_core.AsyncArxivExtractor.fetch_full_text(self, record: RawRecord) -> str
 async def sci_etl_core.AsyncArxivExtractor.fetch_page(self, query: str, cursor: str | None, page_size: int) -> ListingPage
 classmethod sci_etl_core.AsyncArxivExtractor.from_config(cls, http: HttpConfig, pipeline: PipelineConfig | None = None, *, client: httpx.AsyncClient, pdf_parser: Parser, latex_parser: Parser, full_text: RateLimitConfig | None = None, **options: Any) -> AsyncArxivExtractor
 class sci_etl_core.AsyncCompositeIngestor()
-def sci_etl_core.AsyncCompositeIngestor.__init__(self, *ingestors: MemoryIngestor, logger: Callable[[str], None] | None = None) -> None
+def sci_etl_core.AsyncCompositeIngestor.__init__(self, *ingestors: MemoryIngestor) -> None
 async def sci_etl_core.AsyncCompositeIngestor.ingest(self, record: RawRecord, text: str) -> int
-class sci_etl_core.AsyncCsvUpsertExporter(sci_etl_core.exporters.async_base.AsyncExporter)
-def sci_etl_core.AsyncCsvUpsertExporter.__init__(self, key_column: str, value_columns: list[str], normalizer: KeyNormalizer, numeric_clip: dict[str, tuple[float, float]] | None = None, escape_formulas: bool = True) -> None
-async def sci_etl_core.AsyncCsvUpsertExporter.export(self, data: list[dict[str, Any]], destination: str) -> None
-class sci_etl_core.AsyncETLPipeline()
-async def sci_etl_core.AsyncETLPipeline.__aenter__(self) -> AsyncETLPipeline
+class sci_etl_core.AsyncCsvExporter(sci_etl_core.exporters.async_base.AsyncExporter)
+def sci_etl_core.AsyncCsvExporter.__init__(self, path: str | Path, columns: Sequence[str], *, escape_formulas: bool = True) -> None
+async def sci_etl_core.AsyncCsvExporter.aclose(self) -> None
+sci_etl_core.AsyncCsvExporter.durable_writes = False
+async def sci_etl_core.AsyncCsvExporter.flush(self) -> None
+property sci_etl_core.AsyncCsvExporter.header -> Row
+property sci_etl_core.AsyncCsvExporter.journal_path -> Path
+async def sci_etl_core.AsyncCsvExporter.open(self) -> None
+property sci_etl_core.AsyncCsvExporter.path -> Path
+async def sci_etl_core.AsyncCsvExporter.write(self, record: RawRecord, entities: Sequence[Any]) -> None
+class sci_etl_core.AsyncETLPipeline(typing.Generic)
+async def sci_etl_core.AsyncETLPipeline.__aenter__(self) -> AsyncETLPipeline[E]
 async def sci_etl_core.AsyncETLPipeline.__aexit__(self, exc_type: object, exc: BaseException | None, tb: object) -> None
-def sci_etl_core.AsyncETLPipeline.__init__(self, extractor: AsyncExtractor, relevance_filter: AsyncRelevanceFilter, entity_extractor: AsyncEntityExtractor, exporter: AsyncExporter, state_manager: AsyncStateManager, *, destination: str | None = None, max_concurrency: int = 6, logger: Callable[[str], None] | None = None, sleep: Callable[[float], Awaitable[None]] = asyncio.tasks.sleep, closeables: Iterable[SupportsAclose] = (), memory_ingestor: MemoryIngestor | None = None, shutdown: ShutdownSignal | None = None, on_event: Callable[[PipelineEvent], None] | None = None, usage_sources: Iterable[UsageReporter] = (), clock: Callable[[], float] = time.monotonic) -> None
+def sci_etl_core.AsyncETLPipeline.__init__(self, extractor: AsyncExtractor, relevance_filter: AsyncRelevanceFilter, entity_extractor: AsyncEntityExtractor[E], exporter: AsyncExporter[E], state_manager: AsyncStateManager, *, max_concurrency: int = 6, sleep: Callable[[float], Awaitable[None]] = asyncio.tasks.sleep, closeables: Iterable[SupportsAclose] = (), memory_ingestor: MemoryIngestor | None = None, shutdown: ShutdownSignal | None = None, on_event: Callable[[PipelineEvent], None] | None = None, usage_sources: Iterable[UsageReporter] = (), clock: Callable[[], float] = time.monotonic) -> None
 property sci_etl_core.AsyncETLPipeline.closeables -> list[SupportsAclose]
-classmethod sci_etl_core.AsyncETLPipeline.from_config(cls, pipeline: PipelineConfig, extractor: AsyncExtractor, relevance_filter: AsyncRelevanceFilter, entity_extractor: AsyncEntityExtractor, exporter: AsyncExporter, state_manager: AsyncStateManager, *, destination: str | None = None, max_concurrency: int | None = None, logger: Callable[[str], None] | None = None, sleep: Callable[[float], Awaitable[None]] = asyncio.tasks.sleep, closeables: Iterable[SupportsAclose] = (), memory_ingestor: MemoryIngestor | None = None, shutdown: ShutdownSignal | None = None, on_event: Callable[[PipelineEvent], None] | None = None, usage_sources: Iterable[UsageReporter] = (), clock: Callable[[], float] = time.monotonic) -> AsyncETLPipeline
+classmethod sci_etl_core.AsyncETLPipeline.from_config(cls, pipeline: PipelineConfig, extractor: AsyncExtractor, relevance_filter: AsyncRelevanceFilter, entity_extractor: AsyncEntityExtractor[E], exporter: AsyncExporter[E], state_manager: AsyncStateManager, *, max_concurrency: int | None = None, sleep: Callable[[float], Awaitable[None]] = asyncio.tasks.sleep, closeables: Iterable[SupportsAclose] = (), memory_ingestor: MemoryIngestor | None = None, shutdown: ShutdownSignal | None = None, on_event: Callable[[PipelineEvent], None] | None = None, usage_sources: Iterable[UsageReporter] = (), clock: Callable[[], float] = time.monotonic) -> AsyncETLPipeline[E]
 property sci_etl_core.AsyncETLPipeline.last_run_metrics -> RunMetrics | None
-def sci_etl_core.AsyncETLPipeline.log(self, message: str) -> None
 async def sci_etl_core.AsyncETLPipeline.run(self, query: str, *, page_size: int = 100, sleep_between: float = 0.0, total_limit: int | None = None, start_index: int | None = None, newest_first: bool = False, max_attempts: int | None = 3) -> int
 property sci_etl_core.AsyncETLPipeline.shutdown -> ShutdownSignal | None
 class sci_etl_core.AsyncEmbeddingRelevanceFilter(sci_etl_core.llm.relevance_async.AsyncRelevanceFilter)
 def sci_etl_core.AsyncEmbeddingRelevanceFilter.__init__(self, embedder: AsyncEmbedder, reference_texts: Sequence[str], threshold: float = 0.35, record_to_text: Callable[[RawRecord], str] = sci_etl_core.llm.relevance_embedding_async._default_record_text, default_on_empty_abstract: bool = True, default_on_error: bool = True) -> None
 async def sci_etl_core.AsyncEmbeddingRelevanceFilter.is_relevant(self, record: RawRecord) -> bool
-abstract class sci_etl_core.AsyncEntityExtractor(abc.ABC)
-abstract async def sci_etl_core.AsyncEntityExtractor.extract(self, text: str | bytes) -> list[dict[str, Any]]
-abstract class sci_etl_core.AsyncExporter(abc.ABC)
-abstract async def sci_etl_core.AsyncExporter.export(self, data: Any, destination: str) -> None
+abstract class sci_etl_core.AsyncEntityExtractor(abc.ABC, typing.Generic)
+abstract async def sci_etl_core.AsyncEntityExtractor.extract(self, text: str | bytes) -> Sequence[E]
+async def sci_etl_core.AsyncEntityExtractor.extract_record(self, record: RawRecord, text: str | bytes) -> Sequence[E]
+sci_etl_core.AsyncEntityExtractor.requires_record = False
+abstract class sci_etl_core.AsyncExporter(abc.ABC, typing.Generic)
+async def sci_etl_core.AsyncExporter.aclose(self) -> None
+sci_etl_core.AsyncExporter.durable_writes = True
+async def sci_etl_core.AsyncExporter.flush(self) -> None
+async def sci_etl_core.AsyncExporter.open(self) -> None
+abstract async def sci_etl_core.AsyncExporter.write(self, record: RawRecord, entities: Sequence[E]) -> None
 abstract class sci_etl_core.AsyncExtractor(abc.ABC)
 abstract async def sci_etl_core.AsyncExtractor.fetch_full_text(self, record: RawRecord) -> str
 abstract async def sci_etl_core.AsyncExtractor.fetch_page(self, query: str, cursor: str | None, page_size: int) -> ListingPage
@@ -40,14 +52,28 @@ async def sci_etl_core.AsyncFileStateManager.load_processed_ids(self) -> set[str
 async def sci_etl_core.AsyncFileStateManager.mark_processed(self, record_id: str) -> None
 async def sci_etl_core.AsyncFileStateManager.record_failure(self, record_id: str, error: str) -> int
 async def sci_etl_core.AsyncFileStateManager.save_metadata(self, metadata: PipelineMetadata) -> None
+class sci_etl_core.AsyncJsonlExporter(sci_etl_core.exporters.async_base.AsyncExporter)
+def sci_etl_core.AsyncJsonlExporter.__init__(self, path: str | Path, *, fsync: bool = True) -> None
+async def sci_etl_core.AsyncJsonlExporter.aclose(self) -> None
+sci_etl_core.AsyncJsonlExporter.durable_writes = False
+async def sci_etl_core.AsyncJsonlExporter.flush(self) -> None
+async def sci_etl_core.AsyncJsonlExporter.open(self) -> None
+property sci_etl_core.AsyncJsonlExporter.path -> Path
+async def sci_etl_core.AsyncJsonlExporter.write(self, record: RawRecord, entities: Sequence[Any]) -> None
 abstract class sci_etl_core.AsyncLLMClient(abc.ABC)
 abstract async def sci_etl_core.AsyncLLMClient.complete_json(self, system_prompt: str, user_content: str, timeout: int | None = None) -> dict[str, Any]
-async def sci_etl_core.AsyncLLMClient.invalidate(self, system_prompt: str, user_content: str) -> None
+async def sci_etl_core.AsyncLLMClient.complete_structured(self, system_prompt: str, user_content: str, schema: Mapping[str, Any], timeout: int | None = None) -> dict[str, Any]
+async def sci_etl_core.AsyncLLMClient.invalidate(self, system_prompt: str, user_content: str, *, schema: Mapping[str, Any] | None = None) -> None
 property sci_etl_core.AsyncLLMClient.response_format -> dict[str, Any]
 property sci_etl_core.AsyncLLMClient.usage -> TokenUsage | None
 class sci_etl_core.AsyncLLMEntityExtractor(sci_etl_core.llm.extraction_async.AsyncEntityExtractor)
-def sci_etl_core.AsyncLLMEntityExtractor.__init__(self, llm_client: AsyncLLMClient, system_prompt: str, html_parser: Parser | None = None, result_key: str = 'items', max_chars: int = 120000, timeout: int = 120, max_tokens: int | None = None, encoding_name: str = 'cl100k_base', validator: RecordValidator | None = None, logger: Callable[[str], None] | None = None, label_field: str | None = None) -> None
-async def sci_etl_core.AsyncLLMEntityExtractor.extract(self, text: str | bytes) -> list[dict[str, Any]]
+def sci_etl_core.AsyncLLMEntityExtractor.__init__(self, llm_client: AsyncLLMClient, system_prompt: str, *, schema: type[BaseModel] | None = None, html_parser: Parser | None = None, result_key: str = 'items', max_chars: int = 120000, timeout: int = 120, max_tokens: int | None = None, encoding_name: str = 'cl100k_base', validator: RecordValidator | None = None, rejections: AsyncRejectionStore | None = None, label_field: str | None = None, now: Callable[[], datetime] | None = None) -> None
+property sci_etl_core.AsyncLLMEntityExtractor.answer_schema -> dict[str, Any] | None
+async def sci_etl_core.AsyncLLMEntityExtractor.extract(self, text: str | bytes) -> Sequence[E]
+async def sci_etl_core.AsyncLLMEntityExtractor.extract_record(self, record: RawRecord, text: str | bytes) -> Sequence[E]
+def sci_etl_core.AsyncLLMEntityExtractor.prepare(self, text: str | bytes) -> str
+sci_etl_core.AsyncLLMEntityExtractor.requires_record = False
+property sci_etl_core.AsyncLLMEntityExtractor.stamp -> ExtractionStamp
 class sci_etl_core.AsyncLLMRelevanceFilter(sci_etl_core.llm.relevance_async.AsyncRelevanceFilter)
 def sci_etl_core.AsyncLLMRelevanceFilter.__init__(self, llm_client: AsyncLLMClient, system_prompt: str, timeout: int = 20, default_on_empty_abstract: bool = True, default_on_error: bool = True) -> None
 async def sci_etl_core.AsyncLLMRelevanceFilter.is_relevant(self, record: RawRecord) -> bool
@@ -57,19 +83,21 @@ async def sci_etl_core.AsyncLLMResponseCache.delete(self, key: str) -> None
 abstract async def sci_etl_core.AsyncLLMResponseCache.get(self, key: str) -> dict[str, Any] | None
 abstract async def sci_etl_core.AsyncLLMResponseCache.set(self, key: str, response: dict[str, Any]) -> None
 class sci_etl_core.AsyncOpenAICompatibleClient(sci_etl_core.llm.async_base.AsyncLLMClient)
-def sci_etl_core.AsyncOpenAICompatibleClient.__init__(self, api_key: str | SecretStr, base_url: str, model: str, default_timeout: int = 120, temperature: float = 0.0, max_retries: int = 3, backoff_factor: float = 2.0, sleep: Any = asyncio.tasks.sleep, max_retry_after: float = 60.0, rate_limiter: RateLimiting | None = None) -> None
+def sci_etl_core.AsyncOpenAICompatibleClient.__init__(self, api_key: str | SecretStr, base_url: str, model: str, default_timeout: int = 120, temperature: float = 0.0, max_retries: int = 3, backoff_factor: float = 2.0, sleep: Any = asyncio.tasks.sleep, max_retry_after: float = 60.0, rate_limiter: RateLimiting | None = None, structured_output: bool = False) -> None
 async def sci_etl_core.AsyncOpenAICompatibleClient.aclose(self) -> None
 property sci_etl_core.AsyncOpenAICompatibleClient.base_url -> str
 async def sci_etl_core.AsyncOpenAICompatibleClient.complete_json(self, system_prompt: str, user_content: str, timeout: int | None = None) -> dict[str, Any]
+async def sci_etl_core.AsyncOpenAICompatibleClient.complete_structured(self, system_prompt: str, user_content: str, schema: Mapping[str, Any], timeout: int | None = None) -> dict[str, Any]
 classmethod sci_etl_core.AsyncOpenAICompatibleClient.from_config(cls, llm: LLMConfig, **options: Any) -> AsyncOpenAICompatibleClient
-async def sci_etl_core.AsyncOpenAICompatibleClient.invalidate(self, system_prompt: str, user_content: str) -> None
+async def sci_etl_core.AsyncOpenAICompatibleClient.invalidate(self, system_prompt: str, user_content: str, *, schema: Mapping[str, Any] | None = None) -> None
 property sci_etl_core.AsyncOpenAICompatibleClient.model -> str
 property sci_etl_core.AsyncOpenAICompatibleClient.response_format -> dict[str, Any]
+property sci_etl_core.AsyncOpenAICompatibleClient.structured_output -> bool
 property sci_etl_core.AsyncOpenAICompatibleClient.temperature -> float
 property sci_etl_core.AsyncOpenAICompatibleClient.usage -> TokenUsage
 class sci_etl_core.AsyncOpenAlexExtractor(sci_etl_core.extractors.async_base.AsyncExtractor)
 sci_etl_core.AsyncOpenAlexExtractor.API_URL = 'https://api.openalex.org/works'
-def sci_etl_core.AsyncOpenAlexExtractor.__init__(self, client: httpx.AsyncClient, pdf_parser: Parser | None = None, *, filter: str | None = None, sort: str | None = 'publication_date:desc', mailto: str | None = None, api_key: str | None = None, max_retries: int = 3, backoff_factor: float = 2.0, max_retry_after: float = 60.0, sleep: Any = asyncio.tasks.sleep, logger: Callable[[str], None] | None = None, rate_limiter: RateLimiting | None = None, max_download_bytes: int | None = None) -> None
+def sci_etl_core.AsyncOpenAlexExtractor.__init__(self, client: httpx.AsyncClient, pdf_parser: Parser | None = None, *, filter: str | None = None, sort: str | None = 'publication_date:desc', mailto: str | None = None, api_key: str | None = None, max_retries: int = 3, backoff_factor: float = 2.0, max_retry_after: float = 60.0, sleep: Any = asyncio.tasks.sleep, rate_limiter: RateLimiting | None = None, max_download_bytes: int | None = None) -> None
 async def sci_etl_core.AsyncOpenAlexExtractor.fetch_full_text(self, record: RawRecord) -> str
 async def sci_etl_core.AsyncOpenAlexExtractor.fetch_page(self, query: str, cursor: str | None, page_size: int) -> ListingPage
 abstract class sci_etl_core.AsyncRelevanceFilter(abc.ABC)
@@ -104,10 +132,11 @@ class sci_etl_core.BaseAppConfig(pydantic.main.BaseModel)
 sci_etl_core.BaseAppConfig: llm: LLMConfig = ..., http: HttpConfig = ..., full_text: RateLimitConfig = ..., pipeline: PipelineConfig = ..., search: SearchConfig = ... [extra=allow]
 sci_etl_core.BaseAppConfig.strict_sections = True
 class sci_etl_core.CachingLLMClient(sci_etl_core.llm.async_base.AsyncLLMClient)
-def sci_etl_core.CachingLLMClient.__init__(self, client: AsyncLLMClient, cache: AsyncLLMResponseCache, model: str | None = None, logger: Callable[[str], None] | None = None) -> None
+def sci_etl_core.CachingLLMClient.__init__(self, client: AsyncLLMClient, cache: AsyncLLMResponseCache, model: str | None = None, *, variant: str = '') -> None
 property sci_etl_core.CachingLLMClient.base_url -> str | None
 async def sci_etl_core.CachingLLMClient.complete_json(self, system_prompt: str, user_content: str, timeout: int | None = None) -> dict[str, Any]
-async def sci_etl_core.CachingLLMClient.invalidate(self, system_prompt: str, user_content: str) -> None
+async def sci_etl_core.CachingLLMClient.complete_structured(self, system_prompt: str, user_content: str, schema: Mapping[str, Any], timeout: int | None = None) -> dict[str, Any]
+async def sci_etl_core.CachingLLMClient.invalidate(self, system_prompt: str, user_content: str, *, schema: Mapping[str, Any] | None = None) -> None
 property sci_etl_core.CachingLLMClient.model -> str
 property sci_etl_core.CachingLLMClient.response_format -> dict[str, Any]
 property sci_etl_core.CachingLLMClient.stats -> CacheStats
@@ -116,6 +145,7 @@ property sci_etl_core.CachingLLMClient.usage -> TokenUsage | None
 class sci_etl_core.ConfigurationError(sci_etl_core.exceptions.SciEtlError)
 class sci_etl_core.EmbeddingError(sci_etl_core.exceptions.SciEtlError)
 class sci_etl_core.EmbeddingStoreError(sci_etl_core.exceptions.SciEtlError)
+class sci_etl_core.ExportError(sci_etl_core.exceptions.SciEtlError)
 class sci_etl_core.ExtractionError(sci_etl_core.exceptions.SciEtlError)
 class sci_etl_core.HttpConfig(pydantic.main.BaseModel)
 sci_etl_core.HttpConfig: user_agent: str = 'sci-etl-core/<version>', max_retries: int = 3, backoff_factor: float = 2.0, timeout: int = 25 [extra=forbid]
@@ -129,7 +159,7 @@ async def sci_etl_core.InMemoryLLMResponseCache.get(self, key: str) -> dict[str,
 async def sci_etl_core.InMemoryLLMResponseCache.set(self, key: str, response: dict[str, Any]) -> None
 class sci_etl_core.LLMCacheError(sci_etl_core.exceptions.SciEtlError)
 class sci_etl_core.LLMConfig(pydantic.main.BaseModel)
-sci_etl_core.LLMConfig: api_key: SecretStr = SecretStr(''), base_url: str = 'https://api.openai.com/v1', model: str = 'gpt-4o-mini', timeout: int = 120 [extra=forbid]
+sci_etl_core.LLMConfig: api_key: SecretStr = SecretStr(''), base_url: str = 'https://api.openai.com/v1', model: str = 'gpt-4o-mini', timeout: int = 120, structured_output: bool = False [extra=forbid]
 class sci_etl_core.LLMError(sci_etl_core.exceptions.SciEtlError)
 class sci_etl_core.ListingPage()
 sci_etl_core.ListingPage: records: tuple[RawRecord, ...], entries: int, next_cursor: str | None, truncated: bool = False
@@ -176,7 +206,7 @@ class sci_etl_core.SearchQueryError(sci_etl_core.exceptions.SearchError)
 def sci_etl_core.SearchQueryError.__init__(self, message: str, *, position: int | None = None, token: str = '') -> None
 class sci_etl_core.SearchStoreError(sci_etl_core.exceptions.SearchError)
 class sci_etl_core.ShutdownSignal()
-def sci_etl_core.ShutdownSignal.__init__(self, signals: Iterable[signal.Signals] = (Signals.SIGINT, Signals.SIGTERM), logger: Callable[[str], None] | None = None) -> None
+def sci_etl_core.ShutdownSignal.__init__(self, signals: Iterable[signal.Signals] = (Signals.SIGINT, Signals.SIGTERM)) -> None
 def sci_etl_core.ShutdownSignal.guard(self, loop: asyncio.AbstractEventLoop | None = None) -> Iterator[ShutdownSignal]
 def sci_etl_core.ShutdownSignal.install(self, loop: asyncio.AbstractEventLoop | None = None) -> None
 def sci_etl_core.ShutdownSignal.request(self) -> None
@@ -209,7 +239,6 @@ def sci_etl_core.config.HybridConfig.to_params(self) -> HybridParams
 def sci_etl_core.config.apply_api_key(raw: dict[str, Any], api_key_env_var: str) -> dict[str, Any]
 def sci_etl_core.config.load_yaml(path: Path) -> dict[str, Any]
 def sci_etl_core.config.validate_config(config_cls: type[T], raw: dict[str, Any], source: Path) -> T
-def sci_etl_core.configure_logging(name: str, log_file: str | Path, level: int = 20) -> logging.Logger
 class sci_etl_core.discovery.DiscoveryResult()
 sci_etl_core.discovery.DiscoveryResult: query_text: str, chips: tuple[QueryChip, ...], hits: tuple[FusedHit, ...], graph: DiscoveryGraph | None, facets: tuple[Facet, ...], total_matched: int, elapsed_ms: float, degraded: tuple[str, ...] = (), skipped: tuple[str, ...] = ()
 class sci_etl_core.discovery.Facet()
@@ -259,8 +288,8 @@ property sci_etl_core.embeddings.SlidingWindowChunker.overlap_words -> int
 def sci_etl_core.http_async.build_async_client(total_retries: int = 5, timeout: float = 25.0, user_agent: str = 'sci-etl-core/<version>') -> httpx.AsyncClient
 class sci_etl_core.llm.CacheStats()
 sci_etl_core.llm.CacheStats: hits: int = 0, misses: int = 0, faults: int = 0
-def sci_etl_core.llm.response_cache_key(model: str, system_prompt: str, user_content: str, *, base_url: str | None = None, temperature: float | None = None, response_format: Mapping[str, Any] | None = None) -> str
-def sci_etl_core.load_config(config_cls: type[T], yaml_path: Path, env_path: Path | None = None, api_key_env_var: str = 'LLM_API_KEY') -> T
+def sci_etl_core.llm.response_cache_key(model: str, system_prompt: str, user_content: str, *, base_url: str | None = None, temperature: float | None = None, response_format: Mapping[str, Any] | None = None, schema: Mapping[str, Any] | None = None, variant: str = '') -> str
+def sci_etl_core.load_config(config_cls: type[T], yaml_path: Path, env_path: Path | None = None, api_key_env_var: str = 'LLM_API_KEY', *, load_env: bool = False) -> T
 class sci_etl_core.observability.PageFetched()
 sci_etl_core.observability.PageFetched: offset: int | None, entries: int, new_records: int, cursor: str | None = None, truncated: bool = False
 class sci_etl_core.observability.PageFinished()
@@ -299,7 +328,7 @@ class sci_etl_core.processors.CompletenessStep(sci_etl_core.processors.base.Proc
 def sci_etl_core.processors.CompletenessStep.__init__(self, tracked_fields: list[str], output_column: str = 'completeness_pct') -> None
 def sci_etl_core.processors.CompletenessStep.process(self, frame: pd.DataFrame) -> pd.DataFrame
 class sci_etl_core.processors.DeduplicationStep(sci_etl_core.processors.base.Processor)
-def sci_etl_core.processors.DeduplicationStep.__init__(self, norm_key_column: str, matcher: NeighborMatcher | None = None, match_threshold: float = 0.0, mergeable_columns: list[str] | None = None) -> None
+def sci_etl_core.processors.DeduplicationStep.__init__(self, norm_key_column: str, matcher: NeighborMatcher | None = None, match_threshold: float = 0.0, mergeable_columns: list[str] | None = None, *, source_column: str | None = None, sources_column: str = 'sources') -> None
 def sci_etl_core.processors.DeduplicationStep.process(self, frame: pd.DataFrame) -> pd.DataFrame
 class sci_etl_core.processors.DefaultKeyNormalizer(sci_etl_core.processors.normalization.KeyNormalizer)
 def sci_etl_core.processors.DefaultKeyNormalizer.normalize(self, raw_value: Any) -> str
@@ -310,6 +339,7 @@ abstract def sci_etl_core.processors.KeyNormalizer.normalize(self, raw_value: An
 class sci_etl_core.processors.KeywordExclusionValidator(sci_etl_core.processors.validation.RecordValidator)
 def sci_etl_core.processors.KeywordExclusionValidator.__init__(self, key_field: str, forbidden_keywords: list[str]) -> None
 def sci_etl_core.processors.KeywordExclusionValidator.is_valid(self, record: dict[str, Any]) -> bool
+def sci_etl_core.processors.KeywordExclusionValidator.validate(self, record: dict[str, Any]) -> ValidationResult
 abstract class sci_etl_core.processors.NeighborMatcher(abc.ABC)
 abstract def sci_etl_core.processors.NeighborMatcher.find_matches(self, frame: pd.DataFrame, threshold: float) -> list[tuple[int, int]]
 class sci_etl_core.processors.NormalizationStep(sci_etl_core.processors.base.Processor)
@@ -320,17 +350,23 @@ def sci_etl_core.processors.QualityFlagStep.__init__(self, completeness_column: 
 def sci_etl_core.processors.QualityFlagStep.process(self, frame: pd.DataFrame) -> pd.DataFrame
 abstract class sci_etl_core.processors.RecordValidator(abc.ABC)
 abstract def sci_etl_core.processors.RecordValidator.is_valid(self, record: dict[str, Any]) -> bool
+def sci_etl_core.processors.RecordValidator.validate(self, record: dict[str, Any]) -> ValidationResult
 class sci_etl_core.processors.TableLayoutStep(sci_etl_core.processors.base.Processor)
 def sci_etl_core.processors.TableLayoutStep.__init__(self, sort_by: Sequence[tuple[str, bool]] = (), leading_columns: Sequence[str] = (), hidden_prefixes: Iterable[str] = (), reset_index: bool = False) -> None
 def sci_etl_core.processors.TableLayoutStep.process(self, frame: pd.DataFrame) -> pd.DataFrame
+class sci_etl_core.processors.ValidationResult()
+sci_etl_core.processors.ValidationResult: violations: tuple[Violation, ...] = ()
+property sci_etl_core.processors.ValidationResult.ok -> bool
 class sci_etl_core.processors.ValueClipStep(sci_etl_core.processors.base.Processor)
 def sci_etl_core.processors.ValueClipStep.__init__(self, bounds: Mapping[str, tuple[float, float]]) -> None
 def sci_etl_core.processors.ValueClipStep.process(self, frame: pd.DataFrame) -> pd.DataFrame
+class sci_etl_core.processors.Violation()
+sci_etl_core.processors.Violation: code: str, field: str | None, severity: Literal['error', 'warning'], message: str
 abstract class sci_etl_core.search.AsyncEdgeSource(abc.ABC)
 abstract property sci_etl_core.search.AsyncEdgeSource.kind -> str
 abstract async def sci_etl_core.search.AsyncEdgeSource.neighbours(self, record_ids: Sequence[str], limit: int) -> dict[str, list[tuple[str, float]]]
 class sci_etl_core.search.AsyncHybridSearcher()
-def sci_etl_core.search.AsyncHybridSearcher.__init__(self, text_store: AsyncTextSearchStore, finder: AsyncSimilarArticleFinder | None = None, *, strategy: FusionStrategy = sci_etl_core.search.fusion.reciprocal_rank_fusion, params: HybridParams | None = None, fusion: FusionParams | None = None, logger: Callable[[str], None] | None = None) -> None
+def sci_etl_core.search.AsyncHybridSearcher.__init__(self, text_store: AsyncTextSearchStore, finder: AsyncSimilarArticleFinder | None = None, *, strategy: FusionStrategy = sci_etl_core.search.fusion.reciprocal_rank_fusion, params: HybridParams | None = None, fusion: FusionParams | None = None) -> None
 async def sci_etl_core.search.AsyncHybridSearcher.search(self, query: str, top_k: int = 20, *, mode: SearchMode = 'hybrid', filters: Sequence[SearchFilter] = ()) -> SearchOutcome
 class sci_etl_core.search.AsyncSearchIndexer()
 def sci_etl_core.search.AsyncSearchIndexer.__init__(self, store: AsyncTextSearchStore) -> None

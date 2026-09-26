@@ -2,8 +2,8 @@
 
 Pipeline tests written against the 0.4 extractor contract keep their
 ``search`` and ``parse_listing`` mocks; :func:`page_through_search` gives the
-mock the 0.5 ``fetch_page`` and ``cursor_for_offset`` on top of them, with the
-paging rules of :class:`~sci_etl_core.extractors._legacy.LegacyExtractorAdapter`.
+mock the 0.5 ``fetch_page`` and ``cursor_for_offset`` on top of them: cursors
+are decimal offsets, and a page with no entries ends the listing.
 """
 
 from __future__ import annotations

@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import signal
 import threading
-from collections.abc import Callable, Iterable, Iterator
+from collections.abc import Iterable, Iterator
 from contextlib import contextmanager, suppress
 from types import FrameType
 from typing import Any
 
-from sci_etl_core._deprecation import warn_logger_argument
+_logger = logging.getLogger(__name__)
+
 
 DEFAULT_SIGNALS: tuple[signal.Signals, ...] = tuple(
     member
@@ -34,11 +36,8 @@ class ShutdownSignal:
     def __init__(
         self,
         signals: Iterable[signal.Signals] = DEFAULT_SIGNALS,
-        logger: Callable[[str], None] | None = None,
     ) -> None:
-        warn_logger_argument("ShutdownSignal", logger)
         self._signals = tuple(signals)
-        self._log = logger or (lambda _msg: None)
         self._event = asyncio.Event()
         self._loop: asyncio.AbstractEventLoop | None = None
         self._loop_handled: set[signal.Signals] = set()
@@ -92,7 +91,7 @@ class ShutdownSignal:
         serves_running_loop = loop is None
         self._loop = asyncio.get_running_loop() if loop is None else loop
         if threading.current_thread() is not threading.main_thread():
-            self._log("Shutdown handlers skipped: not running on the main thread")
+            _logger.warning("Shutdown handlers skipped: not running on the main thread")
             return
         for member in self._signals:
             if serves_running_loop:
@@ -136,7 +135,7 @@ class ShutdownSignal:
             signal.signal(member, self._on_os_signal)
         except (OSError, ValueError):
             self._previous.pop(member, None)
-            self._log(f"Shutdown handler unavailable for {member!r}")
+            _logger.warning(f"Shutdown handler unavailable for {member!r}")
 
     def _remove_loop_handler(self, member: signal.Signals) -> None:
         self._loop_handled.discard(member)
@@ -157,7 +156,7 @@ class ShutdownSignal:
         if self._event.is_set():
             self._escalate(member)
             return
-        self._log(f"Received {member!r}; flushing state before shutdown")
+        _logger.warning(f"Received {member!r}; flushing state before shutdown")
         self._event.set()
 
     def _on_os_signal(self, signal_number: int, frame: FrameType | None) -> None:
@@ -165,7 +164,7 @@ class ShutdownSignal:
         if self._event.is_set():
             self._escalate(member)
             return
-        self._log(f"Received {member!r}; flushing state before shutdown")
+        _logger.warning(f"Received {member!r}; flushing state before shutdown")
         loop = self._loop
         if loop is None or loop.is_closed():
             self._event.set()
@@ -173,6 +172,6 @@ class ShutdownSignal:
         loop.call_soon_threadsafe(self._event.set)
 
     def _escalate(self, member: signal.Signals) -> None:
-        self._log(f"Received {member!r} again; restoring default termination")
+        _logger.warning(f"Received {member!r} again; restoring default termination")
         self.uninstall()
         signal.raise_signal(member)

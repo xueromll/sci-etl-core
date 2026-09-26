@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Mapping
 from typing import Any
 
 from sci_etl_core.models import TokenUsage
@@ -23,9 +24,33 @@ class AsyncLLMClient(ABC):
             LLMError: The request failed, or the body is not a JSON object.
         """
 
-    async def invalidate(self, system_prompt: str, user_content: str) -> None:  # noqa: B027
+    async def complete_structured(
+        self,
+        system_prompt: str,
+        user_content: str,
+        schema: Mapping[str, Any],
+        timeout: int | None = None,  # noqa: ASYNC109
+    ) -> dict[str, Any]:
+        """Request a JSON object that should match the JSON Schema ``schema``.
+
+        A provider that supports JSON-schema structured output is asked for
+        it. The default calls :meth:`complete_json`, so the answer comes in
+        JSON mode and the caller validates it against ``schema`` itself;
+        :class:`~sci_etl_core.llm.extraction_async.AsyncLLMEntityExtractor`
+        always does.
+
+        Raises:
+            LLMError: The request failed, or the body is not a JSON object.
+        """
+        return await self.complete_json(system_prompt, user_content, timeout)
+
+    async def invalidate(  # noqa: B027
+        self, system_prompt: str, user_content: str, *, schema: Mapping[str, Any] | None = None
+    ) -> None:
         """Report that the response to this request was rejected as unusable.
 
+        ``schema`` is the one passed to :meth:`complete_structured`, or
+        ``None`` for a :meth:`complete_json` request.
         :class:`~sci_etl_core.llm.cache_async.CachingLLMClient` removes the
         cached response, so the next request reaches the LLM again. A client
         that keeps no responses does nothing, which is the default.

@@ -3,9 +3,9 @@ from __future__ import annotations
 import pandas as pd
 
 from legacy_paging import page_through_search
+from pipeline_doubles import entity_extractor as scripted_entities
 from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.extractors.async_base import AsyncExtractor
-from sci_etl_core.llm.extraction_async import AsyncEntityExtractor
 from sci_etl_core.llm.relevance_async import AsyncRelevanceFilter
 from sci_etl_core.models import PipelineMetadata, RawRecord
 from sci_etl_core.pipeline import ETLPipeline
@@ -27,11 +27,10 @@ def _pipeline(mocker, records, *, max_workers=4):
     relevance = mocker.Mock(spec=AsyncRelevanceFilter)
     relevance.is_relevant = mocker.AsyncMock(return_value=True)
 
-    entity = mocker.Mock(spec=AsyncEntityExtractor)
+    entity = scripted_entities(mocker)
     entity.extract = mocker.AsyncMock(return_value=[{"name": "X"}])
 
     exporter = mocker.Mock(spec=AsyncExporter)
-    exporter.export = mocker.AsyncMock()
 
     state = mocker.Mock(spec=AsyncStateManager)
     state.load_processed_ids = mocker.AsyncMock(return_value=set())
@@ -47,7 +46,6 @@ def _pipeline(mocker, records, *, max_workers=4):
         entity_extractor=entity,
         exporter=exporter,
         state_manager=state,
-        destination="out.csv",
         max_concurrency=max_workers,
         sleep=mocker.AsyncMock(),
     )

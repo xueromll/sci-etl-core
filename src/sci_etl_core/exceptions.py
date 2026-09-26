@@ -101,6 +101,26 @@ class StateStoreError(SciEtlError):
     """
 
 
+class ExportError(SciEtlError):
+    """Raised when an exporter cannot read or write its destination.
+
+    Raised from ``open``, it aborts the run before any listing request; from
+    ``write``, it fails the record, which is retried on the next run.
+    """
+
+
+class ClaimError(SciEtlError):
+    """Raised when a claim operation fails."""
+
+
+class ClaimStoreError(ClaimError):
+    """Raised when a claim store or rejection store cannot be read or written.
+
+    It is not a memory fault: raised from an exporter's ``write``, it fails
+    the record, which is retried on the next run.
+    """
+
+
 class ConfigurationError(SciEtlError):
     """Raised when configuration loading or validation fails."""
 

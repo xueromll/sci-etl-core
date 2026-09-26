@@ -7,6 +7,7 @@ import pytest
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
+from log_capture import capture_logs
 from sci_etl_core._listing_head import HEAD_ID_LIMIT
 from sci_etl_core.exceptions import LLMError
 from sci_etl_core.exporters.async_base import AsyncExporter
@@ -85,26 +86,24 @@ class AlwaysRelevant(AsyncRelevanceFilter):
 
 
 class DiscardingExporter(AsyncExporter):
-    async def export(self, data, destination: str) -> None:
+    async def write(self, record, entities) -> None:
         return None
 
 
-def _pipeline(listing, state, extraction=None, logger=None):
+def _pipeline(listing, state, extraction=None):
     return AsyncETLPipeline(
         extractor=listing,
         relevance_filter=AlwaysRelevant(),
         entity_extractor=extraction or FlakyExtraction(),
         exporter=DiscardingExporter(),
         state_manager=state,
-        destination="out",
         max_concurrency=4,
-        logger=logger,
     )
 
 
-async def _run(listing, state, extraction=None, total_limit=10_000, page_size=10, logger=None):
+async def _run(listing, state, extraction=None, total_limit=10_000, page_size=10):
     listing.requested_offsets.clear()
-    return await _pipeline(listing, state, extraction, logger).run(
+    return await _pipeline(listing, state, extraction).run(
         query="q", page_size=page_size, total_limit=total_limit, newest_first=True
     )
 
@@ -124,8 +123,8 @@ class TestNewestFirstResume:
         listing, state = ShiftingListing(95), MemoryState()
         await _run(listing, state)
         listing.publish(3)
-        lines: list[str] = []
-        assert await _run(listing, state, logger=lines.append) == 3
+        lines = capture_logs()
+        assert await _run(listing, state) == 3
         assert listing.requested_offsets == [0, 10, 88, 98]
         assert state.processed == set(listing.entries)
         assert "3 new listing entries since the last run; resuming at 88" in lines
@@ -181,8 +180,8 @@ class TestNewestFirstResume:
         listing, state = ShiftingListing(30), MemoryState()
         await _run(listing, state)
         state.metadata.head_ids = ["withdrawn"]
-        lines: list[str] = []
-        assert await _run(listing, state, logger=lines.append) == 0
+        lines = capture_logs()
+        assert await _run(listing, state) == 0
         assert listing.requested_offsets == [0, 10, 20, 30]
         assert "Listing ended before the records last seen at its head; rescanned from offset 0" in lines
         assert state.metadata.head_ids == listing.entries[:10]
@@ -228,8 +227,8 @@ class TestNewestFirstResume:
         await _run(listing, state, total_limit=40)
         for _ in range(12):
             listing.entries.pop(15)
-        lines: list[str] = []
-        assert await _run(listing, state, logger=lines.append) == 20
+        lines = capture_logs()
+        assert await _run(listing, state) == 20
         assert listing.requested_offsets == [0, 30, 10, 20, 30, 40, 48]
         assert "Records last seen before the saved offset have moved; paging on from 10" in lines
         assert set(listing.entries) <= state.processed
@@ -239,8 +238,8 @@ class TestNewestFirstResume:
         listing, state = ShiftingListing(50), MemoryState()
         await _run(listing, state, total_limit=40)
         del listing.entries[10:40]
-        lines: list[str] = []
-        assert await _run(listing, state, logger=lines.append) == 10
+        lines = capture_logs()
+        assert await _run(listing, state) == 10
         assert listing.requested_offsets == [0, 30, 10, 20]
         assert "Records last seen before the saved offset have moved; paging on from 10" in lines
 

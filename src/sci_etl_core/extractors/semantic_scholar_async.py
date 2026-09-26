@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import asyncio
 import json
-from collections.abc import Callable
+import logging
 from typing import Any
 
 import httpx
 
-from sci_etl_core._deprecation import warn_logger_argument
 from sci_etl_core.exceptions import MalformedResponseError
 from sci_etl_core.extractors._http import RetryingFetcher, parse_document
 from sci_etl_core.extractors._offsets import decimal_cursor, offset_from_cursor
@@ -16,6 +15,8 @@ from sci_etl_core.models import ListingPage, RawRecord
 from sci_etl_core.parsers.base import Parser
 from sci_etl_core.parsers.reference_trimmer import trim_after_references
 from sci_etl_core.rate_limiter import RateLimiting
+
+_logger = logging.getLogger(__name__)
 
 _FIELDS = (
     "paperId,title,abstract,year,publicationDate,authors,externalIds,url,venue,fieldsOfStudy,"
@@ -57,7 +58,6 @@ class AsyncSemanticScholarExtractor(AsyncExtractor):
         backoff_factor: float = 2.0,
         max_retry_after: float = 60.0,
         sleep: Any = asyncio.sleep,
-        logger: Callable[[str], None] | None = None,
         rate_limiter: RateLimiting | None = None,
         max_download_bytes: int | None = None,
     ) -> None:
@@ -68,10 +68,6 @@ class AsyncSemanticScholarExtractor(AsyncExtractor):
         relevance search returns at most the first 1,000 results, 100 at a
         time, so the listing is ``truncated`` there.
 
-        .. deprecated:: 0.5.0
-            ``logger`` emits a :class:`PendingDeprecationWarning`; 0.6.0 logs through
-            the standard :mod:`logging` module instead.
-
         With ``max_download_bytes``, a response body is read only up to that
         many bytes, so a huge response cannot exhaust memory. A larger listing
         page raises :class:`~sci_etl_core.exceptions.ExtractionError`; a larger
@@ -81,8 +77,6 @@ class AsyncSemanticScholarExtractor(AsyncExtractor):
             ValueError: ``max_retries`` is less than 1, ``max_retry_after`` is
                 negative, or ``max_download_bytes`` is less than 1.
         """
-        warn_logger_argument("AsyncSemanticScholarExtractor", logger)
-        self._log = logger or (lambda _msg: None)
         self._fetcher = RetryingFetcher(
             client,
             "Semantic Scholar",
@@ -90,7 +84,6 @@ class AsyncSemanticScholarExtractor(AsyncExtractor):
             backoff_factor=backoff_factor,
             max_retry_after=max_retry_after,
             sleep=sleep,
-            logger=self._log,
             rate_limiter=rate_limiter,
             headers={"x-api-key": api_key} if api_key else None,
             max_bytes=max_download_bytes,
@@ -121,7 +114,7 @@ class AsyncSemanticScholarExtractor(AsyncExtractor):
         offset = offset_from_cursor(cursor)
         limit = min(max(1, page_size), _MAX_LIMIT, _MAX_RESULTS - offset)
         if limit <= 0:
-            self._log(f"Semantic Scholar only returns the first {_MAX_RESULTS:,} results; {offset} is past them")
+            _logger.warning(f"Semantic Scholar only returns the first {_MAX_RESULTS:,} results; {offset} is past them")
             return ListingPage(records=(), entries=0, next_cursor=None, truncated=True)
         params: dict[str, Any] = {"query": query, "offset": offset, "limit": limit, "fields": _FIELDS}
         params.update({name: value for name, value in self._filters.items() if value})
@@ -131,7 +124,9 @@ class AsyncSemanticScholarExtractor(AsyncExtractor):
         if not papers or (total is not None and end >= total):
             return ListingPage(records=records, entries=len(papers), next_cursor=None)
         if end >= _MAX_RESULTS:
-            self._log(f"Semantic Scholar only returns the first {_MAX_RESULTS:,} results; the listing stops there")
+            _logger.warning(
+                f"Semantic Scholar only returns the first {_MAX_RESULTS:,} results; the listing stops there"
+            )
             return ListingPage(records=records, entries=len(papers), next_cursor=None, truncated=True)
         return ListingPage(records=records, entries=len(papers), next_cursor=decimal_cursor(end))
 
@@ -175,7 +170,7 @@ class AsyncSemanticScholarExtractor(AsyncExtractor):
         content = await self._fetcher.fetch_optional(pdf_url, f"PDF download for {record.record_id!r}")
         if content is None:
             return record.abstract
-        text = await parse_document(self._pdf_parser, content, "PDF", record, self._log)
+        text = await parse_document(self._pdf_parser, content, "PDF", record)
         return (trim_after_references(text) or text) if text else record.abstract
 
     @staticmethod

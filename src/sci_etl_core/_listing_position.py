@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-from collections.abc import Callable
+import logging
 
 from sci_etl_core._listing_head import NewestFirstCursor
 from sci_etl_core.extractors.async_base import OffsetListing
 from sci_etl_core.models import ListingPage, PipelineMetadata
+
+_logger = logging.getLogger(__name__)
 
 
 def listing_ends(page: ListingPage) -> bool:
@@ -75,13 +77,10 @@ class CursorPosition:
 class NewestFirstPosition:
     """Where a ``newest_first`` run is in an :class:`OffsetListing`; see :class:`NewestFirstCursor`."""
 
-    def __init__(
-        self, metadata: PipelineMetadata, page_size: int, offsets: OffsetListing, log: Callable[[str], None]
-    ) -> None:
+    def __init__(self, metadata: PipelineMetadata, page_size: int, offsets: OffsetListing) -> None:
         self._metadata = metadata
         self._page_size = page_size
         self._offsets = offsets
-        self._log = log
         self._head = NewestFirstCursor(metadata, page_size, offsets.cursor_for_offset)
         self.offset: int = 0
 
@@ -98,9 +97,9 @@ class NewestFirstPosition:
         was_scanning, was_realigned = self._head.scanning, self._head.realigned
         next_offset = self._head.observe_page(self.offset, listed_ids, page.entries, complete)
         if was_scanning and not self._head.scanning:
-            self._log(f"{self._head.shift} new listing entries since the last run; resuming at {next_offset}")
+            _logger.info(f"{self._head.shift} new listing entries since the last run; resuming at {next_offset}")
         if self._head.realigned and not was_realigned:
-            self._log(f"Records last seen before the saved offset have moved; paging on from {next_offset}")
+            _logger.info(f"Records last seen before the saved offset have moved; paging on from {next_offset}")
         if page.next_cursor is None:
             return self._listing_ended(self.offset + page.entries)
         self.offset = next_offset
@@ -124,10 +123,10 @@ class NewestFirstPosition:
         was_scanning = self._head.scanning
         resume_at = self._head.listing_ended()
         if was_scanning:
-            self._log("Listing ended before the records last seen at its head; rescanned from offset 0")
+            _logger.info("Listing ended before the records last seen at its head; rescanned from offset 0")
         if resume_at is None or resume_at >= end:
             self._metadata.truncated = False
             return False
-        self._log(f"Records last seen before the saved offset have moved; paging on from {resume_at}")
+        _logger.info(f"Records last seen before the saved offset have moved; paging on from {resume_at}")
         self.offset = resume_at
         return True

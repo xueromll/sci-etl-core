@@ -4,9 +4,9 @@ import asyncio
 
 import pytest
 
+from pipeline_doubles import entity_extractor as scripted_entities
 from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.extractors.async_base import AsyncExtractor
-from sci_etl_core.llm.extraction_async import AsyncEntityExtractor
 from sci_etl_core.llm.relevance_async import AsyncRelevanceFilter
 from sci_etl_core.models import RawRecord
 from sci_etl_core.pipeline_async import AsyncETLPipeline
@@ -21,10 +21,9 @@ class TestMemoryIngestCancellation:
         pipeline = AsyncETLPipeline(
             extractor=mocker.Mock(spec=AsyncExtractor),
             relevance_filter=mocker.Mock(spec=AsyncRelevanceFilter),
-            entity_extractor=mocker.Mock(spec=AsyncEntityExtractor),
+            entity_extractor=scripted_entities(mocker),
             exporter=mocker.Mock(spec=AsyncExporter),
             state_manager=mocker.Mock(spec=AsyncStateManager),
-            destination="out.csv",
             memory_ingestor=ingestor,
         )
         with pytest.raises(asyncio.CancelledError):

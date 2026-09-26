@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import time
-from collections.abc import Awaitable, Callable, Iterable
+from collections.abc import Awaitable, Callable, Iterable, Sequence
 from contextlib import AbstractContextManager, nullcontext
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING, Any, NoReturn
+from typing import TYPE_CHECKING, Any, Generic, NoReturn, TypeVar
 
-from sci_etl_core._deprecation import warn_advance_notice, warn_logger_argument
 from sci_etl_core._listing_position import CursorPosition, NewestFirstPosition, listing_ends
 from sci_etl_core._protocols import SupportsAclose, UsageReporter
 from sci_etl_core.exceptions import (
@@ -38,6 +38,8 @@ from sci_etl_core.observability import (
 from sci_etl_core.signals import ShutdownSignal
 from sci_etl_core.state.async_base import AsyncStateManager
 
+_logger = logging.getLogger(__name__)
+
 if TYPE_CHECKING:
     from sci_etl_core.config import PipelineConfig
 
@@ -45,8 +47,11 @@ _STALLED_PAGES_BEFORE_ABORT = 2
 _STALL_MESSAGE = "Records kept failing and none could be processed"
 _INTERRUPT_MESSAGE = "Run stopped by a shutdown request"
 _STALE_AGAIN_MESSAGE = "The source rejected the listing cursor again after the listing restarted"
+_OPEN_MESSAGE = "Exporter could not open"
 _DEFAULT_PAGE_SIZE = 100
 _STOPPED = object()
+
+E = TypeVar("E")
 
 Position = CursorPosition | NewestFirstPosition
 
@@ -55,12 +60,22 @@ class _Outcome(Enum):
     PROCESSED = "processed"
     IRRELEVANT = "irrelevant"
     DEFERRED = "deferred"
+    WRITTEN = "written"
 
 
 @dataclass(frozen=True, slots=True)
 class _Settled:
     outcome: _Outcome
     entities: int = 0
+
+
+@dataclass(frozen=True, slots=True)
+class _Written:
+    """A record written to a sink that buffers, waiting for the page's flush to settle it."""
+
+    record: RawRecord
+    started: float
+    entities: int
 
 
 class _PageBudget:
@@ -87,15 +102,23 @@ class _PageBudget:
 class _PageResult:
     processed: int = 0
     deferred: int = 0
+    unflushed: int = 0
     failed: list[tuple[RawRecord, BaseException]] = field(default_factory=list)
+    flush_error: BaseException | None = None
 
     @property
     def complete(self) -> bool:
-        return not self.failed and not self.deferred
+        return not self.failed and not self.deferred and not self.unflushed
 
     @property
     def stalled(self) -> bool:
-        return bool(self.failed) and self.processed == 0
+        return self.flush_error is not None or (bool(self.failed) and self.processed == 0)
+
+    @property
+    def stall_cause(self) -> BaseException | None:
+        if self.flush_error is not None:
+            return self.flush_error
+        return self.failed[-1][1] if self.failed else None
 
 
 class _Quarantine:
@@ -118,28 +141,27 @@ class _Quarantine:
         return f"Record {record_id} skipped: quarantined after {self._attempts[record_id]} failed attempts"
 
 
-class AsyncETLPipeline:
+class AsyncETLPipeline(Generic[E]):
     """Take listed records through relevance, full text, memory, entity extraction, and export.
 
     Records on a page run concurrently, up to ``max_concurrency`` at a time. An
     irrelevant record is marked processed at once. A relevant one has its full
     text fetched and stored through the optional ``memory_ingestor``, its
-    entities extracted and exported, and only then is marked processed, so a
-    record that fails is retried on the next run. :meth:`run` describes paging,
-    limits, failures, and aborts.
+    entities extracted and written to the exporter, and only once they are
+    durable is it marked processed, so a record that fails is retried on the
+    next run. ``E`` is the entity type the extractor produces and the exporter
+    accepts. :meth:`run` describes paging, limits, failures, and aborts.
     """
 
     def __init__(
         self,
         extractor: AsyncExtractor,
         relevance_filter: AsyncRelevanceFilter,
-        entity_extractor: AsyncEntityExtractor,
-        exporter: AsyncExporter,
+        entity_extractor: AsyncEntityExtractor[E],
+        exporter: AsyncExporter[E],
         state_manager: AsyncStateManager,
         *,
-        destination: str | None = None,
         max_concurrency: int = 6,
-        logger: Callable[[str], None] | None = None,
         sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
         closeables: Iterable[SupportsAclose] = (),
         memory_ingestor: MemoryIngestor | None = None,
@@ -164,8 +186,9 @@ class AsyncETLPipeline:
         ``closeables`` are closed each time ``async with pipeline`` exits, and a
         SQLite store reopens when it is used after that. List a store only when
         the pipeline owns it, as in a one-shot script; an application that keeps
-        using its stores after a run closes them itself. ``logger`` receives
-        every log line, and ``sleep`` is awaited between pages.
+        using its stores after a run closes them itself. ``sleep`` is awaited
+        between pages. Log lines go to the ``sci_etl_core.pipeline_async``
+        logger.
 
         ``shutdown`` makes a run stop cleanly on SIGINT or SIGTERM, or when
         :meth:`~sci_etl_core.signals.ShutdownSignal.request` is called: see
@@ -184,34 +207,18 @@ class AsyncETLPipeline:
         LLM client and embedder, whose tokens used during a run are reported in
         :attr:`last_run_metrics`. ``clock`` measures durations.
 
-        ``destination`` is passed to the exporter's ``export`` with each
-        record's entities.
-
-        .. deprecated:: 0.5.0
-            ``destination`` and ``logger`` emit a :class:`PendingDeprecationWarning`.
-            In 0.6.0 exporters take their destination when constructed, and
-            the pipeline logs through the standard :mod:`logging` module.
-
         Raises:
             ValueError: ``max_concurrency`` is less than 1. A zero-permit
                 semaphore would leave every record waiting forever.
         """
         if max_concurrency < 1:
             raise ValueError("max_concurrency must be a positive integer")
-        if destination is not None:
-            warn_advance_notice(
-                "AsyncETLPipeline(destination=)",
-                "sci-etl-core 0.6.0 exporters take their destination when they are constructed",
-            )
-        warn_logger_argument("AsyncETLPipeline", logger)
         self._extractor = extractor
         self._relevance_filter = relevance_filter
         self._entity_extractor = entity_extractor
         self._exporter = exporter
         self._state_manager = state_manager
-        self._destination = destination or ""
         self._semaphore = asyncio.Semaphore(max_concurrency)
-        self._log = logger or (lambda _msg: None)
         self._sleep = sleep
         self._closeables = list(closeables)
         self._memory_ingestor = memory_ingestor
@@ -228,13 +235,11 @@ class AsyncETLPipeline:
         pipeline: PipelineConfig,
         extractor: AsyncExtractor,
         relevance_filter: AsyncRelevanceFilter,
-        entity_extractor: AsyncEntityExtractor,
-        exporter: AsyncExporter,
+        entity_extractor: AsyncEntityExtractor[E],
+        exporter: AsyncExporter[E],
         state_manager: AsyncStateManager,
         *,
-        destination: str | None = None,
         max_concurrency: int | None = None,
-        logger: Callable[[str], None] | None = None,
         sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
         closeables: Iterable[SupportsAclose] = (),
         memory_ingestor: MemoryIngestor | None = None,
@@ -242,7 +247,7 @@ class AsyncETLPipeline:
         on_event: Callable[[PipelineEvent], None] | None = None,
         usage_sources: Iterable[UsageReporter] = (),
         clock: Callable[[], float] = time.monotonic,
-    ) -> AsyncETLPipeline:
+    ) -> AsyncETLPipeline[E]:
         """Build a pipeline whose ``max_concurrency`` comes from the ``pipeline`` config section.
 
         The other arguments are the constructor's; ``max_concurrency``
@@ -256,9 +261,7 @@ class AsyncETLPipeline:
             entity_extractor,
             exporter,
             state_manager,
-            destination=destination,
             max_concurrency=pipeline.max_concurrency if max_concurrency is None else max_concurrency,
-            logger=logger,
             sleep=sleep,
             closeables=closeables,
             memory_ingestor=memory_ingestor,
@@ -283,11 +286,7 @@ class AsyncETLPipeline:
         """Resources whose ``aclose`` the owning facade should await on teardown."""
         return self._closeables
 
-    def log(self, message: str) -> None:
-        """Emit a message through the injected logger."""
-        self._log(message)
-
-    async def __aenter__(self) -> AsyncETLPipeline:
+    async def __aenter__(self) -> AsyncETLPipeline[E]:
         return self
 
     async def __aexit__(self, exc_type: object, exc: BaseException | None, tb: object) -> None:
@@ -306,7 +305,7 @@ class AsyncETLPipeline:
             try:
                 await aclose()
             except Exception as error:
-                self._log(f"Resource close failed: {error!r}")
+                _logger.error(f"Resource close failed: {error!r}")
                 errors.append(error)
         if errors and exc is None:
             raise errors[0]
@@ -386,9 +385,20 @@ class AsyncETLPipeline:
         pages is cancelled. The saved cursor does not move past the page that
         was cut short, and :class:`PipelineInterrupted` is raised.
 
-        State is flushed through the state manager's ``flush`` whenever a run
-        ends, however it ends. A flush failure after the run itself failed is
-        logged, so it never hides the original error.
+        The exporter is opened before the first listing request, and a fault
+        there aborts the run before any request. Each processed record,
+        including one with no entities, is written to the exporter. A record
+        is marked processed only once its entities are durable: right after
+        ``write`` on an exporter with ``durable_writes = True``, and after the
+        page's ``flush`` otherwise. A ``write`` fault fails the record and
+        counts one attempt. A ``flush`` fault leaves the records it would have
+        covered unsettled, counts no attempt against them, and makes the page a
+        stalled page.
+
+        However a run ends, the exporter is flushed and closed, and then state
+        is flushed through the state manager's ``flush``. A fault in either
+        after the run itself failed is logged, so it never hides the original
+        error.
 
         A page made up entirely of processed or quarantined records is not the
         end of the data, so paging moves past it. Any other interruption raises
@@ -407,13 +417,13 @@ class AsyncETLPipeline:
                 ``newest_first`` or a ``start_index`` above 0 is used with an
                 extractor that is not an ``OffsetListing``. Raised before any
                 request.
-            PipelineAborted: A listing page could not be fetched or parsed, the
-                source rejected the cursor again after a restart, or records
-                kept failing with none processed: on a second page before any
-                progress, or on the last page of the listing. That signals a
-                systemic fault, such as a rejected API key or an unwritable
-                export, rather than one bad record, so the run stops instead of
-                spending calls on every remaining page.
+            PipelineAborted: The exporter could not open, a listing page could
+                not be fetched or parsed, the source rejected the cursor again
+                after a restart, or records kept failing with none processed: on
+                a second page before any progress, or on the last page of the
+                listing. That signals a systemic fault, such as a rejected API
+                key or an unwritable export, rather than one bad record, so the
+                run stops instead of spending calls on every remaining page.
             PipelineInterrupted: A shutdown was requested through ``shutdown``.
                 It subclasses :class:`PipelineAborted`.
         """
@@ -441,13 +451,22 @@ class AsyncETLPipeline:
         try:
             with self._signal_guard():
                 try:
+                    await self._open_exporter()
+                except BaseException:
+                    await self._flush_after_failure()
+                    raise
+                try:
                     processed = await self._run_pages(
                         query, page_size, sleep_between, total_limit, start_index, newest_first, max_attempts
                     )
                 except BaseException:
+                    await self._close_exporter()
                     await self._flush_after_failure()
                     raise
+                close_error = await self._close_exporter()
                 await self._state_manager.flush()
+                if close_error is not None:
+                    raise close_error
             outcome = "completed"
             return processed
         except PipelineInterrupted:
@@ -502,7 +521,9 @@ class AsyncETLPipeline:
                 if restarted:
                     raise PipelineAborted(_STALE_AGAIN_MESSAGE, total_processed) from exc
                 restarted = True
-                self._log(f"The source no longer accepts cursor {cursor!r}; restarting the listing from its first page")
+                _logger.warning(
+                    f"The source no longer accepts cursor {cursor!r}; restarting the listing from its first page"
+                )
                 position.restart()
                 await self._state_manager.save_metadata(metadata)
                 continue
@@ -522,7 +543,9 @@ class AsyncETLPipeline:
             )
             if page.truncated and not self._metrics.listing_truncated:
                 self._metrics.listing_truncated = True
-                self._log("The source stopped the listing at its result cap; the next run starts from the first page")
+                _logger.warning(
+                    "The source stopped the listing at its result cap; the next run starts from the first page"
+                )
 
             result = _PageResult()
             if page.entries:
@@ -537,14 +560,16 @@ class AsyncETLPipeline:
                     )
                 )
                 total_processed += result.processed
-                if result.processed:
+                if result.processed and result.flush_error is None:
                     stalled_pages = 0
+                if result.processed:
                     await self._commit_failures([*held_failures, *result.failed], max_attempts)
                     held_failures.clear()
-                elif result.stalled:
+                if result.stalled:
                     stalled_pages += 1
-                    last_failure = result.failed[-1][1]
-                    held_failures.extend(result.failed)
+                    last_failure = result.stall_cause
+                    if not result.processed:
+                        held_failures.extend(result.failed)
                     if stalled_pages >= _STALLED_PAGES_BEFORE_ABORT:
                         self._abort_stalled(total_processed, last_failure)
             if listing_ends(page) and stalled_pages:
@@ -567,7 +592,7 @@ class AsyncETLPipeline:
     ) -> Position:
         offsets = self._extractor if isinstance(self._extractor, OffsetListing) else None
         if newest_first and offsets is not None:
-            return NewestFirstPosition(metadata, page_size, offsets, self._log)
+            return NewestFirstPosition(metadata, page_size, offsets)
         if start_index is None:
             return CursorPosition(metadata, metadata.cursor, offsets)
         cursor = offsets.cursor_for_offset(start_index) if offsets is not None and start_index else None
@@ -582,7 +607,7 @@ class AsyncETLPipeline:
                 message = quarantine.report(record.record_id)
                 if message is not None:
                     self._metrics.quarantined += 1
-                    self._log(message)
+                    _logger.warning(message)
                 continue
             records.append(record)
         return records
@@ -595,7 +620,7 @@ class AsyncETLPipeline:
         for record, error in failures:
             attempts = await self._state_manager.record_failure(record.record_id, f"{type(error).__name__}: {error}")
             if attempts >= max_attempts:
-                self._log(f"Record {record.record_id} failed {attempts} times; later runs skip it as quarantined")
+                _logger.warning(f"Record {record.record_id} failed {attempts} times; later runs skip it as quarantined")
 
     def _signal_guard(self) -> AbstractContextManager[Any]:
         if self._shutdown is None:
@@ -631,7 +656,7 @@ class AsyncETLPipeline:
         try:
             self._on_event(event)
         except Exception as error:
-            self._log(f"Event handler failed: {error!r}")
+            _logger.error(f"Event handler failed: {error!r}")
 
     def _usage_total(self) -> TokenUsage | None:
         usages = [usage for usage in (source.usage for source in self._usage_sources) if usage is not None]
@@ -674,7 +699,25 @@ class AsyncETLPipeline:
         try:
             await self._state_manager.flush()
         except Exception as error:
-            self._log(f"State flush failed: {error!r}")
+            _logger.error(f"State flush failed: {error!r}")
+
+    async def _open_exporter(self) -> None:
+        try:
+            await self._exporter.open()
+        except Exception as error:
+            raise PipelineAborted(_OPEN_MESSAGE, 0) from error
+
+    async def _close_exporter(self) -> Exception | None:
+        """Flush and close the exporter, returning the first fault instead of raising it."""
+        first: Exception | None = None
+        for step in (self._exporter.flush, self._exporter.aclose):
+            try:
+                await step()
+            except Exception as error:
+                _logger.error(f"Exporter {step.__name__} failed: {error!r}")
+                first = first or error
+        return first
+
 
     @staticmethod
     def _abort_stalled(partial_count: int, cause: BaseException | None) -> NoReturn:
@@ -698,7 +741,7 @@ class AsyncETLPipeline:
             if record.record_id and record.record_id.strip():
                 trackable.append(record)
             else:
-                self._log(f"Record skipped: no record_id to track it by (title {record.title!r})")
+                _logger.warning(f"Record skipped: no record_id to track it by (title {record.title!r})")
                 self._record_finished(record, "skipped", None)
 
         budget = _PageBudget(remaining)
@@ -707,19 +750,43 @@ class AsyncETLPipeline:
             return_exceptions=True,
         )
         page = _PageResult()
+        written: list[_Written] = []
         for record, result in zip(trackable, results, strict=True):
             if isinstance(result, BaseException):
-                self._log(f"Record processing failed: {result!r}")
+                _logger.warning(f"Record processing failed: {result!r}")
                 page.failed.append((record, result))
+            elif isinstance(result, _Written):
+                written.append(result)
             elif result is _Outcome.DEFERRED:
                 page.deferred += 1
             elif result is _Outcome.PROCESSED:
                 page.processed += 1
+        await self._flush_page(page, written, processed_ids)
         return page
+
+    async def _flush_page(self, page: _PageResult, written: list[_Written], processed_ids: set[str]) -> None:
+        """Flush the exporter and settle the records the flush made durable.
+
+        A flush fault leaves those records unsettled, reports each as failed,
+        and marks the page stalled; it counts no attempt against them.
+        """
+        try:
+            await self._exporter.flush()
+        except Exception as error:
+            _logger.error(f"Exporter flush failed: {error!r}")
+            page.flush_error = error
+            page.unflushed += len(written)
+            for pending in written:
+                self._record_finished(pending.record, "failed", pending.started, error=error)
+            return
+        for pending in written:
+            await self._mark_done(pending.record, processed_ids)
+            page.processed += 1
+            self._record_finished(pending.record, "processed", pending.started, pending.entities)
 
     async def _process_record(
         self, record: RawRecord, processed_ids: set[str], budget: _PageBudget
-    ) -> _Outcome:
+    ) -> _Outcome | _Written:
         async with self._semaphore:
             started = self._clock()
             try:
@@ -727,6 +794,8 @@ class AsyncETLPipeline:
             except BaseException as error:
                 self._record_finished(record, "failed", started, error=error)
                 raise
+            if settled.outcome is _Outcome.WRITTEN:
+                return _Written(record, started, settled.entities)
             self._record_finished(record, settled.outcome.value, started, settled.entities)
             return settled.outcome
 
@@ -741,9 +810,10 @@ class AsyncETLPipeline:
         try:
             text = await self._extractor.fetch_full_text(record)
             await self._ingest_memory(record, text)
-            entities = await self._entity_extractor.extract(text)
-            if entities:
-                await self._exporter.export(entities, self._destination)
+            entities: Sequence[E] = await self._entity_extractor.extract_record(record, text)
+            await self._exporter.write(record, entities)
+            if not self._exporter.durable_writes:
+                return _Settled(_Outcome.WRITTEN, len(entities))
             await self._mark_done(record, processed_ids)
         except BaseException:
             budget.release()
@@ -756,7 +826,7 @@ class AsyncETLPipeline:
         The record has already earned its place through the relevance gate, so a
         storage or embedding hiccup (:data:`~sci_etl_core.ingest_protocol.MEMORY_FAULTS`)
         must not discard its entity export. The failure is surfaced through the
-        logger rather than swallowed silently. Any other exception, such as a
+        log rather than swallowed silently. Any other exception, such as a
         :class:`~sci_etl_core.exceptions.SearchQueryError`, fails the record.
         """
         if self._memory_ingestor is None:
@@ -767,7 +837,7 @@ class AsyncETLPipeline:
             raise
         except MEMORY_FAULTS as exc:
             self._metrics.memory_faults += 1
-            self._log(f"Memory ingest failed for {record.record_id}: {exc!r}")
+            _logger.warning(f"Memory ingest failed for {record.record_id}: {exc!r}")
 
     async def _mark_done(self, record: RawRecord, processed_ids: set[str]) -> None:
         await self._state_manager.mark_processed(record.record_id)

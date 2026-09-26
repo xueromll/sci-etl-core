@@ -304,49 +304,52 @@ class TestAsyncLLMEntityExtractor:
         assert await ex.extract(b"plain bytes body") == [{"ok": 1}]
 
 
-class TestAsyncLLMEntityExtractorValidation:
-    @staticmethod
-    def _validator(mocker, accepts):
-        validator = mocker.Mock(spec=RecordValidator)
-        validator.is_valid.side_effect = accepts
-        return validator
+class _AcceptsWhen(RecordValidator):
+    def __init__(self, accepts) -> None:
+        self._accepts = accepts
+        self.checked: list[dict] = []
 
+    def is_valid(self, record):
+        self.checked.append(record)
+        return self._accepts(record)
+
+
+class TestAsyncLLMEntityExtractorValidation:
     @pytest.mark.asyncio
-    async def test_rejected_entities_are_dropped_and_logged_by_label(self, mocker):
+    async def test_rejected_entities_are_dropped_and_logged_by_label_with_reasons(self, mocker, caplog):
         payload = {"items": [{"name": "A", "ra": 10}, {"name": "B", "ra": 400}]}
-        lines: list[str] = []
         ex = AsyncLLMEntityExtractor(
             _async_llm(mocker, payload),
             "p",
             validator=NumericRangeValidator({"ra": (0.0, 360.0)}),
-            logger=lines.append,
             label_field="name",
         )
-        assert await ex.extract("text") == [{"name": "A", "ra": 10}]
-        assert lines == ["Entity rejected by validation: 'B'"]
+        with caplog.at_level("INFO", logger="sci_etl_core.llm.extraction_async"):
+            assert await ex.extract("text") == [{"name": "A", "ra": 10}]
+        assert caplog.messages == ["Entity rejected by validation: 'B' (ra is 400, outside [0, 360])"]
 
     @pytest.mark.asyncio
-    async def test_rejection_without_label_field_logs_the_position(self, mocker):
-        lines: list[str] = []
-        validator = self._validator(mocker, lambda entity: entity["ok"])
+    async def test_rejection_without_label_field_logs_the_position(self, mocker, caplog):
+        validator = _AcceptsWhen(lambda entity: entity["ok"])
         payload = {"items": [{"ok": True}, {"ok": False}]}
-        ex = AsyncLLMEntityExtractor(_async_llm(mocker, payload), "p", validator=validator, logger=lines.append)
-        assert await ex.extract("text") == [{"ok": True}]
-        assert lines == ["Entity rejected by validation: entity 1"]
+        ex = AsyncLLMEntityExtractor(_async_llm(mocker, payload), "p", validator=validator)
+        with caplog.at_level("INFO", logger="sci_etl_core.llm.extraction_async"):
+            assert await ex.extract("text") == [{"ok": True}]
+        assert caplog.messages == ["Entity rejected by validation: entity 1 (Rejected by _AcceptsWhen)"]
 
     @pytest.mark.asyncio
     async def test_validator_applies_to_an_unwrapped_single_key_response(self, mocker):
-        validator = self._validator(mocker, lambda _entity: False)
+        validator = _AcceptsWhen(lambda _entity: False)
         ex = AsyncLLMEntityExtractor(_async_llm(mocker, {"other": [{"name": "A"}]}), "p", validator=validator)
         assert await ex.extract("text") == []
 
     @pytest.mark.asyncio
     async def test_every_entity_is_checked(self, mocker):
-        validator = self._validator(mocker, lambda _entity: True)
+        validator = _AcceptsWhen(lambda _entity: True)
         payload = {"items": [{"n": 1}, {"n": 2}, {"n": 3}]}
         ex = AsyncLLMEntityExtractor(_async_llm(mocker, payload), "p", validator=validator)
         assert await ex.extract("text") == payload["items"]
-        assert validator.is_valid.call_count == 3
+        assert validator.checked == payload["items"]
 
 
 class TestAsyncLLMEntityExtractorTokenTruncation:

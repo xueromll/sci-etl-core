@@ -59,9 +59,8 @@ control:
 - **Never commit `.env`.** Add `.env` to `.gitignore` and distribute a
   `.env.example` with placeholder values, as this repository does.
 - **Database URLs are secrets too.** `SqlTableSink` receives its SQLAlchemy
-  URL as a plain `url` string, as does the deprecated `AsyncSqlTableExporter`
-  through `destination`. Build it from the environment at runtime, and don't
-  log it.
+  URL as a plain `url` string. Build it from the environment at runtime, and
+  don't log it.
 
 ## Data Handling
 
@@ -73,13 +72,13 @@ control:
     failed record, and CSV outputs are plain files.
   - If your corpus is licensed or sensitive, use filesystem permissions and
     encryption at rest.
-- **CSV formula injection.** Keys come straight from LLM output.
-  `AsyncCsvUpsertExporter` writes value columns as numbers, and by default
-  prefixes an apostrophe to any key starting with `=`, `+`, `-`, `@`, a tab,
-  or a carriage return, so spreadsheets don't evaluate it. Keep
-  `escape_formulas` enabled for files people open in spreadsheet software.
-  Other outputs — SQL tables from `SqlTableSink`, Plotly hover text from
-  `Plotly3DSink`, and your own exporters and sinks — are not escaped.
+- **CSV formula injection.** Every cell comes straight from LLM output.
+  `AsyncCsvExporter` by default prefixes an apostrophe to any cell starting
+  with `=`, `+`, `-`, `@`, a tab, or a carriage return, so spreadsheets don't
+  evaluate it. Keep `escape_formulas` enabled for files people open in
+  spreadsheet software. Other outputs — JSON Lines from `AsyncJsonlExporter`,
+  SQL tables from `SqlTableSink`, Plotly hover text from `Plotly3DSink`, and
+  your own exporters and sinks — are not escaped.
 - **No secrets in outputs.** Exporters write only the data they are given;
   scrub credential-bearing fields before export.
 

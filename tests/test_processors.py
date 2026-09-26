@@ -89,6 +89,33 @@ class TestDeduplicationStep:
         step.process(self._normalized())
         matcher.find_matches.assert_not_called()
 
+    def test_sources_list_every_paper_merged_into_a_row(self):
+        frame = pd.DataFrame(
+            {
+                "_norm_key": ["alpha", "alpha", "beta", "", ""],
+                "record_id": ["p2", "p1", "p1", "p3", None],
+                "value": [None, 1.0, 3.0, 4.0, 5.0],
+            }
+        )
+
+        result = DeduplicationStep("_norm_key", source_column="record_id").process(frame)
+
+        assert result["sources"].tolist() == ["p1; p2", "p1", "p3", ""]
+        assert result.loc[0, "value"] == 1.0
+
+    def test_sources_follow_a_chain_of_neighbour_merges(self):
+        class ChainAll(NeighborMatcher):
+            def find_matches(self, frame, threshold):
+                return [(0, 1), (1, 2)]
+
+        frame = pd.DataFrame({"_norm_key": ["a", "b", "c"], "record_id": ["p3", "p1", "p2"]})
+
+        result = DeduplicationStep(
+            "_norm_key", matcher=ChainAll(), source_column="record_id", sources_column="papers"
+        ).process(frame)
+
+        assert result["papers"].tolist() == ["p1; p2; p3"]
+
 
 class TestClusteringStep:
     class _PassthroughFeatures(FeatureExtractor):

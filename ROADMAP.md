@@ -48,9 +48,15 @@ Each public contract changes at most once more before 1.0. The run contract
 exporter, logging, dependencies) in 0.6.0, and every later release is
 additive. Each breaking change gets a [MIGRATION.md](MIGRATION.md) entry.
 
+From 0.6.0 on, a deprecated name keeps working for at least two minor
+releases before it is removed. A release is tagged only when the test suites
+of sci-etl-cli and udg-catalogue pass against the release commit; the release
+workflow runs both and refuses to publish otherwise.
+
 ## v0.6.0 — Data contract and claims
 
-Breaking, for the last time before 1.0.
+Breaking, for the last time before 1.0. Implemented on `master` as
+`0.6.0.dev0`; tagged once both consumers pass against it.
 
 - **Typed entity schemas.** `AsyncLLMEntityExtractor(schema=...)` requests
   JSON-schema structured output where the provider supports it, validates
@@ -66,12 +72,16 @@ Breaking, for the last time before 1.0.
 - **Lighter install.** The base install requires only `pydantic`; parsers,
   loaders, and processors move to extras. `load_config` no longer loads `.env`
   implicitly.
+- **Rejection reasons.** Validators return the field and rule behind each
+  rejection, and a composite collects every validator's reasons.
 - **udg-catalogue guide.** A guide page follows udg-catalogue end to end,
   from an arXiv query to a catalog and a search over its papers. The docs
   landing page then links to it instead of the udg-catalogue repository.
 
-Exit criteria: no delivery test loses a record, a bare install imports every
-stable name, and both consumers run on 0.6.0 without `DeprecationWarning`.
+Exit criteria: no delivery test loses a record; every stable name imports
+from a bare install, or from the extra its component needs, which the
+base-install import map in CI checks; and both consumers run on 0.6.0 without
+`DeprecationWarning`.
 
 ## v0.7.0 — Additive features and the testing kit
 

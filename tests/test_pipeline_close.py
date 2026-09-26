@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import pytest
 
+from log_capture import capture_logs
+from pipeline_doubles import entity_extractor as scripted_entities
 from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.extractors.async_base import AsyncExtractor
-from sci_etl_core.llm.extraction_async import AsyncEntityExtractor
 from sci_etl_core.llm.relevance_async import AsyncRelevanceFilter
 from sci_etl_core.pipeline import ETLPipeline
 from sci_etl_core.state.async_base import AsyncStateManager
@@ -14,10 +15,9 @@ def _pipeline(mocker, closeables):
     return ETLPipeline(
         extractor=mocker.Mock(spec=AsyncExtractor),
         relevance_filter=mocker.Mock(spec=AsyncRelevanceFilter),
-        entity_extractor=mocker.Mock(spec=AsyncEntityExtractor),
+        entity_extractor=scripted_entities(mocker),
         exporter=mocker.Mock(spec=AsyncExporter),
         state_manager=mocker.Mock(spec=AsyncStateManager),
-        destination="out.csv",
         closeables=closeables,
     )
 
@@ -30,8 +30,7 @@ class TestPipelineCloseErrorHandling:
         mocker.patch(
             "sci_etl_core.pipeline.run_sync", side_effect=RuntimeError("loop closed")
         )
-        logged: list[str] = []
-        mocker.patch.object(pipeline._async, "log", side_effect=logged.append)
+        logged = capture_logs()
 
         with pipeline:
             pass
@@ -55,8 +54,7 @@ class TestPipelineCloseErrorHandling:
         failing = mocker.Mock()
         failing.aclose = mocker.AsyncMock(side_effect=ValueError("close failed"))
         pipeline = _pipeline(mocker, [failing])
-        logged: list[str] = []
-        mocker.patch.object(pipeline._async, "log", side_effect=logged.append)
+        logged = capture_logs()
 
         with pytest.raises(RuntimeError, match="original"):
             with pipeline:

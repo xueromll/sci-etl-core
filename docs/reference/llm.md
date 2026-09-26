@@ -14,4 +14,3 @@ Every name on this page is importable from `sci_etl_core.llm`.
 
 ::: sci_etl_core.llm.cache_async
 
-::: sci_etl_core.llm.base

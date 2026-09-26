@@ -1,6 +1,5 @@
 sci_etl_core.AsyncArxivExtractor	sci-etl-cli,udg-catalogue
 sci_etl_core.AsyncCompositeIngestor	udg-catalogue
-sci_etl_core.AsyncCsvUpsertExporter	sci-etl-cli,udg-catalogue
 sci_etl_core.AsyncETLPipeline	sci-etl-cli,udg-catalogue
 sci_etl_core.AsyncEntityExtractor	sci-etl-cli,udg-catalogue
 sci_etl_core.AsyncExporter	sci-etl-cli
@@ -34,7 +33,6 @@ sci_etl_core.config.apply_api_key	sci-etl-cli
 sci_etl_core.config.load_config	udg-catalogue
 sci_etl_core.config.load_yaml	sci-etl-cli
 sci_etl_core.config.validate_config	sci-etl-cli
-sci_etl_core.configure_logging	udg-catalogue
 sci_etl_core.discovery.DiscoveryResult	udg-catalogue
 sci_etl_core.discovery.Facet	udg-catalogue
 sci_etl_core.embeddings.AsyncChunkIngestor	udg-catalogue

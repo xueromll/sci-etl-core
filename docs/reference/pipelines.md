@@ -1,6 +1,6 @@
 # Pipelines
 
-The pipelines, memory ingestion, sync adapters, and shutdown handling. The pipelines, ingestors, and adapters are importable from `sci_etl_core`.
+The pipelines, memory ingestion, and shutdown handling. The pipelines and ingestors are importable from `sci_etl_core`.
 
 ::: sci_etl_core.pipeline_async
 
@@ -10,9 +10,7 @@ The pipelines, memory ingestion, sync adapters, and shutdown handling. The pipel
 
 ::: sci_etl_core.ingest_async
 
-::: sci_etl_core._adapters
 
-::: sci_etl_core.llm._adapters
 
 ::: sci_etl_core.signals
 

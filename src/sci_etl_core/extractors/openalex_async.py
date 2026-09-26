@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import asyncio
 import json
-from collections.abc import Callable
+import logging
 from typing import Any
 
 import httpx
 
-from sci_etl_core._deprecation import warn_logger_argument
 from sci_etl_core.exceptions import ExtractionError, MalformedResponseError, StaleCursorError
 from sci_etl_core.extractors._http import RetryingFetcher, parse_document
 from sci_etl_core.extractors.async_base import AsyncExtractor
@@ -15,6 +14,8 @@ from sci_etl_core.models import ListingPage, RawRecord
 from sci_etl_core.parsers.base import Parser
 from sci_etl_core.parsers.reference_trimmer import trim_after_references
 from sci_etl_core.rate_limiter import RateLimiting
+
+_logger = logging.getLogger(__name__)
 
 _ID_PREFIX = "https://openalex.org/"
 _MAX_PER_PAGE = 200
@@ -76,7 +77,6 @@ class AsyncOpenAlexExtractor(AsyncExtractor):
         backoff_factor: float = 2.0,
         max_retry_after: float = 60.0,
         sleep: Any = asyncio.sleep,
-        logger: Callable[[str], None] | None = None,
         rate_limiter: RateLimiting | None = None,
         max_download_bytes: int | None = None,
     ) -> None:
@@ -84,10 +84,6 @@ class AsyncOpenAlexExtractor(AsyncExtractor):
 
         OpenAlex serves at most 200 works per page, so a page asks for at most
         200.
-
-        .. deprecated:: 0.5.0
-            ``logger`` emits a :class:`PendingDeprecationWarning`; 0.6.0 logs through
-            the standard :mod:`logging` module instead.
 
         With ``max_download_bytes``, a response body is read only up to that
         many bytes, so a huge response cannot exhaust memory. A larger listing
@@ -98,8 +94,6 @@ class AsyncOpenAlexExtractor(AsyncExtractor):
             ValueError: ``max_retries`` is less than 1, ``max_retry_after`` is
                 negative, or ``max_download_bytes`` is less than 1.
         """
-        warn_logger_argument("AsyncOpenAlexExtractor", logger)
-        self._log = logger or (lambda _msg: None)
         self._fetcher = RetryingFetcher(
             client,
             "OpenAlex",
@@ -107,7 +101,6 @@ class AsyncOpenAlexExtractor(AsyncExtractor):
             backoff_factor=backoff_factor,
             max_retry_after=max_retry_after,
             sleep=sleep,
-            logger=self._log,
             rate_limiter=rate_limiter,
             max_bytes=max_download_bytes,
         )
@@ -186,7 +179,7 @@ class AsyncOpenAlexExtractor(AsyncExtractor):
         content = await self._fetcher.fetch_optional(pdf_url, f"PDF download for {record.record_id!r}")
         if content is None:
             return record.abstract
-        text = await parse_document(self._pdf_parser, content, "PDF", record, self._log)
+        text = await parse_document(self._pdf_parser, content, "PDF", record)
         return (trim_after_references(text) or text) if text else record.abstract
 
     @staticmethod

@@ -4,6 +4,9 @@ import asyncio
 
 import pytest
 
+from legacy_paging import page_through_search
+from log_capture import capture_logs
+from pipeline_doubles import entity_extractor as scripted_entities
 from sci_etl_core.exceptions import (
     EmbeddingError,
     EmbeddingStoreError,
@@ -16,10 +19,8 @@ from sci_etl_core.exceptions import (
     UpstreamError,
 )
 from sci_etl_core.exporters.async_base import AsyncExporter
-from sci_etl_core.extractors._legacy import LegacyExtractorAdapter
 from sci_etl_core.extractors.async_base import AsyncExtractor
 from sci_etl_core.ingest_async import AsyncCompositeIngestor
-from sci_etl_core.llm.extraction_async import AsyncEntityExtractor
 from sci_etl_core.llm.relevance_async import AsyncRelevanceFilter
 from sci_etl_core.models import PipelineMetadata, RawRecord
 from sci_etl_core.pipeline_async import AsyncETLPipeline
@@ -39,11 +40,10 @@ def _build(mocker, records, *, relevant=True, entities=None, max_concurrency=6, 
     relevance = mocker.Mock(spec=AsyncRelevanceFilter)
     relevance.is_relevant = mocker.AsyncMock(return_value=relevant)
 
-    entity = mocker.Mock(spec=AsyncEntityExtractor)
+    entity = scripted_entities(mocker)
     entity.extract = mocker.AsyncMock(return_value=entities if entities is not None else [{"name": "X"}])
 
     exporter = mocker.Mock(spec=AsyncExporter)
-    exporter.export = mocker.AsyncMock()
 
     state = mocker.Mock(spec=AsyncStateManager)
     state.load_processed_ids = mocker.AsyncMock(return_value=set())
@@ -55,12 +55,11 @@ def _build(mocker, records, *, relevant=True, entities=None, max_concurrency=6, 
     state.record_failure = mocker.AsyncMock(return_value=1)
 
     pipeline = AsyncETLPipeline(
-        extractor=LegacyExtractorAdapter(extractor),
+        extractor=page_through_search(mocker, extractor),
         relevance_filter=relevance,
         entity_extractor=entity,
         exporter=exporter,
         state_manager=state,
-        destination="out.csv",
         max_concurrency=max_concurrency,
         sleep=mocker.AsyncMock(),
         memory_ingestor=memory_ingestor,
@@ -81,7 +80,7 @@ class TestAsyncPipelineHappyPath:
     async def test_processes_relevant_records_and_exports(self, mocker):
         pipeline, _, _, _, exporter, state = _build(mocker, _records(3))
         assert await pipeline.run(query="q", page_size=3, total_limit=3, sleep_between=0) == 3
-        assert exporter.export.await_count == 3
+        assert exporter.write.await_count == 3
         assert state.mark_processed.await_count == 3
 
     @pytest.mark.asyncio
@@ -89,14 +88,14 @@ class TestAsyncPipelineHappyPath:
         pipeline, extractor, _, _, exporter, state = _build(mocker, _records(2), relevant=False)
         assert await pipeline.run(query="q", page_size=2, total_limit=2, sleep_between=0) == 0
         extractor.fetch_full_text.assert_not_called()
-        exporter.export.assert_not_called()
+        exporter.write.assert_not_called()
         assert state.mark_processed.await_count == 2
 
     @pytest.mark.asyncio
-    async def test_no_export_when_extraction_empty(self, mocker):
+    async def test_a_record_with_no_entities_is_still_written(self, mocker):
         pipeline, _, _, _, exporter, _ = _build(mocker, _records(2), entities=[])
         assert await pipeline.run(query="q", page_size=2, total_limit=2, sleep_between=0) == 2
-        exporter.export.assert_not_called()
+        assert [call.args[1] for call in exporter.write.await_args_list] == [[], []]
 
     @pytest.mark.asyncio
     async def test_stops_when_listing_exhausted(self, mocker):
@@ -116,8 +115,7 @@ class TestAsyncPipelineHappyPath:
         pipeline, _, relevance, _, _, state = _build(
             mocker, [RawRecord(record_id=record_id, title="t", abstract="a")]
         )
-        logged: list[str] = []
-        pipeline._log = logged.append
+        logged = capture_logs()
         assert await pipeline.run(query="q", page_size=1, total_limit=1, sleep_between=0) == 0
         relevance.is_relevant.assert_not_awaited()
         state.mark_processed.assert_not_awaited()
@@ -182,8 +180,7 @@ class TestAsyncPipelineResilience:
             return [{"name": "ok"}]
 
         entity.extract = mocker.AsyncMock(side_effect=flaky)
-        logged: list[str] = []
-        pipeline._log = logged.append
+        logged = capture_logs()
         assert await pipeline.run(query="q", page_size=3, total_limit=3, sleep_between=0) >= 2
         assert any("failed" in m.lower() for m in logged)
 
@@ -191,13 +188,12 @@ class TestAsyncPipelineResilience:
     async def test_extraction_llm_failure_leaves_record_for_retry(self, mocker):
         pipeline, _, _, entity, exporter, state = _build(mocker, _records(1))
         entity.extract = mocker.AsyncMock(side_effect=LLMError("outage"))
-        logged: list[str] = []
-        pipeline._log = logged.append
+        logged = capture_logs()
         with pytest.raises(PipelineAborted) as excinfo:
             await pipeline.run(query="q", page_size=1, total_limit=1, sleep_between=0)
         assert isinstance(excinfo.value.__cause__, LLMError)
         state.mark_processed.assert_not_awaited()
-        exporter.export.assert_not_called()
+        exporter.write.assert_not_called()
         assert any("LLMError" in message for message in logged)
 
 
@@ -243,8 +239,7 @@ class TestAsyncPipelineOffsetIntegrity:
             return True
 
         relevance.is_relevant = mocker.AsyncMock(side_effect=gate)
-        logged: list[str] = []
-        pipeline._log = logged.append
+        logged = capture_logs()
         assert await pipeline.run(query="q", page_size=2, total_limit=10) == 1
         assert _marked(state) == ["1"]
         assert any("CancelledError" in message for message in logged)
@@ -389,19 +384,11 @@ class TestAsyncPipelineContextManager:
         failing.aclose = mocker.AsyncMock(side_effect=OSError("close failed"))
         pipeline, *_ = _build(mocker, _records(0))
         pipeline._closeables = [failing]
-        logged: list[str] = []
-        pipeline._log = logged.append
+        logged = capture_logs()
         with pytest.raises(RuntimeError, match="original"):
             async with pipeline:
                 raise RuntimeError("original")
         assert any("Resource close failed" in message for message in logged)
-
-    def test_log_forwards_to_the_injected_logger(self, mocker):
-        pipeline, *_ = _build(mocker, _records(0))
-        logged: list[str] = []
-        pipeline._log = logged.append
-        pipeline.log("hello")
-        assert logged == ["hello"]
 
 
 class TestAsyncPipelineResume:
@@ -460,10 +447,9 @@ class TestMemoryIngestFaults:
     async def test_a_memory_fault_is_logged_and_the_record_is_still_exported_and_marked(self, mocker, error):
         failing = _RaisingIngestor(error)
         pipeline, _, _, _, exporter, state = _build(mocker, _records(1, start=1), memory_ingestor=failing)
-        logged: list[str] = []
-        pipeline._log = logged.append
+        logged = capture_logs()
         assert await pipeline.run(query="q", page_size=1, total_limit=1, sleep_between=0) == 1
-        exporter.export.assert_awaited_once()
+        exporter.write.assert_awaited_once()
         state.mark_processed.assert_awaited_once_with("1")
         assert logged == [f"Memory ingest failed for 1: {error!r}"]
 
@@ -471,11 +457,10 @@ class TestMemoryIngestFaults:
     async def test_any_other_exception_fails_the_record(self, mocker):
         failing = _RaisingIngestor(RuntimeError("x"))
         pipeline, _, _, _, exporter, state = _build(mocker, _records(1, start=1), memory_ingestor=failing)
-        logged: list[str] = []
-        pipeline._log = logged.append
+        logged = capture_logs()
         with pytest.raises(PipelineAborted):
             await pipeline.run(query="q", page_size=1, total_limit=1, sleep_between=0)
-        exporter.export.assert_not_awaited()
+        exporter.write.assert_not_awaited()
         state.mark_processed.assert_not_awaited()
         assert "Record processing failed: RuntimeError('x')" in logged
 
@@ -483,23 +468,21 @@ class TestMemoryIngestFaults:
     async def test_a_query_error_is_not_a_memory_fault_and_fails_the_record(self, mocker):
         failing = _RaisingIngestor(SearchQueryError("bad query"))
         pipeline, _, _, _, exporter, state = _build(mocker, _records(1, start=1), memory_ingestor=failing)
-        logged: list[str] = []
-        pipeline._log = logged.append
+        logged = capture_logs()
         with pytest.raises(PipelineAborted):
             await pipeline.run(query="q", page_size=1, total_limit=1, sleep_between=0)
-        exporter.export.assert_not_awaited()
+        exporter.write.assert_not_awaited()
         state.mark_processed.assert_not_awaited()
         assert any(message.startswith("Record processing failed: SearchQueryError") for message in logged)
 
     @pytest.mark.asyncio
     async def test_a_composite_absorbs_a_store_fault_and_the_record_is_still_exported(self, mocker):
         sibling = _FinishingIngestor()
-        logged: list[str] = []
-        composite = AsyncCompositeIngestor(sibling, _RaisingIngestor(SearchStoreError("x")), logger=logged.append)
+        logged = capture_logs()
+        composite = AsyncCompositeIngestor(sibling, _RaisingIngestor(SearchStoreError("x")))
         pipeline, _, _, _, exporter, state = _build(mocker, _records(1, start=1), memory_ingestor=composite)
-        pipeline._log = logged.append
         assert await pipeline.run(query="q", page_size=1, total_limit=1, sleep_between=0) == 1
-        exporter.export.assert_awaited_once()
+        exporter.write.assert_awaited_once()
         state.mark_processed.assert_awaited_once_with("1")
         assert logged == ["Memory ingest failed for 1 in _RaisingIngestor: SearchStoreError('x')"]
         assert sibling.finished
@@ -507,13 +490,12 @@ class TestMemoryIngestFaults:
     @pytest.mark.asyncio
     async def test_a_composite_re_raises_a_query_error_after_its_sibling_finished(self, mocker):
         sibling = _FinishingIngestor()
-        logged: list[str] = []
-        composite = AsyncCompositeIngestor(sibling, _RaisingIngestor(SearchQueryError("bad")), logger=logged.append)
+        logged = capture_logs()
+        composite = AsyncCompositeIngestor(sibling, _RaisingIngestor(SearchQueryError("bad")))
         pipeline, _, _, _, exporter, state = _build(mocker, _records(1, start=1), memory_ingestor=composite)
-        pipeline._log = logged.append
         with pytest.raises(PipelineAborted):
             await pipeline.run(query="q", page_size=1, total_limit=1, sleep_between=0)
-        exporter.export.assert_not_awaited()
+        exporter.write.assert_not_awaited()
         state.mark_processed.assert_not_awaited()
         assert any(message.startswith("Record processing failed: SearchQueryError") for message in logged)
         assert sibling.finished

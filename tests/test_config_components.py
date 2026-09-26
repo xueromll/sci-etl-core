@@ -115,7 +115,7 @@ class TestPipelineConfigRunArguments:
             for name in ("extractor", "relevance_filter", "entity_extractor", "exporter", "state_manager")
         }
         collaborators["state_manager"].failure_counts.return_value = {}
-        pipeline = AsyncETLPipeline.from_config(config, destination="out.csv", **collaborators)
+        pipeline = AsyncETLPipeline.from_config(config, **collaborators)
         assert pipeline._semaphore._value == 3
         assert await pipeline.run(**config.run_arguments()) == 0
 
@@ -128,7 +128,6 @@ class TestPipelineConfigRunArguments:
             entity_extractor=mocker.Mock(),
             exporter=mocker.Mock(),
             state_manager=mocker.Mock(),
-            destination="out.csv",
             max_concurrency=1,
         )
         assert pipeline._semaphore._value == 1
@@ -141,7 +140,6 @@ class TestPipelineConfigRunArguments:
             entity_extractor=mocker.Mock(),
             exporter=mocker.Mock(),
             state_manager=mocker.Mock(),
-            destination="out.csv",
             run_timeout=10,
         )
         assert pipeline._async._semaphore._value == 2

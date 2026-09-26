@@ -5,6 +5,8 @@ import asyncio
 import httpx
 import pytest
 
+from log_capture import capture_logs
+from pipeline_doubles import entity_extractor as scripted_entities
 from sci_etl_core.embeddings.chunking import SlidingWindowChunker
 from sci_etl_core.embeddings.ingest_async import AsyncChunkIngestor
 from sci_etl_core.embeddings.store_memory import InMemoryEmbeddingStore
@@ -13,7 +15,6 @@ from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.extractors.arxiv_async import AsyncArxivExtractor
 from sci_etl_core.ingest_async import AsyncCompositeIngestor
 from sci_etl_core.ingest_protocol import MEMORY_FAULTS
-from sci_etl_core.llm.extraction_async import AsyncEntityExtractor
 from sci_etl_core.llm.relevance_async import AsyncRelevanceFilter
 from sci_etl_core.models import PipelineMetadata, RawRecord
 from sci_etl_core.pipeline_async import AsyncETLPipeline
@@ -133,9 +134,9 @@ class TestAsyncCompositeIngestor:
     @pytest.mark.parametrize("error", [EmbeddingError("x"), EmbeddingStoreError("x"), SearchStoreError("x")])
     @pytest.mark.asyncio
     async def test_a_memory_fault_is_logged_and_the_other_ingestors_still_finish(self, error):
-        logged: list[str] = []
+        logged = capture_logs()
         sibling = _Recording(delay=0.01)
-        composite = AsyncCompositeIngestor(sibling, _Failing(error), logger=logged.append)
+        composite = AsyncCompositeIngestor(sibling, _Failing(error))
         assert await composite.ingest(RECORD, "text") == 2
         assert sibling.finished
         assert logged == [f"Memory ingest failed for r1 in _Failing: {error!r}"]
@@ -148,9 +149,9 @@ class TestAsyncCompositeIngestor:
 
     @pytest.mark.asyncio
     async def test_a_query_error_is_re_raised_after_the_other_ingestors_finish(self):
-        logged: list[str] = []
+        logged = capture_logs()
         slow = _Recording(delay=0.05)
-        composite = AsyncCompositeIngestor(slow, _Failing(SearchQueryError("bad")), logger=logged.append)
+        composite = AsyncCompositeIngestor(slow, _Failing(SearchQueryError("bad")))
         with pytest.raises(SearchQueryError, match="bad"):
             await composite.ingest(RECORD, "text")
         assert slow.finished
@@ -193,8 +194,8 @@ class TestAsyncCompositeIngestor:
 
     @pytest.mark.asyncio
     async def test_an_ingestor_cancelled_on_its_own_is_re_raised_not_logged(self):
-        logged: list[str] = []
-        composite = AsyncCompositeIngestor(_Recording(), _Failing(asyncio.CancelledError()), logger=logged.append)
+        logged = capture_logs()
+        composite = AsyncCompositeIngestor(_Recording(), _Failing(asyncio.CancelledError()))
         with pytest.raises(asyncio.CancelledError):
             await composite.ingest(RECORD, "text")
         assert logged == []
@@ -231,10 +232,9 @@ def _arxiv_pipeline(mocker, ingestor, logged):
 
     relevance = mocker.Mock(spec=AsyncRelevanceFilter)
     relevance.is_relevant = mocker.AsyncMock(return_value=True)
-    entity = mocker.Mock(spec=AsyncEntityExtractor)
+    entity = scripted_entities(mocker)
     entity.extract = mocker.AsyncMock(return_value=[{"name": "X"}])
     exporter = mocker.Mock(spec=AsyncExporter)
-    exporter.export = mocker.AsyncMock()
     state = mocker.Mock(spec=AsyncStateManager)
     state.load_processed_ids = mocker.AsyncMock(return_value=set())
     state.load_metadata = mocker.AsyncMock(return_value=PipelineMetadata())
@@ -248,8 +248,6 @@ def _arxiv_pipeline(mocker, ingestor, logged):
         entity_extractor=entity,
         exporter=exporter,
         state_manager=state,
-        destination="out.csv",
-        logger=logged.append,
         sleep=mocker.AsyncMock(),
         memory_ingestor=ingestor,
     )
@@ -259,17 +257,16 @@ def _arxiv_pipeline(mocker, ingestor, logged):
 class TestPipelineFanOut:
     @pytest.mark.asyncio
     async def test_arxiv_records_reach_both_memories_with_their_listing_metadata(self, mocker):
-        logged: list[str] = []
+        logged = capture_logs()
         vectors = InMemoryEmbeddingStore()
         text_store = InMemoryTextSearchStore(facet_keys=("categories", "year"))
         ingestor = AsyncCompositeIngestor(
             AsyncChunkIngestor(chunker=SlidingWindowChunker(chunk_words=50), embedder=_UnitEmbedder(), store=vectors),
             AsyncSearchIndexer(store=text_store),
-            logger=logged.append,
         )
         pipeline, exporter = _arxiv_pipeline(mocker, ingestor, logged)
         assert await pipeline.run(query="cat:astro-ph.GA", page_size=10, total_limit=10, sleep_between=0) == 2
-        assert exporter.export.await_count == 2
+        assert exporter.write.await_count == 2
         assert await vectors.count() == 2
         assert await text_store.count() == 2
         assert await text_store.facet_counts(["categories", "year"]) == {
@@ -282,18 +279,17 @@ class TestPipelineFanOut:
 
     @pytest.mark.asyncio
     async def test_a_broken_text_index_costs_neither_the_embeddings_nor_the_export(self, mocker):
-        logged: list[str] = []
+        logged = capture_logs()
         vectors = InMemoryEmbeddingStore()
         broken = mocker.Mock(spec=InMemoryTextSearchStore)
         broken.replace_record = mocker.AsyncMock(side_effect=SearchStoreError("database is locked"))
         ingestor = AsyncCompositeIngestor(
             AsyncChunkIngestor(chunker=SlidingWindowChunker(chunk_words=50), embedder=_UnitEmbedder(), store=vectors),
             AsyncSearchIndexer(store=broken),
-            logger=logged.append,
         )
         pipeline, exporter = _arxiv_pipeline(mocker, ingestor, logged)
         assert await pipeline.run(query="cat:astro-ph.GA", page_size=10, total_limit=10, sleep_between=0) == 2
-        assert exporter.export.await_count == 2
+        assert exporter.write.await_count == 2
         assert await vectors.count() == 2
         assert sorted(logged) == [
             "Memory ingest failed for 2401.00001v1 in AsyncSearchIndexer: SearchStoreError('database is locked')",

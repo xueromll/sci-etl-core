@@ -7,10 +7,11 @@ import threading
 import pytest
 
 from legacy_paging import page_through_search
+from log_capture import capture_logs
+from pipeline_doubles import entity_extractor as scripted_entities
 from sci_etl_core.exceptions import PipelineAborted, PipelineInterrupted, UpstreamError
 from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.extractors.async_base import AsyncExtractor
-from sci_etl_core.llm.extraction_async import AsyncEntityExtractor
 from sci_etl_core.llm.relevance_async import AsyncRelevanceFilter
 from sci_etl_core.models import PipelineMetadata, RawRecord
 from sci_etl_core.pipeline import ETLPipeline
@@ -40,10 +41,9 @@ def _collaborators(mocker, pages):
     page_through_search(mocker, extractor)
     relevance = mocker.Mock(spec=AsyncRelevanceFilter)
     relevance.is_relevant = mocker.AsyncMock(return_value=True)
-    entity = mocker.Mock(spec=AsyncEntityExtractor)
+    entity = scripted_entities(mocker)
     entity.extract = mocker.AsyncMock(return_value=[{"name": "X"}])
     exporter = mocker.Mock(spec=AsyncExporter)
-    exporter.export = mocker.AsyncMock()
     state = mocker.Mock(spec=AsyncStateManager)
     state.load_processed_ids = mocker.AsyncMock(return_value=set())
     state.load_metadata = mocker.AsyncMock(return_value=PipelineMetadata(cursor="40"))
@@ -58,7 +58,6 @@ def _collaborators(mocker, pages):
         "entity_extractor": entity,
         "exporter": exporter,
         "state_manager": state,
-        "destination": "out.csv",
     }
 
 
@@ -222,8 +221,8 @@ class TestFlushOnEveryExit:
 
     @pytest.mark.asyncio
     async def test_a_flush_failure_after_an_abort_is_logged_and_the_abort_raised(self, mocker):
-        lines: list[str] = []
-        pipeline, parts = _pipeline(mocker, [_records(1)], logger=lines.append)
+        lines = capture_logs()
+        pipeline, parts = _pipeline(mocker, [_records(1)])
         parts["extractor"].search.side_effect = UpstreamError("down")
         parts["state_manager"].flush.side_effect = OSError("disk gone")
         with pytest.raises(PipelineAborted):

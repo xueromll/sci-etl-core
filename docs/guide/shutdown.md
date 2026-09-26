@@ -13,7 +13,6 @@ pipeline = AsyncETLPipeline(
     entity_extractor=entity_extractor,
     exporter=exporter,
     state_manager=state_manager,
-    destination="results.csv",
     shutdown=ShutdownSignal(),
 )
 
@@ -26,12 +25,13 @@ except PipelineInterrupted as stopped:
 The pipeline installs the signal handlers for the duration of each `run()` and
 puts the previous handlers back afterwards.
 
-- **First signal:** no new record starts. Records already in flight finish
-  and are marked processed; records that hadn't started stay unmarked for the
-  next run. A pending listing request or the wait between pages is cancelled
-  at once. The saved cursor doesn't move past the page that was cut short.
-  State is flushed, and `run()` raises `PipelineInterrupted` carrying the
-  number of records processed.
+- **First signal:** no new record starts. Records already in flight finish,
+  the exporter is flushed, and the records that flush made durable are marked
+  processed; records that hadn't started stay unmarked for the next run. A
+  pending listing request or the wait between pages is cancelled at once. The
+  saved cursor doesn't move past the page that was cut short. The exporter is
+  closed, state is flushed, and `run()` raises `PipelineInterrupted` carrying
+  the number of records processed.
 - **Second signal:** restores the previous handler and terminates immediately.
 - **Programmatic stop:** `shutdown.request()` stops the run the same way, from
   a web handler or a test for example.
@@ -55,12 +55,14 @@ with ETLPipeline(..., shutdown=ShutdownSignal()) as pipeline:
     pipeline.run(query="all:galaxy", total_limit=500)
 ```
 
-## Flushing state
+## Flushing the exporter and state
 
-Every run ends with the state manager's `flush()`, however it ends: completed,
-aborted, interrupted, or cancelled. `AsyncSqliteStateManager` checkpoints its
-write-ahead log there. When the run itself failed, a flush failure is logged
-instead of raised, so it doesn't hide the original error.
+Every run ends by flushing and closing the exporter, and then with the state
+manager's `flush()`, however it ends: completed, aborted, interrupted, or
+cancelled. `AsyncCsvExporter` renders its CSV file when it is closed, and
+`AsyncSqliteStateManager` checkpoints its write-ahead log in `flush()`. When
+the run itself failed, a flush or close failure is logged instead of raised,
+so it doesn't hide the original error.
 
 ## Handlers of your own
 

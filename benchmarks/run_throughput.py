@@ -11,7 +11,7 @@ Export cost is linear when the time per record at the largest size is at most
 1.5 times the time per record at the smallest. Run from the repository root::
 
     python benchmarks/run_throughput.py
-    python benchmarks/run_throughput.py --sizes 1000 10000 --repeats 1 --exporters csv_upsert
+    python benchmarks/run_throughput.py --sizes 1000 10000 --repeats 1 --exporters csv jsonl
 
 Results are written as JSON to ``benchmarks/results/<version>.json`` unless
 ``--output`` names another file.
@@ -36,17 +36,17 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from sci_etl_core import (  # noqa: E402
-    AsyncCsvUpsertExporter,
+    AsyncCsvExporter,
     AsyncEntityExtractor,
     AsyncETLPipeline,
     AsyncExporter,
     AsyncExtractor,
     AsyncFileStateManager,
+    AsyncJsonlExporter,
     AsyncRelevanceFilter,
     ListingPage,
     RawRecord,
 )
-from sci_etl_core.processors import DefaultKeyNormalizer  # noqa: E402
 
 PAGE_SIZE = 100
 MAX_CONCURRENCY = 6
@@ -85,16 +85,15 @@ class DistinctEntities(AsyncEntityExtractor):
         return [{"name": f"{text!s}-{index}", "value": float(index)} for index in range(ENTITIES_PER_RECORD)]
 
 
-class DiscardingExporter(AsyncExporter):
-    async def export(self, data: Any, destination: str) -> None:
+class DiscardingExporter(AsyncExporter[Any]):
+    async def write(self, record: RawRecord, entities: Any) -> None:
         return None
 
 
-EXPORTERS: dict[str, Callable[[], AsyncExporter]] = {
-    "discard": DiscardingExporter,
-    "csv_upsert": lambda: AsyncCsvUpsertExporter(
-        key_column="name", value_columns=["value"], normalizer=DefaultKeyNormalizer()
-    ),
+EXPORTERS: dict[str, Callable[[Path], AsyncExporter[Any]]] = {
+    "discard": lambda _root: DiscardingExporter(),
+    "csv": lambda root: AsyncCsvExporter(root / "entities.csv", ["name", "value"]),
+    "jsonl": lambda root: AsyncJsonlExporter(root / "entities.jsonl"),
 }
 
 
@@ -105,9 +104,8 @@ async def measure(exporter: str, size: int) -> float:
             extractor=SyntheticListing(size),
             relevance_filter=AlwaysRelevant(),
             entity_extractor=DistinctEntities(),
-            exporter=EXPORTERS[exporter](),
+            exporter=EXPORTERS[exporter](root),
             state_manager=AsyncFileStateManager(root / "processed_ids.txt", root / "metadata.json"),
-            destination=str(root / "entities.csv"),
             max_concurrency=MAX_CONCURRENCY,
         )
         started = time.perf_counter()

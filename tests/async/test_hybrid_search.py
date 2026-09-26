@@ -4,6 +4,7 @@ import asyncio
 
 import pytest
 
+from log_capture import capture_logs
 from sci_etl_core.embeddings.finder_async import AsyncSimilarArticleFinder
 from sci_etl_core.embeddings.store_base import EmbeddingChunk
 from sci_etl_core.embeddings.store_memory import InMemoryEmbeddingStore
@@ -172,8 +173,8 @@ class TestWithoutAFinder:
 class TestFailures:
     @pytest.mark.asyncio
     async def test_an_embedding_failure_degrades_a_hybrid_search_to_lexical(self):
-        logged: list[str] = []
-        searcher, _, _ = await build(embedder=TableEmbedder(EmbeddingError("unreachable")), logger=logged.append)
+        logged = capture_logs()
+        searcher, _, _ = await build(embedder=TableEmbedder(EmbeddingError("unreachable")))
         outcome = await searcher.search("dwarf galaxies")
         assert ranks(outcome) == [("dwarf", 1, None)]
         assert (outcome.degraded, outcome.skipped) == (("semantic",), ())

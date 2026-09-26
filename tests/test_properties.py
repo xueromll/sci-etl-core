@@ -27,8 +27,9 @@ from sci_etl_core.embeddings.store_base import EmbeddingChunk
 from sci_etl_core.embeddings.store_memory import InMemoryEmbeddingStore
 from sci_etl_core.embeddings.store_sqlite_async import AsyncSqliteEmbeddingStore
 from sci_etl_core.exceptions import SearchQueryError
-from sci_etl_core.exporters.csv_async import AsyncCsvUpsertExporter
+from sci_etl_core.exporters.csv_async import AsyncCsvExporter
 from sci_etl_core.extractors.arxiv_async import AsyncArxivExtractor
+from sci_etl_core.models import RawRecord
 from sci_etl_core.parsers.reference_trimmer import trim_after_references
 from sci_etl_core.processors.dedup import DeduplicationStep, NeighborMatcher
 from sci_etl_core.processors.normalization import DefaultKeyNormalizer, NormalizationStep
@@ -430,177 +431,106 @@ class TestDeduplicationProperties:
             assert pd.isna(after.at[0, "score"]) or after.at[0, "score"] == filler
 
 
-_CSV_KEY = st.text(
+_CSV_TEXT = st.text(
     alphabet=st.characters(
-        whitelist_categories=("Lu", "Ll", "Nd"), whitelist_characters=' ,"-'
+        whitelist_categories=("Lu", "Ll", "Nd"), whitelist_characters=' ,"-=+@\'\n'
     ),
-    min_size=1,
     max_size=8,
 )
-_CSV_RECORDS = st.lists(
-    st.fixed_dictionaries(
-        {
-            "name": _CSV_KEY,
-            "score": st.one_of(
-                st.none(),
-                st.floats(
-                    min_value=-500.0,
-                    max_value=500.0,
-                    allow_nan=False,
-                    allow_infinity=False,
-                ),
-            ),
-        }
-    ),
-    min_size=1,
-    max_size=6,
+_CSV_ENTITIES = st.lists(
+    st.fixed_dictionaries({"name": _CSV_TEXT, "score": st.one_of(st.none(), _CSV_TEXT)}),
+    max_size=4,
+)
+_CSV_BATCHES = st.dictionaries(
+    st.text(alphabet="abcdef0123456789.", min_size=1, max_size=6), _CSV_ENTITIES, max_size=5
 )
 
-_CLIP = (0.0, 100.0)
+
+def _record(record_id: str) -> RawRecord:
+    return RawRecord(record_id=record_id, title="t", abstract="a")
 
 
-def _read_csv(destination: Path) -> pd.DataFrame:
-    return pd.read_csv(
-        destination, dtype={"name": str}, keep_default_na=False, na_values=[""]
-    )
+def _expected_rows(batches: dict[str, list[dict]]) -> list[list[str]]:
+    return [
+        [record_id, entity["name"], "" if entity["score"] is None else entity["score"], ""]
+        for record_id, entities in batches.items()
+        for entity in entities
+    ]
 
 
-class TestCsvUpsertProperties:
-    @given(first=_CSV_RECORDS, second=_CSV_RECORDS)
+async def _run_csv(destination: Path, *writes: dict[str, list[dict]]) -> None:
+    exporter = AsyncCsvExporter(destination, ["name", "score"])
+    await exporter.open()
+    for batch in writes:
+        for record_id, entities in batch.items():
+            await exporter.write(_record(record_id), entities)
+        await exporter.flush()
+    await exporter.aclose()
+
+
+async def _read_rows(destination: Path) -> list[list[str]]:
+    exporter = AsyncCsvExporter(destination, ["name", "score"])
+    await exporter.open()
+    rows = [list(row) for rows in exporter._rows.values() for row in rows]
+    await exporter.aclose()
+    return rows
+
+
+class TestCsvExporterProperties:
+    @given(batches=_CSV_BATCHES)
     @_FS_SETTINGS
-    def test_an_existing_value_is_never_overwritten(self, first, second):
-        """The exporter fills blanks only; a recorded value is final."""
+    def test_every_written_value_survives_verbatim(self, batches):
+        """Nothing is merged, clipped, or coerced: conflicting rows all survive, as text."""
 
         async def scenario():
             with tempfile.TemporaryDirectory() as directory:
                 destination = Path(directory) / "out.csv"
-                exporter = AsyncCsvUpsertExporter(
-                    "name", ["score"], _NORMALIZER, {"score": _CLIP}
-                )
-                await exporter.export(first, str(destination))
-                after_first = _read_csv(destination)
-                await exporter.export(second, str(destination))
-                after_second = _read_csv(destination)
-
-                settled = after_first.set_index(
-                    after_first["name"].apply(_NORMALIZER.normalize)
-                )["score"]
-                final = after_second.set_index(
-                    after_second["name"].apply(_NORMALIZER.normalize)
-                )["score"]
-                for key, value in settled.items():
-                    if pd.notna(value):
-                        assert final.loc[key] == pytest.approx(value)
+                await _run_csv(destination, batches)
+                assert await _read_rows(destination) == _expected_rows(batches)
 
         asyncio.run(scenario())
 
-    @given(first=_CSV_RECORDS, second=_CSV_RECORDS)
+    @given(first=_CSV_BATCHES, second=_CSV_BATCHES)
     @_FS_SETTINGS
-    def test_no_row_ever_disappears(self, first, second):
+    def test_the_last_write_for_a_record_wins_across_runs(self, first, second):
         async def scenario():
             with tempfile.TemporaryDirectory() as directory:
                 destination = Path(directory) / "out.csv"
-                exporter = AsyncCsvUpsertExporter(
-                    "name", ["score"], _NORMALIZER, {"score": _CLIP}
-                )
-                await exporter.export(first, str(destination))
-                keys_before = set(
-                    _read_csv(destination)["name"].apply(_NORMALIZER.normalize)
-                )
-                await exporter.export(second, str(destination))
-                keys_after = set(
-                    _read_csv(destination)["name"].apply(_NORMALIZER.normalize)
-                )
-                assert keys_before <= keys_after
+                await _run_csv(destination, first)
+                await _run_csv(destination, second)
+                assert sorted(await _read_rows(destination)) == sorted(_expected_rows({**first, **second}))
 
         asyncio.run(scenario())
 
-    @given(first=_CSV_RECORDS, second=_CSV_RECORDS)
+    @given(batches=_CSV_BATCHES)
     @_FS_SETTINGS
-    def test_one_row_per_normalized_key(self, first, second):
-        """An upsert keeps a single row per key, within a batch and across them.
-
-        Records sharing a key inside one batch are the hard case: the pending
-        rows are not yet in the frame that the match is looked up in.
-        """
-
+    def test_a_run_that_writes_nothing_leaves_the_file_unchanged(self, batches):
         async def scenario():
             with tempfile.TemporaryDirectory() as directory:
                 destination = Path(directory) / "out.csv"
-                exporter = AsyncCsvUpsertExporter(
-                    "name", ["score"], _NORMALIZER, {"score": _CLIP}
-                )
-                for batch in (first, second):
-                    await exporter.export(batch, str(destination))
-                    keys = [
-                        _NORMALIZER.normalize(name)
-                        for name in _read_csv(destination)["name"]
-                    ]
-                    assert len(keys) == len(set(keys))
+                await _run_csv(destination, batches)
+                before = destination.read_bytes()
+                await _run_csv(destination)
+                assert destination.read_bytes() == before
 
         asyncio.run(scenario())
 
-    @given(records=_CSV_RECORDS)
+    @given(first=_CSV_BATCHES, second=_CSV_BATCHES)
     @_FS_SETTINGS
-    def test_every_written_value_respects_the_clip_bounds(self, records):
-        async def scenario():
-            with tempfile.TemporaryDirectory() as directory:
-                destination = Path(directory) / "out.csv"
-                exporter = AsyncCsvUpsertExporter(
-                    "name", ["score"], _NORMALIZER, {"score": _CLIP}
-                )
-                await exporter.export(records, str(destination))
-                low, high = _CLIP
-                for value in _read_csv(destination)["score"].dropna():
-                    assert low <= float(value) <= high
-
-        asyncio.run(scenario())
-
-    @given(records=_CSV_RECORDS)
-    @_FS_SETTINGS
-    def test_reloading_the_file_preserves_every_key(self, records):
-        """A fresh exporter over an existing file must reuse its rows.
-
-        This is the crash-resume path. If a reloaded key no longer matches the
-        record that produced it, the next run appends a second row for the same
-        entity instead of filling the first.
-        """
+    def test_a_crashed_run_is_replayed_from_its_journal(self, first, second):
+        """A run that flushed but never closed leaves a journal the next run applies first."""
 
         async def scenario():
             with tempfile.TemporaryDirectory() as directory:
                 destination = Path(directory) / "out.csv"
-                first = AsyncCsvUpsertExporter(
-                    "name", ["score"], _NORMALIZER, {"score": _CLIP}
-                )
-                await first.export(records, str(destination))
-                before = _read_csv(destination)
-
-                # A brand-new exporter, as a restarted process would build.
-                reloaded = AsyncCsvUpsertExporter(
-                    "name", ["score"], _NORMALIZER, {"score": _CLIP}
-                )
-                await reloaded.export(records, str(destination))
-                after = _read_csv(destination)
-
-                assert list(after["name"]) == list(before["name"])
-
-        asyncio.run(scenario())
-
-    @given(records=_CSV_RECORDS)
-    @_FS_SETTINGS
-    def test_a_record_whose_key_normalizes_away_is_skipped(self, records):
-        """Keys made only of punctuation carry no identity and must not persist."""
-
-        async def scenario():
-            with tempfile.TemporaryDirectory() as directory:
-                destination = Path(directory) / "out.csv"
-                exporter = AsyncCsvUpsertExporter("name", ["score"], _NORMALIZER)
-                blanks = [{"name": ",,,", "score": 1.0}, {"name": "", "score": 2.0}]
-                await exporter.export(records + blanks, str(destination))
-                written = _read_csv(destination)
-                assert all(
-                    _NORMALIZER.normalize(name) != "" for name in written["name"]
-                )
+                await _run_csv(destination, first)
+                crashed = AsyncCsvExporter(destination, ["name", "score"])
+                await crashed.open()
+                for record_id, entities in second.items():
+                    await crashed.write(_record(record_id), entities)
+                await crashed.flush()
+                assert sorted(await _read_rows(destination)) == sorted(_expected_rows({**first, **second}))
+                assert not crashed.journal_path.exists()
 
         asyncio.run(scenario())
 

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable, Mapping
+import logging
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 
@@ -12,6 +13,8 @@ from sci_etl_core.exceptions import ExtractionError, ParsingError, UpstreamError
 from sci_etl_core.models import RawRecord
 from sci_etl_core.parsers.base import Parser
 from sci_etl_core.rate_limiter import RateLimiting, limiter_for
+
+_logger = logging.getLogger(__name__)
 
 _RETRYABLE_STATUS = frozenset({408, 429})
 _SERVER_ERROR_FLOOR = 500
@@ -60,7 +63,6 @@ class RetryingFetcher:
         backoff_factor: float,
         max_retry_after: float,
         sleep: Any,
-        logger: Callable[[str], None],
         rate_limiter: RateLimiting | None,
         headers: Mapping[str, str] | None = None,
         max_bytes: int | None = None,
@@ -77,7 +79,6 @@ class RetryingFetcher:
         self._backoff_factor = backoff_factor
         self._max_retry_after = max_retry_after
         self._sleep = sleep
-        self._log = logger
         self._rate_limiter = rate_limiter
         self._headers = dict(headers or {})
         self._max_bytes = max_bytes
@@ -117,10 +118,10 @@ class RetryingFetcher:
         try:
             response = await self._get(url, action, params)
         except ResponseTooLarge as exc:
-            self._log(f"{self._source} {action} unavailable: {exc}")
+            _logger.warning(f"{self._source} {action} unavailable: {exc}")
             return None
         if not response.is_success:
-            self._log(f"{self._source} {action} unavailable: status {response.status_code}")
+            _logger.warning(f"{self._source} {action} unavailable: status {response.status_code}")
             return None
         return response.content
 
@@ -153,23 +154,21 @@ class RetryingFetcher:
                 retry_after = retry_after_from_headers(response.headers)
             if attempt < self._max_retries - 1:
                 delay = retry_delay(attempt, self._backoff_factor, retry_after, self._max_retry_after)
-                self._log(
+                _logger.warning(
                     f"{self._source} {action} attempt {attempt + 1} failed ({last_error!r}); retrying in {delay:g} s"
                 )
                 await self._sleep(delay)
         message = f"{self._source} {action} failed after {self._max_retries} attempts"
-        self._log(f"{message}: {last_error!r}")
+        _logger.warning(f"{message}: {last_error!r}")
         raise UpstreamError(message) from last_error
 
 
-async def parse_document(
-    parser: Parser, content: bytes, label: str, record: RawRecord, log: Callable[[str], None]
-) -> str:
+async def parse_document(parser: Parser, content: bytes, label: str, record: RawRecord) -> str:
     """Parse a fetched document off the event loop, treating an unreadable one as unavailable."""
     try:
         text = await asyncio.to_thread(parser.extract_text, content)
     except ParsingError as exc:
-        log(f"{label} unusable for {record.record_id!r}: {exc}")
+        _logger.warning(f"{label} unusable for {record.record_id!r}: {exc}")
         return ""
     return text.strip()
 

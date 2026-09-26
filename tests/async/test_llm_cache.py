@@ -11,6 +11,7 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
+from log_capture import capture_logs
 from sci_etl_core.exceptions import LLMCacheError, LLMError
 from sci_etl_core.llm import (
     AsyncLLMClient,
@@ -266,9 +267,9 @@ class TestCachingLLMClient:
     )
     @pytest.mark.asyncio
     async def test_a_cache_fault_is_logged_and_the_llm_answers(self, failing, message):
-        lines: list[str] = []
+        lines = capture_logs()
         inner = CountingClient()
-        client = CachingLLMClient(inner, BrokenCache(failing), logger=lines.append)
+        client = CachingLLMClient(inner, BrokenCache(failing))
         assert await client.complete_json("s", "u") == {"items": [{"name": "A"}]}
         assert lines[0].startswith(message)
         assert client.stats.faults == 1
@@ -373,8 +374,8 @@ class TestCachingLLMClient:
 
     @pytest.mark.asyncio
     async def test_a_backend_without_delete_is_logged_as_a_fault(self):
-        lines: list[str] = []
-        client = CachingLLMClient(CountingClient(), BrokenCache(set()), logger=lines.append)
+        lines = capture_logs()
+        client = CachingLLMClient(CountingClient(), BrokenCache(set()))
         await client.invalidate("s", "u")
         assert lines == ["LLM cache delete failed: NotImplementedError('BrokenCache does not implement delete')"]
         assert client.stats.faults == 1
