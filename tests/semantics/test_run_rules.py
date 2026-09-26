@@ -7,15 +7,18 @@ moved.
 from __future__ import annotations
 
 import pytest
-from harness import OpaqueListing, State, build, records
+from harness import OpaqueListing, ScriptedLLM, State, build, records
 
 from sci_etl_core.exceptions import (
     EmbeddingError,
+    LLMError,
     MalformedResponseError,
     PipelineAborted,
     PipelineInterrupted,
     UpstreamError,
 )
+from sci_etl_core.llm.extraction_async import AsyncLLMEntityExtractor
+from sci_etl_core.llm.relevance_async import AsyncLLMRelevanceFilter
 from sci_etl_core.models import PipelineMetadata, RawRecord
 from sci_etl_core.observability import PageFetched, RecordFinished
 from sci_etl_core.signals import ShutdownSignal
@@ -24,6 +27,23 @@ from sci_etl_core.signals import ShutdownSignal
 class FailingMemory:
     async def ingest(self, record: RawRecord, text: str) -> int:
         raise EmbeddingError("embedding service unavailable")
+
+
+def extraction_answers(unusable: dict[str, object]) -> ScriptedLLM:
+    def answer(text: str) -> object:
+        record_id = text.removeprefix("text:")
+        return unusable.get(record_id, {"items": [{"record": record_id}]})
+
+    return ScriptedLLM(answer)
+
+
+def relevance_outage_for(record_id: str) -> ScriptedLLM:
+    def answer(content: str) -> object:
+        if content.startswith(f"Title: title {record_id}\n"):
+            raise LLMError("relevance service unavailable")
+        return {"relevant": True}
+
+    return ScriptedLLM(answer)
 
 
 @pytest.mark.asyncio
@@ -455,3 +475,40 @@ async def test_r18_max_attempts_none_counts_and_quarantines_nothing():
 
     assert "a" in run.relevance.asked
     assert state.failures == {}
+
+
+@pytest.mark.asyncio
+async def test_r19_empty_extraction_response_fails_the_record():
+    extractor = AsyncLLMEntityExtractor(extraction_answers({"empty": {}}), "p")
+    run = build(records("empty", "ok"), entities=extractor)
+
+    assert await run.run(page_size=2, total_limit=10) == 1
+
+    assert await run.state.load_processed_ids() == {"ok"}
+    assert await run.state.failure_counts() == {"empty": 1}
+    assert run.exporter.exported == [{"record": "ok"}]
+
+
+@pytest.mark.asyncio
+async def test_r19_response_with_several_keys_and_no_result_key_fails_the_record():
+    off_key = {"galaxies": [{"record": "off-key"}], "notes": "one galaxy"}
+    extractor = AsyncLLMEntityExtractor(extraction_answers({"off-key": off_key}), "p", result_key="items")
+    run = build(records("off-key", "ok"), entities=extractor)
+
+    assert await run.run(page_size=2, total_limit=10) == 1
+
+    assert await run.state.load_processed_ids() == {"ok"}
+    assert await run.state.failure_counts() == {"off-key": 1}
+    assert run.exporter.exported == [{"record": "ok"}]
+
+
+@pytest.mark.asyncio
+async def test_r19_relevance_fault_in_a_filter_failing_closed_fails_the_record():
+    relevance = AsyncLLMRelevanceFilter(relevance_outage_for("outage"), "p", default_on_error=False)
+    run = build(records("outage", "ok"), relevance=relevance)
+
+    assert await run.run(page_size=2, total_limit=10) == 1
+
+    assert await run.state.load_processed_ids() == {"ok"}
+    assert await run.state.failure_counts() == {"outage": 1}
+    assert run.entities.extracted == ["ok"]

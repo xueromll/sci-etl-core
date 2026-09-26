@@ -29,6 +29,7 @@ prompts, fields, and domain rules for your own.
 - [Upgrading to 0.3](#upgrading-to-03)
 - [Upgrading to 0.4](#upgrading-to-04)
 - [Upgrading to 0.5](#upgrading-to-05)
+- [Upgrading to 0.5.1](#upgrading-to-051)
 - [What the migration uncovered](#what-the-migration-uncovered)
 - [Adapting this to your field](#adapting-this-to-your-field)
 
@@ -471,7 +472,8 @@ What changed in behavior:
 - **Relevance still fails open.** A failed call lets the paper through, as
   before, and the timeout is still 20 s. One difference: a reply with no clear
   verdict now also lets the paper through, where the old code read a missing
-  `relevant` key as `False`. Pass `default_on_error=False` to drop such papers.
+  `relevant` key as `False`. Pass `default_on_error=False` to hold such papers
+  back instead; since 0.5.1 they are then retried on the next run.
 - **Extraction failures are retried.** `extract_udg_data` returned `[]` when
   DeepSeek failed, so the paper was marked processed with nothing extracted;
   the old log shows 8 such papers that will never be revisited.
@@ -1180,6 +1182,31 @@ already implements, `fetch_page`, and the table sinks.
 
 `build_retrying_session` is removed, and the `full` extra no longer installs
 `requests`.
+
+## Upgrading to 0.5.1
+
+0.5.1 changes no signature, but three LLM outcomes that used to settle a record
+now fail it. The record stays unmarked, its attempt counts toward
+`max_attempts`, and the next run retries it:
+
+- **An empty completion.** `AsyncOpenAICompatibleClient.complete_json` raises
+  `LLMError` instead of returning `{}`.
+- **A response without an entity list.** `AsyncLLMEntityExtractor.extract`
+  raises `LLMError` when the response is empty, or has several keys and none
+  is `result_key`, instead of returning `[]`.
+- **A relevance fault with `default_on_error=False`.**
+  `AsyncLLMRelevanceFilter` and `AsyncEmbeddingRelevanceFilter` raise instead
+  of reading the fault as "irrelevant", which marked the record processed for
+  good.
+
+If your model sometimes answers with an empty object, or with the entity list
+under another key, those records now fail and are quarantined after
+`max_attempts` runs. Name `result_key` in the prompt. A custom
+`AsyncLLMClient` should raise `LLMError` for a response it cannot read rather
+than return `{}`.
+
+Records that earlier releases marked processed this way stay marked; only a
+run on a fresh state revisits them.
 
 ## What the migration uncovered
 

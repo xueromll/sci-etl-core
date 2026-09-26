@@ -26,34 +26,44 @@ class _ScriptedEmbedder(AsyncEmbedder):
         return self._record_vectors
 
 
+_UNUSABLE = pytest.mark.parametrize(
+    "record_vectors",
+    [
+        [],
+        [[0.0, 0.0]],
+        [[math.nan, 1.0]],
+        [[1.0, math.inf]],
+        [[1.0, 0.0, 0.0]],
+        [[1.0, 0.0], [1.0, 0.0]],
+        [[[1.0], [0.0]]],
+    ],
+    ids=["none", "zero", "nan", "inf", "wrong-dimension", "too-many", "not-a-vector"],
+)
+
+
 class TestEmbeddingRelevanceUnusableVectors:
-    @pytest.mark.parametrize("default", [True, False])
-    @pytest.mark.parametrize(
-        "record_vectors",
-        [
-            [],
-            [[0.0, 0.0]],
-            [[math.nan, 1.0]],
-            [[1.0, math.inf]],
-            [[1.0, 0.0, 0.0]],
-            [[1.0, 0.0], [1.0, 0.0]],
-            [[[1.0], [0.0]]],
-        ],
-        ids=["none", "zero", "nan", "inf", "wrong-dimension", "too-many", "not-a-vector"],
-    )
+    @_UNUSABLE
     @pytest.mark.asyncio
-    async def test_unusable_record_vector_returns_default_on_error(self, record_vectors, default):
+    async def test_unusable_record_vector_passes_by_default(self, record_vectors):
+        filt = AsyncEmbeddingRelevanceFilter(_ScriptedEmbedder([[1.0, 0.0]], record_vectors), ["concept"])
+        assert await filt.is_relevant(RECORD) is True
+
+    @_UNUSABLE
+    @pytest.mark.asyncio
+    async def test_unusable_record_vector_raises_when_failing_closed(self, record_vectors):
         filt = AsyncEmbeddingRelevanceFilter(
-            _ScriptedEmbedder([[1.0, 0.0]], record_vectors), ["concept"], default_on_error=default
+            _ScriptedEmbedder([[1.0, 0.0]], record_vectors), ["concept"], default_on_error=False
         )
-        assert await filt.is_relevant(RECORD) is default
+        with pytest.raises(EmbeddingError):
+            await filt.is_relevant(RECORD)
 
     @pytest.mark.asyncio
-    async def test_inconsistent_reference_vectors_return_default_and_are_retried(self):
+    async def test_inconsistent_reference_vectors_fail_and_are_retried(self):
         embedder = _ScriptedEmbedder([[1.0, 0.0], [1.0]], [[1.0, 0.0]])
         filt = AsyncEmbeddingRelevanceFilter(embedder, ["concept"], default_on_error=False)
-        assert await filt.is_relevant(RECORD) is False
-        assert await filt.is_relevant(RECORD) is False
+        for _ in range(2):
+            with pytest.raises(EmbeddingError, match="inconsistent dimensions"):
+                await filt.is_relevant(RECORD)
         assert embedder.reference_calls == 2
 
     @pytest.mark.asyncio

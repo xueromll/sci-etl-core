@@ -10,6 +10,17 @@ change behavior; each such change is listed under **Changed**.
 
 ### Changed
 
+- An empty LLM completion now fails the record instead of settling it.
+  `AsyncOpenAICompatibleClient.complete_json` raises `LLMError` where it
+  returned `{}`, so the pipeline retries the record on the next run instead of
+  marking it processed with nothing exported.
+- `AsyncLLMEntityExtractor.extract` raises `LLMError` when the response holds
+  no entity list: it is empty, or it has several keys and none is
+  `result_key`. It returned `[]`, and the record was marked processed.
+- `AsyncLLMRelevanceFilter` and `AsyncEmbeddingRelevanceFilter` with
+  `default_on_error=False` fail closed: a failed call or an unclear verdict
+  raises, and the record is retried on the next run. It was read as
+  irrelevant, and the record was marked processed for good.
 - `AsyncSqliteEmbeddingStore.query` is much faster when called repeatedly. The
   store keeps its vectors in memory and rereads them only after the file
   changes, scores them in one NumPy product, and reads text and metadata for

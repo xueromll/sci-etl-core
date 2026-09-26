@@ -53,10 +53,17 @@ class AsyncLLMRelevanceFilter(AsyncRelevanceFilter):
 
         ``system_prompt`` must ask for a JSON object with a ``relevant`` key.
         ``timeout`` is passed to every completion. A record without an abstract
-        is not sent and reads as ``default_on_empty_abstract``; an
-        :class:`~sci_etl_core.exceptions.LLMError` or an unclear verdict reads
-        as ``default_on_error``. Both default to
-        ``True``, so a fault costs an extraction call rather than a record.
+        is not sent and reads as ``default_on_empty_abstract``, which defaults
+        to ``True``.
+
+        ``default_on_error`` decides what an
+        :class:`~sci_etl_core.exceptions.LLMError` or an unclear verdict does.
+        ``True``, the default, lets the record through, so a fault costs an
+        extraction call rather than a record. ``False`` fails closed: the fault
+        raises, the record is neither extracted nor marked processed, and the
+        pipeline counts a failed attempt and retries it on the next run. A
+        fault never reads as a verdict of irrelevance, since that would mark the
+        record processed for good.
         """
         self._llm_client = llm_client
         self._system_prompt = system_prompt
@@ -70,9 +77,14 @@ class AsyncLLMRelevanceFilter(AsyncRelevanceFilter):
         A boolean is used as-is; ``0``/``1`` and the strings ``"true"``,
         ``"false"``, ``"yes"``, ``"no"``, ``"1"`` and ``"0"`` (any case) are
         accepted too. A failed call, a response that is not a JSON object, and a
-        missing or unrecognized verdict all return ``default_on_error``, so a
-        garbled answer such as the string ``"false"`` read as truthy can never
-        pass for a confident verdict.
+        missing or unrecognized verdict all count as a fault, so a garbled
+        answer such as the string ``"false"`` read as truthy can never pass for
+        a confident verdict. A fault returns ``True`` when ``default_on_error``
+        is ``True`` and raises otherwise.
+
+        Raises:
+            LLMError: ``default_on_error`` is ``False`` and the call failed or
+                gave no clear verdict.
         """
         if not record.abstract:
             return self._default_on_empty_abstract
@@ -82,6 +94,12 @@ class AsyncLLMRelevanceFilter(AsyncRelevanceFilter):
         except asyncio.CancelledError:
             raise
         except LLMError:
-            return self._default_on_error
+            if self._default_on_error:
+                return True
+            raise
         verdict = _read_verdict(result)
-        return self._default_on_error if verdict is None else verdict
+        if verdict is not None:
+            return verdict
+        if self._default_on_error:
+            return True
+        raise LLMError("LLM response holds no clear relevance verdict")

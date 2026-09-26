@@ -78,17 +78,19 @@ class AsyncLLMEntityExtractor(AsyncEntityExtractor):
         """Extract entities from ``text`` with a single LLM call.
 
         The entity list is read from ``result_key``, or from the only value when
-        the response has exactly one key; any other shape yields no entities.
-        ``null`` reads as no entities and a lone object as a one-entity list.
-        HTML stripping and truncation run in a worker thread, since both are
-        CPU-bound and token counting may load encoding data on first use.
+        the response has exactly one key. ``null`` reads as no entities and a
+        lone object as a one-entity list. HTML stripping and truncation run in a
+        worker thread, since both are CPU-bound and token counting may load
+        encoding data on first use.
 
         Raises:
-            LLMError: The completion failed, or the entity list is not a list of
-                objects (for example a string or a list of strings). The error
-                propagates instead of reading as "no entities", so the pipeline
-                leaves the record unmarked and retries it on the next run rather
-                than recording it as processed with nothing exported.
+            LLMError: The completion failed; the response holds no entity list,
+                because it is empty or has several keys and none is
+                ``result_key``; or the entity list is not a list of objects (for
+                example a string or a list of strings). The error propagates
+                instead of reading as "no entities", so the pipeline leaves the
+                record unmarked and retries it on the next run rather than
+                recording it as processed with nothing exported.
         """
         prepared = await asyncio.to_thread(self._prepare, text)
         result = await self._llm_client.complete_json(self._system_prompt, prepared, self._timeout)
@@ -98,7 +100,7 @@ class AsyncLLMEntityExtractor(AsyncEntityExtractor):
             return self._validated(self._entities(result[self._result_key]))
         if len(result) == 1:
             return self._validated(self._entities(next(iter(result.values()))))
-        return []
+        raise LLMError(f"LLM response has no {self._result_key!r} key and {len(result)} keys instead of one")
 
     def _validated(self, entities: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if self._validator is None:

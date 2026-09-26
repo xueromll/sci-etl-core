@@ -102,7 +102,13 @@ control:
   - `AsyncLLMRelevanceFilter` and `AsyncEmbeddingRelevanceFilter` default to
     `default_on_error=True` and `default_on_empty_abstract=True`, so every
     record passes during an outage.
-  - Set both to `False` if the filter acts as a control.
+  - Set `default_on_error=False` if the filter acts as a control. The filter
+    then fails closed: a failed call or an unclear verdict raises, so the
+    record is neither extracted nor marked processed. The pipeline counts a
+    failed attempt and retries the record on the next run.
+  - `default_on_empty_abstract=False` marks every record without an abstract
+    processed as irrelevant, permanently. Set it only when such records
+    should never be extracted.
 - **Model downloads.**
   - `AsyncSentenceTransformerEmbedder(model_name)` downloads model weights on
     first use.

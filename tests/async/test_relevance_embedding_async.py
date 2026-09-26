@@ -64,11 +64,17 @@ class TestAsyncEmbeddingRelevanceFilter:
         assert embedder.calls.count(["concept"]) == 1
 
     @pytest.mark.asyncio
-    async def test_embedding_error_returns_configured_default(self):
+    async def test_embedding_error_passes_by_default(self):
+        filt = AsyncEmbeddingRelevanceFilter(_FailingEmbedder(EmbeddingError("down")), ["concept"])
+        assert await filt.is_relevant(RawRecord(record_id="a", title="T", abstract="A")) is True
+
+    @pytest.mark.asyncio
+    async def test_embedding_error_raises_when_failing_closed(self):
         filt = AsyncEmbeddingRelevanceFilter(
             _FailingEmbedder(EmbeddingError("down")), ["concept"], default_on_error=False
         )
-        assert await filt.is_relevant(RawRecord(record_id="a", title="T", abstract="A")) is False
+        with pytest.raises(EmbeddingError, match="down"):
+            await filt.is_relevant(RawRecord(record_id="a", title="T", abstract="A"))
 
     @pytest.mark.asyncio
     async def test_cancellation_propagates(self):

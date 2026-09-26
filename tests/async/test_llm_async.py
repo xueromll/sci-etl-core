@@ -48,9 +48,11 @@ class TestAsyncOpenAICompatibleClient:
         assert await self._make(mocker).complete_json("s", "u") == {"relevant": True}
 
     @pytest.mark.asyncio
-    async def test_empty_content_returns_empty_dict(self, patched, mocker):
-        patched.chat.completions.create.return_value = _message(mocker, None)
-        assert await self._make(mocker).complete_json("s", "u") == {}
+    @pytest.mark.parametrize("content", [None, ""])
+    async def test_empty_content_raises(self, patched, mocker, content):
+        patched.chat.completions.create.return_value = _message(mocker, content)
+        with pytest.raises(LLMError, match="empty completion"):
+            await self._make(mocker).complete_json("s", "u")
 
     @pytest.mark.asyncio
     async def test_corrupted_json_raises_llm_error(self, patched, mocker):
@@ -170,8 +172,7 @@ class TestAsyncLLMRelevanceFilter:
         f = AsyncLLMRelevanceFilter(_async_llm(mocker, {"relevant": False}), "p")
         assert await f.is_relevant(RawRecord(record_id="1", title="t", abstract="abstract")) is False
 
-    @pytest.mark.parametrize("default", [True, False])
-    @pytest.mark.parametrize(
+    _UNCLEAR = pytest.mark.parametrize(
         "payload",
         [
             {},
@@ -183,10 +184,19 @@ class TestAsyncLLMRelevanceFilter:
             "false",
         ],
     )
+
+    @_UNCLEAR
     @pytest.mark.asyncio
-    async def test_unclear_verdict_uses_default_on_error(self, mocker, payload, default):
-        f = AsyncLLMRelevanceFilter(_async_llm(mocker, payload), "p", default_on_error=default)
-        assert await f.is_relevant(RawRecord(record_id="1", title="t", abstract="abstract")) is default
+    async def test_unclear_verdict_passes_by_default(self, mocker, payload):
+        f = AsyncLLMRelevanceFilter(_async_llm(mocker, payload), "p")
+        assert await f.is_relevant(RawRecord(record_id="1", title="t", abstract="abstract")) is True
+
+    @_UNCLEAR
+    @pytest.mark.asyncio
+    async def test_unclear_verdict_raises_when_failing_closed(self, mocker, payload):
+        f = AsyncLLMRelevanceFilter(_async_llm(mocker, payload), "p", default_on_error=False)
+        with pytest.raises(LLMError, match="no clear relevance verdict"):
+            await f.is_relevant(RawRecord(record_id="1", title="t", abstract="abstract"))
 
     @pytest.mark.parametrize(
         ("value", "expected"),
@@ -217,11 +227,16 @@ class TestAsyncLLMRelevanceFilter:
         f = AsyncLLMRelevanceFilter(_async_llm(mocker, {}), "p", default_on_empty_abstract=default)
         assert await f.is_relevant(RawRecord(record_id="1", title="t", abstract="")) is default
 
-    @pytest.mark.parametrize("default", [True, False])
     @pytest.mark.asyncio
-    async def test_error_uses_default(self, mocker, default):
-        f = AsyncLLMRelevanceFilter(_async_llm(mocker, exc=LLMError("boom")), "p", default_on_error=default)
-        assert await f.is_relevant(RawRecord(record_id="1", title="t", abstract="abstract")) is default
+    async def test_error_passes_by_default(self, mocker):
+        f = AsyncLLMRelevanceFilter(_async_llm(mocker, exc=LLMError("boom")), "p")
+        assert await f.is_relevant(RawRecord(record_id="1", title="t", abstract="abstract")) is True
+
+    @pytest.mark.asyncio
+    async def test_error_raises_when_failing_closed(self, mocker):
+        f = AsyncLLMRelevanceFilter(_async_llm(mocker, exc=LLMError("boom")), "p", default_on_error=False)
+        with pytest.raises(LLMError, match="boom"):
+            await f.is_relevant(RawRecord(record_id="1", title="t", abstract="abstract"))
 
 
 class TestAsyncLLMEntityExtractor:
@@ -236,9 +251,11 @@ class TestAsyncLLMEntityExtractor:
         assert await ex.extract("text") == [{"name": "A"}]
 
     @pytest.mark.asyncio
-    async def test_unrecognized_shape_returns_empty(self, mocker):
-        ex = AsyncLLMEntityExtractor(_async_llm(mocker, {"a": [], "b": []}), "p", result_key="items")
-        assert await ex.extract("text") == []
+    @pytest.mark.parametrize("payload", [{"a": [], "b": []}, {}])
+    async def test_response_without_an_entity_list_raises(self, mocker, payload):
+        ex = AsyncLLMEntityExtractor(_async_llm(mocker, payload), "p", result_key="items")
+        with pytest.raises(LLMError, match="no 'items' key"):
+            await ex.extract("text")
 
     @pytest.mark.asyncio
     async def test_error_propagates_instead_of_reading_as_no_entities(self, mocker):
