@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, TypeVar
 
 from sci_etl_core._sqlite_async import AsyncSqliteRunner
-from sci_etl_core.exceptions import SearchStoreError
+from sci_etl_core.exceptions import SearchQueryError, SearchStoreError
 from sci_etl_core.search._schema import bootstrap, read_facet_keys, transaction, write_facet_keys
 from sci_etl_core.search.compile_fts5 import to_filter_expression, to_match_expression
 from sci_etl_core.search.filters import (
@@ -26,7 +26,7 @@ from sci_etl_core.search.filters import (
     validate_facet_keys,
     validate_filters,
 )
-from sci_etl_core.search.query import FIELDS, Node
+from sci_etl_core.search.query import FIELDS, And, Near, Node, Not, Or, normalize
 from sci_etl_core.search.store_base import AsyncTextSearchStore, BM25Weights, SearchDocument, Snippet, TextHit
 
 T = TypeVar("T")
@@ -52,6 +52,7 @@ _FACET_COUNTS = (
     " WHERE t.key = ? AND {conditions} GROUP BY t.value ORDER BY matched DESC, t.value"
 )
 _RANGE_COUNT = "SELECT COUNT(*) FROM documents d WHERE {conditions}"
+_MATCH_COUNT = "SELECT COUNT(*) FROM documents_fts WHERE documents_fts MATCH ?"
 _ID_BATCH = 500
 _IN_RANGE_FUNCTION = "sci_etl_tag_in_range"
 
@@ -96,7 +97,13 @@ class AsyncSqliteFts5Store(AsyncTextSearchStore):
     metadata, and tags atomically. The single connection is used by one worker
     thread at a time, even when an awaiting task is cancelled, and every SQLite
     failure, including a file that is not a database, surfaces as
-    :class:`~sci_etl_core.exceptions.SearchStoreError`.
+    :class:`~sci_etl_core.exceptions.SearchStoreError`. The one exception is a
+    known SQLite fault: some builds, including 3.50.4, fail to highlight a
+    field-scoped ``NEAR`` group inside ``OR`` for some documents and report
+    the file as malformed. When the same match runs cleanly without
+    highlighting, :meth:`search` raises
+    :class:`~sci_etl_core.exceptions.SearchQueryError` naming the SQLite
+    version instead.
 
     Ranking is FTS5's ``bm25()`` with the field ``weights``, reported as a
     score where higher is better. ``snippet`` comes from the one field FTS5
@@ -189,7 +196,16 @@ class AsyncSqliteFts5Store(AsyncTextSearchStore):
             *condition_parameters,
             limit,
         ]
-        rows = await self._read(filters, lambda connection: connection.execute(sql, parameters).fetchall())
+        try:
+            rows = await self._read(filters, lambda connection: connection.execute(sql, parameters).fetchall())
+        except SearchStoreError as error:
+            if await self._is_snippet_fault(query, expression, error):
+                raise SearchQueryError(
+                    f"SQLite {sqlite3.sqlite_version} fails to highlight a field-scoped NEAR group inside OR "
+                    "for some documents; drop the field scope from the NEAR group, or search each OR "
+                    "alternative separately"
+                ) from error
+            raise
         return [_hit(*row) for row in rows]
 
     async def filter_ids(
@@ -344,6 +360,20 @@ class AsyncSqliteFts5Store(AsyncTextSearchStore):
             tag_rows(json.loads(encoded), self._facet_keys),
         )
 
+    async def _is_snippet_fault(self, query: Node, expression: str, error: SearchStoreError) -> bool:
+        cause = error.__cause__
+        if not (
+            isinstance(cause, sqlite3.DatabaseError)
+            and "malformed" in str(cause)
+            and _scoped_near_inside_or(normalize(query))
+        ):
+            return False
+        try:
+            await self._read((), lambda connection: connection.execute(_MATCH_COUNT, (expression,)).fetchone())
+        except SearchStoreError:
+            return False
+        return True
+
     async def _read(
         self,
         filters: Sequence[SearchFilter],
@@ -431,6 +461,17 @@ def _integrity_check(connection: sqlite3.Connection) -> bool:
     except sqlite3.DatabaseError:
         return False
     return True
+
+
+def _scoped_near_inside_or(node: Node, inside_or: bool = False) -> bool:
+    if isinstance(node, Near):
+        return inside_or and bool(node.fields)
+    if isinstance(node, Not):
+        return _scoped_near_inside_or(node.operand, inside_or)
+    if isinstance(node, (And, Or)):
+        nested = inside_or or isinstance(node, Or)
+        return any(_scoped_near_inside_or(operand, nested) for operand in node.operands)
+    return False
 
 
 def _hit(record_id: str, title: str, metadata: str, rank: float, raw_snippet: str, *raw_fields: str) -> TextHit:

@@ -47,6 +47,10 @@ change behavior; each such change is listed under **Changed**.
 
 ### Fixed
 
+- `AsyncSqliteFts5Store.search` raises `SearchQueryError` naming the SQLite
+  version when SQLite fails to highlight a field-scoped `NEAR` group inside
+  `OR`, as SQLite 3.50.4 does for some documents. It raised `SearchStoreError`
+  with "database disk image is malformed", which reads as a corrupt index.
 - `CachingLLMClient` no longer replays a response the entity extractor or the
   relevance filter rejected. The rejected response was cached, so every retry
   got the same answer until the record was quarantined, without the model

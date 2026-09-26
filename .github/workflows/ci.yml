@@ -45,6 +45,9 @@ jobs:
       - name: Record resolved dependency versions
         run: python -m pip freeze
 
+      - name: Record the SQLite version
+        run: python -c "import sqlite3; print('SQLite', sqlite3.sqlite_version)"
+
       - name: Run the test suite with coverage
         run: python -m pytest --cov=sci_etl_core --cov-report=term-missing
 

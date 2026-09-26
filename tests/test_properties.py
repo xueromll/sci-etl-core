@@ -13,7 +13,7 @@ import pytest
 
 pytest.importorskip("hypothesis")
 
-from hypothesis import HealthCheck, assume, given, settings
+from hypothesis import HealthCheck, assume, example, given, settings
 from hypothesis import strategies as st
 
 from sci_etl_core.embeddings._similarity import (
@@ -1001,8 +1001,22 @@ def _assert_highlights_cover_query_words(hit, words, stems):
         previous_end = end
 
 
+_SCOPED_NEAR_INSIDE_OR = Or((Term("a"), Near((Term("a"), Term("a")), distance=0, fields=("title",))))
+
+
+async def _fts5_hits_unless_sqlite_cannot_highlight(store, tree, limit):
+    """Return the FTS5 hits, or ``None`` when this SQLite fails to highlight a scoped NEAR group inside OR."""
+    try:
+        return await store.search(tree, limit)
+    except SearchQueryError as error:
+        if "field-scoped NEAR group inside OR" not in str(error):
+            raise
+        return None
+
+
 class TestTextSearchStoreProperties:
     @given(tree=_TREE, rows=_ROWS)
+    @example(tree=_SCOPED_NEAR_INSIDE_OR, rows=[("a a", "", ""), ("", "", "a")])
     @_FS_SETTINGS
     def test_both_backends_match_rank_and_highlight_alike(self, tree, rows):
         documents = _documents(rows)
@@ -1019,7 +1033,9 @@ class TestTextSearchStoreProperties:
                     return
                 limit = await fts5.count() + 1
                 expected = await memory.search(tree, limit)
-                actual = await fts5.search(tree, limit)
+                actual = await _fts5_hits_unless_sqlite_cannot_highlight(fts5, tree, limit)
+                if actual is None:
+                    return
                 assert sorted(hit.record_id for hit in actual) == sorted(hit.record_id for hit in expected)
                 words, stems = _query_words(tree)
                 for hit in (*expected, *actual):

@@ -42,6 +42,13 @@ text stores. In a hybrid search its words are embedded like the rest of the
 query, except its prefix terms. `describe` returns a group as one `QueryChip` whose `near` is its
 distance.
 
+One exception on `AsyncSqliteFts5Store`: some SQLite builds, including
+3.50.4, fail to highlight a field-scoped group inside `OR`, such as
+`dwarf OR title:NEAR(dwarf halo)`, for some documents. The search then raises
+`SearchQueryError` naming the SQLite version. Drop the field scope from the
+group, or search each `OR` alternative separately. `filter_ids` and the
+in-memory store are unaffected.
+
 ## Parsing
 
 Parsing is pure and synchronous, so a query bar can run it on every keystroke.

@@ -7,14 +7,14 @@ from datetime import UTC, datetime
 
 import pytest
 
-from sci_etl_core.exceptions import SearchStoreError
+from sci_etl_core.exceptions import SearchQueryError, SearchStoreError
 from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.extractors.async_base import AsyncExtractor
 from sci_etl_core.llm.extraction_async import AsyncEntityExtractor
 from sci_etl_core.llm.relevance_async import AsyncRelevanceFilter
 from sci_etl_core.pipeline_async import AsyncETLPipeline
 from sci_etl_core.search.filters import MetadataFilter, RangeFilter
-from sci_etl_core.search.query import Term
+from sci_etl_core.search.query import And, Near, Not, Or, Term
 from sci_etl_core.search.store_base import SearchDocument
 from sci_etl_core.search.store_sqlite_fts5 import AsyncSqliteFts5Store, fts5_available
 from sci_etl_core.state.async_base import AsyncStateManager
@@ -40,6 +40,79 @@ def raw(path, sql, parameters=()):
 
 def document(record_id, title="galaxy", **metadata):
     return SearchDocument(record_id, title=title, metadata=metadata)
+
+
+_SCOPED_NEAR = Near((Term("a"), Term("a")), distance=0, fields=("title",))
+_SCOPED_NEAR_INSIDE_OR = Or((Term("a"), _SCOPED_NEAR))
+_AUDITED_DOCUMENTS = [SearchDocument("r1", title="a a"), SearchDocument("r2", body="a")]
+
+
+def malformed() -> SearchStoreError:
+    error = SearchStoreError("Failed to read the search index: database disk image is malformed")
+    error.__cause__ = sqlite3.DatabaseError("database disk image is malformed")
+    return error
+
+
+class TestSnippetFault:
+    @pytest.mark.asyncio
+    async def test_the_audited_query_returns_its_hits_or_a_query_error(self, tmp_path):
+        async with opened(tmp_path / "search.db") as store:
+            await store.index(_AUDITED_DOCUMENTS)
+            try:
+                hits = await store.search(_SCOPED_NEAR_INSIDE_OR)
+            except SearchQueryError as error:
+                outcome: object = str(error)
+            else:
+                outcome = sorted(hit.record_id for hit in hits)
+        assert outcome == ["r1", "r2"] or "field-scoped NEAR group inside OR" in str(outcome)
+
+    @pytest.mark.parametrize(
+        "query",
+        [
+            _SCOPED_NEAR_INSIDE_OR,
+            Or((Term("b"), And((Term("a"), Not(_SCOPED_NEAR))))),
+        ],
+    )
+    @pytest.mark.asyncio
+    async def test_a_malformed_index_on_a_healthy_file_is_reported_as_the_sqlite_limitation(
+        self, tmp_path, mocker, query
+    ):
+        async with opened(tmp_path / "search.db") as store:
+            await store.index(_AUDITED_DOCUMENTS)
+            mocker.patch.object(store, "_read", side_effect=[malformed(), (2,)])
+            with pytest.raises(SearchQueryError, match=f"SQLite {sqlite3.sqlite_version} fails to highlight"):
+                await store.search(query)
+
+    @pytest.mark.parametrize(
+        "query",
+        [
+            Term("a"),
+            _SCOPED_NEAR,
+            Or((Term("b"), Near((Term("a"), Term("a")), distance=0))),
+        ],
+    )
+    @pytest.mark.asyncio
+    async def test_a_malformed_index_on_other_queries_stays_a_store_error(self, tmp_path, mocker, query):
+        async with opened(tmp_path / "search.db") as store:
+            mocker.patch.object(store, "_read", side_effect=[malformed()])
+            with pytest.raises(SearchStoreError, match="malformed"):
+                await store.search(query)
+
+    @pytest.mark.asyncio
+    async def test_a_file_that_also_fails_the_plain_match_stays_a_store_error(self, tmp_path, mocker):
+        async with opened(tmp_path / "search.db") as store:
+            mocker.patch.object(store, "_read", side_effect=[malformed(), SearchStoreError("still malformed")])
+            with pytest.raises(SearchStoreError, match="database disk image is malformed"):
+                await store.search(_SCOPED_NEAR_INSIDE_OR)
+
+    @pytest.mark.asyncio
+    async def test_another_sqlite_fault_stays_a_store_error(self, tmp_path, mocker):
+        error = SearchStoreError("Failed to read the search index: disk I/O error")
+        error.__cause__ = sqlite3.OperationalError("disk I/O error")
+        async with opened(tmp_path / "search.db") as store:
+            mocker.patch.object(store, "_read", side_effect=[error])
+            with pytest.raises(SearchStoreError, match="disk I/O error"):
+                await store.search(_SCOPED_NEAR_INSIDE_OR)
 
 
 class NoFts5Connection(sqlite3.Connection):
