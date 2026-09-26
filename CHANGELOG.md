@@ -60,6 +60,8 @@ limits. The first run after upgrading misses the LLM cache once. See
   the returned chunks only. A discovery graph over a 9,000-chunk memory builds
   about four times faster. The store now holds its vectors in memory between
   queries until it is closed.
+- Releases are no longer held until sci-etl-cli and udg-catalogue run on them;
+  consumer readiness is reported in the release notes instead.
 
 ### Fixed
 

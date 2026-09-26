@@ -46,9 +46,7 @@ papers, which cannot honor `page_size`.
 Each public contract changes at most once more before 1.0. The run contract
 (extractor, state, constructor) breaks in 0.5.0, the data contract (entities,
 exporter, logging, dependencies) in 0.6.0, and every later release is
-additive. A release is tagged only when sci-etl-cli passes against it and
-udg-catalogue completes a run on it. Each breaking change gets a
-[MIGRATION.md](MIGRATION.md) entry.
+additive. Each breaking change gets a [MIGRATION.md](MIGRATION.md) entry.
 
 ## v0.6.0 — Data contract and claims
 
