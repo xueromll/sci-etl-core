@@ -6,7 +6,12 @@ All notable changes to sci-etl-core are recorded here. The format follows
 change behavior; each such change is listed under **Changed**.
 
 
-## [Unreleased]
+## [0.5.1] - 2026-09-26
+
+This release stops LLM responses that carry no answer from settling a record,
+keeps the LLM cache from replaying them, and adds download and decompression
+limits. The first run after upgrading misses the LLM cache once. See
+"Upgrading to 0.5.1" in MIGRATION.md.
 
 ### Added
 
@@ -404,7 +409,8 @@ extractor, OpenAI-compatible chat and embedding clients, PDF, LaTeX, and HTML
 parsers, CSV, SQL, and Plotly exporters, dataframe processors and validators,
 file and SQLite state, semantic memory, and the udg-catalogue migration guide.
 
-[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/xueromll/sci-etl-core/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/xueromll/sci-etl-core/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/xueromll/sci-etl-core/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/xueromll/sci-etl-core/compare/v0.3.0...v0.4.0
