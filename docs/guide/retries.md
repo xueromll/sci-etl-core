@@ -3,8 +3,8 @@
 `AsyncArxivExtractor`, `AsyncPubMedExtractor`, `AsyncSemanticScholarExtractor`,
 `AsyncOpenAlexExtractor`, `AsyncOpenAICompatibleClient`, and `AsyncOpenAIEmbedder`
 retry throttling (`429`), server errors, and transport faults, making at most
-`max_retries` attempts per request (default 3). The PubMed, Semantic Scholar,
-and OpenAlex extractors retry a `408` request timeout too:
+`max_retries` attempts per request (default 3). The four extractors share one
+retry path and retry a `408` request timeout too:
 
 - **Backoff.** Between attempts they wait `backoff_factor ** attempt` seconds:
   1 s, then 2 s with the default factor of 2.

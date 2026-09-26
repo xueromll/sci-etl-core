@@ -47,6 +47,10 @@ change behavior; each such change is listed under **Changed**.
 
 ### Fixed
 
+- `AsyncArxivExtractor` retries a `408` request timeout, as the other bundled
+  extractors do. It now shares their retry code, so its retry and failure
+  messages start with `arXiv` and name the action, such as
+  `arXiv LaTeX fetch for '2401.00001v1' failed after 3 attempts`.
 - `AsyncSqliteFts5Store.search` raises `SearchQueryError` naming the SQLite
   version when SQLite fails to highlight a field-scoped `NEAR` group inside
   `OR`, as SQLite 3.50.4 does for some documents. It raised `SearchStoreError`

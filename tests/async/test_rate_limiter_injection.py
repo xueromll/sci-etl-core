@@ -96,17 +96,17 @@ class TestLimiterFor:
 def _arxiv(client, mocker, **kwargs):
     latex = mocker.Mock(spec=LatexTarballParser)
     latex.extract_text.return_value = "latex body"
+    kwargs.setdefault("sleep", mocker.AsyncMock())
     return AsyncArxivExtractor(
         client=client,
         pdf_parser=mocker.Mock(spec=PdfPlumberParser),
         latex_parser=latex,
-        sleep=mocker.AsyncMock(),
         **kwargs,
     )
 
 
-def _http_response(status: int, content: bytes = b"") -> SimpleNamespace:
-    return SimpleNamespace(status_code=status, content=content, headers={})
+def _http_client(handler) -> httpx.AsyncClient:
+    return httpx.AsyncClient(transport=httpx.MockTransport(handler))
 
 
 class TestArxivExtractorRateLimiting:
@@ -114,20 +114,17 @@ class TestArxivExtractorRateLimiting:
     async def test_every_attempt_takes_a_slot_that_is_free_during_the_retry_wait(self, mocker):
         journal: list[str] = []
         limiter = RecordingLimiter(journal=journal)
-        client = mocker.Mock()
 
-        async def get(*_args, **_kwargs):
+        async def get(_request):
             journal.append("get")
             assert limiter.inside == 1
-            return _http_response(503) if journal.count("get") == 1 else _http_response(200, b"<feed/>")
+            return httpx.Response(503) if journal.count("get") == 1 else httpx.Response(200, content=b"<feed/>")
 
         async def sleep(_delay):
             journal.append("sleep")
             assert limiter.inside == 0
 
-        client.get = get
-        extractor = _arxiv(client, mocker, rate_limiter=limiter)
-        extractor._sleep = sleep
+        extractor = _arxiv(_http_client(get), mocker, rate_limiter=limiter, sleep=sleep)
         assert await extractor._search("q", 10, 0) == b"<feed/>"
         attempt = ["limiter:enter", "get", "limiter:exit"]
         assert journal == ["sleep", *attempt, "sleep", *attempt]
@@ -137,8 +134,7 @@ class TestArxivExtractorRateLimiting:
         journal: list[str] = []
         api = RecordingLimiter("api", journal)
         site = RecordingLimiter("site", journal)
-        client = mocker.Mock()
-        client.get = mocker.AsyncMock(return_value=_http_response(200, b"payload"))
+        client = _http_client(lambda _request: httpx.Response(200, content=b"payload"))
         extractor = _arxiv(client, mocker, rate_limiter=HostRateLimiter({"export.arxiv.org": api, "arxiv.org": site}))
         await extractor._search("q", 10, 0)
         await extractor.fetch_full_text(RawRecord(record_id="2401.00001v1", title="t", abstract="a"))
@@ -160,17 +156,15 @@ class TestArxivExtractorRateLimiting:
         shared = SemaphoreRateLimiter(max_concurrency=1)
         active = peak = 0
 
-        async def get(*_args, **_kwargs):
+        async def get(_request):
             nonlocal active, peak
             active += 1
             peak = max(peak, active)
             await asyncio.sleep(0.01)
             active -= 1
-            return _http_response(200, b"ok")
+            return httpx.Response(200, content=b"ok")
 
-        clients = [mocker.Mock(), mocker.Mock()]
-        for client in clients:
-            client.get = get
+        clients = [_http_client(get), _http_client(get)]
         extractors = [_arxiv(client, mocker, rate_limiter=shared) for client in clients]
         await asyncio.gather(*(extractor._search("q", 1, 0) for extractor in extractors for _ in range(3)))
         assert peak == 1

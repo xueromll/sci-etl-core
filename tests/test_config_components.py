@@ -187,7 +187,8 @@ class TestComponentsFromConfig:
             pdf_parser=mocker.Mock(spec=PdfPlumberParser),
             latex_parser=mocker.Mock(spec=LatexTarballParser),
         )
-        assert (extractor._max_retries, extractor._backoff_factor, extractor._sleep_before_search) == (5, 1.5, 0.5)
+        fetcher = extractor._fetcher
+        assert (fetcher._max_retries, fetcher._backoff_factor, extractor._sleep_before_search) == (5, 1.5, 0.5)
 
     def test_arxiv_extractor_options_override_the_config(self, mocker):
         limiter = SemaphoreRateLimiter()
@@ -199,9 +200,9 @@ class TestComponentsFromConfig:
             max_retries=1,
             rate_limiter=limiter,
         )
-        assert extractor._max_retries == 1
+        assert extractor._fetcher._max_retries == 1
         assert extractor._sleep_before_search == 3.0
-        assert extractor._rate_limiter is limiter
+        assert extractor._fetcher._rate_limiter is limiter
 
     def test_chat_client_takes_its_connection_settings_from_the_config(self, mocker):
         openai = mocker.patch("sci_etl_core.llm.openai_compatible_async.AsyncOpenAI")
