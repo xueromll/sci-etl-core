@@ -16,7 +16,7 @@
         <link rel="prev" href="../token-usage/">
       
       
-        <link rel="next" href="../architecture/">
+        <link rel="next" href="../migrating-a-pipeline/">
       
       
         
@@ -629,6 +629,8 @@
   
     
     
+      
+        
       
         
       
@@ -1531,6 +1533,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#what-is-cached" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is cached
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#backends" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1564,6 +1577,34 @@
           </ul>
         </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../migrating-a-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrating a pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2541,6 +2582,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#what-is-cached" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is cached
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#backends" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2600,15 +2652,27 @@ repeated requests from a cache, so they cost no tokens and return at once:</p>
 <p>List the SQLite cache in the pipeline's <code>closeables</code> so its connection is
 closed at the end of the run.</p>
 <h2 id="how-requests-are-matched">How requests are matched<a class="headerlink" href="#how-requests-are-matched" title="Permanent link">&para;</a></h2>
-<p>A request is keyed on the model name and both prompts, hashed with SHA-256; the
+<p>A request is keyed on the model name, the endpoint's <code>base_url</code>, the
+temperature, the response format, and both prompts, hashed with SHA-256; the
 timeout isn't part of the key. A changed system prompt, a changed paper text,
-or a different model is a miss.</p>
-<p>Anything else that changes the answer, such as the temperature, isn't part of
-the key. Give the cache a model name that includes it:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">llm</span> <span class="o">=</span> <span class="n">CachingLLMClient</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">cache</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">"gpt-4o-mini@t0.2"</span><span class="p">)</span>
-</code></pre></div>
-<p>Only successful responses are cached, so a request that failed is sent again
-next time.</p>
+a different model, a different provider, a different temperature, or a
+different response format is a miss.</p>
+<p><code>CachingLLMClient</code> reads <code>base_url</code>, <code>temperature</code>, and <code>response_format</code> from
+the client it wraps. <code>AsyncOpenAICompatibleClient</code> exposes all three. Every
+client has a <code>response_format</code>, <code>{"type": "json_object"}</code> unless a subclass
+overrides it; a custom client without <code>base_url</code> or <code>temperature</code> is keyed
+without them.</p>
+<h2 id="what-is-cached">What is cached<a class="headerlink" href="#what-is-cached" title="Permanent link">&para;</a></h2>
+<p>A request that failed is never cached, so it is sent again next time. A
+response the library rejects isn't kept either:</p>
+<ul>
+<li><code>AsyncLLMEntityExtractor</code> rejects a response that holds no entity list, or
+  whose entity list isn't a list of objects.</li>
+<li><code>AsyncLLMRelevanceFilter</code> rejects a response without a clear verdict.</li>
+</ul>
+<p>Both call <code>invalidate</code> on the client, and <code>CachingLLMClient</code> deletes the
+cached response, so the retry on the next run reaches the model instead of
+replaying the same answer.</p>
 <h2 id="backends">Backends<a class="headerlink" href="#backends" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong><code>InMemoryLLMResponseCache(max_entries=None)</code></strong> lives as long as the process.
@@ -2618,14 +2682,17 @@ next time.</p>
   between runs. <code>clear()</code> empties it and <code>count()</code> reports its size.</li>
 </ul>
 <p>A custom backend, such as Redis, subclasses <code>AsyncLLMResponseCache</code> and
-implements <code>get</code>, <code>set</code>, and <code>clear</code>.</p>
+implements <code>get</code>, <code>set</code>, <code>delete</code>, and <code>clear</code>. A backend without <code>delete</code>
+still works, but each rejected response stays cached and is logged as a cache
+fault.</p>
 <h2 id="when-the-cache-fails">When the cache fails<a class="headerlink" href="#when-the-cache-fails" title="Permanent link">&para;</a></h2>
 <p>The cache never fails a completion. If reading or writing it raises, the error
-is logged as <code>LLM cache get failed: ...</code> or <code>LLM cache set failed: ...</code> and the
+is logged as <code>LLM cache get failed: ...</code>, <code>LLM cache set failed: ...</code>, or
+<code>LLM cache delete failed: ...</code> and the
 request goes to the LLM as if nothing were cached. <code>stats</code> counts <code>hits</code>,
 <code>misses</code>, and <code>faults</code>, and <code>usage</code> is the wrapped client's, so cache hits cost
 no tokens:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">print</span><span class="p">(</span><span class="n">llm</span><span class="o">.</span><span class="n">stats</span><span class="p">,</span> <span class="n">llm</span><span class="o">.</span><span class="n">usage</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">print</span><span class="p">(</span><span class="n">llm</span><span class="o">.</span><span class="n">stats</span><span class="p">,</span> <span class="n">llm</span><span class="o">.</span><span class="n">usage</span><span class="p">)</span>
 </code></pre></div>
 
 
@@ -2679,13 +2746,13 @@ no tokens:</p>
         
         
           
-          <a href="../architecture/" class="md-footer__link md-footer__link--next" aria-label="Next: Architecture">
+          <a href="../migrating-a-pipeline/" class="md-footer__link md-footer__link--next" aria-label="Next: Migrating a pipeline">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Architecture
+                Migrating a pipeline
               </div>
             </div>
             <div class="md-footer__button md-icon">

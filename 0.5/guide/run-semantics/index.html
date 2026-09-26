@@ -642,6 +642,8 @@
       
         
       
+        
+      
     
     
     
@@ -1542,6 +1544,34 @@
           </ul>
         </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../migrating-a-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrating a pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2662,6 +2692,12 @@ entries, or is truncated.</p>
 <td>With <code>max_attempts</code> set, failures are counted through <code>record_failure</code> only from pages that processed a record, or from stalled pages that a later page of the same run cleared; failures held by a stalled page that is never cleared are discarded. A listed record whose counted attempts reach <code>max_attempts</code> is skipped as quarantined, counted once per run in <code>RunMetrics.quarantined</code>, and logged once. No record is quarantined in the run in which its last attempt failed.</td>
 <td><code>test_r18_*</code></td>
 <td><code>pipeline_async.py:101-121</code>, <code>:535-542</code>, <code>:571-594</code></td>
+</tr>
+<tr>
+<td>R19</td>
+<td>A record is settled only on an answer. A relevance fault in a filter built with <code>default_on_error=False</code>, and an LLM response that holds no entity list, because the completion is empty or has several keys and none is <code>result_key</code>, fail the record: it stays unmarked, its attempt is counted under R18, and it is retried on the next run.</td>
+<td><code>test_r19_*</code></td>
+<td><code>llm/openai_compatible_async.py:158-159</code>, <code>llm/extraction_async.py:99-103</code>, <code>llm/relevance_async.py:96-105</code>, <code>pipeline_async.py:733-747</code></td>
 </tr>
 </tbody>
 </table>
