@@ -7,8 +7,8 @@ helping keep the project and its community safe.
 
 | Version | Supported |
 |---------|-----------|
-| 0.1.x   | ✅        |
-| < 0.1   | ❌        |
+| 0.5.x   | ✅        |
+| < 0.5   | ❌        |
 
 Security fixes land on the latest minor release. Please upgrade before
 reporting issues against older versions.
@@ -52,18 +52,25 @@ control:
 - **Keep keys out of YAML.** A set environment variable always overrides
   `llm.api_key` from the YAML file, which is only a fallback. A key committed
   in a config file is still a leak.
+- **Config errors don't echo values.** `load_config`, `load_config_async`, and
+  `validate_config` name each failing key and the reason, but never its value,
+  and don't chain pydantic's error, which can contain the raw settings. YAML is
+  parsed with `yaml.safe_load`.
 - **Never commit `.env`.** Add `.env` to `.gitignore` and distribute a
   `.env.example` with placeholder values, as this repository does.
-- **Database URLs are secrets too.** `AsyncSqlTableExporter` receives its
-  SQLAlchemy URL as a plain `destination` string. Build it from the environment
-  at runtime, and don't log it.
+- **Database URLs are secrets too.** `SqlTableSink` receives its SQLAlchemy
+  URL as a plain `url` string, as does the deprecated `AsyncSqlTableExporter`
+  through `destination`. Build it from the environment at runtime, and don't
+  log it.
 
 ## Data Handling
 
 - **Stored text is unencrypted.**
-  - `AsyncSqliteEmbeddingStore` persists full-text passages with their titles
-    and source URLs.
-  - State files, state databases, and CSV outputs are plain files.
+  - `AsyncSqliteEmbeddingStore` and `AsyncSqliteFts5Store` persist full-text
+    passages with their titles and source URLs.
+  - `AsyncSqliteLLMResponseCache` persists model responses as JSON.
+  - State files and state databases, which record the last error of each
+    failed record, and CSV outputs are plain files.
   - If your corpus is licensed or sensitive, use filesystem permissions and
     encryption at rest.
 - **CSV formula injection.** Keys come straight from LLM output.
@@ -71,8 +78,8 @@ control:
   prefixes an apostrophe to any key starting with `=`, `+`, `-`, `@`, a tab,
   or a carriage return, so spreadsheets don't evaluate it. Keep
   `escape_formulas` enabled for files people open in spreadsheet software.
-  Other outputs — SQL tables, Plotly hover text, and your own exporters — are
-  not escaped.
+  Other outputs — SQL tables from `SqlTableSink`, Plotly hover text from
+  `Plotly3DSink`, and your own exporters and sinks — are not escaped.
 - **No secrets in outputs.** Exporters write only the data they are given;
   scrub credential-bearing fields before export.
 
@@ -107,9 +114,11 @@ control:
 - Rotate API keys regularly and scope them to least privilege.
 - Pin dependencies and monitor advisories, especially for:
   - networking and LLM clients: `httpx`, `openai`
-  - document and markup parsing: `pdfplumber`, `beautifulsoup4`, `lxml`
+  - document, markup, and config parsing: `pdfplumber`, `beautifulsoup4`,
+    `lxml`, `pyyaml`
   - data and numerics: `pandas`, `numpy`, `scikit-learn`
-  - storage, plotting, and file IO: `SQLAlchemy`, `plotly`, `aiofiles`
+  - storage, plotting, and file IO: `SQLAlchemy`, `aiosqlite`, `plotly`,
+    `aiofiles`
   - `sentence-transformers`, if installed
 - Validate and sanitize any user-supplied query strings, file paths, and
   destinations before passing them to extractors or exporters.
