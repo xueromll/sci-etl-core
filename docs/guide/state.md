@@ -130,9 +130,9 @@ reprocesses nothing.
 | A shutdown is requested through `shutdown` | `run()` raises `PipelineInterrupted`; see [Graceful shutdown](shutdown.md) |
 | arXiv reports the LaTeX and PDF as unavailable (e.g. 404), or neither can be parsed | full text falls back to the abstract |
 | arXiv serves a single gzipped `.tex` file or a PDF as the e-print | the TeX is read, or the PDF is used instead |
-| LLM call fails inside `AsyncLLMRelevanceFilter`, or its verdict is unclear | returns `default_on_error` (**`True`**) |
+| LLM call fails inside `AsyncLLMRelevanceFilter`, or its verdict is unclear | returns **`True`**; with `default_on_error=False`, `LLMError` propagates: logged, record left unmarked and retried on the next run |
 | Record has an empty abstract | relevance filters return `default_on_empty_abstract` (**`True`**) |
-| LLM call fails inside `AsyncLLMEntityExtractor`, or its entity list is malformed | `LLMError` propagates: logged, record left unmarked and retried on the next run |
+| LLM call fails inside `AsyncLLMEntityExtractor`, its completion is empty, it has several keys and none is `result_key`, or its entity list is malformed | `LLMError` propagates: logged, record left unmarked and retried on the next run |
 | Record has a missing or blank `record_id` | skipped and logged, since it can't be tracked as processed |
 
 ## Exceptions

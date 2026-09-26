@@ -100,6 +100,16 @@ class AsyncOpenAICompatibleClient(AsyncLLMClient):
         return self._model
 
     @property
+    def base_url(self) -> str:
+        """The API endpoint completions are requested from."""
+        return self._base_url
+
+    @property
+    def temperature(self) -> float:
+        """The sampling temperature sent with every completion."""
+        return self._temperature
+
+    @property
     def usage(self) -> TokenUsage:
         """Tokens reported across every response received so far, as a snapshot."""
         return replace(self._usage)
@@ -107,13 +117,16 @@ class AsyncOpenAICompatibleClient(AsyncLLMClient):
     async def complete_json(self, system_prompt: str, user_content: str, timeout: int | None = None) -> dict[str, Any]:  # noqa: ASYNC109
         """Request a JSON-mode completion and return the parsed object.
 
-        An empty completion reads as ``{}``. Every response the API returns
-        counts toward :attr:`usage`, including one whose body is then rejected.
+        Every response the API returns counts toward :attr:`usage`, including
+        one whose body is then rejected.
 
         Raises:
             LLMError: The request failed after retries, or the completion is
-                not valid JSON or is JSON other than an object.
+                empty, is not valid JSON, or is JSON other than an object. An
+                empty completion is not evidence of an empty answer, so it
+                fails the record instead of settling it.
         """
+        requested_format: Any = self.response_format
         last_error: Exception | None = None
         for attempt in range(self._max_retries):
             try:
@@ -125,7 +138,7 @@ class AsyncOpenAICompatibleClient(AsyncLLMClient):
                             {"role": "user", "content": user_content},
                         ],
                         temperature=self._temperature,
-                        response_format={"type": "json_object"},
+                        response_format=requested_format,
                         timeout=timeout or self._default_timeout,
                     )
                 self._usage.record(getattr(response, "usage", None))
@@ -154,7 +167,7 @@ class AsyncOpenAICompatibleClient(AsyncLLMClient):
             raise LLMError("LLM response contained no choices")
         content = response.choices[0].message.content
         if not content:
-            return {}
+            raise LLMError("LLM returned an empty completion")
         parsed = json.loads(content.strip())
         if not isinstance(parsed, dict):
             raise LLMError(f"LLM returned JSON {type(parsed).__name__}, not an object")

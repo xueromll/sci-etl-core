@@ -41,7 +41,7 @@ search:
 |---------|-------|-------------------|--------|
 | `llm` | `LLMConfig` | `api_key`, `base_url` (`https://api.openai.com/v1`), `model` (`gpt-4o-mini`), `timeout` (120) | `AsyncOpenAICompatibleClient.from_config` |
 | `http` | `HttpConfig` | `user_agent` (`sci-etl-core/<installed version>`), `max_retries` (3), `backoff_factor` (2.0), `timeout` (25) | `build_client()`, `AsyncArxivExtractor.from_config` |
-| `full_text` | `RateLimitConfig` | `max_concurrency` (4), `max_rate` (unset), `time_period` (1.0) | `build_limiter()` |
+| `full_text` | `RateLimitConfig` | `max_concurrency` (4), `max_rate` (unset), `time_period` (1.0) | `build_limiter()`, `AsyncArxivExtractor.from_config` |
 | `pipeline` | `PipelineConfig` | `search_query` (`""`), `total_limit` (100), `page_size` (100), `search_delay` (3.0), `sleep_between` (5.0), `max_concurrency` (6), `newest_first` (false) | `AsyncETLPipeline.from_config`, `run_arguments()`, `AsyncArxivExtractor.from_config` |
 | `search` | `SearchConfig` | `bm25`, `fusion`, `hybrid`, `graph`, with the defaults of the dataclasses they build | `bm25.to_weights()`, `fusion.to_params()`, `hybrid.to_params()`, `graph.to_params()` |
 
@@ -60,7 +60,7 @@ extractor = AsyncArxivExtractor.from_config(
     client=config.http.build_client(),
     pdf_parser=PdfPlumberParser(),
     latex_parser=LatexTarballParser(),
-    rate_limiter=config.full_text.build_limiter(),
+    full_text=config.full_text,
 )
 llm = AsyncOpenAICompatibleClient.from_config(config.llm)
 pipeline = AsyncETLPipeline.from_config(
@@ -76,7 +76,9 @@ await pipeline.run(**config.pipeline.run_arguments())
 ```
 
 `AsyncArxivExtractor.from_config` takes `max_retries` and `backoff_factor`
-from `http` and `search_delay` from `pipeline`. `AsyncOpenAICompatibleClient`
+from `http`, `search_delay` from `pipeline`, and its `rate_limiter` from
+`full_text`. Leave out `full_text` and the extractor has no rate limiter, so a
+pipeline with `max_concurrency` 6 downloads six papers from arxiv.org at once. `AsyncOpenAICompatibleClient`
 takes `api_key` (the loaded `SecretStr` as-is), `base_url`, `model`, and
 `timeout` as `default_timeout`. Both accept any other constructor argument,
 such as `logger` or `rate_limiter`, as a keyword. The PubMed, Semantic

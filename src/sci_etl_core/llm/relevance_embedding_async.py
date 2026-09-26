@@ -26,9 +26,13 @@ class AsyncEmbeddingRelevanceFilter(AsyncRelevanceFilter):
 
     Only a real similarity score can reject a record. A failed embedding call,
     a record vector that is missing, all zero or non-finite, and a vector whose
-    dimension differs from the references all return ``default_on_error``:
-    none of them is evidence that the record is irrelevant, and a negative
-    verdict would mark it processed for good.
+    dimension differs from the references are faults, not verdicts: none of
+    them is evidence that the record is irrelevant, and a negative verdict
+    would mark it processed for good. With ``default_on_error=True``, the
+    default, a fault lets the record through. With ``False`` it raises
+    :class:`~sci_etl_core.exceptions.EmbeddingError`, so the record is neither
+    extracted nor marked processed, and the pipeline counts a failed attempt
+    and retries it on the next run.
     """
 
     def __init__(
@@ -61,7 +65,9 @@ class AsyncEmbeddingRelevanceFilter(AsyncRelevanceFilter):
         except asyncio.CancelledError:
             raise
         except EmbeddingError:
-            return self._default_on_error
+            if self._default_on_error:
+                return True
+            raise
         return top_similarity(query, references) >= self._threshold
 
     async def _ensure_references(self) -> np.ndarray:

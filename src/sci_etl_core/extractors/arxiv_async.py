@@ -9,22 +9,18 @@ import httpx
 from bs4 import BeautifulSoup
 
 from sci_etl_core._deprecation import warn_logger_argument
-from sci_etl_core._retry_after import retry_after_from_headers, retry_delay
-from sci_etl_core.exceptions import ExtractionError, MalformedResponseError, ParsingError, UpstreamError
+from sci_etl_core.exceptions import MalformedResponseError, ParsingError, UpstreamError
+from sci_etl_core.extractors._http import RetryingFetcher
 from sci_etl_core.extractors._offsets import decimal_cursor, offset_from_cursor, offset_page
 from sci_etl_core.extractors.async_base import AsyncExtractor
 from sci_etl_core.models import ListingPage, RawRecord
 from sci_etl_core.parsers.base import Parser
 from sci_etl_core.parsers.reference_trimmer import trim_after_references
-from sci_etl_core.rate_limiter import RateLimiting, limiter_for
+from sci_etl_core.rate_limiter import RateLimiting
 
 if TYPE_CHECKING:
-    from sci_etl_core.config import HttpConfig, PipelineConfig
+    from sci_etl_core.config import HttpConfig, PipelineConfig, RateLimitConfig
 
-_RETRYABLE_STATUS = frozenset({429, 500, 502, 503, 504})
-_SERVER_ERROR_FLOOR = 500
-_SUCCESS_FLOOR = 200
-_SUCCESS_CEILING = 300
 _VERSION_SUFFIX = re.compile(r"v\d+$")
 _YEAR_PREFIX = re.compile(r"[0-9]{4}(?![0-9])")
 _FEED_ROOT = "feed"
@@ -60,12 +56,15 @@ class AsyncArxivExtractor(AsyncExtractor):
         sleep: Any = asyncio.sleep,
         max_retry_after: float = 60.0,
         rate_limiter: RateLimiting | None = None,
+        max_download_bytes: int | None = None,
     ) -> None:
         """Configure the extractor.
 
-        Between attempts the extractor waits ``backoff_factor ** attempt``
-        seconds, or longer when arXiv's ``Retry-After`` header asks for it, up
-        to ``max_retry_after`` seconds. Each retry is logged with its wait.
+        Transport faults, ``408``, ``429``, and server errors are retried, as
+        by every bundled extractor. Between attempts the extractor waits
+        ``backoff_factor ** attempt`` seconds, or longer when arXiv's
+        ``Retry-After`` header asks for it, up to ``max_retry_after`` seconds.
+        Each retry is logged with its wait.
 
         Every HTTP request, including each retry, first enters ``rate_limiter``:
         an :class:`~sci_etl_core.rate_limiter.AsyncRateLimiter` for all
@@ -78,26 +77,35 @@ class AsyncArxivExtractor(AsyncExtractor):
             ``logger`` emits a :class:`PendingDeprecationWarning`; 0.6.0 logs through
             the standard :mod:`logging` module instead.
 
+        With ``max_download_bytes``, a response body is read only up to that
+        many bytes, so a huge listing or e-print cannot exhaust memory. A
+        larger listing page raises
+        :class:`~sci_etl_core.exceptions.ExtractionError`; a larger e-print or
+        PDF is logged and passed over like an unavailable one.
+
         Raises:
             ValueError: ``max_retries`` is less than 1, which would fail every
-                request without making a single attempt, or
-                ``max_retry_after`` is negative.
+                request without making a single attempt,
+                ``max_retry_after`` is negative, or ``max_download_bytes`` is
+                less than 1.
         """
-        if max_retries < 1:
-            raise ValueError("max_retries must be a positive integer")
-        if max_retry_after < 0:
-            raise ValueError("max_retry_after must not be negative")
         warn_logger_argument("AsyncArxivExtractor", logger)
-        self._max_retry_after = max_retry_after
-        self._client = client
+        self._log = logger or (lambda _msg: None)
+        self._fetcher = RetryingFetcher(
+            client,
+            "arXiv",
+            max_retries=max_retries,
+            backoff_factor=backoff_factor,
+            max_retry_after=max_retry_after,
+            sleep=sleep,
+            logger=self._log,
+            rate_limiter=rate_limiter,
+            max_bytes=max_download_bytes,
+        )
         self._pdf_parser = pdf_parser
         self._latex_parser = latex_parser
-        self._max_retries = max_retries
-        self._backoff_factor = backoff_factor
         self._sleep_before_search = sleep_before_search
-        self._log = logger or (lambda _msg: None)
         self._sleep = sleep
-        self._rate_limiter = rate_limiter
 
     @classmethod
     def from_config(
@@ -108,18 +116,25 @@ class AsyncArxivExtractor(AsyncExtractor):
         client: httpx.AsyncClient,
         pdf_parser: Parser,
         latex_parser: Parser,
+        full_text: RateLimitConfig | None = None,
         **options: Any,
     ) -> AsyncArxivExtractor:
         """Build an extractor from config sections.
 
-        ``http`` supplies ``max_retries`` and ``backoff_factor``, and
-        ``pipeline`` supplies ``search_delay`` as ``sleep_before_search``.
+        ``http`` supplies ``max_retries`` and ``backoff_factor``,
+        ``pipeline`` supplies ``search_delay`` as ``sleep_before_search``, and
+        ``full_text`` supplies the ``rate_limiter`` every request enters, from
+        :meth:`~sci_etl_core.config.RateLimitConfig.build_limiter`. Without
+        ``full_text`` the extractor has no rate limiter, and a pipeline with
+        ``max_concurrency`` 6 downloads six papers from arxiv.org at once.
         ``options`` pass any other constructor argument, such as ``logger`` or
         ``rate_limiter``, and override a value taken from the config.
         """
         settings: dict[str, Any] = {"max_retries": http.max_retries, "backoff_factor": http.backoff_factor}
         if pipeline is not None:
             settings["sleep_before_search"] = pipeline.search_delay
+        if full_text is not None:
+            settings["rate_limiter"] = full_text.build_limiter()
         settings.update(options)
         return cls(client=client, pdf_parser=pdf_parser, latex_parser=latex_parser, **settings)
 
@@ -162,30 +177,7 @@ class AsyncArxivExtractor(AsyncExtractor):
             "sortOrder": "descending",
         }
         await self._sleep(self._sleep_before_search)
-
-        last_error: Exception | None = None
-        for attempt in range(self._max_retries):
-            retry_after: float | None = None
-            try:
-                async with limiter_for(self._rate_limiter, self.API_URL):
-                    response = await self._client.get(self.API_URL, params=params, follow_redirects=True)
-            except httpx.RequestError as exc:
-                last_error = exc
-            else:
-                if _SUCCESS_FLOOR <= response.status_code < _SUCCESS_CEILING:
-                    return response.content
-                if not self._is_retryable(response.status_code):
-                    raise ExtractionError(
-                        f"arXiv rejected the listing request with status {response.status_code}"
-                    )
-                last_error = UpstreamError(f"arXiv returned status {response.status_code}")
-                retry_after = retry_after_from_headers(response.headers)
-            if attempt < self._max_retries - 1:
-                await self._wait_before_retry("arXiv search", attempt, last_error, retry_after)
-
-        message = f"arXiv search failed after {self._max_retries} attempts"
-        self._log(f"{message}: {last_error!r}")
-        raise UpstreamError(message) from last_error
+        return await self._fetcher.fetch(self.API_URL, "search", params)
 
     def _parse_listing(self, raw_listing: bytes) -> tuple[list[RawRecord], int]:
         soup = self._parse_feed(raw_listing)
@@ -256,22 +248,6 @@ class AsyncArxivExtractor(AsyncExtractor):
             if href and (link.get("rel") == "alternate" or link.get("type") == "text/html"):
                 return href
         return None
-
-    @staticmethod
-    def _is_retryable(status_code: int) -> bool:
-        """Whether a status code warrants another attempt.
-
-        Throttling and server-side faults are transient; every other 4xx is a
-        permanent verdict about this URL and must not be retried.
-        """
-        return status_code in _RETRYABLE_STATUS or status_code >= _SERVER_ERROR_FLOOR
-
-    async def _wait_before_retry(
-        self, action: str, attempt: int, error: Exception | None, retry_after: float | None
-    ) -> None:
-        delay = retry_delay(attempt, self._backoff_factor, retry_after, self._max_retry_after)
-        self._log(f"{action} attempt {attempt + 1} failed ({error!r}); retrying in {delay:g} s")
-        await self._sleep(delay)
 
     @staticmethod
     def _parse_feed(raw_listing: bytes) -> BeautifulSoup:
@@ -365,29 +341,4 @@ class AsyncArxivExtractor(AsyncExtractor):
         Raises:
             UpstreamError: Every retryable attempt was exhausted.
         """
-        last_error: Exception | None = None
-        for attempt in range(self._max_retries):
-            retry_after: float | None = None
-            try:
-                async with limiter_for(self._rate_limiter, url):
-                    response = await self._client.get(url, follow_redirects=True)
-            except httpx.RequestError as exc:
-                last_error = exc
-            else:
-                if response.status_code == httpx.codes.OK:
-                    return response.content
-                if not self._is_retryable(response.status_code):
-                    self._log(
-                        f"{label} unavailable for {record_id!r}: status {response.status_code}"
-                    )
-                    return None
-                last_error = UpstreamError(
-                    f"{label} fetch returned status {response.status_code}"
-                )
-                retry_after = retry_after_from_headers(response.headers)
-            if attempt < self._max_retries - 1:
-                await self._wait_before_retry(f"{label} fetch for {record_id!r}", attempt, last_error, retry_after)
-
-        message = f"{label} fetch failed for {record_id!r} after {self._max_retries} attempts"
-        self._log(f"{message}: {last_error!r}")
-        raise UpstreamError(message) from last_error
+        return await self._fetcher.fetch_optional(url, f"{label} fetch for {record_id!r}")

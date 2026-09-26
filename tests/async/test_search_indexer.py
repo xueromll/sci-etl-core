@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
+import httpx
 import pytest
 
 from sci_etl_core.embeddings.chunking import SlidingWindowChunker
@@ -221,9 +222,8 @@ EMPTY_LISTING = b"<feed xmlns='http://www.w3.org/2005/Atom'></feed>"
 
 
 def _arxiv_pipeline(mocker, ingestor, logged):
-    responses = [mocker.Mock(status_code=200, content=content) for content in (LISTING, EMPTY_LISTING)]
-    client = mocker.Mock()
-    client.get = mocker.AsyncMock(side_effect=responses)
+    pages = iter((LISTING, EMPTY_LISTING))
+    client = httpx.AsyncClient(transport=httpx.MockTransport(lambda _request: httpx.Response(200, content=next(pages))))
     extractor = AsyncArxivExtractor(
         client, pdf_parser=mocker.Mock(), latex_parser=mocker.Mock(), sleep=mocker.AsyncMock()
     )

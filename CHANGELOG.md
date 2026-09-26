@@ -6,16 +6,77 @@ All notable changes to sci-etl-core are recorded here. The format follows
 change behavior; each such change is listed under **Changed**.
 
 
-## [Unreleased]
+## [0.5.1] - 2026-09-26
+
+This release stops LLM responses that carry no answer from settling a record,
+keeps the LLM cache from replaying them, and adds download and decompression
+limits. The first run after upgrading misses the LLM cache once. See
+"Upgrading to 0.5.1" in MIGRATION.md.
+
+### Added
+
+- `AsyncLLMClient.invalidate(system_prompt, user_content)` reports a rejected
+  response, and `AsyncLLMResponseCache.delete(key)` removes one entry; both
+  bundled caches implement it.
+- **Size limits.** `max_download_bytes` on `AsyncArxivExtractor`,
+  `AsyncOpenAlexExtractor`, `AsyncPubMedExtractor`, and
+  `AsyncSemanticScholarExtractor` caps each response body after decoding, and
+  `LatexTarballParser(max_tex_bytes=)` caps the TeX decompressed from one
+  e-print. An oversized listing page raises `ExtractionError`; an oversized
+  full-text download or e-print is logged and passed over. Both default to no
+  limit.
+- `AsyncArxivExtractor.from_config(full_text=)` builds the extractor's rate
+  limiter from the `full_text` config section.
+- `AsyncOpenAICompatibleClient` and `CachingLLMClient` expose `base_url` and
+  `temperature`, and every `AsyncLLMClient` exposes `response_format`, which
+  defaults to `{"type": "json_object"}`. `response_cache_key` accepts all three
+  as keywords.
 
 ### Changed
 
+- An empty LLM completion now fails the record instead of settling it.
+  `AsyncOpenAICompatibleClient.complete_json` raises `LLMError` where it
+  returned `{}`, so the pipeline retries the record on the next run instead of
+  marking it processed with nothing exported.
+- `AsyncLLMEntityExtractor.extract` raises `LLMError` when the response holds
+  no entity list: it is empty, or it has several keys and none is
+  `result_key`. It returned `[]`, and the record was marked processed.
+- `AsyncLLMRelevanceFilter` and `AsyncEmbeddingRelevanceFilter` with
+  `default_on_error=False` fail closed: a failed call or an unclear verdict
+  raises, and the record is retried on the next run. It was read as
+  irrelevant, and the record was marked processed for good.
+- The LLM cache key now includes the endpoint's `base_url`, the temperature,
+  and the response format, so an answer cached for one provider, temperature,
+  or format is no longer served for another. Responses cached by earlier
+  releases are not found, and the first run after upgrading calls the LLM for
+  every request.
+- A third-party `AsyncLLMResponseCache` without `delete` keeps serving the
+  responses the library rejects. Implement `delete`, or accept the replay.
+- `PdfPlumberParser.extract_text` opens a PDF once for its text and tables,
+  where it opened it twice.
 - `AsyncSqliteEmbeddingStore.query` is much faster when called repeatedly. The
   store keeps its vectors in memory and rereads them only after the file
   changes, scores them in one NumPy product, and reads text and metadata for
   the returned chunks only. A discovery graph over a 9,000-chunk memory builds
   about four times faster. The store now holds its vectors in memory between
   queries until it is closed.
+- Releases are no longer held until sci-etl-cli and udg-catalogue run on them;
+  consumer readiness is reported in the release notes instead.
+
+### Fixed
+
+- `AsyncArxivExtractor` retries a `408` request timeout, as the other bundled
+  extractors do. It now shares their retry code, so its retry and failure
+  messages start with `arXiv` and name the action, such as
+  `arXiv LaTeX fetch for '2401.00001v1' failed after 3 attempts`.
+- `AsyncSqliteFts5Store.search` raises `SearchQueryError` naming the SQLite
+  version when SQLite fails to highlight a field-scoped `NEAR` group inside
+  `OR` or `NOT`, as SQLite 3.50.4 does for some documents. It raised `SearchStoreError`
+  with "database disk image is malformed", which reads as a corrupt index.
+- `CachingLLMClient` no longer replays a response the entity extractor or the
+  relevance filter rejected. The rejected response was cached, so every retry
+  got the same answer until the record was quarantined, without the model
+  being asked again.
 
 ## [0.5.0] - 2026-09-25
 
@@ -350,7 +411,8 @@ extractor, OpenAI-compatible chat and embedding clients, PDF, LaTeX, and HTML
 parsers, CSV, SQL, and Plotly exporters, dataframe processors and validators,
 file and SQLite state, semantic memory, and the udg-catalogue migration guide.
 
-[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/xueromll/sci-etl-core/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/xueromll/sci-etl-core/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/xueromll/sci-etl-core/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/xueromll/sci-etl-core/compare/v0.3.0...v0.4.0

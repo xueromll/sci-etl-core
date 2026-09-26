@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import gzip
 import io
 import tarfile
 
 import pytest
 
+from sci_etl_core.exceptions import ParsingError
 from sci_etl_core.parsers.html import HtmlTextParser
 from sci_etl_core.parsers.latex import LatexTarballParser
 from sci_etl_core.parsers.reference_trimmer import DEFAULT_TRIM_PATTERNS, trim_after_references
@@ -52,6 +54,27 @@ class TestLatexTarballParser:
         assert "visible" in text
         assert "hidden comment" not in text
         assert "50\\% efficiency" in text
+
+    def test_tex_past_the_limit_is_a_parsing_error(self):
+        tarball = self._make_tarball({"a.tex": b"x" * 60, "b.tex": b"y" * 60, "figure.png": b"z" * 500})
+        with pytest.raises(ParsingError, match="exceeds 100 bytes once decompressed"):
+            LatexTarballParser(max_tex_bytes=100).extract_text(tarball)
+
+    def test_tex_within_the_limit_is_read_and_other_members_do_not_count(self):
+        tarball = self._make_tarball({"a.tex": b"x" * 60, "b.tex": b"y" * 40, "figure.png": b"z" * 500})
+        assert len(LatexTarballParser(max_tex_bytes=100).extract_text(tarball)) == 101
+
+    def test_a_single_gzipped_file_past_the_limit_is_a_parsing_error(self):
+        with pytest.raises(ParsingError, match="exceeds 100 bytes once decompressed"):
+            LatexTarballParser(max_tex_bytes=100).extract_text(gzip.compress(b"\\section{a}" + b"x" * 1000))
+
+    def test_a_single_gzipped_file_at_the_limit_is_read(self):
+        body = b"x" * 100
+        assert LatexTarballParser(max_tex_bytes=100).extract_text(gzip.compress(body)) == body.decode()
+
+    def test_a_non_positive_limit_is_rejected(self):
+        with pytest.raises(ValueError, match="max_tex_bytes must be a positive integer"):
+            LatexTarballParser(max_tex_bytes=0)
 
     def test_returns_empty_when_no_tex_present(self):
         tarball = self._make_tarball({"data.csv": b"1,2,3"})

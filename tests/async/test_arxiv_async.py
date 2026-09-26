@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import itertools
+
 import httpx
 import pytest
 
@@ -27,17 +29,28 @@ ATOM = """<?xml version="1.0"?>
 
 
 def _resp(mocker, status=200, content=b""):
-    resp = mocker.Mock()
-    resp.status_code = status
-    resp.content = content
-    resp.raise_for_status = mocker.Mock()
-    return resp
+    return httpx.Response(status, content=content)
+
+
+class ScriptedClient(httpx.AsyncClient):
+    """Answers each request with the next scripted response, or raises the next scripted error."""
+
+    def __init__(self, script) -> None:
+        self.requests: list[httpx.Request] = []
+        replies = iter(script) if isinstance(script, list) else itertools.repeat(script)
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            self.requests.append(request)
+            reply = next(replies)
+            if isinstance(reply, Exception):
+                raise reply
+            return reply
+
+        super().__init__(transport=httpx.MockTransport(handler))
 
 
 def _client(mocker, *, resp=None, side_effect=None):
-    client = mocker.Mock()
-    client.get = mocker.AsyncMock(return_value=resp, side_effect=side_effect)
-    return client
+    return ScriptedClient(side_effect if side_effect is not None else resp or httpx.Response(200))
 
 
 def _build(client, mocker, **kwargs):
@@ -61,14 +74,21 @@ class TestAsyncArxivSearch:
         client = _client(mocker, side_effect=[httpx.ConnectError("boom"), _resp(mocker, 200, b"ok")])
         extractor = _build(client, mocker, max_retries=3)
         assert await extractor._search("q", 10, 0) == b"ok"
-        assert client.get.await_count == 2
+        assert len(client.requests) == 2
 
     @pytest.mark.asyncio
     async def test_handles_429_by_retrying(self, mocker):
         client = _client(mocker, side_effect=[_resp(mocker, 429), _resp(mocker, 200, b"ok")])
         extractor = _build(client, mocker, max_retries=3)
         assert await extractor._search("q", 10, 0) == b"ok"
-        assert client.get.await_count == 2
+        assert len(client.requests) == 2
+
+    @pytest.mark.asyncio
+    async def test_handles_408_by_retrying_like_every_bundled_extractor(self, mocker):
+        client = _client(mocker, side_effect=[_resp(mocker, 408), _resp(mocker, 200, b"ok")])
+        extractor = _build(client, mocker, max_retries=3)
+        assert await extractor._search("q", 10, 0) == b"ok"
+        assert len(client.requests) == 2
 
     @pytest.mark.asyncio
     async def test_raises_upstream_error_after_exhausting_retries(self, mocker):
@@ -78,7 +98,7 @@ class TestAsyncArxivSearch:
         with pytest.raises(UpstreamError, match="after 3 attempts") as excinfo:
             await extractor._search("q", 10, 0)
         assert isinstance(excinfo.value.__cause__, httpx.TimeoutException)
-        assert client.get.await_count == 3
+        assert len(client.requests) == 3
         assert any("failed" in msg.lower() for msg in logged)
 
     @pytest.mark.asyncio
@@ -109,8 +129,8 @@ class TestAsyncArxivParseListing:
 
         page = await extractor.fetch_page("q", "40", 2)
 
-        assert client.get.await_args.kwargs["params"]["start"] == 40
-        assert client.get.await_args.kwargs["params"]["max_results"] == 2
+        assert client.requests[-1].url.params["start"] == "40"
+        assert client.requests[-1].url.params["max_results"] == "2"
         assert [record.record_id for record in page.records] == ["2401.00001v1", "2401.00002v1"]
         assert (page.entries, page.next_cursor, page.truncated) == (2, "42", False)
         assert extractor.cursor_for_offset(42) == "42"
@@ -122,7 +142,7 @@ class TestAsyncArxivParseListing:
 
         page = await extractor.fetch_page("q", None, 10)
 
-        assert client.get.await_args.kwargs["params"]["start"] == 0
+        assert client.requests[-1].url.params["start"] == "0"
         assert (page.records, page.entries, page.next_cursor) == ((), 0, None)
 
     @pytest.mark.asyncio
@@ -130,7 +150,7 @@ class TestAsyncArxivParseListing:
         client = _client(mocker)
         with pytest.raises(StaleCursorError, match="not a listing offset"):
             await _build(client, mocker).fetch_page("q", "token", 10)
-        client.get.assert_not_awaited()
+        assert client.requests == []
 
     def test_a_negative_offset_has_no_cursor(self, mocker):
         with pytest.raises(ValueError, match="must not be negative"):
@@ -268,7 +288,7 @@ class TestAsyncArxivFetchFullText:
         extractor = _build(client, mocker)
         record = RawRecord(record_id="", title="t", abstract="just the abstract")
         assert await extractor.fetch_full_text(record) == "just the abstract"
-        assert client.get.await_count == 0
+        assert len(client.requests) == 0
 
     @pytest.mark.asyncio
     async def test_network_failure_raises_instead_of_falling_back(self, mocker):
@@ -320,19 +340,20 @@ class TestAsyncArxivInternals:
         extractor = _build(client, mocker)
         with pytest.raises(UpstreamError, match="after 3 attempts"):
             await extractor._get_bytes("http://x", "X", "id")
-        assert client.get.await_count == 3
+        assert len(client.requests) == 3
 
     @pytest.mark.asyncio
     async def test_get_bytes_returns_none_on_fatal_status(self, mocker):
         client = _client(mocker, resp=_resp(mocker, 404))
         extractor = _build(client, mocker)
         assert await extractor._get_bytes("http://x", "X", "id") is None
-        assert client.get.await_count == 1
+        assert len(client.requests) == 1
 
+    @pytest.mark.parametrize("status", [408, 503])
     @pytest.mark.asyncio
-    async def test_get_bytes_retries_retryable_status_then_succeeds(self, mocker):
-        client = _client(mocker, side_effect=[_resp(mocker, 503), _resp(mocker, 200, b"payload")])
+    async def test_get_bytes_retries_retryable_status_then_succeeds(self, mocker, status):
+        client = _client(mocker, side_effect=[_resp(mocker, status), _resp(mocker, 200, b"payload")])
         extractor = _build(client, mocker)
         assert await extractor._get_bytes("http://x", "X", "id") == b"payload"
-        assert client.get.await_count == 2
+        assert len(client.requests) == 2
 

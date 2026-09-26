@@ -116,13 +116,14 @@ reads:
 - `AsyncLLMRelevanceFilter` reads the `relevant` key. It accepts a boolean,
   `0`/`1`, or the strings `"true"`, `"false"`, `"yes"`, `"no"`, `"1"`, and
   `"0"` in any case. Anything else, including a missing key, is treated as an
-  error and returns `default_on_error`.
+  error: the record passes, or, with `default_on_error=False`, the filter
+  raises `LLMError` and the record is retried.
 - `AsyncLLMEntityExtractor` reads the list under `result_key` (default
   `"items"`), or the only value if the response has exactly one key. The list
   must hold objects; `null` means no entities and a lone object counts as one.
-  Any other value there raises `LLMError`, so the record is retried. A
-  response with several keys but no `result_key` yields no entities, and the
-  record is marked processed, so name the key in the prompt.
+  Any other value there raises `LLMError`, so the record is retried. An empty
+  completion, and a response with several keys but no `result_key`, raise
+  `LLMError` too, so name the key in the prompt.
 - `AsyncCsvUpsertExporter` takes each item's `key_column` value as the row key,
   so the extraction prompt must ask for that field.
 

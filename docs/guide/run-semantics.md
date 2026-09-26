@@ -31,6 +31,7 @@ entries, or is truncated.
 | R16 | A `StaleCursorError` restarts the listing from the first page once per run; a second one in the same run raises `PipelineAborted`. | `test_r16_*` | `pipeline_async.py:496-503` |
 | R17 | `newest_first=True`, or a `start_index` above 0, with an extractor that is not an `OffsetListing` raises `ValueError` before any request. | `test_r17_*` | `pipeline_async.py:428-431` |
 | R18 | With `max_attempts` set, failures are counted through `record_failure` only from pages that processed a record, or from stalled pages that a later page of the same run cleared; failures held by a stalled page that is never cleared are discarded. A listed record whose counted attempts reach `max_attempts` is skipped as quarantined, counted once per run in `RunMetrics.quarantined`, and logged once. No record is quarantined in the run in which its last attempt failed. | `test_r18_*` | `pipeline_async.py:101-121`, `:535-542`, `:571-594` |
+| R19 | A record is settled only on an answer. A relevance fault in a filter built with `default_on_error=False`, and an LLM response that holds no entity list, because the completion is empty or has several keys and none is `result_key`, fail the record: it stays unmarked, its attempt is counted under R18, and it is retried on the next run. | `test_r19_*` | `llm/openai_compatible_async.py:158-159`, `llm/extraction_async.py:99-103`, `llm/relevance_async.py:96-105`, `pipeline_async.py:733-747` |
 
 The source column cites the code behind each rule. A change that moves that
 code updates its citation here.

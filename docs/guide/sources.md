@@ -24,6 +24,10 @@ the details.
 
 The bundled extractors share the retry behavior described in
 [Retries](retries.md) and take a `rate_limiter` ([Rate limiting](rate-limiting.md)).
+Each also takes `max_download_bytes`, which caps every response body after
+decoding: an oversized listing page raises `ExtractionError`, and an oversized
+full-text download is logged and passed over. `LatexTarballParser(max_tex_bytes=)`
+caps the TeX decompressed from one arXiv e-print the same way.
 Each fills `RawRecord.metadata` with `authors` and `categories`, and with
 `published` and `year` when the source has a date, so search filters and
 facets work the same across sources. Sources other than arXiv also store

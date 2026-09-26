@@ -7,12 +7,13 @@ on requests, saved cursors, and marked records instead of on mock call lists.
 from __future__ import annotations
 
 import dataclasses
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from typing import Any
 
 from sci_etl_core.exceptions import LLMError, MalformedResponseError, StaleCursorError
 from sci_etl_core.exporters.async_base import AsyncExporter
 from sci_etl_core.extractors.async_base import AsyncExtractor
+from sci_etl_core.llm.async_base import AsyncLLMClient
 from sci_etl_core.llm.extraction_async import AsyncEntityExtractor
 from sci_etl_core.llm.relevance_async import AsyncRelevanceFilter
 from sci_etl_core.models import ListingPage, PipelineMetadata, RawRecord
@@ -120,6 +121,18 @@ class Entities(AsyncEntityExtractor):
         return [{"record": record_id}]
 
 
+class ScriptedLLM(AsyncLLMClient):
+    """Answers each completion with ``answer(user_content)``, which may raise."""
+
+    def __init__(self, answer: Callable[[str], Any]) -> None:
+        self.answer = answer
+        self.requests: list[str] = []
+
+    async def complete_json(self, system_prompt: str, user_content: str, timeout: int | None = None) -> Any:  # noqa: ASYNC109
+        self.requests.append(user_content)
+        return self.answer(user_content)
+
+
 class Exporter(AsyncExporter):
     def __init__(self) -> None:
         self.exported: list[dict[str, Any]] = []
@@ -183,8 +196,8 @@ class Sleep:
 @dataclasses.dataclass
 class Run:
     listing: Any
-    relevance: Relevance
-    entities: Entities
+    relevance: Any
+    entities: Any
     exporter: Exporter
     state: State
     sleep: Sleep
@@ -209,10 +222,12 @@ def build(
     memory_ingestor: Any = None,
     shutdown: ShutdownSignal | None = None,
     listing: Any = None,
+    relevance: AsyncRelevanceFilter | None = None,
+    entities: AsyncEntityExtractor | None = None,
 ) -> Run:
     listing = listing or Listing(listed)
-    relevance = Relevance(irrelevant)
-    entities = Entities(failing)
+    relevance = relevance or Relevance(irrelevant)
+    entities = entities or Entities(failing)
     exporter = Exporter()
     state = state or State()
     sleep = Sleep()
