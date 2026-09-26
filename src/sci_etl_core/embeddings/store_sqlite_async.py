@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from collections.abc import AsyncIterator, Sequence
+from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 from typing import Any
@@ -43,7 +44,9 @@ _INSERT = (
     " VALUES (?, ?, ?, ?, ?, ?)"
 )
 _DELETE = "DELETE FROM chunks WHERE record_id = ?"
-_SELECT = "SELECT record_id, chunk_index, text, dim, vector, metadata FROM chunks"
+_SELECT_VECTORS = "SELECT rowid, record_id, vector FROM chunks WHERE dim = ? ORDER BY rowid"
+_SELECT_PASSAGES = "SELECT rowid, record_id, chunk_index, text, metadata FROM chunks WHERE rowid IN ({placeholders})"
+_PASSAGE_BATCH = 500
 _COUNT = "SELECT COUNT(*) FROM chunks"
 _NEXT_RECORD_IDS = (
     "SELECT DISTINCT record_id FROM chunks WHERE ? IS NULL OR record_id > ? ORDER BY record_id LIMIT ?"
@@ -68,7 +71,11 @@ class AsyncSqliteEmbeddingStore(AsyncEmbeddingStore):
     ``PRAGMA user_version``.
 
     Similarity is a linear scan computed in NumPy: every stored vector is loaded
-    and dotted against the query. This is exact and dependency-light, and fits
+    and scored against the query in one matrix product, and only the best
+    chunks' text and metadata are read. The decoded vectors stay in memory
+    between queries and are reloaded only after a write, from this store or any
+    other connection to the file, so repeated queries skip the read. This is
+    exact and dependency-light, and fits
     corpora up to the low millions of chunks; swap in an ANN index behind this
     same interface if the memory outgrows a full scan.
 
@@ -79,6 +86,7 @@ class AsyncSqliteEmbeddingStore(AsyncEmbeddingStore):
     def __init__(self, path: str | Path) -> None:
         self._path = str(path)
         self._runner = AsyncSqliteRunner(self._open_connection, error_factory=EmbeddingStoreError)
+        self._vectors: _VectorSnapshot | None = None
 
     async def add(self, chunks: Sequence[EmbeddingChunk]) -> None:
         if not chunks:
@@ -109,12 +117,16 @@ class AsyncSqliteEmbeddingStore(AsyncEmbeddingStore):
         norm = float(np.linalg.norm(query_vector))
         if query_vector.size == 0 or norm == 0.0 or not np.isfinite(norm):
             return []
-        rows = await self._runner.run(
-            lambda connection: self._select(connection, exclude_record_id), "read chunk embeddings"
+        return await self._runner.run(
+            partial(
+                self._select,
+                query_vector=query_vector,
+                top_k=top_k,
+                min_score=min_score,
+                exclude_record_id=exclude_record_id,
+            ),
+            "read chunk embeddings",
         )
-        hits = [hit for hit in self._score_rows(rows, query_vector) if hit.score >= min_score]
-        hits.sort(key=lambda hit: hit.score, reverse=True)
-        return hits[:top_k]
 
     async def count(self) -> int:
         rows = await self._runner.run(
@@ -153,6 +165,7 @@ class AsyncSqliteEmbeddingStore(AsyncEmbeddingStore):
         await self._runner.aclose()
 
     def _open_connection(self) -> sqlite3.Connection:
+        self._vectors = None
         try:
             connection = sqlite3.connect(self._path, check_same_thread=False)
         except sqlite3.Error as exc:
@@ -168,35 +181,56 @@ class AsyncSqliteEmbeddingStore(AsyncEmbeddingStore):
             raise EmbeddingStoreError(f"Failed to open the SQLite embedding store: {exc}") from exc
         return connection
 
-    @staticmethod
-    def _write(connection: sqlite3.Connection, record_id: str | None, rows: list[tuple[Any, ...]]) -> None:
+    def _write(self, connection: sqlite3.Connection, record_id: str | None, rows: list[tuple[Any, ...]]) -> None:
+        self._vectors = None
         with connection:
             if record_id is not None:
                 connection.execute(_DELETE, (record_id,))
             connection.executemany(_INSERT, rows)
 
-    @staticmethod
-    def _select(connection: sqlite3.Connection, exclude_record_id: str | None) -> list[tuple[Any, ...]]:
-        if exclude_record_id is None:
-            return connection.execute(_SELECT).fetchall()
-        return connection.execute(f"{_SELECT} WHERE record_id != ?", (exclude_record_id,)).fetchall()
-
-    @staticmethod
-    def _score_rows(
-        rows: list[tuple[Any, ...]], query_vector: np.ndarray
+    def _select(
+        self,
+        connection: sqlite3.Connection,
+        query_vector: np.ndarray,
+        top_k: int,
+        min_score: float,
+        exclude_record_id: str | None,
     ) -> list[SearchHit]:
+        with connection:
+            connection.execute("BEGIN")
+            vectors = self._snapshot(connection, query_vector.size)
+            if not vectors.rowids.size:
+                return []
+            scores = vectors.matrix @ query_vector
+            usable = np.isfinite(scores) & (scores >= min_score)
+            if exclude_record_id is not None:
+                usable &= vectors.record_ids != exclude_record_id
+            kept = np.flatnonzero(usable)
+            ranked = kept[np.argsort(-scores[kept], kind="stable")][:top_k]
+            passages = _read_passages(connection, [int(vectors.rowids[index]) for index in ranked])
         hits: list[SearchHit] = []
-        for record_id, chunk_index, text, dim, blob, metadata in rows:
-            if dim != query_vector.size:
-                continue
-            stored = np.frombuffer(blob, dtype=np.float32)
-            score = float(stored @ query_vector)
-            if not np.isfinite(score):
-                continue
-            hits.append(
-                SearchHit(record_id, chunk_index, text, score, json.loads(metadata))
-            )
+        for index in ranked:
+            record_id, chunk_index, text, metadata = passages[int(vectors.rowids[index])]
+            hits.append(SearchHit(record_id, chunk_index, text, float(scores[index]), json.loads(metadata)))
         return hits
+
+    def _snapshot(self, connection: sqlite3.Connection, dim: int) -> _VectorSnapshot:
+        version = int(connection.execute("PRAGMA data_version").fetchone()[0])
+        cached = self._vectors
+        if cached is not None and cached.version == version and cached.dim == dim:
+            return cached
+        rows = connection.execute(_SELECT_VECTORS, (dim,)).fetchall()
+        blobs = [blob for _rowid, _record_id, blob in rows]
+        self._vectors = _VectorSnapshot(
+            version=version,
+            dim=dim,
+            rowids=np.array([rowid for rowid, _record_id, _blob in rows], dtype=np.int64),
+            record_ids=np.array([record_id for _rowid, record_id, _blob in rows], dtype=object),
+            matrix=np.vstack([np.frombuffer(blob, dtype=np.float32) for blob in blobs])
+            if blobs
+            else np.empty((0, dim), dtype=np.float32),
+        )
+        return self._vectors
 
     @staticmethod
     def _read_batch(connection: sqlite3.Connection, after: str | None, batch_size: int) -> list[StoredRecord]:
@@ -227,6 +261,25 @@ class AsyncSqliteEmbeddingStore(AsyncEmbeddingStore):
             vector.tobytes(),
             json.dumps(chunk.metadata),
         )
+
+
+@dataclass(frozen=True)
+class _VectorSnapshot:
+    version: int
+    dim: int
+    rowids: np.ndarray
+    record_ids: np.ndarray
+    matrix: np.ndarray
+
+
+def _read_passages(connection: sqlite3.Connection, rowids: list[int]) -> dict[int, tuple[Any, ...]]:
+    passages: dict[int, tuple[Any, ...]] = {}
+    for start in range(0, len(rowids), _PASSAGE_BATCH):
+        batch = rowids[start : start + _PASSAGE_BATCH]
+        query = _SELECT_PASSAGES.format(placeholders=", ".join("?" * len(batch)))
+        for rowid, *passage in connection.execute(query, batch).fetchall():
+            passages[rowid] = tuple(passage)
+    return passages
 
 
 def _newer_schema_error(found: int, supported: int) -> EmbeddingStoreError:

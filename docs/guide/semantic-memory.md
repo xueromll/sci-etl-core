@@ -47,7 +47,9 @@ pipeline = AsyncETLPipeline(..., memory_ingestor=ingestor, closeables=[client, e
   different number of vectors than passages.
 - **Stores.** `InMemoryEmbeddingStore()` suits tests and short-lived runs.
   `AsyncSqliteEmbeddingStore` persists vectors with the standard-library
-  `sqlite3` module and scans every stored vector on each query. It serializes
+  `sqlite3` module and scores every stored vector on each query. It keeps the
+  vectors in memory between queries and rereads them only after a write, from
+  this store or another process, so memory use grows with the store. It serializes
   access to its connection, so concurrent records can share one store, and
   each write is a single transaction. A stored vector holding NaN or infinity
   never appears in results.

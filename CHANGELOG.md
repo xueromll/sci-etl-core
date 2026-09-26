@@ -6,6 +6,17 @@ All notable changes to sci-etl-core are recorded here. The format follows
 change behavior; each such change is listed under **Changed**.
 
 
+## [Unreleased]
+
+### Changed
+
+- `AsyncSqliteEmbeddingStore.query` is much faster when called repeatedly. The
+  store keeps its vectors in memory and rereads them only after the file
+  changes, scores them in one NumPy product, and reads text and metadata for
+  the returned chunks only. A discovery graph over a 9,000-chunk memory builds
+  about four times faster. The store now holds its vectors in memory between
+  queries until it is closed.
+
 ## [0.5.0] - 2026-09-25
 
 This release changes how extractors page through a listing, what run state is

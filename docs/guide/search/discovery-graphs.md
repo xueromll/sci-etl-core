@@ -54,6 +54,8 @@ async def show_neighborhood(record_id: str) -> None:
   records matching a query; that call accepts pure negation, such as
   `NOT simulation`. `filters` takes `RangeFilter`s too, such as
   `RangeFilter("year", low=2020)`.
-- **Cost.** `EmbeddingEdgeSource` issues up to one vector query per node, and
-  `AsyncSqliteEmbeddingStore` scans every stored chunk on each query, so keep
-  `max_nodes` small for a large memory.
+- **Cost.** `EmbeddingEdgeSource` embeds each node's title and abstract and
+  issues up to one vector query per node. `AsyncSqliteEmbeddingStore` scores
+  every stored chunk on each query but reads the vectors from disk only once,
+  so pass the same store instance for the whole graph, and keep `max_nodes`
+  small for a large memory.
