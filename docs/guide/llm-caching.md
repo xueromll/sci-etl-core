@@ -25,19 +25,27 @@ closed at the end of the run.
 
 ## How requests are matched
 
-A request is keyed on the model name and both prompts, hashed with SHA-256; the
-timeout isn't part of the key. A changed system prompt, a changed paper text,
-or a different model is a miss.
+A request is keyed on the model name, the endpoint's `base_url`, the
+temperature, and both prompts, hashed with SHA-256; the timeout isn't part of
+the key. A changed system prompt, a changed paper text, a different model, a
+different provider, or a different temperature is a miss.
 
-Anything else that changes the answer, such as the temperature, isn't part of
-the key. Give the cache a model name that includes it:
+`CachingLLMClient` reads `base_url` and `temperature` from the client it wraps.
+`AsyncOpenAICompatibleClient` exposes both. A custom client without them is
+keyed on the model and prompts only.
 
-```python
-llm = CachingLLMClient(client, cache, model="gpt-4o-mini@t0.2")
-```
+## What is cached
 
-Only successful responses are cached, so a request that failed is sent again
-next time.
+A request that failed is never cached, so it is sent again next time. A
+response the library rejects isn't kept either:
+
+- `AsyncLLMEntityExtractor` rejects a response that holds no entity list, or
+  whose entity list isn't a list of objects.
+- `AsyncLLMRelevanceFilter` rejects a response without a clear verdict.
+
+Both call `invalidate` on the client, and `CachingLLMClient` deletes the
+cached response, so the retry on the next run reaches the model instead of
+replaying the same answer.
 
 ## Backends
 
@@ -48,12 +56,15 @@ next time.
   between runs. `clear()` empties it and `count()` reports its size.
 
 A custom backend, such as Redis, subclasses `AsyncLLMResponseCache` and
-implements `get`, `set`, and `clear`.
+implements `get`, `set`, `delete`, and `clear`. A backend without `delete`
+still works, but each rejected response stays cached and is logged as a cache
+fault.
 
 ## When the cache fails
 
 The cache never fails a completion. If reading or writing it raises, the error
-is logged as `LLM cache get failed: ...` or `LLM cache set failed: ...` and the
+is logged as `LLM cache get failed: ...`, `LLM cache set failed: ...`, or
+`LLM cache delete failed: ...` and the
 request goes to the LLM as if nothing were cached. `stats` counts `hits`,
 `misses`, and `faults`, and `usage` is the wrapped client's, so cache hits cost
 no tokens:

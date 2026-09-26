@@ -80,7 +80,10 @@ class AsyncLLMRelevanceFilter(AsyncRelevanceFilter):
         missing or unrecognized verdict all count as a fault, so a garbled
         answer such as the string ``"false"`` read as truthy can never pass for
         a confident verdict. A fault returns ``True`` when ``default_on_error``
-        is ``True`` and raises otherwise.
+        is ``True`` and raises otherwise. A response without a clear verdict is
+        reported through
+        :meth:`~sci_etl_core.llm.async_base.AsyncLLMClient.invalidate`, so a
+        caching client does not replay it.
 
         Raises:
             LLMError: ``default_on_error`` is ``False`` and the call failed or
@@ -88,8 +91,8 @@ class AsyncLLMRelevanceFilter(AsyncRelevanceFilter):
         """
         if not record.abstract:
             return self._default_on_empty_abstract
+        content = f"Title: {record.title}\nAbstract: {record.abstract}"
         try:
-            content = f"Title: {record.title}\nAbstract: {record.abstract}"
             result = await self._llm_client.complete_json(self._system_prompt, content, self._timeout)
         except asyncio.CancelledError:
             raise
@@ -100,6 +103,7 @@ class AsyncLLMRelevanceFilter(AsyncRelevanceFilter):
         verdict = _read_verdict(result)
         if verdict is not None:
             return verdict
+        await self._llm_client.invalidate(self._system_prompt, content)
         if self._default_on_error:
             return True
         raise LLMError("LLM response holds no clear relevance verdict")

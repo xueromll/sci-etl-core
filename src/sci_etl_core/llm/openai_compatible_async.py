@@ -100,6 +100,16 @@ class AsyncOpenAICompatibleClient(AsyncLLMClient):
         return self._model
 
     @property
+    def base_url(self) -> str:
+        """The API endpoint completions are requested from."""
+        return self._base_url
+
+    @property
+    def temperature(self) -> float:
+        """The sampling temperature sent with every completion."""
+        return self._temperature
+
+    @property
     def usage(self) -> TokenUsage:
         """Tokens reported across every response received so far, as a snapshot."""
         return replace(self._usage)

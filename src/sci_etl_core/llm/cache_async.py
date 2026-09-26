@@ -32,10 +32,30 @@ _MIGRATIONS: tuple[Migration, ...] = (
 )
 
 
-def response_cache_key(model: str, system_prompt: str, user_content: str) -> str:
-    """Return the cache key for a completion: a SHA-256 hex digest of its model and both prompts."""
-    payload = json.dumps([model, system_prompt, user_content], ensure_ascii=False, separators=(",", ":"))
+def response_cache_key(
+    model: str,
+    system_prompt: str,
+    user_content: str,
+    *,
+    base_url: str | None = None,
+    temperature: float | None = None,
+) -> str:
+    """Return the cache key for a completion.
+
+    The key is a SHA-256 hex digest of the model, the endpoint's ``base_url``,
+    the sampling ``temperature``, and both prompts, so an answer cached for one
+    provider or temperature is never served for another.
+    """
+    sampling = None if temperature is None else float(temperature)
+    payload = json.dumps(
+        [model, base_url, sampling, system_prompt, user_content], ensure_ascii=False, separators=(",", ":")
+    )
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def _optional_attribute(client: AsyncLLMClient, name: str, kind: type | tuple[type, ...]) -> Any:
+    value = getattr(client, name, None)
+    return value if isinstance(value, kind) and not isinstance(value, bool) else None
 
 
 class AsyncLLMResponseCache(ABC):
@@ -52,6 +72,20 @@ class AsyncLLMResponseCache(ABC):
     @abstractmethod
     async def clear(self) -> None:
         """Remove every cached response."""
+
+    async def delete(self, key: str) -> None:
+        """Remove the response cached under ``key``, if there is one.
+
+        :class:`CachingLLMClient` calls this for a response a component
+        rejected, so the next request reaches the LLM again. Both bundled
+        backends implement it; a custom backend should too.
+
+        Raises:
+            NotImplementedError: The backend does not implement it.
+                :class:`CachingLLMClient` logs this as a cache fault, and the
+                rejected response stays cached.
+        """
+        raise NotImplementedError(f"{type(self).__name__} does not implement delete")
 
 
 class InMemoryLLMResponseCache(AsyncLLMResponseCache):
@@ -89,6 +123,9 @@ class InMemoryLLMResponseCache(AsyncLLMResponseCache):
         self._entries.move_to_end(key)
         if self._max_entries is not None and len(self._entries) > self._max_entries:
             self._entries.popitem(last=False)
+
+    async def delete(self, key: str) -> None:
+        self._entries.pop(key, None)
 
     async def clear(self) -> None:
         self._entries.clear()
@@ -138,6 +175,12 @@ class AsyncSqliteLLMResponseCache(AsyncLLMResponseCache):
             "store an LLM response",
         )
 
+    async def delete(self, key: str) -> None:
+        await self._runner.run(
+            lambda connection: connection.execute("DELETE FROM llm_responses WHERE key = ?", (key,)),
+            "delete a cached LLM response",
+        )
+
     async def clear(self) -> None:
         await self._runner.run(
             lambda connection: connection.execute("DELETE FROM llm_responses"), "clear the LLM response cache"
@@ -183,16 +226,24 @@ class CacheStats:
 class CachingLLMClient(AsyncLLMClient):
     """Serve repeated completions from a cache instead of calling the LLM again.
 
-    A request is keyed on ``model`` and both prompts (:func:`response_cache_key`).
-    The timeout is not part of the key. Only successful responses are cached,
-    so a failed call is retried the next time it is made. Change ``model`` when
-    anything else that shapes the response changes, such as the temperature,
-    for example ``"gpt-4o-mini@t0.2"``.
+    A request is keyed on ``model``, ``base_url``, ``temperature``, and both
+    prompts (:func:`response_cache_key`). ``base_url`` and ``temperature`` are
+    read from the wrapped client's attributes of those names, as
+    :class:`~sci_etl_core.llm.openai_compatible_async.AsyncOpenAICompatibleClient`
+    exposes them, and are left out of the key for a client without them. The
+    timeout is not part of the key.
+
+    Only responses a component accepts stay cached. A failed call is never
+    cached, and a response that
+    :class:`~sci_etl_core.llm.extraction_async.AsyncLLMEntityExtractor` or
+    :class:`~sci_etl_core.llm.relevance_async.AsyncLLMRelevanceFilter` rejects
+    is removed through :meth:`invalidate`, so the next request reaches the LLM
+    again instead of replaying the rejected answer.
 
     The cache never fails a completion: an exception from the cache is logged
-    as ``LLM cache <get|set> failed: <error>``, counted in :attr:`stats`, and the
-    call goes to the LLM as on a miss. :attr:`usage` is the wrapped client's, so
-    cache hits cost no tokens.
+    as ``LLM cache <get|set|delete> failed: <error>``, counted in :attr:`stats`,
+    and the call goes to the LLM as on a miss. :attr:`usage` is the wrapped
+    client's, so cache hits cost no tokens.
     """
 
     def __init__(
@@ -216,6 +267,8 @@ class CachingLLMClient(AsyncLLMClient):
         self._client = client
         self._cache = cache
         self._model = resolved
+        self._base_url: str | None = _optional_attribute(client, "base_url", str)
+        self._temperature: float | None = _optional_attribute(client, "temperature", (int, float))
         warn_logger_argument("CachingLLMClient", logger)
         self._log = logger or (lambda _msg: None)
         self._stats = CacheStats()
@@ -224,6 +277,16 @@ class CachingLLMClient(AsyncLLMClient):
     def model(self) -> str:
         """The model name responses are cached under."""
         return self._model
+
+    @property
+    def base_url(self) -> str | None:
+        """The endpoint responses are cached under, or ``None`` when the wrapped client has none."""
+        return self._base_url
+
+    @property
+    def temperature(self) -> float | None:
+        """The sampling temperature responses are cached under, or ``None`` when the wrapped client has none."""
+        return self._temperature
 
     @property
     def stats(self) -> CacheStats:
@@ -240,7 +303,7 @@ class CachingLLMClient(AsyncLLMClient):
         Raises:
             LLMError: The wrapped client failed; nothing is cached.
         """
-        key = response_cache_key(self._model, system_prompt, user_content)
+        key = self._key(system_prompt, user_content)
         cached = await self._cached(key)
         if cached is not None:
             self._stats.hits += 1
@@ -255,6 +318,26 @@ class CachingLLMClient(AsyncLLMClient):
             self._stats.faults += 1
             self._log(f"LLM cache set failed: {error!r}")
         return response
+
+    async def invalidate(self, system_prompt: str, user_content: str) -> None:
+        """Remove the cached response to this request and tell the wrapped client.
+
+        A cache failure is logged as ``LLM cache delete failed: <error>`` and
+        counted in :attr:`stats`; it never raises.
+        """
+        try:
+            await self._cache.delete(self._key(system_prompt, user_content))
+        except asyncio.CancelledError:
+            raise
+        except Exception as error:
+            self._stats.faults += 1
+            self._log(f"LLM cache delete failed: {error!r}")
+        await self._client.invalidate(system_prompt, user_content)
+
+    def _key(self, system_prompt: str, user_content: str) -> str:
+        return response_cache_key(
+            self._model, system_prompt, user_content, base_url=self._base_url, temperature=self._temperature
+        )
 
     async def _cached(self, key: str) -> dict[str, Any] | None:
         try:

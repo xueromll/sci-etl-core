@@ -42,6 +42,7 @@ async def sci_etl_core.AsyncFileStateManager.record_failure(self, record_id: str
 async def sci_etl_core.AsyncFileStateManager.save_metadata(self, metadata: PipelineMetadata) -> None
 abstract class sci_etl_core.AsyncLLMClient(abc.ABC)
 abstract async def sci_etl_core.AsyncLLMClient.complete_json(self, system_prompt: str, user_content: str, timeout: int | None = None) -> dict[str, Any]
+async def sci_etl_core.AsyncLLMClient.invalidate(self, system_prompt: str, user_content: str) -> None
 property sci_etl_core.AsyncLLMClient.usage -> TokenUsage | None
 class sci_etl_core.AsyncLLMEntityExtractor(sci_etl_core.llm.extraction_async.AsyncEntityExtractor)
 def sci_etl_core.AsyncLLMEntityExtractor.__init__(self, llm_client: AsyncLLMClient, system_prompt: str, html_parser: Parser | None = None, result_key: str = 'items', max_chars: int = 120000, timeout: int = 120, max_tokens: int | None = None, encoding_name: str = 'cl100k_base', validator: RecordValidator | None = None, logger: Callable[[str], None] | None = None, label_field: str | None = None) -> None
@@ -51,14 +52,18 @@ def sci_etl_core.AsyncLLMRelevanceFilter.__init__(self, llm_client: AsyncLLMClie
 async def sci_etl_core.AsyncLLMRelevanceFilter.is_relevant(self, record: RawRecord) -> bool
 abstract class sci_etl_core.AsyncLLMResponseCache(abc.ABC)
 abstract async def sci_etl_core.AsyncLLMResponseCache.clear(self) -> None
+async def sci_etl_core.AsyncLLMResponseCache.delete(self, key: str) -> None
 abstract async def sci_etl_core.AsyncLLMResponseCache.get(self, key: str) -> dict[str, Any] | None
 abstract async def sci_etl_core.AsyncLLMResponseCache.set(self, key: str, response: dict[str, Any]) -> None
 class sci_etl_core.AsyncOpenAICompatibleClient(sci_etl_core.llm.async_base.AsyncLLMClient)
 def sci_etl_core.AsyncOpenAICompatibleClient.__init__(self, api_key: str | SecretStr, base_url: str, model: str, default_timeout: int = 120, temperature: float = 0.0, max_retries: int = 3, backoff_factor: float = 2.0, sleep: Any = asyncio.tasks.sleep, max_retry_after: float = 60.0, rate_limiter: RateLimiting | None = None) -> None
 async def sci_etl_core.AsyncOpenAICompatibleClient.aclose(self) -> None
+property sci_etl_core.AsyncOpenAICompatibleClient.base_url -> str
 async def sci_etl_core.AsyncOpenAICompatibleClient.complete_json(self, system_prompt: str, user_content: str, timeout: int | None = None) -> dict[str, Any]
 classmethod sci_etl_core.AsyncOpenAICompatibleClient.from_config(cls, llm: LLMConfig, **options: Any) -> AsyncOpenAICompatibleClient
+async def sci_etl_core.AsyncOpenAICompatibleClient.invalidate(self, system_prompt: str, user_content: str) -> None
 property sci_etl_core.AsyncOpenAICompatibleClient.model -> str
+property sci_etl_core.AsyncOpenAICompatibleClient.temperature -> float
 property sci_etl_core.AsyncOpenAICompatibleClient.usage -> TokenUsage
 class sci_etl_core.AsyncOpenAlexExtractor(sci_etl_core.extractors.async_base.AsyncExtractor)
 sci_etl_core.AsyncOpenAlexExtractor.API_URL = 'https://api.openalex.org/works'
@@ -72,6 +77,7 @@ def sci_etl_core.AsyncSqliteLLMResponseCache.__init__(self, path: str | Path, no
 async def sci_etl_core.AsyncSqliteLLMResponseCache.aclose(self) -> None
 async def sci_etl_core.AsyncSqliteLLMResponseCache.clear(self) -> None
 async def sci_etl_core.AsyncSqliteLLMResponseCache.count(self) -> int
+async def sci_etl_core.AsyncSqliteLLMResponseCache.delete(self, key: str) -> None
 async def sci_etl_core.AsyncSqliteLLMResponseCache.get(self, key: str) -> dict[str, Any] | None
 async def sci_etl_core.AsyncSqliteLLMResponseCache.set(self, key: str, response: dict[str, Any]) -> None
 class sci_etl_core.AsyncSqliteStateManager(sci_etl_core.state.async_base.AsyncStateManager)
@@ -97,9 +103,12 @@ sci_etl_core.BaseAppConfig: llm: LLMConfig = ..., http: HttpConfig = ..., full_t
 sci_etl_core.BaseAppConfig.strict_sections = True
 class sci_etl_core.CachingLLMClient(sci_etl_core.llm.async_base.AsyncLLMClient)
 def sci_etl_core.CachingLLMClient.__init__(self, client: AsyncLLMClient, cache: AsyncLLMResponseCache, model: str | None = None, logger: Callable[[str], None] | None = None) -> None
+property sci_etl_core.CachingLLMClient.base_url -> str | None
 async def sci_etl_core.CachingLLMClient.complete_json(self, system_prompt: str, user_content: str, timeout: int | None = None) -> dict[str, Any]
+async def sci_etl_core.CachingLLMClient.invalidate(self, system_prompt: str, user_content: str) -> None
 property sci_etl_core.CachingLLMClient.model -> str
 property sci_etl_core.CachingLLMClient.stats -> CacheStats
+property sci_etl_core.CachingLLMClient.temperature -> float | None
 property sci_etl_core.CachingLLMClient.usage -> TokenUsage | None
 class sci_etl_core.ConfigurationError(sci_etl_core.exceptions.SciEtlError)
 class sci_etl_core.EmbeddingError(sci_etl_core.exceptions.SciEtlError)
@@ -112,6 +121,7 @@ class sci_etl_core.InMemoryLLMResponseCache(sci_etl_core.llm.cache_async.AsyncLL
 def sci_etl_core.InMemoryLLMResponseCache.__init__(self, max_entries: int | None = None) -> None
 def sci_etl_core.InMemoryLLMResponseCache.__len__(self) -> int
 async def sci_etl_core.InMemoryLLMResponseCache.clear(self) -> None
+async def sci_etl_core.InMemoryLLMResponseCache.delete(self, key: str) -> None
 async def sci_etl_core.InMemoryLLMResponseCache.get(self, key: str) -> dict[str, Any] | None
 async def sci_etl_core.InMemoryLLMResponseCache.set(self, key: str, response: dict[str, Any]) -> None
 class sci_etl_core.LLMCacheError(sci_etl_core.exceptions.SciEtlError)
@@ -246,7 +256,7 @@ property sci_etl_core.embeddings.SlidingWindowChunker.overlap_words -> int
 def sci_etl_core.http_async.build_async_client(total_retries: int = 5, timeout: float = 25.0, user_agent: str = 'sci-etl-core/<version>') -> httpx.AsyncClient
 class sci_etl_core.llm.CacheStats()
 sci_etl_core.llm.CacheStats: hits: int = 0, misses: int = 0, faults: int = 0
-def sci_etl_core.llm.response_cache_key(model: str, system_prompt: str, user_content: str) -> str
+def sci_etl_core.llm.response_cache_key(model: str, system_prompt: str, user_content: str, *, base_url: str | None = None, temperature: float | None = None) -> str
 def sci_etl_core.load_config(config_cls: type[T], yaml_path: Path, env_path: Path | None = None, api_key_env_var: str = 'LLM_API_KEY') -> T
 class sci_etl_core.observability.PageFetched()
 sci_etl_core.observability.PageFetched: offset: int | None, entries: int, new_records: int, cursor: str | None = None, truncated: bool = False

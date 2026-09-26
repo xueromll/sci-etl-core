@@ -1185,8 +1185,8 @@ already implements, `fetch_page`, and the table sinks.
 
 ## Upgrading to 0.5.1
 
-0.5.1 changes no signature, but three LLM outcomes that used to settle a record
-now fail it. The record stays unmarked, its attempt counts toward
+0.5.1 breaks no existing call, but three LLM outcomes that used to settle a
+record now fail it. The record stays unmarked, its attempt counts toward
 `max_attempts`, and the next run retries it:
 
 - **An empty completion.** `AsyncOpenAICompatibleClient.complete_json` raises
@@ -1207,6 +1207,20 @@ than return `{}`.
 
 Records that earlier releases marked processed this way stay marked; only a
 run on a fresh state revisits them.
+
+The LLM cache changes too:
+
+- **Every cached response misses once.** The cache key now includes the
+  endpoint's `base_url` and the temperature, so the first run after upgrading
+  calls the LLM for every request. Entries written by earlier releases are
+  never read again; delete the cache file, or call `clear()`, to reclaim the
+  space. A model name that encodes the temperature, such as
+  `"gpt-4o-mini@t0.2"`, is no longer needed.
+- **Rejected responses are removed.** `AsyncLLMEntityExtractor` and
+  `AsyncLLMRelevanceFilter` call `invalidate` on their client when they reject
+  a response, and `CachingLLMClient` deletes it, so the retry reaches the
+  model. A custom `AsyncLLMResponseCache` should implement `delete`. A custom
+  client that wraps another should forward `invalidate` to it.
 
 ## What the migration uncovered
 

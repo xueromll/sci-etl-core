@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import json
 import sqlite3
-from contextlib import closing
+from contextlib import closing, suppress
 from datetime import UTC, datetime
 
 import pytest
@@ -12,6 +14,8 @@ from hypothesis import strategies as st
 from sci_etl_core.exceptions import LLMCacheError, LLMError
 from sci_etl_core.llm import (
     AsyncLLMClient,
+    AsyncLLMEntityExtractor,
+    AsyncLLMRelevanceFilter,
     AsyncLLMResponseCache,
     AsyncSqliteLLMResponseCache,
     CacheStats,
@@ -19,7 +23,7 @@ from sci_etl_core.llm import (
     InMemoryLLMResponseCache,
     response_cache_key,
 )
-from sci_etl_core.models import TokenUsage
+from sci_etl_core.models import RawRecord, TokenUsage
 
 
 class CountingClient(AsyncLLMClient):
@@ -80,6 +84,23 @@ class TestResponseCacheKey:
         }
         assert len(keys) == 4
 
+    def test_base_url_and_temperature_change_the_key(self):
+        keys = {
+            response_cache_key("m", "s", "u"),
+            response_cache_key("m", "s", "u", base_url="https://a"),
+            response_cache_key("m", "s", "u", base_url="https://b"),
+            response_cache_key("m", "s", "u", temperature=0.0),
+            response_cache_key("m", "s", "u", temperature=0.7),
+        }
+        assert len(keys) == 5
+
+    def test_an_integer_temperature_keys_like_the_equal_float(self):
+        assert response_cache_key("m", "s", "u", temperature=0) == response_cache_key("m", "s", "u", temperature=0.0)
+
+    def test_keys_written_by_0_5_0_are_not_reused(self):
+        old = json.dumps(["m", "s", "u"], ensure_ascii=False, separators=(",", ":"))
+        assert response_cache_key("m", "s", "u") != hashlib.sha256(old.encode("utf-8")).hexdigest()
+
 
 class TestInMemoryLLMResponseCache:
     @pytest.mark.asyncio
@@ -108,6 +129,16 @@ class TestInMemoryLLMResponseCache:
         assert await cache.get("b") is None
         assert await cache.get("a") == {"n": 1}
         assert len(cache) == 2
+
+    @pytest.mark.asyncio
+    async def test_delete_removes_one_entry_and_ignores_a_missing_key(self):
+        cache = InMemoryLLMResponseCache()
+        await cache.set("a", {"x": 1})
+        await cache.set("b", {"x": 2})
+        await cache.delete("a")
+        await cache.delete("missing")
+        assert await cache.get("a") is None
+        assert await cache.get("b") == {"x": 2}
 
     @pytest.mark.asyncio
     async def test_clear_empties_the_cache(self):
@@ -140,6 +171,17 @@ class TestAsyncSqliteLLMResponseCache:
             await second.aclose()
         with closing(sqlite3.connect(path)) as reader:
             assert reader.execute("SELECT created_at FROM llm_responses").fetchone()[0] == stamp.isoformat()
+
+    @pytest.mark.asyncio
+    async def test_delete_removes_one_response(self, tmp_path):
+        cache = AsyncSqliteLLMResponseCache(tmp_path / "llm.db")
+        await cache.set("a", {"x": 1})
+        await cache.set("b", {"x": 2})
+        await cache.delete("a")
+        await cache.delete("missing")
+        assert await cache.get("a") is None
+        assert await cache.count() == 1
+        await cache.aclose()
 
     @pytest.mark.asyncio
     async def test_clear_removes_every_response(self, tmp_path):
@@ -245,3 +287,97 @@ class TestCachingLLMClient:
         mocker.patch("sci_etl_core.llm.openai_compatible_async.AsyncOpenAI")
         client = AsyncOpenAICompatibleClient(api_key="k", base_url="https://x", model="gpt-y")
         assert CachingLLMClient(client, InMemoryLLMResponseCache()).model == "gpt-y"
+
+    def test_the_openai_client_exposes_its_base_url_and_temperature(self, mocker):
+        from sci_etl_core.llm.openai_compatible_async import AsyncOpenAICompatibleClient
+
+        mocker.patch("sci_etl_core.llm.openai_compatible_async.AsyncOpenAI")
+        client = AsyncOpenAICompatibleClient(api_key="k", base_url="https://x", model="gpt-y", temperature=0.3)
+        caching = CachingLLMClient(client, InMemoryLLMResponseCache())
+        assert (caching.base_url, caching.temperature) == ("https://x", 0.3)
+
+    @pytest.mark.parametrize(("base_url", "temperature"), [(None, None), (42, True), (b"https://x", "0.2")])
+    def test_missing_or_unusable_endpoint_attributes_are_left_out_of_the_key(self, base_url, temperature):
+        inner = CountingClient()
+        inner.base_url = base_url
+        inner.temperature = temperature
+        caching = CachingLLMClient(inner, InMemoryLLMResponseCache())
+        assert (caching.base_url, caching.temperature) == (None, None)
+
+    @pytest.mark.asyncio
+    async def test_a_different_endpoint_or_temperature_misses(self):
+        cache = InMemoryLLMResponseCache()
+        calls = 0
+        for base_url, temperature in [("https://a", 0.0), ("https://b", 0.0), ("https://a", 0.7), ("https://a", 0)]:
+            inner = CountingClient()
+            inner.base_url = base_url
+            inner.temperature = temperature
+            await CachingLLMClient(inner, cache).complete_json("s", "u")
+            calls += len(inner.calls)
+        assert calls == 3
+
+    @pytest.mark.asyncio
+    async def test_invalidate_removes_the_response_and_tells_the_wrapped_client(self, mocker):
+        inner = CountingClient()
+        forwarded = mocker.patch.object(inner, "invalidate", wraps=inner.invalidate)
+        client = CachingLLMClient(inner, InMemoryLLMResponseCache())
+        await client.complete_json("s", "u")
+        await client.invalidate("s", "u")
+        await client.complete_json("s", "u")
+        assert len(inner.calls) == 2
+        forwarded.assert_awaited_once_with("s", "u")
+
+    @pytest.mark.asyncio
+    async def test_a_backend_without_delete_is_logged_as_a_fault(self):
+        lines: list[str] = []
+        client = CachingLLMClient(CountingClient(), BrokenCache(set()), logger=lines.append)
+        await client.invalidate("s", "u")
+        assert lines == ["LLM cache delete failed: NotImplementedError('BrokenCache does not implement delete')"]
+        assert client.stats.faults == 1
+
+    @pytest.mark.asyncio
+    async def test_cancellation_inside_delete_propagates(self, mocker):
+        cache = InMemoryLLMResponseCache()
+        mocker.patch.object(cache, "delete", side_effect=asyncio.CancelledError)
+        with pytest.raises(asyncio.CancelledError):
+            await CachingLLMClient(CountingClient(), cache).invalidate("s", "u")
+
+
+class TestRejectedResponsesAreNotReplayed:
+    @pytest.mark.parametrize("response", [{"a": [], "b": []}, {}, {"items": "Object A"}])
+    @pytest.mark.asyncio
+    async def test_a_response_the_extractor_rejects_reaches_the_llm_again(self, response):
+        inner = CountingClient(response=response)
+        extractor = AsyncLLMEntityExtractor(CachingLLMClient(inner, InMemoryLLMResponseCache()), "p")
+        for _ in range(2):
+            with pytest.raises(LLMError):
+                await extractor.extract("paper text")
+        assert len(inner.calls) == 2
+
+    @pytest.mark.asyncio
+    async def test_a_response_the_extractor_accepts_stays_cached(self):
+        inner = CountingClient(response={"items": [{"name": "A"}]})
+        extractor = AsyncLLMEntityExtractor(CachingLLMClient(inner, InMemoryLLMResponseCache()), "p")
+        assert await extractor.extract("paper text") == await extractor.extract("paper text") == [{"name": "A"}]
+        assert len(inner.calls) == 1
+
+    @pytest.mark.parametrize("default_on_error", [True, False])
+    @pytest.mark.asyncio
+    async def test_a_relevance_response_without_a_clear_verdict_reaches_the_llm_again(self, default_on_error):
+        inner = CountingClient(response={"relevant": "maybe"})
+        relevance = AsyncLLMRelevanceFilter(
+            CachingLLMClient(inner, InMemoryLLMResponseCache()), "p", default_on_error=default_on_error
+        )
+        record = RawRecord(record_id="1", title="t", abstract="abstract")
+        for _ in range(2):
+            with suppress(LLMError):
+                await relevance.is_relevant(record)
+        assert len(inner.calls) == 2
+
+    @pytest.mark.asyncio
+    async def test_a_clear_relevance_verdict_stays_cached(self):
+        inner = CountingClient(response={"relevant": False})
+        relevance = AsyncLLMRelevanceFilter(CachingLLMClient(inner, InMemoryLLMResponseCache()), "p")
+        record = RawRecord(record_id="1", title="t", abstract="abstract")
+        assert await relevance.is_relevant(record) is await relevance.is_relevant(record) is False
+        assert len(inner.calls) == 1

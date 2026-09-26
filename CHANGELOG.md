@@ -8,6 +8,14 @@ change behavior; each such change is listed under **Changed**.
 
 ## [Unreleased]
 
+### Added
+
+- `AsyncLLMClient.invalidate(system_prompt, user_content)` reports a rejected
+  response, and `AsyncLLMResponseCache.delete(key)` removes one entry; both
+  bundled caches implement it.
+- `AsyncOpenAICompatibleClient` and `CachingLLMClient` expose `base_url` and
+  `temperature`, and `response_cache_key` accepts both as keywords.
+
 ### Changed
 
 - An empty LLM completion now fails the record instead of settling it.
@@ -21,12 +29,23 @@ change behavior; each such change is listed under **Changed**.
   `default_on_error=False` fail closed: a failed call or an unclear verdict
   raises, and the record is retried on the next run. It was read as
   irrelevant, and the record was marked processed for good.
+- The LLM cache key now includes the endpoint's `base_url` and the
+  temperature, so an answer cached for one provider or temperature is no
+  longer served for another. Responses cached by earlier releases are not
+  found, and the first run after upgrading calls the LLM for every request.
 - `AsyncSqliteEmbeddingStore.query` is much faster when called repeatedly. The
   store keeps its vectors in memory and rereads them only after the file
   changes, scores them in one NumPy product, and reads text and metadata for
   the returned chunks only. A discovery graph over a 9,000-chunk memory builds
   about four times faster. The store now holds its vectors in memory between
   queries until it is closed.
+
+### Fixed
+
+- `CachingLLMClient` no longer replays a response the entity extractor or the
+  relevance filter rejected. The rejected response was cached, so every retry
+  got the same answer until the record was quarantined, without the model
+  being asked again.
 
 ## [0.5.0] - 2026-09-25
 
