@@ -112,7 +112,8 @@ pytest --cov=sci_etl_core --cov-report=term-missing   # coverage report
   are deselected by default. The Live workflow runs them nightly and is never a
   required check. Run them locally with `pytest -m live tests/live`. Keys for a
   higher rate limit are optional and read from `NCBI_API_KEY`,
-  `SEMANTIC_SCHOLAR_API_KEY`, and `OPENALEX_MAILTO`.
+  `SEMANTIC_SCHOLAR_API_KEY`, and `OPENALEX_MAILTO`. Without its key, a source
+  that keeps answering `429` is skipped instead of failed.
 - **Throughput benchmark.** `python benchmarks/run_throughput.py` runs every
   bundled pipeline exporter through `AsyncETLPipeline` at 1,000, 10,000, and
   50,000 records and writes the timings to `benchmarks/results/<version>.json`.

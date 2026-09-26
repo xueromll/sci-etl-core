@@ -4,7 +4,9 @@ Deselected by default; run them with ``pytest -m live tests/live``. They catch
 upstream payload changes that the offline suite cannot see. Optional keys are
 read from ``NCBI_API_KEY``, ``SEMANTIC_SCHOLAR_API_KEY``, and
 ``OPENALEX_MAILTO``; without them the sources allow fewer requests, and the
-tests still run.
+tests still run. A source that keeps answering ``429`` to an unkeyed run is
+skipped rather than failed, because the shared unkeyed pool is outside the
+library's control.
 """
 
 from __future__ import annotations
@@ -23,8 +25,10 @@ from sci_etl_core import (
     AsyncPubMedExtractor,
     AsyncSemanticScholarExtractor,
 )
+from sci_etl_core.exceptions import UpstreamError
 from sci_etl_core.extractors.async_base import AsyncExtractor
 from sci_etl_core.http_async import build_async_client
+from sci_etl_core.models import ListingPage
 from sci_etl_core.parsers import LatexTarballParser, PdfPlumberParser
 from sci_etl_core.rate_limiter import build_rate_limiter
 
@@ -40,6 +44,10 @@ class Source:
     name: str
     query: str
     build: Callable[[httpx.AsyncClient], AsyncExtractor]
+    key_variable: str | None = None
+
+    def runs_unkeyed(self) -> bool:
+        return self.key_variable is not None and not os.environ.get(self.key_variable)
 
 
 SOURCES = [
@@ -52,6 +60,7 @@ SOURCES = [
         "pubmed",
         "ultra-diffuse galaxies OR CRISPR",
         lambda client: AsyncPubMedExtractor(client, api_key=os.environ.get("NCBI_API_KEY") or None),
+        key_variable="NCBI_API_KEY",
     ),
     Source(
         "semantic_scholar",
@@ -63,6 +72,7 @@ SOURCES = [
             backoff_factor=3.0,
             rate_limiter=build_rate_limiter(max_rate=1, time_period=1.0),
         ),
+        key_variable="SEMANTIC_SCHOLAR_API_KEY",
     ),
     Source(
         "openalex",
@@ -81,12 +91,26 @@ async def client() -> AsyncIterator[httpx.AsyncClient]:
         await http_client.aclose()
 
 
+def _rate_limited(error: UpstreamError) -> bool:
+    cause = error.__cause__
+    return isinstance(cause, UpstreamError) and str(cause).endswith("status 429")
+
+
+async def _first_page(extractor: AsyncExtractor, source: Source) -> ListingPage:
+    try:
+        return await extractor.fetch_page(source.query, None, PAGE_SIZE)
+    except UpstreamError as error:
+        if source.runs_unkeyed() and _rate_limited(error):
+            pytest.skip(f"{source.name} kept rate limiting the unkeyed pool; set {source.key_variable} to test it")
+        raise
+
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize("source", SOURCES, ids=[source.name for source in SOURCES])
 async def test_source_lists_records_with_the_promised_metadata_and_full_text(client, source):
     extractor = source.build(client)
 
-    page = await extractor.fetch_page(source.query, None, PAGE_SIZE)
+    page = await _first_page(extractor, source)
     records, entries = page.records, page.entries
 
     assert entries >= 1
