@@ -201,7 +201,7 @@ class AsyncSqliteEmbeddingStore(AsyncEmbeddingStore):
             vectors = self._snapshot(connection, query_vector.size)
             if not vectors.rowids.size:
                 return []
-            scores = vectors.matrix @ query_vector
+            scores = (vectors.matrix @ query_vector).astype(np.float64)
             usable = np.isfinite(scores) & (scores >= min_score)
             if exclude_record_id is not None:
                 usable &= vectors.record_ids != exclude_record_id

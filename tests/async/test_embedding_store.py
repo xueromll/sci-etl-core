@@ -146,6 +146,16 @@ class TestAsyncSqliteEmbeddingStore:
         finally:
             await store.aclose()
 
+    @pytest.mark.parametrize("min_score", [2.463241401159974e-287, 1e-46])
+    @pytest.mark.asyncio
+    async def test_a_min_score_below_float32_precision_is_compared_exactly(self, path, min_score):
+        store = AsyncSqliteEmbeddingStore(path)
+        try:
+            await store.add(_chunks(("a", 0, "orthogonal", [1.0, 0.0])))
+            assert await store.query([0.0, 1.0], min_score=min_score) == []
+        finally:
+            await store.aclose()
+
     @pytest.mark.asyncio
     async def test_add_empty_is_noop(self, path):
         store = AsyncSqliteEmbeddingStore(path)
