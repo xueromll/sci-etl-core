@@ -2363,10 +2363,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#current-release-v050" class="md-nav__link">
+  <a href="#current-release-v051" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Current release — v0.5.0
+        Current release — v0.5.1
       
     </span>
   </a>
@@ -2577,10 +2577,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#current-release-v050" class="md-nav__link">
+  <a href="#current-release-v051" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Current release — v0.5.0
+        Current release — v0.5.1
       
     </span>
   </a>
@@ -2689,9 +2689,10 @@ however useful it would be elsewhere. To work on an item, comment on its issue
 or open one. Items marked <strong>good first issue</strong> suit newcomers.</p>
 <p>Each milestone lists its exit criteria. A milestone ships when every criterion
 holds with the test suite offline and line coverage at 100%.</p>
-<h2 id="current-release-v050">Current release — v0.5.0<a class="headerlink" href="#current-release-v050" title="Permanent link">&para;</a></h2>
+<h2 id="current-release-v051">Current release — v0.5.1<a class="headerlink" href="#current-release-v051" title="Permanent link">&para;</a></h2>
 <p><a href="../changelog/">CHANGELOG.md</a> lists every change by release, and
-<a href="../migration/">MIGRATION.md</a> explains how to upgrade from 0.4.</p>
+<a href="../migration/">MIGRATION.md</a> explains how to upgrade from 0.4 and what 0.5.1
+changes.</p>
 <table>
 <thead>
 <tr>
@@ -2703,13 +2704,13 @@ holds with the test suite offline and line coverage at 100%.</p>
 <tbody>
 <tr>
 <td><a href="https://github.com/xueromll/udg-catalogue">udg-catalogue</a></td>
-<td><code>sci-etl-core&gt;=0.4.0,&lt;0.5</code> in its latest commit, with the <code>embeddings</code>, <code>embeddings-local</code>, and <code>search</code> extras; its next commit requires <code>&gt;=0.5,&lt;0.6</code></td>
+<td><code>sci-etl-core&gt;=0.4.0,&lt;0.5</code> in its latest commit, with the <code>embeddings</code>, <code>embeddings-local</code>, and <code>search</code> extras; its next commit requires <code>&gt;=0.5.1,&lt;0.6</code></td>
 <td>0.4 in production, including search, discovery, and embeddings</td>
 </tr>
 <tr>
 <td><a href="https://github.com/xueromll/sci-etl-cli">sci-etl-cli</a></td>
-<td><code>&gt;=0.5.0.dev0,&lt;0.6</code> on <code>master</code>, and its suite passes against core <code>master</code>; its next release requires <code>&gt;=0.5.0,&lt;0.6</code></td>
-<td>0.3</td>
+<td><code>&gt;=0.5.0.dev0,&lt;0.6</code> on <code>master</code>, and its suite passes against core <code>master</code>; its next release, 0.3.0, requires <code>&gt;=0.5.1,&lt;0.6</code></td>
+<td>0.2, in its latest release 0.2.1</td>
 </tr>
 </tbody>
 </table>
@@ -2767,8 +2768,8 @@ holds with the test suite offline and line coverage at 100%.</p>
 </tr>
 </tbody>
 </table>
-<p>Still open from 0.5.0: a sci-etl-cli release and a udg-catalogue commit that
-require core 0.5, and a live check of how long OpenAlex cursors stay valid.
+<p>Still open: a sci-etl-cli release and a udg-catalogue commit that require core
+0.5.1, and a live check of how long OpenAlex cursors stay valid.
 PubMed and Semantic Scholar keep offset paging and report their caps as
 truncated: E-utilities serves at most 9,999 results even through its history
 server, and Semantic Scholar's bulk search returns fixed pages of 1,000
@@ -2777,9 +2778,7 @@ papers, which cannot honor <code>page_size</code>.</p>
 <p>Each public contract changes at most once more before 1.0. The run contract
 (extractor, state, constructor) breaks in 0.5.0, the data contract (entities,
 exporter, logging, dependencies) in 0.6.0, and every later release is
-additive. A release is tagged only when sci-etl-cli passes against it and
-udg-catalogue completes a run on it. Each breaking change gets a
-<a href="../migration/">MIGRATION.md</a> entry.</p>
+additive. Each breaking change gets a <a href="../migration/">MIGRATION.md</a> entry.</p>
 <h2 id="v060-data-contract-and-claims">v0.6.0 — Data contract and claims<a class="headerlink" href="#v060-data-contract-and-claims" title="Permanent link">&para;</a></h2>
 <p>Breaking, for the last time before 1.0.</p>
 <ul>

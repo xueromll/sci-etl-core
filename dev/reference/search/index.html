@@ -13657,7 +13657,13 @@ Every write is one transaction, so re-indexing a record replaces its text,
 metadata, and tags atomically. The single connection is used by one worker
 thread at a time, even when an awaiting task is cancelled, and every SQLite
 failure, including a file that is not a database, surfaces as
-:class:<code>~sci_etl_core.exceptions.SearchStoreError</code>.</p>
+:class:<code>~sci_etl_core.exceptions.SearchStoreError</code>. The one exception is a
+known SQLite fault: some builds, including 3.50.4, fail to highlight a
+field-scoped <code>NEAR</code> group inside <code>OR</code> for some documents and report
+the file as malformed. When the same match runs cleanly without
+highlighting, :meth:<code>search</code> raises
+:class:<code>~sci_etl_core.exceptions.SearchQueryError</code> naming the SQLite
+version instead.</p>
 <p>Ranking is FTS5's <code>bm25()</code> with the field <code>weights</code>, reported as a
 score where higher is better. <code>snippet</code> comes from the one field FTS5
 chooses, and <code>snippets</code> holds FTS5's snippet of every field it

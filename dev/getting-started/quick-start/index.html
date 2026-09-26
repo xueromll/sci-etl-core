@@ -2682,13 +2682,14 @@ reads:</p>
 <li><code>AsyncLLMRelevanceFilter</code> reads the <code>relevant</code> key. It accepts a boolean,
   <code>0</code>/<code>1</code>, or the strings <code>"true"</code>, <code>"false"</code>, <code>"yes"</code>, <code>"no"</code>, <code>"1"</code>, and
   <code>"0"</code> in any case. Anything else, including a missing key, is treated as an
-  error and returns <code>default_on_error</code>.</li>
+  error: the record passes, or, with <code>default_on_error=False</code>, the filter
+  raises <code>LLMError</code> and the record is retried.</li>
 <li><code>AsyncLLMEntityExtractor</code> reads the list under <code>result_key</code> (default
   <code>"items"</code>), or the only value if the response has exactly one key. The list
   must hold objects; <code>null</code> means no entities and a lone object counts as one.
-  Any other value there raises <code>LLMError</code>, so the record is retried. A
-  response with several keys but no <code>result_key</code> yields no entities, and the
-  record is marked processed, so name the key in the prompt.</li>
+  Any other value there raises <code>LLMError</code>, so the record is retried. An empty
+  completion, and a response with several keys but no <code>result_key</code>, raise
+  <code>LLMError</code> too, so name the key in the prompt.</li>
 <li><code>AsyncCsvUpsertExporter</code> takes each item's <code>key_column</code> value as the row key,
   so the extraction prompt must ask for that field.</li>
 </ul>

@@ -4011,6 +4011,7 @@ to tell an unreadable artifact apart from a programming error.</p>
     <div class="doc doc-contents ">
 
         <p>Return the text of every page, followed by any tables found.</p>
+<p>The document is opened once for both.</p>
 
 
 <p><span class="doc-section-title">Raises:</span></p>
@@ -4281,7 +4282,8 @@ an empty result rather than discarding text that was already read.</p>
 
 
 <a href="#sci_etl_core.parsers.latex.LatexTarballParser" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">LatexTarballParser</span><span class="p">(</span><span class="n">max_tex_bytes</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
@@ -4299,6 +4301,35 @@ expanded in place by following <code>\input</code>, <code>\include</code> and <c
 so the body reads in document order and a <code>\bibliography</code> command at the
 end of the root cannot land before the sections it includes. <code>.tex</code> files
 that no root includes are appended afterwards in name order.</p>
+<p>Members are read in memory and never extracted to disk. With
+<code>max_tex_bytes</code>, at most that many bytes of TeX are decompressed from one
+e-print, across all its <code>.tex</code> members, so an archive that expands
+without bound cannot exhaust memory.</p>
+
+        <p>Configure the parser.</p>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError">ValueError</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p><code>max_tex_bytes</code> is less than 1.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
 
 
 
@@ -4353,7 +4384,8 @@ that no root includes are appended afterwards in name order.</p>
             <td>
               <div class="doc-md-description">
                 <p>The payload is neither a tarball nor gzipped TeX, for
-example a PDF-only submission.</p>
+example a PDF-only submission, or its TeX exceeds
+<code>max_tex_bytes</code>.</p>
               </div>
             </td>
           </tr>

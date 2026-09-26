@@ -2690,6 +2690,10 @@ example by date range. <a href="../run-semantics/#capped-listings">Run semantics
 the details.</p>
 <p>The bundled extractors share the retry behavior described in
 <a href="../retries/">Retries</a> and take a <code>rate_limiter</code> (<a href="../rate-limiting/">Rate limiting</a>).
+Each also takes <code>max_download_bytes</code>, which caps every response body after
+decoding: an oversized listing page raises <code>ExtractionError</code>, and an oversized
+full-text download is logged and passed over. <code>LatexTarballParser(max_tex_bytes=)</code>
+caps the TeX decompressed from one arXiv e-print the same way.
 Each fills <code>RawRecord.metadata</code> with <code>authors</code> and <code>categories</code>, and with
 <code>published</code> and <code>year</code> when the source has a date, so search filters and
 facets work the same across sources. Sources other than arXiv also store

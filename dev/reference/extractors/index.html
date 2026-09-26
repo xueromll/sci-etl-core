@@ -4008,7 +4008,8 @@ offset 0 is the first page, the same as <code>None</code>.</p>
   
       module-attribute
    (sci_etl_core.rate_limiter.RateLimiting)" href="../utilities/#sci_etl_core.rate_limiter.RateLimiting">RateLimiting</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="p">)</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">max_download_bytes</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="p">)</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -4027,9 +4028,11 @@ publication date (:meth:<code>fetch_page</code>), which a text search store can
 filter and facet on. The injected <code>client</code> is borrowed and never closed.</p>
 
         <p>Configure the extractor.</p>
-<p>Between attempts the extractor waits <code>backoff_factor ** attempt</code>
-seconds, or longer when arXiv's <code>Retry-After</code> header asks for it, up
-to <code>max_retry_after</code> seconds. Each retry is logged with its wait.</p>
+<p>Transport faults, <code>408</code>, <code>429</code>, and server errors are retried, as
+by every bundled extractor. Between attempts the extractor waits
+<code>backoff_factor ** attempt</code> seconds, or longer when arXiv's
+<code>Retry-After</code> header asks for it, up to <code>max_retry_after</code> seconds.
+Each retry is logged with its wait.</p>
 <p>Every HTTP request, including each retry, first enters <code>rate_limiter</code>:
 an :class:<code>~sci_etl_core.rate_limiter.AsyncRateLimiter</code> for all
 requests, or a :class:<code>~sci_etl_core.rate_limiter.HostRateLimiter</code> to
@@ -4039,6 +4042,11 @@ so no slot is held while waiting to retry.</p>
 <p>.. deprecated:: 0.5.0
     <code>logger</code> emits a :class:<code>PendingDeprecationWarning</code>; 0.6.0 logs through
     the standard :mod:<code>logging</code> module instead.</p>
+<p>With <code>max_download_bytes</code>, a response body is read only up to that
+many bytes, so a huge listing or e-print cannot exhaust memory. A
+larger listing page raises
+:class:<code>~sci_etl_core.exceptions.ExtractionError</code>; a larger e-print or
+PDF is logged and passed over like an unavailable one.</p>
 
 
 <p><span class="doc-section-title">Raises:</span></p>
@@ -4057,8 +4065,9 @@ so no slot is held while waiting to retry.</p>
             <td>
               <div class="doc-md-description">
                 <p><code>max_retries</code> is less than 1, which would fail every
-request without making a single attempt, or
-<code>max_retry_after</code> is negative.</p>
+request without making a single attempt,
+<code>max_retry_after</code> is negative, or <code>max_download_bytes</code> is
+less than 1.</p>
               </div>
             </td>
           </tr>
@@ -4128,15 +4137,20 @@ request without making a single attempt, or
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">client</span><span class="p">:</span> <span class="n"><span title="httpx.AsyncClient">AsyncClient</span></span><span class="p">,</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">pdf_parser</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Parser (sci_etl_core.parsers.base.Parser)" href="../parsers/#sci_etl_core.parsers.base.Parser">Parser</a></span><span class="p">,</span>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">latex_parser</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Parser (sci_etl_core.parsers.base.Parser)" href="../parsers/#sci_etl_core.parsers.base.Parser">Parser</a></span><span class="p">,</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="o">**</span><span class="n">options</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">,</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            AsyncArxivExtractor (sci_etl_core.extractors.arxiv_async.AsyncArxivExtractor)" href="#sci_etl_core.extractors.arxiv_async.AsyncArxivExtractor">AsyncArxivExtractor</a></span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">full_text</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            RateLimitConfig (sci_etl_core.config.RateLimitConfig)" href="../configuration/#sci_etl_core.config.RateLimitConfig">RateLimitConfig</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="o">**</span><span class="n">options</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">,</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            AsyncArxivExtractor (sci_etl_core.extractors.arxiv_async.AsyncArxivExtractor)" href="#sci_etl_core.extractors.arxiv_async.AsyncArxivExtractor">AsyncArxivExtractor</a></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
 
         <p>Build an extractor from config sections.</p>
-<p><code>http</code> supplies <code>max_retries</code> and <code>backoff_factor</code>, and
-<code>pipeline</code> supplies <code>search_delay</code> as <code>sleep_before_search</code>.
+<p><code>http</code> supplies <code>max_retries</code> and <code>backoff_factor</code>,
+<code>pipeline</code> supplies <code>search_delay</code> as <code>sleep_before_search</code>, and
+<code>full_text</code> supplies the <code>rate_limiter</code> every request enters, from
+:meth:<code>~sci_etl_core.config.RateLimitConfig.build_limiter</code>. Without
+<code>full_text</code> the extractor has no rate limiter, and a pipeline with
+<code>max_concurrency</code> 6 downloads six papers from arxiv.org at once.
 <code>options</code> pass any other constructor argument, such as <code>logger</code> or
 <code>rate_limiter</code>, and override a value taken from the config.</p>
 
@@ -4395,7 +4409,8 @@ yielded usable text.</p>
   
       module-attribute
    (sci_etl_core.rate_limiter.RateLimiting)" href="../utilities/#sci_etl_core.rate_limiter.RateLimiting">RateLimiting</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="p">)</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="n">max_download_bytes</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="p">)</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -4427,6 +4442,10 @@ pages through the first 9,999 results of a search, so the listing is
 <p>.. deprecated:: 0.5.0
     <code>logger</code> emits a :class:<code>PendingDeprecationWarning</code>; 0.6.0 logs through
     the standard :mod:<code>logging</code> module instead.</p>
+<p>With <code>max_download_bytes</code>, a response body is read only up to that
+many bytes, so a huge response cannot exhaust memory. A larger listing
+page raises :class:<code>~sci_etl_core.exceptions.ExtractionError</code>; a larger
+full-text download is logged and passed over like an unavailable one.</p>
 
 
 <p><span class="doc-section-title">Raises:</span></p>
@@ -4444,8 +4463,8 @@ pages through the first 9,999 results of a search, so the listing is
             </td>
             <td>
               <div class="doc-md-description">
-                <p><code>max_retries</code> is less than 1 or <code>max_retry_after</code> is
-negative.</p>
+                <p><code>max_retries</code> is less than 1, <code>max_retry_after</code> is
+negative, or <code>max_download_bytes</code> is less than 1.</p>
               </div>
             </td>
           </tr>
@@ -4712,7 +4731,8 @@ retried on the next run.</p>
   
       module-attribute
    (sci_etl_core.rate_limiter.RateLimiting)" href="../utilities/#sci_etl_core.rate_limiter.RateLimiting">RateLimiting</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="p">)</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="n">max_download_bytes</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="p">)</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -4742,6 +4762,10 @@ time, so the listing is <code>truncated</code> there.</p>
 <p>.. deprecated:: 0.5.0
     <code>logger</code> emits a :class:<code>PendingDeprecationWarning</code>; 0.6.0 logs through
     the standard :mod:<code>logging</code> module instead.</p>
+<p>With <code>max_download_bytes</code>, a response body is read only up to that
+many bytes, so a huge response cannot exhaust memory. A larger listing
+page raises :class:<code>~sci_etl_core.exceptions.ExtractionError</code>; a larger
+full-text download is logged and passed over like an unavailable one.</p>
 
 
 <p><span class="doc-section-title">Raises:</span></p>
@@ -4759,8 +4783,8 @@ time, so the listing is <code>truncated</code> there.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p><code>max_retries</code> is less than 1 or <code>max_retry_after</code> is
-negative.</p>
+                <p><code>max_retries</code> is less than 1, <code>max_retry_after</code> is
+negative, or <code>max_download_bytes</code> is less than 1.</p>
               </div>
             </td>
           </tr>
@@ -5051,7 +5075,8 @@ Semantic Scholar sends when nothing matches, is an empty page.</p>
   
       module-attribute
    (sci_etl_core.rate_limiter.RateLimiting)" href="../utilities/#sci_etl_core.rate_limiter.RateLimiting">RateLimiting</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="p">)</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="n">max_download_bytes</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="p">)</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -5082,6 +5107,10 @@ first page on the next run, skipping processed works by id.</p>
 <p>.. deprecated:: 0.5.0
     <code>logger</code> emits a :class:<code>PendingDeprecationWarning</code>; 0.6.0 logs through
     the standard :mod:<code>logging</code> module instead.</p>
+<p>With <code>max_download_bytes</code>, a response body is read only up to that
+many bytes, so a huge response cannot exhaust memory. A larger listing
+page raises :class:<code>~sci_etl_core.exceptions.ExtractionError</code>; a larger
+full-text download is logged and passed over like an unavailable one.</p>
 
 
 <p><span class="doc-section-title">Raises:</span></p>
@@ -5099,8 +5128,8 @@ first page on the next run, skipping processed works by id.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p><code>max_retries</code> is less than 1 or <code>max_retry_after</code> is
-negative.</p>
+                <p><code>max_retries</code> is less than 1, <code>max_retry_after</code> is
+negative, or <code>max_download_bytes</code> is less than 1.</p>
               </div>
             </td>
           </tr>

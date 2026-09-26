@@ -2630,7 +2630,7 @@
 <td><code>full_text</code></td>
 <td><code>RateLimitConfig</code></td>
 <td><code>max_concurrency</code> (4), <code>max_rate</code> (unset), <code>time_period</code> (1.0)</td>
-<td><code>build_limiter()</code></td>
+<td><code>build_limiter()</code>, <code>AsyncArxivExtractor.from_config</code></td>
 </tr>
 <tr>
 <td><code>pipeline</code></td>
@@ -2658,7 +2658,7 @@ pass yourself override the config:</p>
 <a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">client</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">build_client</span><span class="p">(),</span>
 <a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">pdf_parser</span><span class="o">=</span><span class="n">PdfPlumberParser</span><span class="p">(),</span>
 <a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="n">latex_parser</span><span class="o">=</span><span class="n">LatexTarballParser</span><span class="p">(),</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    <span class="n">rate_limiter</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">full_text</span><span class="o">.</span><span class="n">build_limiter</span><span class="p">(),</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    <span class="n">full_text</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">full_text</span><span class="p">,</span>
 <a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="p">)</span>
 <a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="n">llm</span> <span class="o">=</span> <span class="n">AsyncOpenAICompatibleClient</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="p">)</span>
 <a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">AsyncETLPipeline</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span>
@@ -2673,7 +2673,9 @@ pass yourself override the config:</p>
 <a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">run_arguments</span><span class="p">())</span>
 </code></pre></div>
 <p><code>AsyncArxivExtractor.from_config</code> takes <code>max_retries</code> and <code>backoff_factor</code>
-from <code>http</code> and <code>search_delay</code> from <code>pipeline</code>. <code>AsyncOpenAICompatibleClient</code>
+from <code>http</code>, <code>search_delay</code> from <code>pipeline</code>, and its <code>rate_limiter</code> from
+<code>full_text</code>. Leave out <code>full_text</code> and the extractor has no rate limiter, so a
+pipeline with <code>max_concurrency</code> 6 downloads six papers from arxiv.org at once. <code>AsyncOpenAICompatibleClient</code>
 takes <code>api_key</code> (the loaded <code>SecretStr</code> as-is), <code>base_url</code>, <code>model</code>, and
 <code>timeout</code> as <code>default_timeout</code>. Both accept any other constructor argument,
 such as <code>logger</code> or <code>rate_limiter</code>, as a keyword. The PubMed, Semantic

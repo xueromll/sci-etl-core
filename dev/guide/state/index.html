@@ -2805,14 +2805,14 @@ reprocesses nothing.</p>
 </tr>
 <tr>
 <td>LLM call fails inside <code>AsyncLLMRelevanceFilter</code>, or its verdict is unclear</td>
-<td>returns <code>default_on_error</code> (<strong><code>True</code></strong>)</td>
+<td>returns <strong><code>True</code></strong>; with <code>default_on_error=False</code>, <code>LLMError</code> propagates: logged, record left unmarked and retried on the next run</td>
 </tr>
 <tr>
 <td>Record has an empty abstract</td>
 <td>relevance filters return <code>default_on_empty_abstract</code> (<strong><code>True</code></strong>)</td>
 </tr>
 <tr>
-<td>LLM call fails inside <code>AsyncLLMEntityExtractor</code>, or its entity list is malformed</td>
+<td>LLM call fails inside <code>AsyncLLMEntityExtractor</code>, its completion is empty, it has several keys and none is <code>result_key</code>, or its entity list is malformed</td>
 <td><code>LLMError</code> propagates: logged, record left unmarked and retried on the next run</td>
 </tr>
 <tr>
