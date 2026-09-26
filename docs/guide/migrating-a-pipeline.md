@@ -434,7 +434,8 @@ def is_paper_relevant(title: str, abstract: str) -> bool:
 
 
 def extract_udg_data(text: str | bytes) -> list[dict]:
-    ...
+    try:
+        ...
     except Exception as e:
         logger.error(f"DeepSeek error: {e}")
         return []
@@ -897,41 +898,46 @@ config and indexes every relevant paper for search. Trimmed to the ingestion
 branch, `udg_catalogue/pipeline.py` builds the pipeline like this:
 
 ```python
-cache = AsyncSqliteLLMResponseCache(config.paths.llm_cache)
-cached_llm = CachingLLMClient(llm_client, cache, model=config.llm.model, logger=logger.warning)
-extractor = AsyncArxivExtractor.from_config(
-    config.http,
-    config.pipeline,
-    client=http_client,
-    pdf_parser=PdfPlumberParser(),
-    latex_parser=LatexTarballParser(),
-    logger=logger.info,
-)
-return AsyncETLPipeline.from_config(
-    config.pipeline,
-    extractor=extractor,
-    relevance_filter=AsyncLLMRelevanceFilter(llm_client=cached_llm, system_prompt=RELEVANCE_PROMPT),
-    entity_extractor=build_entity_extractor(config, cached_llm, logger),
-    exporter=build_catalogue_exporter(),
-    state_manager=AsyncFileStateManager(config.paths.processed_ids, config.paths.pipeline_metadata),
-    destination=str(config.paths.raw_catalogue),
-    logger=logger.warning,
-    closeables=[http_client, llm_client, cache, *library.closeables],
-    memory_ingestor=library.memory_ingestor(build_chunker(config.embeddings), logger.warning),
-    shutdown=shutdown,
-    on_event=progress_logger(logger.info),
-    usage_sources=[llm_client, *library.usage_sources],
-)
+def build_pipeline(config, logger, http_client, llm_client, library, shutdown=None):
+    cache = AsyncSqliteLLMResponseCache(config.paths.llm_cache)
+    cached_llm = CachingLLMClient(llm_client, cache, model=config.llm.model, logger=logger.warning)
+    extractor = AsyncArxivExtractor.from_config(
+        config.http,
+        config.pipeline,
+        client=http_client,
+        pdf_parser=PdfPlumberParser(),
+        latex_parser=LatexTarballParser(),
+        logger=logger.info,
+    )
+    return AsyncETLPipeline.from_config(
+        config.pipeline,
+        extractor=extractor,
+        relevance_filter=AsyncLLMRelevanceFilter(llm_client=cached_llm, system_prompt=RELEVANCE_PROMPT),
+        entity_extractor=build_entity_extractor(config, cached_llm, logger),
+        exporter=build_catalogue_exporter(),
+        state_manager=AsyncFileStateManager(config.paths.processed_ids, config.paths.pipeline_metadata),
+        destination=str(config.paths.raw_catalogue),
+        logger=logger.warning,
+        closeables=[http_client, llm_client, cache, *library.closeables],
+        memory_ingestor=library.memory_ingestor(build_chunker(config.embeddings), logger.warning),
+        shutdown=shutdown,
+        on_event=progress_logger(logger.info),
+        usage_sources=[llm_client, *library.usage_sources],
+    )
 ```
 
 `library.memory_ingestor` returns an `AsyncCompositeIngestor` that stores
 embedded chunks in an `AsyncSqliteEmbeddingStore` and indexes the paper in an
 `AsyncSqliteFts5Store`, or just the `AsyncSearchIndexer` when
-`embeddings.enabled` is false. The run itself shrinks to one call:
+`embeddings.enabled` is false. The run itself shrinks to one `async with` block:
 
 ```python
-async with build(config, logger, http_client, llm_client, library, shutdown) as pipeline:
-    return await pipeline.run(**run_arguments(config.pipeline, start_index))
+async def _run(build, config, logger, start_index, shutdown):
+    library = open_paper_library(config)
+    http_client = build_http_client(config)
+    llm_client = build_llm_client(config)
+    async with build(config, logger, http_client, llm_client, library, shutdown) as pipeline:
+        return await pipeline.run(**run_arguments(config.pipeline, start_index))
 ```
 
 Papers screened before the upgrade were never indexed, and udg-catalogue had
