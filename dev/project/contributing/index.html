@@ -2783,7 +2783,8 @@ quickly.</p>
   are deselected by default. The Live workflow runs them nightly and is never a
   required check. Run them locally with <code>pytest -m live tests/live</code>. Keys for a
   higher rate limit are optional and read from <code>NCBI_API_KEY</code>,
-  <code>SEMANTIC_SCHOLAR_API_KEY</code>, and <code>OPENALEX_MAILTO</code>.
+  <code>SEMANTIC_SCHOLAR_API_KEY</code>, and <code>OPENALEX_MAILTO</code>. Without its key, a source
+  that keeps answering <code>429</code> is skipped instead of failed.
 - <strong>Throughput benchmark.</strong> <code>python benchmarks/run_throughput.py</code> runs every
   bundled pipeline exporter through <code>AsyncETLPipeline</code> at 1,000, 10,000, and
   50,000 records and writes the timings to <code>benchmarks/results/&lt;version&gt;.json</code>.
