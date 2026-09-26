@@ -4,7 +4,7 @@ def sci_etl_core.AsyncArxivExtractor.__init__(self, client: httpx.AsyncClient, p
 def sci_etl_core.AsyncArxivExtractor.cursor_for_offset(self, offset: int) -> str
 async def sci_etl_core.AsyncArxivExtractor.fetch_full_text(self, record: RawRecord) -> str
 async def sci_etl_core.AsyncArxivExtractor.fetch_page(self, query: str, cursor: str | None, page_size: int) -> ListingPage
-classmethod sci_etl_core.AsyncArxivExtractor.from_config(cls, http: HttpConfig, pipeline: PipelineConfig | None = None, *, client: httpx.AsyncClient, pdf_parser: Parser, latex_parser: Parser, **options: Any) -> AsyncArxivExtractor
+classmethod sci_etl_core.AsyncArxivExtractor.from_config(cls, http: HttpConfig, pipeline: PipelineConfig | None = None, *, client: httpx.AsyncClient, pdf_parser: Parser, latex_parser: Parser, full_text: RateLimitConfig | None = None, **options: Any) -> AsyncArxivExtractor
 class sci_etl_core.AsyncCompositeIngestor()
 def sci_etl_core.AsyncCompositeIngestor.__init__(self, *ingestors: MemoryIngestor, logger: Callable[[str], None] | None = None) -> None
 async def sci_etl_core.AsyncCompositeIngestor.ingest(self, record: RawRecord, text: str) -> int

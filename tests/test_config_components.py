@@ -190,6 +190,32 @@ class TestComponentsFromConfig:
         fetcher = extractor._fetcher
         assert (fetcher._max_retries, fetcher._backoff_factor, extractor._sleep_before_search) == (5, 1.5, 0.5)
 
+    @pytest.mark.parametrize(
+        ("section", "limiter_type"),
+        [
+            (RateLimitConfig(max_concurrency=2), SemaphoreRateLimiter),
+            (RateLimitConfig(max_rate=1, time_period=3.0), AioLimiterRateLimiter),
+        ],
+    )
+    def test_arxiv_extractor_takes_its_rate_limiter_from_the_full_text_section(self, mocker, section, limiter_type):
+        extractor = AsyncArxivExtractor.from_config(
+            HttpConfig(),
+            client=mocker.Mock(),
+            pdf_parser=mocker.Mock(spec=PdfPlumberParser),
+            latex_parser=mocker.Mock(spec=LatexTarballParser),
+            full_text=section,
+        )
+        assert isinstance(extractor._fetcher._rate_limiter, limiter_type)
+
+    def test_arxiv_extractor_without_a_full_text_section_has_no_rate_limiter(self, mocker):
+        extractor = AsyncArxivExtractor.from_config(
+            HttpConfig(),
+            client=mocker.Mock(),
+            pdf_parser=mocker.Mock(spec=PdfPlumberParser),
+            latex_parser=mocker.Mock(spec=LatexTarballParser),
+        )
+        assert extractor._fetcher._rate_limiter is None
+
     def test_arxiv_extractor_options_override_the_config(self, mocker):
         limiter = SemaphoreRateLimiter()
         extractor = AsyncArxivExtractor.from_config(
@@ -199,6 +225,7 @@ class TestComponentsFromConfig:
             latex_parser=mocker.Mock(spec=LatexTarballParser),
             max_retries=1,
             rate_limiter=limiter,
+            full_text=RateLimitConfig(max_concurrency=9),
         )
         assert extractor._fetcher._max_retries == 1
         assert extractor._sleep_before_search == 3.0

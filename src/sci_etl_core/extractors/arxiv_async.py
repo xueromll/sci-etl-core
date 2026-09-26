@@ -19,7 +19,7 @@ from sci_etl_core.parsers.reference_trimmer import trim_after_references
 from sci_etl_core.rate_limiter import RateLimiting
 
 if TYPE_CHECKING:
-    from sci_etl_core.config import HttpConfig, PipelineConfig
+    from sci_etl_core.config import HttpConfig, PipelineConfig, RateLimitConfig
 
 _VERSION_SUFFIX = re.compile(r"v\d+$")
 _YEAR_PREFIX = re.compile(r"[0-9]{4}(?![0-9])")
@@ -116,18 +116,25 @@ class AsyncArxivExtractor(AsyncExtractor):
         client: httpx.AsyncClient,
         pdf_parser: Parser,
         latex_parser: Parser,
+        full_text: RateLimitConfig | None = None,
         **options: Any,
     ) -> AsyncArxivExtractor:
         """Build an extractor from config sections.
 
-        ``http`` supplies ``max_retries`` and ``backoff_factor``, and
-        ``pipeline`` supplies ``search_delay`` as ``sleep_before_search``.
+        ``http`` supplies ``max_retries`` and ``backoff_factor``,
+        ``pipeline`` supplies ``search_delay`` as ``sleep_before_search``, and
+        ``full_text`` supplies the ``rate_limiter`` every request enters, from
+        :meth:`~sci_etl_core.config.RateLimitConfig.build_limiter`. Without
+        ``full_text`` the extractor has no rate limiter, and a pipeline with
+        ``max_concurrency`` 6 downloads six papers from arxiv.org at once.
         ``options`` pass any other constructor argument, such as ``logger`` or
         ``rate_limiter``, and override a value taken from the config.
         """
         settings: dict[str, Any] = {"max_retries": http.max_retries, "backoff_factor": http.backoff_factor}
         if pipeline is not None:
             settings["sleep_before_search"] = pipeline.search_delay
+        if full_text is not None:
+            settings["rate_limiter"] = full_text.build_limiter()
         settings.update(options)
         return cls(client=client, pdf_parser=pdf_parser, latex_parser=latex_parser, **settings)
 

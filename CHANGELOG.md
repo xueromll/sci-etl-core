@@ -20,6 +20,8 @@ change behavior; each such change is listed under **Changed**.
   e-print. An oversized listing page raises `ExtractionError`; an oversized
   full-text download or e-print is logged and passed over. Both default to no
   limit.
+- `AsyncArxivExtractor.from_config(full_text=)` builds the extractor's rate
+  limiter from the `full_text` config section.
 - `AsyncOpenAICompatibleClient` and `CachingLLMClient` expose `base_url` and
   `temperature`, and every `AsyncLLMClient` exposes `response_format`, which
   defaults to `{"type": "json_object"}`. `response_cache_key` accepts all three
