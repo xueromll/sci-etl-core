@@ -14,7 +14,9 @@ change behavior; each such change is listed under **Changed**.
   response, and `AsyncLLMResponseCache.delete(key)` removes one entry; both
   bundled caches implement it.
 - `AsyncOpenAICompatibleClient` and `CachingLLMClient` expose `base_url` and
-  `temperature`, and `response_cache_key` accepts both as keywords.
+  `temperature`, and every `AsyncLLMClient` exposes `response_format`, which
+  defaults to `{"type": "json_object"}`. `response_cache_key` accepts all three
+  as keywords.
 
 ### Changed
 
@@ -29,10 +31,13 @@ change behavior; each such change is listed under **Changed**.
   `default_on_error=False` fail closed: a failed call or an unclear verdict
   raises, and the record is retried on the next run. It was read as
   irrelevant, and the record was marked processed for good.
-- The LLM cache key now includes the endpoint's `base_url` and the
-  temperature, so an answer cached for one provider or temperature is no
-  longer served for another. Responses cached by earlier releases are not
-  found, and the first run after upgrading calls the LLM for every request.
+- The LLM cache key now includes the endpoint's `base_url`, the temperature,
+  and the response format, so an answer cached for one provider, temperature,
+  or format is no longer served for another. Responses cached by earlier
+  releases are not found, and the first run after upgrading calls the LLM for
+  every request.
+- A third-party `AsyncLLMResponseCache` without `delete` keeps serving the
+  responses the library rejects. Implement `delete`, or accept the replay.
 - `AsyncSqliteEmbeddingStore.query` is much faster when called repeatedly. The
   store keeps its vectors in memory and rereads them only after the file
   changes, scores them in one NumPy product, and reads text and metadata for

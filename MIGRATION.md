@@ -1211,8 +1211,8 @@ run on a fresh state revisits them.
 The LLM cache changes too:
 
 - **Every cached response misses once.** The cache key now includes the
-  endpoint's `base_url` and the temperature, so the first run after upgrading
-  calls the LLM for every request. Entries written by earlier releases are
+  endpoint's `base_url`, the temperature, and the response format, so the
+  first run after upgrading calls the LLM for every request. Entries written by earlier releases are
   never read again; delete the cache file, or call `clear()`, to reclaim the
   space. A model name that encodes the temperature, such as
   `"gpt-4o-mini@t0.2"`, is no longer needed.

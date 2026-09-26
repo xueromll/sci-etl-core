@@ -94,6 +94,16 @@ class TestResponseCacheKey:
         }
         assert len(keys) == 5
 
+    def test_response_format_changes_the_key_and_its_key_order_does_not(self):
+        schema = {"type": "json_schema", "json_schema": {"name": "items"}}
+        reordered = {"json_schema": {"name": "items"}, "type": "json_schema"}
+        plain = response_cache_key("m", "s", "u", response_format={"type": "json_object"})
+        assert plain != response_cache_key("m", "s", "u")
+        assert plain != response_cache_key("m", "s", "u", response_format=schema)
+        assert response_cache_key("m", "s", "u", response_format=schema) == response_cache_key(
+            "m", "s", "u", response_format=reordered
+        )
+
     def test_an_integer_temperature_keys_like_the_equal_float(self):
         assert response_cache_key("m", "s", "u", temperature=0) == response_cache_key("m", "s", "u", temperature=0.0)
 
@@ -295,6 +305,40 @@ class TestCachingLLMClient:
         client = AsyncOpenAICompatibleClient(api_key="k", base_url="https://x", model="gpt-y", temperature=0.3)
         caching = CachingLLMClient(client, InMemoryLLMResponseCache())
         assert (caching.base_url, caching.temperature) == ("https://x", 0.3)
+
+    def test_the_response_format_defaults_to_json_object_and_is_read_from_the_wrapped_client(self):
+        class SchemaClient(CountingClient):
+            @property
+            def response_format(self):
+                return {"type": "json_schema"}
+
+        assert CachingLLMClient(CountingClient(), InMemoryLLMResponseCache()).response_format == {
+            "type": "json_object"
+        }
+        assert CachingLLMClient(SchemaClient(), InMemoryLLMResponseCache()).response_format == {"type": "json_schema"}
+
+    @pytest.mark.asyncio
+    async def test_a_different_response_format_misses(self):
+        class SchemaClient(CountingClient):
+            @property
+            def response_format(self):
+                return {"type": "json_schema"}
+
+        cache = InMemoryLLMResponseCache()
+        plain, schema = CountingClient(), SchemaClient()
+        await CachingLLMClient(plain, cache).complete_json("s", "u")
+        await CachingLLMClient(schema, cache).complete_json("s", "u")
+        await CachingLLMClient(CachingLLMClient(schema, cache), cache).complete_json("s", "u")
+        assert (len(plain.calls), len(schema.calls)) == (1, 1)
+
+    @pytest.mark.asyncio
+    async def test_a_response_format_that_is_not_an_object_is_left_out_of_the_key(self, mocker):
+        client = mocker.Mock(spec=AsyncLLMClient)
+        client.model = "m"
+        client.complete_json = mocker.AsyncMock(return_value={"a": 1})
+        cache = InMemoryLLMResponseCache()
+        await CachingLLMClient(client, cache).complete_json("s", "u")
+        assert await cache.get(response_cache_key("m", "s", "u")) == {"a": 1}
 
     @pytest.mark.parametrize(("base_url", "temperature"), [(None, None), (42, True), (b"https://x", "0.2")])
     def test_missing_or_unusable_endpoint_attributes_are_left_out_of_the_key(self, base_url, temperature):

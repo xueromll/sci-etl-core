@@ -26,13 +26,16 @@ closed at the end of the run.
 ## How requests are matched
 
 A request is keyed on the model name, the endpoint's `base_url`, the
-temperature, and both prompts, hashed with SHA-256; the timeout isn't part of
-the key. A changed system prompt, a changed paper text, a different model, a
-different provider, or a different temperature is a miss.
+temperature, the response format, and both prompts, hashed with SHA-256; the
+timeout isn't part of the key. A changed system prompt, a changed paper text,
+a different model, a different provider, a different temperature, or a
+different response format is a miss.
 
-`CachingLLMClient` reads `base_url` and `temperature` from the client it wraps.
-`AsyncOpenAICompatibleClient` exposes both. A custom client without them is
-keyed on the model and prompts only.
+`CachingLLMClient` reads `base_url`, `temperature`, and `response_format` from
+the client it wraps. `AsyncOpenAICompatibleClient` exposes all three. Every
+client has a `response_format`, `{"type": "json_object"}` unless a subclass
+overrides it; a custom client without `base_url` or `temperature` is keyed
+without them.
 
 ## What is cached
 

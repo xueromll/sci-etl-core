@@ -73,6 +73,25 @@ class TestAsyncOpenAICompatibleClient:
         assert patched.chat.completions.create.call_args.kwargs["timeout"] == 5
 
     @pytest.mark.asyncio
+    async def test_json_object_is_requested_by_default(self, patched, mocker):
+        patched.chat.completions.create.return_value = _message(mocker, "{}")
+        await self._make(mocker).complete_json("s", "u")
+        assert patched.chat.completions.create.call_args.kwargs["response_format"] == {"type": "json_object"}
+
+    @pytest.mark.asyncio
+    async def test_a_subclass_requests_its_own_response_format(self, patched, mocker):
+        from sci_etl_core.llm.openai_compatible_async import AsyncOpenAICompatibleClient
+
+        class SchemaClient(AsyncOpenAICompatibleClient):
+            @property
+            def response_format(self):
+                return {"type": "json_schema"}
+
+        patched.chat.completions.create.return_value = _message(mocker, "{}")
+        await SchemaClient(api_key="k", base_url="u", model="m", sleep=mocker.AsyncMock()).complete_json("s", "u")
+        assert patched.chat.completions.create.call_args.kwargs["response_format"] == {"type": "json_schema"}
+
+    @pytest.mark.asyncio
     async def test_empty_choices_raises(self, patched, mocker):
         response = mocker.Mock()
         response.choices = []

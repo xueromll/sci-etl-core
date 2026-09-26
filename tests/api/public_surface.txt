@@ -43,6 +43,7 @@ async def sci_etl_core.AsyncFileStateManager.save_metadata(self, metadata: Pipel
 abstract class sci_etl_core.AsyncLLMClient(abc.ABC)
 abstract async def sci_etl_core.AsyncLLMClient.complete_json(self, system_prompt: str, user_content: str, timeout: int | None = None) -> dict[str, Any]
 async def sci_etl_core.AsyncLLMClient.invalidate(self, system_prompt: str, user_content: str) -> None
+property sci_etl_core.AsyncLLMClient.response_format -> dict[str, Any]
 property sci_etl_core.AsyncLLMClient.usage -> TokenUsage | None
 class sci_etl_core.AsyncLLMEntityExtractor(sci_etl_core.llm.extraction_async.AsyncEntityExtractor)
 def sci_etl_core.AsyncLLMEntityExtractor.__init__(self, llm_client: AsyncLLMClient, system_prompt: str, html_parser: Parser | None = None, result_key: str = 'items', max_chars: int = 120000, timeout: int = 120, max_tokens: int | None = None, encoding_name: str = 'cl100k_base', validator: RecordValidator | None = None, logger: Callable[[str], None] | None = None, label_field: str | None = None) -> None
@@ -63,6 +64,7 @@ async def sci_etl_core.AsyncOpenAICompatibleClient.complete_json(self, system_pr
 classmethod sci_etl_core.AsyncOpenAICompatibleClient.from_config(cls, llm: LLMConfig, **options: Any) -> AsyncOpenAICompatibleClient
 async def sci_etl_core.AsyncOpenAICompatibleClient.invalidate(self, system_prompt: str, user_content: str) -> None
 property sci_etl_core.AsyncOpenAICompatibleClient.model -> str
+property sci_etl_core.AsyncOpenAICompatibleClient.response_format -> dict[str, Any]
 property sci_etl_core.AsyncOpenAICompatibleClient.temperature -> float
 property sci_etl_core.AsyncOpenAICompatibleClient.usage -> TokenUsage
 class sci_etl_core.AsyncOpenAlexExtractor(sci_etl_core.extractors.async_base.AsyncExtractor)
@@ -107,6 +109,7 @@ property sci_etl_core.CachingLLMClient.base_url -> str | None
 async def sci_etl_core.CachingLLMClient.complete_json(self, system_prompt: str, user_content: str, timeout: int | None = None) -> dict[str, Any]
 async def sci_etl_core.CachingLLMClient.invalidate(self, system_prompt: str, user_content: str) -> None
 property sci_etl_core.CachingLLMClient.model -> str
+property sci_etl_core.CachingLLMClient.response_format -> dict[str, Any]
 property sci_etl_core.CachingLLMClient.stats -> CacheStats
 property sci_etl_core.CachingLLMClient.temperature -> float | None
 property sci_etl_core.CachingLLMClient.usage -> TokenUsage | None
@@ -256,7 +259,7 @@ property sci_etl_core.embeddings.SlidingWindowChunker.overlap_words -> int
 def sci_etl_core.http_async.build_async_client(total_retries: int = 5, timeout: float = 25.0, user_agent: str = 'sci-etl-core/<version>') -> httpx.AsyncClient
 class sci_etl_core.llm.CacheStats()
 sci_etl_core.llm.CacheStats: hits: int = 0, misses: int = 0, faults: int = 0
-def sci_etl_core.llm.response_cache_key(model: str, system_prompt: str, user_content: str, *, base_url: str | None = None, temperature: float | None = None) -> str
+def sci_etl_core.llm.response_cache_key(model: str, system_prompt: str, user_content: str, *, base_url: str | None = None, temperature: float | None = None, response_format: Mapping[str, Any] | None = None) -> str
 def sci_etl_core.load_config(config_cls: type[T], yaml_path: Path, env_path: Path | None = None, api_key_env_var: str = 'LLM_API_KEY') -> T
 class sci_etl_core.observability.PageFetched()
 sci_etl_core.observability.PageFetched: offset: int | None, entries: int, new_records: int, cursor: str | None = None, truncated: bool = False

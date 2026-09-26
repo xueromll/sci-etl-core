@@ -6,7 +6,7 @@ import json
 import sqlite3
 from abc import ABC, abstractmethod
 from collections import OrderedDict
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from pathlib import Path
@@ -39,16 +39,22 @@ def response_cache_key(
     *,
     base_url: str | None = None,
     temperature: float | None = None,
+    response_format: Mapping[str, Any] | None = None,
 ) -> str:
     """Return the cache key for a completion.
 
     The key is a SHA-256 hex digest of the model, the endpoint's ``base_url``,
-    the sampling ``temperature``, and both prompts, so an answer cached for one
-    provider or temperature is never served for another.
+    the sampling ``temperature``, the requested ``response_format``, and both
+    prompts, so an answer cached for one provider, temperature, or format is
+    never served for another.
     """
     sampling = None if temperature is None else float(temperature)
+    requested = None if response_format is None else dict(response_format)
     payload = json.dumps(
-        [model, base_url, sampling, system_prompt, user_content], ensure_ascii=False, separators=(",", ":")
+        [model, base_url, sampling, requested, system_prompt, user_content],
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
     )
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
@@ -226,9 +232,10 @@ class CacheStats:
 class CachingLLMClient(AsyncLLMClient):
     """Serve repeated completions from a cache instead of calling the LLM again.
 
-    A request is keyed on ``model``, ``base_url``, ``temperature``, and both
-    prompts (:func:`response_cache_key`). ``base_url`` and ``temperature`` are
-    read from the wrapped client's attributes of those names, as
+    A request is keyed on ``model``, ``base_url``, ``temperature``,
+    ``response_format``, and both prompts (:func:`response_cache_key`).
+    ``base_url``, ``temperature``, and ``response_format`` are read from the
+    wrapped client's attributes of those names, as
     :class:`~sci_etl_core.llm.openai_compatible_async.AsyncOpenAICompatibleClient`
     exposes them, and are left out of the key for a client without them. The
     timeout is not part of the key.
@@ -269,6 +276,7 @@ class CachingLLMClient(AsyncLLMClient):
         self._model = resolved
         self._base_url: str | None = _optional_attribute(client, "base_url", str)
         self._temperature: float | None = _optional_attribute(client, "temperature", (int, float))
+        self._response_format: dict[str, Any] | None = _optional_attribute(client, "response_format", dict)
         warn_logger_argument("CachingLLMClient", logger)
         self._log = logger or (lambda _msg: None)
         self._stats = CacheStats()
@@ -287,6 +295,11 @@ class CachingLLMClient(AsyncLLMClient):
     def temperature(self) -> float | None:
         """The sampling temperature responses are cached under, or ``None`` when the wrapped client has none."""
         return self._temperature
+
+    @property
+    def response_format(self) -> dict[str, Any]:
+        """The wrapped client's ``response_format``, which responses are cached under."""
+        return self._client.response_format
 
     @property
     def stats(self) -> CacheStats:
@@ -336,7 +349,12 @@ class CachingLLMClient(AsyncLLMClient):
 
     def _key(self, system_prompt: str, user_content: str) -> str:
         return response_cache_key(
-            self._model, system_prompt, user_content, base_url=self._base_url, temperature=self._temperature
+            self._model,
+            system_prompt,
+            user_content,
+            base_url=self._base_url,
+            temperature=self._temperature,
+            response_format=self._response_format,
         )
 
     async def _cached(self, key: str) -> dict[str, Any] | None:

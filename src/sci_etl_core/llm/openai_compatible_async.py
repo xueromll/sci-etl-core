@@ -126,6 +126,7 @@ class AsyncOpenAICompatibleClient(AsyncLLMClient):
                 empty completion is not evidence of an empty answer, so it
                 fails the record instead of settling it.
         """
+        requested_format: Any = self.response_format
         last_error: Exception | None = None
         for attempt in range(self._max_retries):
             try:
@@ -137,7 +138,7 @@ class AsyncOpenAICompatibleClient(AsyncLLMClient):
                             {"role": "user", "content": user_content},
                         ],
                         temperature=self._temperature,
-                        response_format={"type": "json_object"},
+                        response_format=requested_format,
                         timeout=timeout or self._default_timeout,
                     )
                 self._usage.record(getattr(response, "usage", None))
