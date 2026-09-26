@@ -56,6 +56,7 @@ class AsyncArxivExtractor(AsyncExtractor):
         sleep: Any = asyncio.sleep,
         max_retry_after: float = 60.0,
         rate_limiter: RateLimiting | None = None,
+        max_download_bytes: int | None = None,
     ) -> None:
         """Configure the extractor.
 
@@ -76,10 +77,17 @@ class AsyncArxivExtractor(AsyncExtractor):
             ``logger`` emits a :class:`PendingDeprecationWarning`; 0.6.0 logs through
             the standard :mod:`logging` module instead.
 
+        With ``max_download_bytes``, a response body is read only up to that
+        many bytes, so a huge listing or e-print cannot exhaust memory. A
+        larger listing page raises
+        :class:`~sci_etl_core.exceptions.ExtractionError`; a larger e-print or
+        PDF is logged and passed over like an unavailable one.
+
         Raises:
             ValueError: ``max_retries`` is less than 1, which would fail every
-                request without making a single attempt, or
-                ``max_retry_after`` is negative.
+                request without making a single attempt,
+                ``max_retry_after`` is negative, or ``max_download_bytes`` is
+                less than 1.
         """
         warn_logger_argument("AsyncArxivExtractor", logger)
         self._log = logger or (lambda _msg: None)
@@ -92,6 +100,7 @@ class AsyncArxivExtractor(AsyncExtractor):
             sleep=sleep,
             logger=self._log,
             rate_limiter=rate_limiter,
+            max_bytes=max_download_bytes,
         )
         self._pdf_parser = pdf_parser
         self._latex_parser = latex_parser

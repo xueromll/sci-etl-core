@@ -143,9 +143,10 @@ class TestArxivExtractorRateLimiting:
     @pytest.mark.asyncio
     async def test_a_transport_error_still_releases_the_slot(self, mocker):
         limiter = RecordingLimiter()
-        client = mocker.Mock()
-        client.get = mocker.AsyncMock(side_effect=httpx.ConnectError("down"))
-        extractor = _arxiv(client, mocker, rate_limiter=limiter, max_retries=2)
+        def refuse(request):
+            raise httpx.ConnectError("down", request=request)
+
+        extractor = _arxiv(_http_client(refuse), mocker, rate_limiter=limiter, max_retries=2)
         with pytest.raises(Exception, match="failed after 2 attempts"):
             await extractor._search("q", 10, 0)
         assert limiter.inside == 0

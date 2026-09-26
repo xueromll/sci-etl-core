@@ -59,6 +59,7 @@ class AsyncSemanticScholarExtractor(AsyncExtractor):
         sleep: Any = asyncio.sleep,
         logger: Callable[[str], None] | None = None,
         rate_limiter: RateLimiting | None = None,
+        max_download_bytes: int | None = None,
     ) -> None:
         """Configure the extractor.
 
@@ -71,9 +72,14 @@ class AsyncSemanticScholarExtractor(AsyncExtractor):
             ``logger`` emits a :class:`PendingDeprecationWarning`; 0.6.0 logs through
             the standard :mod:`logging` module instead.
 
+        With ``max_download_bytes``, a response body is read only up to that
+        many bytes, so a huge response cannot exhaust memory. A larger listing
+        page raises :class:`~sci_etl_core.exceptions.ExtractionError`; a larger
+        full-text download is logged and passed over like an unavailable one.
+
         Raises:
-            ValueError: ``max_retries`` is less than 1 or ``max_retry_after`` is
-                negative.
+            ValueError: ``max_retries`` is less than 1, ``max_retry_after`` is
+                negative, or ``max_download_bytes`` is less than 1.
         """
         warn_logger_argument("AsyncSemanticScholarExtractor", logger)
         self._log = logger or (lambda _msg: None)
@@ -87,6 +93,7 @@ class AsyncSemanticScholarExtractor(AsyncExtractor):
             logger=self._log,
             rate_limiter=rate_limiter,
             headers={"x-api-key": api_key} if api_key else None,
+            max_bytes=max_download_bytes,
         )
         self._pdf_parser = pdf_parser
         self._filters = {"year": year, "fieldsOfStudy": fields_of_study}

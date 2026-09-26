@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import gzip
 from pathlib import Path
 
 import httpx
@@ -138,11 +139,54 @@ class TestRetryingFetcher:
         assert limiter.entered == 2
 
     @pytest.mark.parametrize(
-        ("kwargs", "message"), [({"max_retries": 0}, "positive"), ({"max_retry_after": -1}, "negative")]
+        ("kwargs", "message"),
+        [
+            ({"max_retries": 0}, "positive"),
+            ({"max_retry_after": -1}, "negative"),
+            ({"max_bytes": 0}, "max_download_bytes must be a positive integer"),
+        ],
     )
     def test_rejects_invalid_retry_settings(self, kwargs, message):
         with pytest.raises(ValueError, match=message):
             self._fetcher(Router(), [], **kwargs)
+
+    @pytest.mark.asyncio
+    async def test_a_body_at_the_limit_is_read_in_full(self):
+        router = Router()
+        router.add(lambda request: True, httpx.Response(200, content=b"x" * 64))
+        assert await self._fetcher(router, [], max_bytes=64).fetch("https://source.test/x", "search") == b"x" * 64
+
+    @pytest.mark.asyncio
+    async def test_a_listing_body_past_the_limit_is_an_extraction_error_without_retrying(self):
+        router = Router()
+        router.add(lambda request: True, httpx.Response(200, content=b"x" * 65))
+        with pytest.raises(ExtractionError, match="response body exceeds 64 bytes"):
+            await self._fetcher(router, [], max_bytes=64).fetch("https://source.test/x", "search")
+        assert len(router.requests) == 1
+
+    @pytest.mark.asyncio
+    async def test_a_compressed_body_is_limited_by_its_decoded_size(self):
+        bomb = gzip.compress(b"\0" * 1_000_000)
+        router = Router()
+        router.add(lambda request: True, httpx.Response(200, content=bomb, headers={"Content-Encoding": "gzip"}))
+        lines: list[str] = []
+        fetcher = self._fetcher(router, lines, max_bytes=len(bomb) * 2)
+        assert await fetcher.fetch_optional("https://source.test/x", "PDF download") is None
+        assert lines == [f"Source PDF download unavailable: response body exceeds {len(bomb) * 2} bytes"]
+
+    @pytest.mark.asyncio
+    async def test_an_error_body_is_read_within_the_limit_too(self):
+        router = Router()
+        router.add(lambda request: True, httpx.Response(400, content=b"cursor expired"))
+        response = await self._fetcher(router, [], max_bytes=64).response("https://source.test/x", "search")
+        assert (response.status_code, response.content, response.is_success) == (400, b"cursor expired", False)
+
+    @pytest.mark.parametrize(
+        "extractor_class", [AsyncOpenAlexExtractor, AsyncPubMedExtractor, AsyncSemanticScholarExtractor]
+    )
+    def test_every_extractor_passes_its_download_limit_to_the_fetcher(self, extractor_class):
+        extractor = extractor_class(_client(Router()), max_download_bytes=1024)
+        assert extractor._fetcher._max_bytes == 1024
 
 
 def _work(number: int, **overrides):

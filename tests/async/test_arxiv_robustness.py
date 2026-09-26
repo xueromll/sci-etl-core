@@ -115,6 +115,24 @@ class TestEprintFormats:
         assert any("PDF unusable" in message for message in logged)
 
     @pytest.mark.asyncio
+    async def test_an_e_print_past_the_download_limit_is_passed_over_for_the_pdf(self):
+        routes = {
+            EPRINT: httpx.Response(200, content=b"x" * 4096),
+            PDF: httpx.Response(200, content=_pdf(["Small PDF body"])),
+        }
+        logged: list[str] = []
+        extractor, _requested = _extractor(routes, max_download_bytes=2048, logger=logged.append)
+        assert "Small PDF body" in await extractor.fetch_full_text(RECORD)
+        assert any("LaTeX fetch" in line and "exceeds 2048 bytes" in line for line in logged)
+
+    @pytest.mark.asyncio
+    async def test_a_listing_past_the_download_limit_is_an_extraction_error(self):
+        extractor, requested = _extractor({LISTING: httpx.Response(200, content=b"x" * 100)}, max_download_bytes=10)
+        with pytest.raises(ExtractionError, match="exceeds 10 bytes"):
+            await extractor._search("q", 10, 0)
+        assert len(requested) == 1
+
+    @pytest.mark.asyncio
     async def test_redirected_pdf_is_followed(self):
         extractor, requested = _extractor(
             {

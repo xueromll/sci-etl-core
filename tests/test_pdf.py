@@ -38,6 +38,18 @@ class TestExtractText:
         mocker.patch("sci_etl_core.parsers.pdf.pdfplumber.open", return_value=pdf)
         assert PdfPlumberParser().extract_text(b"x") == ""
 
+    def test_opens_the_document_once_for_text_and_tables(self, mocker):
+        pdf = _cm(mocker, [_page(mocker, text="Body", tables=[[["a"]]])])
+        opened = mocker.patch("sci_etl_core.parsers.pdf.pdfplumber.open", return_value=pdf)
+        assert PdfPlumberParser().extract_text(b"x").endswith("--- EXTRACTED TABLES ---\na")
+        opened.assert_called_once()
+
+    def test_a_table_failure_keeps_the_text(self, mocker):
+        page = _page(mocker, text="Body")
+        page.extract_tables.side_effect = ValueError("broken table")
+        mocker.patch("sci_etl_core.parsers.pdf.pdfplumber.open", return_value=_cm(mocker, [page]))
+        assert PdfPlumberParser().extract_text(b"x") == "Body"
+
 
 class TestExtractTables:
     def test_returns_empty_on_corrupted_pdf(self, mocker):

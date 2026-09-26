@@ -87,11 +87,15 @@ control:
 
 - **Documents from third parties.**
   - PDF and LaTeX parsing runs on downloaded content.
-  - LaTeX tarballs are read in memory (members are never extracted to disk),
-    but download size, decompressed size, and PDF parsing are all unbounded, so
-    a hostile file can exhaust memory or CPU.
-  - Process large or untrusted corpora in a sandboxed, resource-limited
-    environment.
+  - LaTeX tarballs are read in memory (members are never extracted to disk).
+    Download and decompressed sizes are unbounded by default, so a hostile file
+    can exhaust memory.
+  - Bound them: pass `max_download_bytes` to the extractors, which caps each
+    response body after decoding, and `max_tex_bytes` to
+    `LatexTarballParser`, which caps the TeX decompressed from one e-print. An
+    oversized full-text download or e-print is logged and passed over.
+  - PDF parsing is not bounded beyond the download size. Process large or
+    untrusted corpora in a sandboxed, resource-limited environment.
 - **Prompt injection.**
   - Paper text is sent to the LLM, and its content can steer the model's
     output.

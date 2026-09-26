@@ -13,6 +13,13 @@ change behavior; each such change is listed under **Changed**.
 - `AsyncLLMClient.invalidate(system_prompt, user_content)` reports a rejected
   response, and `AsyncLLMResponseCache.delete(key)` removes one entry; both
   bundled caches implement it.
+- **Size limits.** `max_download_bytes` on `AsyncArxivExtractor`,
+  `AsyncOpenAlexExtractor`, `AsyncPubMedExtractor`, and
+  `AsyncSemanticScholarExtractor` caps each response body after decoding, and
+  `LatexTarballParser(max_tex_bytes=)` caps the TeX decompressed from one
+  e-print. An oversized listing page raises `ExtractionError`; an oversized
+  full-text download or e-print is logged and passed over. Both default to no
+  limit.
 - `AsyncOpenAICompatibleClient` and `CachingLLMClient` expose `base_url` and
   `temperature`, and every `AsyncLLMClient` exposes `response_format`, which
   defaults to `{"type": "json_object"}`. `response_cache_key` accepts all three
@@ -38,6 +45,8 @@ change behavior; each such change is listed under **Changed**.
   every request.
 - A third-party `AsyncLLMResponseCache` without `delete` keeps serving the
   responses the library rejects. Implement `delete`, or accept the replay.
+- `PdfPlumberParser.extract_text` opens a PDF once for its text and tables,
+  where it opened it twice.
 - `AsyncSqliteEmbeddingStore.query` is much faster when called repeatedly. The
   store keeps its vectors in memory and rereads them only after the file
   changes, scores them in one NumPy product, and reads text and metadata for
