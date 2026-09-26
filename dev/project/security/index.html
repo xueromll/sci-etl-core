@@ -2706,11 +2706,11 @@ helping keep the project and its community safe.</p>
 </thead>
 <tbody>
 <tr>
-<td>0.1.x</td>
+<td>0.5.x</td>
 <td>✅</td>
 </tr>
 <tr>
-<td>&lt; 0.1</td>
+<td>&lt; 0.5</td>
 <td>❌</td>
 </tr>
 </tbody>
@@ -2752,18 +2752,25 @@ control:</p>
 <li><strong>Keep keys out of YAML.</strong> A set environment variable always overrides
   <code>llm.api_key</code> from the YAML file, which is only a fallback. A key committed
   in a config file is still a leak.</li>
+<li><strong>Config errors don't echo values.</strong> <code>load_config</code>, <code>load_config_async</code>, and
+  <code>validate_config</code> name each failing key and the reason, but never its value,
+  and don't chain pydantic's error, which can contain the raw settings. YAML is
+  parsed with <code>yaml.safe_load</code>.</li>
 <li><strong>Never commit <code>.env</code>.</strong> Add <code>.env</code> to <code>.gitignore</code> and distribute a
   <code>.env.example</code> with placeholder values, as this repository does.</li>
-<li><strong>Database URLs are secrets too.</strong> <code>AsyncSqlTableExporter</code> receives its
-  SQLAlchemy URL as a plain <code>destination</code> string. Build it from the environment
-  at runtime, and don't log it.</li>
+<li><strong>Database URLs are secrets too.</strong> <code>SqlTableSink</code> receives its SQLAlchemy
+  URL as a plain <code>url</code> string, as does the deprecated <code>AsyncSqlTableExporter</code>
+  through <code>destination</code>. Build it from the environment at runtime, and don't
+  log it.</li>
 </ul>
 <h2 id="data-handling">Data Handling<a class="headerlink" href="#data-handling" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Stored text is unencrypted.</strong></li>
-<li><code>AsyncSqliteEmbeddingStore</code> persists full-text passages with their titles
-    and source URLs.</li>
-<li>State files, state databases, and CSV outputs are plain files.</li>
+<li><code>AsyncSqliteEmbeddingStore</code> and <code>AsyncSqliteFts5Store</code> persist full-text
+    passages with their titles and source URLs.</li>
+<li><code>AsyncSqliteLLMResponseCache</code> persists model responses as JSON.</li>
+<li>State files and state databases, which record the last error of each
+    failed record, and CSV outputs are plain files.</li>
 <li>If your corpus is licensed or sensitive, use filesystem permissions and
     encryption at rest.</li>
 <li><strong>CSV formula injection.</strong> Keys come straight from LLM output.
@@ -2771,8 +2778,8 @@ control:</p>
   prefixes an apostrophe to any key starting with <code>=</code>, <code>+</code>, <code>-</code>, <code>@</code>, a tab,
   or a carriage return, so spreadsheets don't evaluate it. Keep
   <code>escape_formulas</code> enabled for files people open in spreadsheet software.
-  Other outputs — SQL tables, Plotly hover text, and your own exporters — are
-  not escaped.</li>
+  Other outputs — SQL tables from <code>SqlTableSink</code>, Plotly hover text from
+  <code>Plotly3DSink</code>, and your own exporters and sinks — are not escaped.</li>
 <li><strong>No secrets in outputs.</strong> Exporters write only the data they are given;
   scrub credential-bearing fields before export.</li>
 </ul>
@@ -2807,9 +2814,11 @@ control:</p>
 <li>Rotate API keys regularly and scope them to least privilege.</li>
 <li>Pin dependencies and monitor advisories, especially for:</li>
 <li>networking and LLM clients: <code>httpx</code>, <code>openai</code></li>
-<li>document and markup parsing: <code>pdfplumber</code>, <code>beautifulsoup4</code>, <code>lxml</code></li>
+<li>document, markup, and config parsing: <code>pdfplumber</code>, <code>beautifulsoup4</code>,
+    <code>lxml</code>, <code>pyyaml</code></li>
 <li>data and numerics: <code>pandas</code>, <code>numpy</code>, <code>scikit-learn</code></li>
-<li>storage, plotting, and file IO: <code>SQLAlchemy</code>, <code>plotly</code>, <code>aiofiles</code></li>
+<li>storage, plotting, and file IO: <code>SQLAlchemy</code>, <code>aiosqlite</code>, <code>plotly</code>,
+    <code>aiofiles</code></li>
 <li><code>sentence-transformers</code>, if installed</li>
 <li>Validate and sanitize any user-supplied query strings, file paths, and
   destinations before passing them to extractors or exporters.</li>
