@@ -230,8 +230,9 @@ body (`Closes #123`).
 4. **Run** the test suite locally (plus lint and type checks if you use them).
 5. **Update the docs** for user-facing changes:
    - the pages under `docs/` for usage; keep `README.md` a short overview
-   - `MIGRATION.md` when the change affects moving an existing pipeline onto
-     the library
+   - `MIGRATION.md` for a breaking change, under the release that ships it
+   - `docs/guide/migrating-a-pipeline.md` when the change affects moving an
+     existing pipeline onto the library
    - `ROADMAP.md` when you ship a listed item
    - the pull request description for any breaking change, with what users
      need to update

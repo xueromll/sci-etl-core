@@ -141,6 +141,7 @@ nav:
           - Progress events and metrics: guide/observability.md
           - Token usage: guide/token-usage.md
           - LLM response caching: guide/llm-caching.md
+      - Migrating a pipeline: guide/migrating-a-pipeline.md
       - Architecture: guide/architecture.md
   - CLI: cli/index.md
   - API reference:

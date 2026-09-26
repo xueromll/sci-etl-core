@@ -120,7 +120,8 @@ field of science.
 - Questions and bugs go to the
   [issue tracker](https://github.com/xueromll/sci-etl-core/issues).
 - Moving an existing pipeline onto the library? Follow the
-  [migration guide](project/migration.md).
+  [worked example](guide/migrating-a-pipeline.md). Upgrading to a new
+  release? See the [migration guide](project/migration.md).
 - Contributions are welcome — see [Contributing](project/contributing.md).
 - Please report vulnerabilities privately, as described in
   [Security](project/security.md).
