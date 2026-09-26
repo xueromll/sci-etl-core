@@ -6098,7 +6098,11 @@ database) surfaces as :class:<code>EmbeddingStoreError</code>, as does a file wr
 by a newer sci-etl-core. The file records its schema version in
 <code>PRAGMA user_version</code>.</p>
 <p>Similarity is a linear scan computed in NumPy: every stored vector is loaded
-and dotted against the query. This is exact and dependency-light, and fits
+and scored against the query in one matrix product, and only the best
+chunks' text and metadata are read. The decoded vectors stay in memory
+between queries and are reloaded only after a write, from this store or any
+other connection to the file, so repeated queries skip the read. This is
+exact and dependency-light, and fits
 corpora up to the low millions of chunks; swap in an ANN index behind this
 same interface if the memory outgrows a full scan.</p>
 <p>The file is opened, and its schema created, on first use. Use each instance

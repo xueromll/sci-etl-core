@@ -2521,9 +2521,11 @@ similarity:</p>
   records matching a query; that call accepts pure negation, such as
   <code>NOT simulation</code>. <code>filters</code> takes <code>RangeFilter</code>s too, such as
   <code>RangeFilter("year", low=2020)</code>.</li>
-<li><strong>Cost.</strong> <code>EmbeddingEdgeSource</code> issues up to one vector query per node, and
-  <code>AsyncSqliteEmbeddingStore</code> scans every stored chunk on each query, so keep
-  <code>max_nodes</code> small for a large memory.</li>
+<li><strong>Cost.</strong> <code>EmbeddingEdgeSource</code> embeds each node's title and abstract and
+  issues up to one vector query per node. <code>AsyncSqliteEmbeddingStore</code> scores
+  every stored chunk on each query but reads the vectors from disk only once,
+  so pass the same store instance for the whole graph, and keep <code>max_nodes</code>
+  small for a large memory.</li>
 </ul>
 
 
