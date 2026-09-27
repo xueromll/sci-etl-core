@@ -644,6 +644,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -707,6 +711,62 @@
     
   
     Supported sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../typed-entities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Typed entities and validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims and provenance
   
 
     
@@ -823,7 +883,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -845,14 +905,14 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_3_4" id="__nav_3_4_label" tabindex="">
+              <label class="md-nav__link " for="__nav_3_6" id="__nav_3_6_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_4">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1153,8 +1213,6 @@
       
         
       
-        
-      
     
     
     
@@ -1171,10 +1229,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" checked>
         
           
-          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="">
             
   
   
@@ -1192,8 +1250,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_3_5">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_7">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1388,34 +1446,6 @@
     
   
     Rate limiting
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../sync-components/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Synchronous components
   
 
     
@@ -1873,6 +1903,8 @@
       
         
       
+        
+      
     
     
     
@@ -2166,6 +2198,34 @@
     
   
     Exporters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims
   
 
     
@@ -2572,8 +2632,9 @@ the rule's number, such as <code>test_r1_cursor_waits_for_settled_page</code>. C
 rule is a breaking change: it changes the rule's test, and it gets a
 <a href="../../project/migration/">MIGRATION.md</a> entry.</p>
 <p>A record is <strong>settled</strong> once it is processed, marked irrelevant, or skipped as
-quarantined. A page is <strong>stalled</strong> when records on it failed and none was
-processed. A page <strong>ends the listing</strong> when it has no next cursor, has no
+quarantined. A record is <strong>durable</strong> once the exporter holds its entities
+durably (R20). A page is <strong>stalled</strong> when records on it failed and none was
+processed, or when the exporter's <code>flush</code> failed for it. A page <strong>ends the listing</strong> when it has no next cursor, has no
 entries, or is truncated.</p>
 <table>
 <thead>
@@ -2587,117 +2648,141 @@ entries, or is truncated.</p>
 <tbody>
 <tr>
 <td>R1</td>
-<td>The saved cursor never moves forward past a page with an unsettled record: once a record fails, or is deferred by <code>total_limit</code>, the cursor stays at the start of that page for the rest of the run. Resetting it to the first page (R15, R16) is not moving forward. A record skipped as quarantined counts as settled (R18).</td>
+<td>The saved cursor never moves forward past a page with an unsettled record: once a record fails, is deferred by <code>total_limit</code>, or was written but not made durable by a failed <code>flush</code>, the cursor stays at the start of that page for the rest of the run. Resetting it to the first page (R15, R16) is not moving forward. A record skipped as quarantined counts as settled (R18).</td>
 <td><code>test_r1_*</code></td>
-<td><code>_listing_position.py:44-55</code></td>
+<td><code>_listing_position.py:46-57</code></td>
 </tr>
 <tr>
 <td>R2</td>
 <td><code>total_limit</code> is exact. A relevant record reserves a slot before its full text is fetched, and a record that fails releases its slot for another record.</td>
 <td><code>test_r2_*</code></td>
-<td><code>pipeline_async.py:66-82</code>, <code>:728-746</code></td>
+<td><code>pipeline_async.py:81-98</code>, <code>:802-821</code></td>
 </tr>
 <tr>
 <td>R3</td>
 <td>An irrelevant record is marked processed at once, without fetching its full text.</td>
 <td><code>test_r3_*</code></td>
-<td><code>pipeline_async.py:731-733</code></td>
+<td><code>pipeline_async.py:805-807</code></td>
 </tr>
 <tr>
 <td>R4</td>
 <td>A memory-ingest exception in <code>MEMORY_FAULTS</code> is logged and counted in <code>RunMetrics.memory_faults</code>, and the record's entities are still exported.</td>
 <td><code>test_r4_*</code></td>
-<td><code>pipeline_async.py:763-765</code></td>
+<td><code>pipeline_async.py:832-840</code></td>
 </tr>
 <tr>
 <td>R5</td>
-<td>Two stalled pages, with no page that processed a record between them, abort the run with <code>PipelineAborted</code>. A single stalled page is tolerated. Records skipped as processed or quarantined make a page neither stalled nor processing.</td>
+<td>Two stalled pages, with no page that processed a record between them, abort the run with <code>PipelineAborted</code>. A single stalled page is tolerated. Records skipped as processed or quarantined make a page neither stalled nor processing. A page whose exporter <code>flush</code> failed is stalled (R21).</td>
 <td><code>test_r5_*</code></td>
-<td><code>pipeline_async.py:44</code>, <code>:539-544</code></td>
+<td><code>pipeline_async.py:46</code>, <code>:562-574</code></td>
 </tr>
 <tr>
 <td>R6</td>
 <td>A stalled page that ends the listing, or is followed by a page that does, aborts the run before the end is saved. This takes precedence over R15.</td>
 <td><code>test_r6_*</code></td>
-<td><code>pipeline_async.py:545-546</code></td>
+<td><code>pipeline_async.py:575-576</code></td>
 </tr>
 <tr>
 <td>R7</td>
 <td>A page with no next cursor, or with no entries, ends the run <code>"completed"</code> once the page settles. An <code>OffsetListing</code> then saves the offset past the last entry, so entries appended later are found by the next run; any other extractor saves no cursor, so the next run starts from the first page.</td>
 <td><code>test_r7_*</code></td>
-<td><code>_listing_position.py:44-73</code></td>
+<td><code>_listing_position.py:46-75</code></td>
 </tr>
 <tr>
 <td>R8</td>
 <td>A page made up entirely of already-processed records is not the end; paging moves past it.</td>
 <td><code>test_r8_*</code></td>
-<td><code>pipeline_async.py:571-583</code></td>
+<td><code>pipeline_async.py:601-613</code></td>
 </tr>
 <tr>
 <td>R9</td>
-<td>A shutdown request finishes the records in flight, leaves the rest of the page for the next run, keeps the saved cursor before that page, and raises <code>PipelineInterrupted</code>.</td>
+<td>A shutdown request finishes the records in flight, flushes the exporter, marks the records that flush made durable, leaves the rest of the page for the next run, keeps the saved cursor before that page, closes the exporter, flushes state, and raises <code>PipelineInterrupted</code>.</td>
 <td><code>test_r9_*</code></td>
-<td><code>pipeline_async.py:491-505</code>, <code>:729-730</code></td>
+<td><code>pipeline_async.py:515-531</code>, <code>:767-785</code>, <code>:803-804</code></td>
 </tr>
 <tr>
 <td>R10</td>
-<td>State is flushed however the run ends. A flush fault after the run failed is logged, so it never hides the original error.</td>
+<td>The exporter is flushed and closed, and then state is flushed, however the run ends. A fault in either after the run failed is logged, so it never hides the original error; an exporter close fault after a successful run is raised once state is flushed.</td>
 <td><code>test_r10_*</code></td>
-<td><code>pipeline_async.py:443-445</code>, <code>:668-672</code></td>
+<td><code>pipeline_async.py:451-469</code>, <code>:698-724</code></td>
 </tr>
 <tr>
 <td>R11</td>
 <td>A record whose <code>record_id</code> is missing or blank is skipped, logged, and reported as a <code>RecordFinished</code> event with outcome <code>"skipped"</code>.</td>
 <td><code>test_r11_*</code></td>
-<td><code>pipeline_async.py:694-697</code></td>
+<td><code>pipeline_async.py:740-745</code></td>
 </tr>
 <tr>
 <td>R12</td>
 <td><code>sleep_between</code> is waited between pages, never after the page that reaches <code>total_limit</code> or ends the listing.</td>
 <td><code>test_r12_*</code></td>
-<td><code>pipeline_async.py:552-557</code></td>
+<td><code>pipeline_async.py:582-587</code></td>
 </tr>
 <tr>
 <td>R13</td>
 <td>A listing page that cannot be fetched or parsed aborts the run with <code>PipelineAborted</code> carrying the count processed so far.</td>
 <td><code>test_r13_*</code></td>
-<td><code>pipeline_async.py:678-686</code></td>
+<td><code>pipeline_async.py:726-734</code></td>
 </tr>
 <tr>
 <td>R14</td>
 <td>For an <code>OffsetListing</code>, a <code>newest_first=True</code> run pages from offset 0 until it finds the records saved at the head of the listing, then continues from the saved offset moved down by the number of new entries. Each offset cursor comes from <code>cursor_for_offset</code>, and the listed ids come from the page's records, so each page is fetched and parsed once.</td>
 <td><code>test_r14_*</code></td>
-<td><code>_listing_position.py:75-135</code></td>
+<td><code>_listing_position.py:77-134</code></td>
 </tr>
 <tr>
 <td>R15</td>
 <td>A truncated page that is not a stall page ends the run <code>"completed"</code>, reports the truncation in <code>RunMetrics.listing_truncated</code>, <code>PageFetched.truncated</code>, and one log line per run, resets the saved cursor to the first page even when a page did not settle, and sets <code>PipelineMetadata.truncated</code>. The flag is cleared by the first run that reaches the end of the listing without a cap; a run that aborts, is interrupted, or reaches <code>total_limit</code> leaves it unchanged.</td>
 <td><code>test_r15_*</code></td>
-<td><code>pipeline_async.py:518-520</code>, <code>:548-551</code></td>
+<td><code>pipeline_async.py:544-548</code>, <code>:578-581</code></td>
 </tr>
 <tr>
 <td>R16</td>
 <td>A <code>StaleCursorError</code> restarts the listing from the first page once per run; a second one in the same run raises <code>PipelineAborted</code>.</td>
 <td><code>test_r16_*</code></td>
-<td><code>pipeline_async.py:496-503</code></td>
+<td><code>pipeline_async.py:520-529</code></td>
 </tr>
 <tr>
 <td>R17</td>
 <td><code>newest_first=True</code>, or a <code>start_index</code> above 0, with an extractor that is not an <code>OffsetListing</code> raises <code>ValueError</code> before any request.</td>
 <td><code>test_r17_*</code></td>
-<td><code>pipeline_async.py:428-431</code></td>
+<td><code>pipeline_async.py:443-446</code></td>
 </tr>
 <tr>
 <td>R18</td>
 <td>With <code>max_attempts</code> set, failures are counted through <code>record_failure</code> only from pages that processed a record, or from stalled pages that a later page of the same run cleared; failures held by a stalled page that is never cleared are discarded. A listed record whose counted attempts reach <code>max_attempts</code> is skipped as quarantined, counted once per run in <code>RunMetrics.quarantined</code>, and logged once. No record is quarantined in the run in which its last attempt failed.</td>
 <td><code>test_r18_*</code></td>
-<td><code>pipeline_async.py:101-121</code>, <code>:535-542</code>, <code>:571-594</code></td>
+<td><code>pipeline_async.py:124-141</code>, <code>:564-567</code>, <code>:601-631</code></td>
 </tr>
 <tr>
 <td>R19</td>
 <td>A record is settled only on an answer. A relevance fault in a filter built with <code>default_on_error=False</code>, and an LLM response that holds no entity list, because the completion is empty or has several keys and none is <code>result_key</code>, fail the record: it stays unmarked, its attempt is counted under R18, and it is retried on the next run.</td>
 <td><code>test_r19_*</code></td>
-<td><code>llm/openai_compatible_async.py:158-159</code>, <code>llm/extraction_async.py:99-103</code>, <code>llm/relevance_async.py:96-105</code>, <code>pipeline_async.py:733-747</code></td>
+<td><code>llm/openai_compatible_async.py:206-207</code>, <code>llm/extraction_async.py:281-288</code>, <code>llm/relevance_async.py:96-109</code>, <code>pipeline_async.py:802-821</code></td>
+</tr>
+<tr>
+<td>R20</td>
+<td>A record is marked processed only once its entities are durable: right after <code>write</code> on an exporter with <code>durable_writes = True</code>, and after the page's <code>flush</code> otherwise. A crash between <code>write</code> and <code>flush</code> repeats the record on the next run and loses none.</td>
+<td><code>test_r20_*</code></td>
+<td><code>pipeline_async.py:767-785</code>, <code>:814-817</code></td>
+</tr>
+<tr>
+<td>R21</td>
+<td>A <code>write</code> fault fails the record and counts one attempt under R18. A <code>flush</code> fault leaves the records written since the last successful flush unsettled, counts no attempt against them, and makes the page a stalled page, so two failed flushes in a row abort the run under R5.</td>
+<td><code>test_r21_*</code></td>
+<td><code>pipeline_async.py:773-781</code>, <code>:814</code></td>
+</tr>
+<tr>
+<td>R22</td>
+<td>A fault in the exporter's <code>open</code> aborts the run with <code>PipelineAborted</code> before any listing request.</td>
+<td><code>test_r22_*</code></td>
+<td><code>pipeline_async.py:453-457</code>, <code>:704-708</code></td>
+</tr>
+<tr>
+<td>R23</td>
+<td>Every processed record is written to the exporter, including one with no entities; an irrelevant record is not.</td>
+<td><code>test_r23_*</code></td>
+<td><code>pipeline_async.py:805-814</code></td>
 </tr>
 </tbody>
 </table>

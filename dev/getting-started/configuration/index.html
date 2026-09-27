@@ -727,6 +727,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -787,6 +791,62 @@
     
   
     Supported sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/typed-entities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Typed entities and validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims and provenance
   
 
     
@@ -900,7 +960,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -922,14 +982,14 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_4">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1228,8 +1288,6 @@
       
         
       
-        
-      
     
     
     
@@ -1243,10 +1301,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" >
         
           
-          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
             
   
   
@@ -1264,8 +1322,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_5">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1402,34 +1460,6 @@
     
   
     Rate limiting
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../guide/sync-components/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Synchronous components
   
 
     
@@ -1887,6 +1917,8 @@
       
         
       
+        
+      
     
     
     
@@ -2180,6 +2212,34 @@
     
   
     Exporters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims
   
 
     
@@ -2602,7 +2662,8 @@
 
 
 <h1 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h1>
-<p>Settings load from a YAML file and a <code>.env</code> file into Pydantic models:</p>
+<p>Settings load from a YAML file, and optionally a <code>.env</code> file, into Pydantic
+models. Loading needs the <code>config</code> extra:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseAppConfig</span><span class="p">,</span> <span class="n">load_config</span>
@@ -2647,7 +2708,7 @@
 <tr>
 <td><code>llm</code></td>
 <td><code>LLMConfig</code></td>
-<td><code>api_key</code>, <code>base_url</code> (<code>https://api.openai.com/v1</code>), <code>model</code> (<code>gpt-4o-mini</code>), <code>timeout</code> (120)</td>
+<td><code>api_key</code>, <code>base_url</code> (<code>https://api.openai.com/v1</code>), <code>model</code> (<code>gpt-4o-mini</code>), <code>timeout</code> (120), <code>structured_output</code> (false)</td>
 <td><code>AsyncOpenAICompatibleClient.from_config</code></td>
 </tr>
 <tr>
@@ -2698,17 +2759,18 @@ pass yourself override the config:</p>
 <a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>    <span class="n">entity_extractor</span><span class="o">=</span><span class="n">entity_extractor</span><span class="p">,</span>
 <a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>    <span class="n">exporter</span><span class="o">=</span><span class="n">exporter</span><span class="p">,</span>
 <a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>    <span class="n">state_manager</span><span class="o">=</span><span class="n">state_manager</span><span class="p">,</span>
-<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>    <span class="n">destination</span><span class="o">=</span><span class="s2">"results.csv"</span><span class="p">,</span>
-<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="p">)</span>
-<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">run_arguments</span><span class="p">())</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="p">)</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">run_arguments</span><span class="p">())</span>
 </code></pre></div>
 <p><code>AsyncArxivExtractor.from_config</code> takes <code>max_retries</code> and <code>backoff_factor</code>
 from <code>http</code>, <code>search_delay</code> from <code>pipeline</code>, and its <code>rate_limiter</code> from
 <code>full_text</code>. Leave out <code>full_text</code> and the extractor has no rate limiter, so a
 pipeline with <code>max_concurrency</code> 6 downloads six papers from arxiv.org at once. <code>AsyncOpenAICompatibleClient</code>
-takes <code>api_key</code> (the loaded <code>SecretStr</code> as-is), <code>base_url</code>, <code>model</code>, and
-<code>timeout</code> as <code>default_timeout</code>. Both accept any other constructor argument,
-such as <code>logger</code> or <code>rate_limiter</code>, as a keyword. The PubMed, Semantic
+takes <code>api_key</code> (the loaded <code>SecretStr</code> as-is), <code>base_url</code>, <code>model</code>,
+<code>structured_output</code>, and <code>timeout</code> as <code>default_timeout</code>. Set
+<code>structured_output: true</code> only for an endpoint that accepts a <code>json_schema</code>
+response format, such as OpenAI's; DeepSeek's does not. Both accept any other
+constructor argument, such as <code>rate_limiter</code>, as a keyword. The PubMed, Semantic
 Scholar, and OpenAlex extractors have no <code>from_config</code>; pass
 <code>config.http.max_retries</code> and <code>config.http.backoff_factor</code> to their
 constructors yourself. The pipeline takes <code>max_concurrency</code>, and <code>run_arguments()</code> returns
@@ -2748,11 +2810,14 @@ type you define yourself validates as its own <code>model_config</code> says.</p
 <h2 id="details">Details<a class="headerlink" href="#details" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>API key.</strong> The key comes from the <code>LLM_API_KEY</code> environment variable
-  (choose another with <code>api_key_env_var=</code>), which can be loaded from a <code>.env</code>
-  file: the one you pass, or else the first <code>.env</code> found from the current
-  working directory upward. It is stored as a Pydantic <code>SecretStr</code>, so it doesn't
-  show up in reprs or logs. Variables already set in the environment take
-  precedence over <code>.env</code>; copy <code>.env.example</code> to get started.</li>
+  (choose another with <code>api_key_env_var=</code>). A <code>.env</code> file is read into the
+  environment only when you ask: pass its path as <code>env_path</code>, or pass
+  <code>load_env=True</code> to use the first <code>.env</code> found from the current working
+  directory upward. Without either, <code>load_config</code> never reads a <code>.env</code> file,
+  so importing and configuring the library changes no environment variable.
+  The key is stored as a Pydantic <code>SecretStr</code>, so it doesn't show up in reprs
+  or logs. Variables already set in the environment take precedence over
+  <code>.env</code>; copy <code>.env.example</code> to get started.</li>
 <li><strong>The environment wins over YAML.</strong> When the variable is set, it overrides
   any <code>llm.api_key</code> in the YAML file, which is used only as a fallback. Keep
   keys out of config files anyway.</li>

@@ -644,6 +644,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -707,6 +711,62 @@
     
   
     Supported sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../typed-entities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Typed entities and validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims and provenance
   
 
     
@@ -823,7 +883,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -845,14 +905,14 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_3_4" id="__nav_3_4_label" tabindex="">
+              <label class="md-nav__link " for="__nav_3_6" id="__nav_3_6_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_4">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1153,8 +1213,6 @@
       
         
       
-        
-      
     
     
     
@@ -1171,10 +1229,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" checked>
         
           
-          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="">
             
   
   
@@ -1192,8 +1250,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_3_5">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_7">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1330,34 +1388,6 @@
     
   
     Rate limiting
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../sync-components/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Synchronous components
   
 
     
@@ -1906,6 +1936,8 @@
       
         
       
+        
+      
     
     
     
@@ -2199,6 +2231,34 @@
     
   
     Exporters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims
   
 
     
@@ -2644,7 +2704,7 @@ repeated requests from a cache, so they cost no tokens and return at once:</p>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">cache</span> <span class="o">=</span> <span class="n">AsyncSqliteLLMResponseCache</span><span class="p">(</span><span class="s2">"cache/llm.db"</span><span class="p">)</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">llm</span> <span class="o">=</span> <span class="n">CachingLLMClient</span><span class="p">(</span><span class="n">AsyncOpenAICompatibleClient</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="p">),</span> <span class="n">cache</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="nb">print</span><span class="p">)</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">llm</span> <span class="o">=</span> <span class="n">CachingLLMClient</span><span class="p">(</span><span class="n">AsyncOpenAICompatibleClient</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="p">),</span> <span class="n">cache</span><span class="p">)</span>
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="n">relevance_filter</span> <span class="o">=</span> <span class="n">AsyncLLMRelevanceFilter</span><span class="p">(</span><span class="n">llm</span><span class="p">,</span> <span class="n">relevance_prompt</span><span class="p">)</span>
 <a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="n">entity_extractor</span> <span class="o">=</span> <span class="n">AsyncLLMEntityExtractor</span><span class="p">(</span><span class="n">llm</span><span class="p">,</span> <span class="n">extraction_prompt</span><span class="p">)</span>
@@ -2653,10 +2713,17 @@ repeated requests from a cache, so they cost no tokens and return at once:</p>
 closed at the end of the run.</p>
 <h2 id="how-requests-are-matched">How requests are matched<a class="headerlink" href="#how-requests-are-matched" title="Permanent link">&para;</a></h2>
 <p>A request is keyed on the model name, the endpoint's <code>base_url</code>, the
-temperature, the response format, and both prompts, hashed with SHA-256; the
-timeout isn't part of the key. A changed system prompt, a changed paper text,
-a different model, a different provider, a different temperature, or a
-different response format is a miss.</p>
+temperature, the response format, the JSON Schema of a typed request, the
+client's <code>variant</code>, and both prompts, hashed with SHA-256; the timeout isn't
+part of the key. A changed system prompt, a changed paper text, a different
+model, a different provider, a different temperature, a different response
+format, or a changed entity schema is a miss. The schema is serialized with
+sorted keys, so an equal schema written in another order still hits. A request
+without a schema and with an empty <code>variant</code> has the same key it had in
+0.5.1.</p>
+<p><code>CachingLLMClient(..., variant="sample-2")</code> keeps its answers apart from those
+of a client with another variant over the same cache, for example to ask a
+question twice on purpose.</p>
 <p><code>CachingLLMClient</code> reads <code>base_url</code>, <code>temperature</code>, and <code>response_format</code> from
 the client it wraps. <code>AsyncOpenAICompatibleClient</code> exposes all three. Every
 client has a <code>response_format</code>, <code>{"type": "json_object"}</code> unless a subclass
@@ -2688,8 +2755,9 @@ fault.</p>
 <h2 id="when-the-cache-fails">When the cache fails<a class="headerlink" href="#when-the-cache-fails" title="Permanent link">&para;</a></h2>
 <p>The cache never fails a completion. If reading or writing it raises, the error
 is logged as <code>LLM cache get failed: ...</code>, <code>LLM cache set failed: ...</code>, or
-<code>LLM cache delete failed: ...</code> and the
-request goes to the LLM as if nothing were cached. <code>stats</code> counts <code>hits</code>,
+<code>LLM cache delete failed: ...</code>, at <code>WARNING</code> on the
+<code>sci_etl_core.llm.cache_async</code> logger, and the request goes to the LLM as if
+nothing were cached. <code>stats</code> counts <code>hits</code>,
 <code>misses</code>, and <code>faults</code>, and <code>usage</code> is the wrapped client's, so cache hits cost
 no tokens:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">print</span><span class="p">(</span><span class="n">llm</span><span class="o">.</span><span class="n">stats</span><span class="p">,</span> <span class="n">llm</span><span class="o">.</span><span class="n">usage</span><span class="p">)</span>

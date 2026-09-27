@@ -642,6 +642,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -702,6 +706,62 @@
     
   
     Supported sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/typed-entities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Typed entities and validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims and provenance
   
 
     
@@ -815,7 +875,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -837,14 +897,14 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_4">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1143,8 +1203,6 @@
       
         
       
-        
-      
     
     
     
@@ -1158,10 +1216,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" >
         
           
-          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
             
   
   
@@ -1179,8 +1237,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_5">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1317,34 +1375,6 @@
     
   
     Rate limiting
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../guide/sync-components/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Synchronous components
   
 
     
@@ -1804,6 +1834,8 @@
       
         
       
+        
+      
     
     
     
@@ -2100,6 +2132,34 @@
     
   
     Exporters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims
   
 
     
@@ -2497,7 +2557,7 @@ module layout inside a package may change between releases.</p>
 <tr>
 <td><a href="pipelines/">Pipelines</a></td>
 <td><code>sci_etl_core</code></td>
-<td><code>AsyncETLPipeline</code>, <code>ETLPipeline</code>, memory ingestion, sync adapters, <code>ShutdownSignal</code>, progress events and <code>RunMetrics</code></td>
+<td><code>AsyncETLPipeline</code>, <code>ETLPipeline</code>, memory ingestion, <code>ShutdownSignal</code>, progress events and <code>RunMetrics</code></td>
 </tr>
 <tr>
 <td><a href="configuration/">Configuration</a></td>
@@ -2522,7 +2582,7 @@ module layout inside a package may change between releases.</p>
 <tr>
 <td><a href="llm/">LLM</a></td>
 <td><code>sci_etl_core.llm</code></td>
-<td>LLM clients, response caching, relevance filters, entity extractors</td>
+<td>LLM clients, response caching, relevance filters, entity extractors and typed schemas</td>
 </tr>
 <tr>
 <td><a href="embeddings/">Embeddings</a></td>
@@ -2537,12 +2597,17 @@ module layout inside a package may change between releases.</p>
 <tr>
 <td><a href="exporters/">Exporters</a></td>
 <td><code>sci_etl_core.exporters</code></td>
-<td>CSV, SQL, and Plotly exporters</td>
+<td>the exporter lifecycle, CSV and JSON Lines exporters</td>
+</tr>
+<tr>
+<td><a href="claims/">Claims</a></td>
+<td><code>sci_etl_core.claims</code></td>
+<td>claims, evidence spans, stamps, claim and rejection stores, the claim extractor and exporter (provisional)</td>
 </tr>
 <tr>
 <td><a href="processors/">Processors</a></td>
 <td><code>sci_etl_core.processors</code></td>
-<td>DataFrame steps, key normalizers, record validators</td>
+<td>DataFrame steps, key normalizers, record validators and their violations, table sinks</td>
 </tr>
 <tr>
 <td><a href="state/">State</a></td>
@@ -2552,7 +2617,7 @@ module layout inside a package may change between releases.</p>
 <tr>
 <td><a href="utilities/">Utilities</a></td>
 <td>defining module</td>
-<td>HTTP clients, rate limiters, including per-host limits, logging</td>
+<td>HTTP clients, rate limiters, including per-host limits</td>
 </tr>
 </tbody>
 </table>

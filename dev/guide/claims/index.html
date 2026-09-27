@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://xueromll.github.io/sci-etl-core/dev/guide/sync-components/">
+        <link rel="canonical" href="https://xueromll.github.io/sci-etl-core/dev/guide/claims/">
       
       
-        <link rel="prev" href="../rate-limiting/">
+        <link rel="prev" href="../typed-entities/">
       
       
-        <link rel="next" href="../logging/">
+        <link rel="next" href="../post-processing/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Synchronous components - sci-etl-core</title>
+        <title>Claims and provenance - sci-etl-core</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#synchronous-components" class="md-skip">
+        <a href="#claims-and-provenance" class="md-skip">
           Skip to content
         </a>
       
@@ -118,7 +118,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Synchronous components
+              Claims and provenance
             
           </span>
         </div>
@@ -644,6 +644,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -715,6 +719,153 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../typed-entities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Typed entities and validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims and provenance
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims and provenance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#extracting-claims" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extracting claims
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-a-claim-holds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What a claim holds
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#grounding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grounding
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stores" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stores
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -823,7 +974,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -845,14 +996,14 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_3_4" id="__nav_3_4_label" tabindex="">
+              <label class="md-nav__link " for="__nav_3_6" id="__nav_3_6_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_4">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1128,14 +1279,10 @@
                 
   
   
-    
-  
   
   
     
     
-      
-        
       
         
       
@@ -1167,14 +1314,14 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" >
         
           
-          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="">
             
   
   
@@ -1192,8 +1339,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_3_5">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1338,44 +1485,6 @@
   
 
       </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-    
-  
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Synchronous components
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-      
     </li>
   
 
@@ -1825,6 +1934,8 @@
       
         
       
+        
+      
     
     
     
@@ -2118,6 +2229,34 @@
     
   
     Exporters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims
   
 
     
@@ -2483,6 +2622,58 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#extracting-claims" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extracting claims
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-a-claim-holds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What a claim holds
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#grounding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grounding
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stores" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stores
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -2498,77 +2689,131 @@
 
 
 
-<h1 id="synchronous-components">Synchronous components<a class="headerlink" href="#synchronous-components" title="Permanent link">&para;</a></h1>
-<div class="admonition warning">
-<p class="admonition-title">Deprecated in 0.5</p>
-<p>The blocking interfaces and their adapters are deprecated and will be
-removed in 0.6.0. Subclassing one of the interfaces outside sci-etl-core,
-or constructing an adapter, emits a <code>DeprecationWarning</code>. Implement the
-async interface instead, and run blocking work in it through
-<code>asyncio.to_thread</code>, as the bundled components do.</p>
+<h1 id="claims-and-provenance">Claims and provenance<a class="headerlink" href="#claims-and-provenance" title="Permanent link">&para;</a></h1>
+<p>A claim is one value or statement extracted from a paper, stored with the
+paper it came from, the sentence it was read from, and the model, prompt, and
+schema that produced it. Claims let a table answer "which paper says so?" for
+every value, keep conflicting reports side by side, and find every value a
+prompt fix must redo.</p>
+<div class="admonition note">
+<p class="admonition-title">Provisional</p>
+<p><code>sci_etl_core.claims</code> is new in 0.6.0 and provisional: a name may change
+in a minor release, with a CHANGELOG entry, until a known consumer depends
+on it.</p>
 </div>
-<p>To reuse blocking implementations, subclass the synchronous interfaces and
-wrap each object in its adapter. The result can be passed to either pipeline:</p>
+<h2 id="extracting-claims">Extracting claims<a class="headerlink" href="#extracting-claims" title="Permanent link">&para;</a></h2>
+<p><code>AsyncLLMClaimExtractor</code> asks the model for <code>ClaimDraft</code> objects, validates
+them, locates each draft's quote in the text the model was sent, and returns
+<code>Claim</code> objects. <code>AsyncClaimStoreExporter</code> stores them record by record:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncETLPipeline</span><span class="p">,</span> <span class="n">AsyncOpenAICompatibleClient</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.claims</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">AsyncClaimStoreExporter</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">AsyncLLMClaimExtractor</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">AsyncSqliteClaimStore</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">AsyncSqliteRejectionStore</span><span class="p">,</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="n">CLAIM_PROMPT</span> <span class="o">=</span> <span class="p">(</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="s2">"List every measurement of an ultra-diffuse galaxy in the paper. Reply with JSON: "</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="s1">'{"claims": [{"kind": "measurement", "subject": "...", "predicate": "effective_radius", '</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="s1">'"quantity": {"verbatim": "2.9 kpc", "value": 2.9, "unit_text": "kpc"}, '</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="s1">'"context": {"band": "g"}, "quote": "the sentence, copied exactly"}]}.'</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="p">)</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="n">llm</span> <span class="o">=</span> <span class="n">AsyncOpenAICompatibleClient</span><span class="p">(</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="n">api_key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"LLM_API_KEY"</span><span class="p">],</span> <span class="n">base_url</span><span class="o">=</span><span class="s2">"https://api.openai.com/v1"</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">"gpt-4o-mini"</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="p">)</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="n">claims</span> <span class="o">=</span> <span class="n">AsyncSqliteClaimStore</span><span class="p">(</span><span class="s2">"data/claims.db"</span><span class="p">)</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="n">rejections</span> <span class="o">=</span> <span class="n">AsyncSqliteRejectionStore</span><span class="p">(</span><span class="s2">"data/rejections.db"</span><span class="p">)</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">AsyncETLPipeline</span><span class="p">(</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="n">extractor</span><span class="o">=</span><span class="n">extractor</span><span class="p">,</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>    <span class="n">relevance_filter</span><span class="o">=</span><span class="n">relevance_filter</span><span class="p">,</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>    <span class="n">entity_extractor</span><span class="o">=</span><span class="n">AsyncLLMClaimExtractor</span><span class="p">(</span><span class="n">llm</span><span class="p">,</span> <span class="n">CLAIM_PROMPT</span><span class="p">,</span> <span class="n">rejections</span><span class="o">=</span><span class="n">rejections</span><span class="p">),</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>    <span class="n">exporter</span><span class="o">=</span><span class="n">AsyncClaimStoreExporter</span><span class="p">(</span><span class="n">claims</span><span class="p">),</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>    <span class="n">state_manager</span><span class="o">=</span><span class="n">state_manager</span><span class="p">,</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>    <span class="n">closeables</span><span class="o">=</span><span class="p">[</span><span class="n">llm</span><span class="p">,</span> <span class="n">claims</span><span class="p">,</span> <span class="n">rejections</span><span class="p">],</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="p">)</span>
+</code></pre></div>
+<p>Subclass <code>ClaimDraft</code> to narrow <code>predicate</code> or the <code>context</code> keys for your
+field, and pass the subclass as <code>schema=</code>. The model never supplies ids,
+offsets, or provenance; code computes them.</p>
+<h2 id="what-a-claim-holds">What a claim holds<a class="headerlink" href="#what-a-claim-holds" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>Sync interface</th>
-<th>Adapter</th>
-<th>Where the calls run</th>
+<th>Field</th>
+<th>Meaning</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>Extractor</code></td>
-<td><code>SyncExtractorAdapter</code></td>
-<td><code>fetch_full_text</code> in a worker thread; <code>search</code> and <code>parse_listing</code> on the event loop, between pages. The adapter pages by offset, so it is an <code>OffsetListing</code>, and a page with no entries ends the listing</td>
+<td><code>claim_id</code></td>
+<td>a digest of the record, kind, subject, predicate, object, polarity, context, the quantity's verbatim text, the span, and the schema hash</td>
 </tr>
 <tr>
-<td><code>RelevanceFilter</code></td>
-<td><code>SyncRelevanceFilterAdapter</code></td>
-<td>worker thread</td>
+<td><code>kind</code></td>
+<td><code>"measurement"</code>, which needs a <code>quantity</code>, or <code>"assertion"</code>, which needs an <code>object</code></td>
 </tr>
 <tr>
-<td><code>EntityExtractor</code></td>
-<td><code>SyncEntityExtractorAdapter</code></td>
-<td>worker thread</td>
+<td><code>subject</code>, <code>predicate</code>, <code>object</code></td>
+<td>what the claim is about, as the paper names it</td>
 </tr>
 <tr>
-<td><code>LLMClient</code></td>
-<td><code>SyncLLMClientAdapter</code></td>
-<td>worker thread</td>
+<td><code>quantity</code></td>
+<td>the number as the paper writes it: <code>verbatim</code>, <code>value</code>, <code>unit_text</code>, <code>qualifier</code>, <code>uncertainty</code></td>
 </tr>
 <tr>
-<td><code>Exporter</code></td>
-<td><code>SyncExporterAdapter</code></td>
-<td>on the event loop, so exports never interleave</td>
+<td><code>statistics</code></td>
+<td>effect sizes, confidence bounds, <em>p</em>, test statistics, group sizes, each optional</td>
 </tr>
 <tr>
-<td><code>StateManager</code></td>
-<td><code>SyncStateManagerAdapter</code></td>
-<td>on the event loop, so updates are never lost</td>
+<td><code>context</code></td>
+<td>conditions such as band or sample, as sorted key–value pairs</td>
+</tr>
+<tr>
+<td><code>span</code></td>
+<td>the <code>record_id</code>, the start and end offsets of the sentence or sentences the quote was found in, and the quote itself</td>
+</tr>
+<tr>
+<td><code>stamp</code></td>
+<td>the model, prompt hash, schema hash, and library release</td>
 </tr>
 </tbody>
 </table>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Exporter</span><span class="p">,</span> <span class="n">SyncExporterAdapter</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="k">class</span><span class="w"> </span><span class="nc">JsonLinesExporter</span><span class="p">(</span><span class="n">Exporter</span><span class="p">):</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">destination</span><span class="p">):</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">destination</span><span class="p">,</span> <span class="s2">"a"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span> <span class="k">as</span> <span class="n">handle</span><span class="p">:</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>                <span class="n">handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="n">exporter</span> <span class="o">=</span> <span class="n">SyncExporterAdapter</span><span class="p">(</span><span class="n">JsonLinesExporter</span><span class="p">())</span>
-</code></pre></div>
-<p>Pass the adapter wherever the pipeline expects the async interface, for
-example <code>AsyncETLPipeline(..., exporter=exporter)</code>.</p>
-<p>Calls that run on the event loop block it while they run: a slow exporter or
-state manager stalls every record in flight. Keep those calls fast, or
-implement the async interface instead.</p>
+<p>The model, prompt, and library release are left out of <code>claim_id</code> on purpose:
+re-extracting a paper with another model gives the same ids wherever the
+fields match, with a new stamp. Subjects are compared exactly, so <code>"DF44"</code> and
+<code>"DF 44"</code> are different claims; resolving names is a later step that never
+rewrites claims. <code>Claim.to_row()</code> gives one flat mapping, the shape the stores
+and the CSV and JSON Lines exporters write.</p>
+<h2 id="grounding">Grounding<a class="headerlink" href="#grounding" title="Permanent link">&para;</a></h2>
+<p><code>locate_quote(text, quote)</code> finds the quote in the text the model was sent,
+exactly after collapsing whitespace, or else fuzzily with <code>difflib</code> at
+<code>min_ratio</code> (0.9) or above, and snaps the match to whole sentences. The
+sentence splitter knows scientific prose: <code>et al.</code>, <code>Fig. 3</code>, <code>Eq. (2)</code>,
+<code>i.e.</code>, <code>R.A.</code>, and decimals do not end a sentence. A draft whose quote is not
+found is ungrounded: it is logged, put in the rejection store with the code
+<code>"ungrounded"</code>, and not returned.</p>
+<h2 id="stores">Stores<a class="headerlink" href="#stores" title="Permanent link">&para;</a></h2>
+<p><code>InMemoryClaimStore</code> and <code>AsyncSqliteClaimStore</code> share one contract:</p>
+<ul>
+<li><code>replace_record(record_id, claims)</code> replaces a record's claims in one
+  transaction and returns the new revision. An empty list clears the record,
+  which is what happens when a re-extraction finds nothing, because the
+  pipeline writes every processed record.</li>
+<li><code>claims_for_records(record_ids)</code> reads claims back, in stored order.</li>
+<li><code>changes_since(revision)</code> pages through what changed, by revision, which only
+  grows, so a downstream job can pick up where it stopped.</li>
+</ul>
+<p>The SQLite store indexes claims by record, by <code>(subject, predicate, object)</code>,
+by context pair, and by canonical kind and value, and records its schema
+version, so a later sci-etl-core opens files written by 0.6.0.</p>
+<p>A store fault in <code>AsyncClaimStoreExporter.write</code> fails the record, which is
+retried on the next run and counts one attempt, like any failing record. It is
+not a memory fault.</p>
 
 
 
@@ -2604,7 +2849,7 @@ implement the async interface instead.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../rate-limiting/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Rate limiting">
+          <a href="../typed-entities/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Typed entities and validation">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2614,20 +2859,20 @@ implement the async interface instead.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                Rate limiting
+                Typed entities and validation
               </div>
             </div>
           </a>
         
         
           
-          <a href="../logging/" class="md-footer__link md-footer__link--next" aria-label="Next: Logging">
+          <a href="../post-processing/" class="md-footer__link md-footer__link--next" aria-label="Next: Post-processing and visualization">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Logging
+                Post-processing and visualization
               </div>
             </div>
             <div class="md-footer__button md-icon">

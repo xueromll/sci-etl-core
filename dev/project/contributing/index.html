@@ -642,6 +642,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -702,6 +706,62 @@
     
   
     Supported sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/typed-entities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Typed entities and validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims and provenance
   
 
     
@@ -815,7 +875,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -837,14 +897,14 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_4">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1143,8 +1203,6 @@
       
         
       
-        
-      
     
     
     
@@ -1158,10 +1216,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" >
         
           
-          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
             
   
   
@@ -1179,8 +1237,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_5">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1317,34 +1375,6 @@
     
   
     Rate limiting
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../guide/sync-components/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Synchronous components
   
 
     
@@ -1802,6 +1832,8 @@
       
         
       
+        
+      
     
     
     
@@ -2095,6 +2127,34 @@
     
   
     Exporters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims
   
 
     
@@ -2476,6 +2536,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#releasing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Releasing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#commit-format" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2662,6 +2733,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#releasing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Releasing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#commit-format" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2755,10 +2837,15 @@ quickly.</p>
   relies on <code>UpstreamError</code> and <code>MalformedResponseError</code> to tell faults apart
   from the end of the data.</li>
 <li><strong>Be safe under concurrency.</strong> The pipeline calls relevance filters, entity
-  extractors, <code>export</code>, and <code>mark_processed</code> concurrently. Serialize shared
-  writes with an <code>asyncio.Lock</code>, and write files with
-  <code>_atomic_io.atomic_write_text</code>. <code>AsyncCsvUpsertExporter</code> and
+  extractors, an exporter's <code>write</code>, and <code>mark_processed</code> concurrently.
+  Serialize shared writes with an <code>asyncio.Lock</code>, and write files with
+  <code>_atomic_io.atomic_write_text</code>. <code>AsyncCsvExporter</code> and
   <code>AsyncFileStateManager</code> are good models.</li>
+<li><strong>Log through the module logger.</strong> Each module logs with
+  <code>_logger = logging.getLogger(__name__)</code>, at <code>WARNING</code> for anything that
+  changes what a run produces or costs, <code>ERROR</code> for a sink or store fault the
+  run reports, and <code>INFO</code> for routine notes. Never configure handlers or
+  levels; that is the application's job.</li>
 <li><strong>Keep optional imports lazy.</strong> Each package <code>__init__.py</code> maps public names
   to their modules in <code>_EXPORTS</code> and loads them on first access, so importing
   one component never requires another's optional dependencies. Register new
@@ -2822,14 +2909,24 @@ quickly.</p>
   at most 1.5 times its time at the smallest. <code>--sizes</code>, <code>--repeats</code>, and
   <code>--exporters</code> narrow a run.
 - <strong>Downstream tests.</strong> The Downstream workflow runs the
-  <a href="https://github.com/xueromll/sci-etl-cli">sci-etl-cli</a> suite against every
-  push and pull request, and fails on any <code>DeprecationWarning</code>. To run it
-  locally, install the CLI without its pinned core and run its suite:</p>
+  <a href="https://github.com/xueromll/sci-etl-cli">sci-etl-cli</a> and
+  <a href="https://github.com/xueromll/udg-catalogue">udg-catalogue</a> suites against
+  every push and pull request, with this checkout installed in place of the
+  release each project pins, and fails on any <code>DeprecationWarning</code>. Each job
+  installs the extras the project's own requirement names. To run the CLI
+  suite locally:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/xueromll/sci-etl-cli.git<span class="w"> </span>../sci-etl-cli
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[async,llm,pdf]"</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[config,async,arxiv,html,llm,pdf]"</span>
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>pip<span class="w"> </span>install<span class="w"> </span>--no-deps<span class="w"> </span>-e<span class="w"> </span>../sci-etl-cli
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>pip<span class="w"> </span>install<span class="w"> </span>click<span class="w"> </span>rich<span class="w"> </span>python-dotenv<span class="w"> </span>pytest<span class="w"> </span>pytest-asyncio<span class="w"> </span>pytest-mock
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>pip<span class="w"> </span>install<span class="w"> </span>click<span class="w"> </span>rich<span class="w"> </span>pytest<span class="w"> </span>pytest-asyncio<span class="w"> </span>pytest-mock<span class="w"> </span>pytest-cov
 <a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="nb">cd</span><span class="w"> </span>../sci-etl-cli<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>-W<span class="w"> </span>error::DeprecationWarning
+</code></pre></div>
+<p>And the udg-catalogue suite, which also installs the CPU build of PyTorch:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/xueromll/udg-catalogue.git<span class="w"> </span>../udg-catalogue
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">PIP_EXTRA_INDEX_URL</span><span class="o">=</span>https://download.pytorch.org/whl/cpu
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[config,async,arxiv,html,llm,pdf,processors,cluster,embeddings,embeddings-local,search]"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span>-r<span class="w"> </span>../udg-catalogue/requirements/app.txt<span class="w"> </span>-r<span class="w"> </span>../udg-catalogue/requirements/dev.txt
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="nb">cd</span><span class="w"> </span>../udg-catalogue<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>-W<span class="w"> </span>error::DeprecationWarning
 </code></pre></div>
 <h2 id="code-style">Code Style<a class="headerlink" href="#code-style" title="Permanent link">&para;</a></h2>
 <ul>
@@ -2850,9 +2947,9 @@ core contracts (<code>models</code>, <code>exceptions</code>, <code>observabilit
 every <code>async_base</code> module) with stricter flags: no untyped definitions, no bare
 generics, no returned <code>Any</code>, and no implicit re-exports. Run both before opening
 a PR:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[full,dev,lint]"</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>ruff<span class="w"> </span>check<span class="w"> </span>.
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>mypy
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[full,dev,lint]"</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>ruff<span class="w"> </span>check<span class="w"> </span>.
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>mypy
 </code></pre></div>
 <p><code>ruff check --fix .</code> sorts imports and applies the other safe fixes.
 Formatting isn't enforced, so keep unrelated reformatting out of your PR.
@@ -2862,11 +2959,11 @@ Record user-facing changes under the unreleased version in
 <p>The documentation site is built with <a href="https://www.mkdocs.org/">MkDocs</a> and
 <a href="https://squidfunk.github.io/mkdocs-material/">Material for MkDocs</a> from
 <code>mkdocs.yml</code> and the <code>docs/</code> folder, and published to GitHub Pages.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[docs]"</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/xueromll/sci-etl-cli.git<span class="w"> </span>../sci-etl-cli
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>pip<span class="w"> </span>install<span class="w"> </span>--no-deps<span class="w"> </span>-e<span class="w"> </span>../sci-etl-cli
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>mkdocs<span class="w"> </span>serve<span class="w">                                          </span><span class="c1"># preview at http://127.0.0.1:8000</span>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>mkdocs<span class="w"> </span>build<span class="w"> </span>--strict<span class="w">                                 </span><span class="c1"># the check CI runs</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[docs]"</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/xueromll/sci-etl-cli.git<span class="w"> </span>../sci-etl-cli
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>pip<span class="w"> </span>install<span class="w"> </span>--no-deps<span class="w"> </span>-e<span class="w"> </span>../sci-etl-cli
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>mkdocs<span class="w"> </span>serve<span class="w">                                          </span><span class="c1"># preview at http://127.0.0.1:8000</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>mkdocs<span class="w"> </span>build<span class="w"> </span>--strict<span class="w">                                 </span><span class="c1"># the check CI runs</span>
 </code></pre></div>
 <ul>
 <li><strong>Where pages live.</strong> Guides are Markdown files under <code>docs/</code>, listed in the
@@ -2890,16 +2987,36 @@ Record user-facing changes under the unreleased version in
   from its default branch when that release has no <code>mkdocs.yml</code>. Nothing needs
   to be published by hand.</li>
 </ul>
+<h2 id="releasing">Releasing<a class="headerlink" href="#releasing" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Development versions.</strong> Right after a release, <code>master</code> moves to the next
+  development version, such as <code>0.7.0.dev0</code> after <code>0.6.0</code>, so a build from
+  <code>master</code> never claims to be a release.</li>
+<li><strong>Release gate.</strong> Pushing a <code>v*</code> tag runs the CI suite and the Downstream
+  workflow on the tagged commit. The distribution is built and published only
+  when both pass, so a release that breaks sci-etl-cli or udg-catalogue is
+  never published. The tag must match the version in <code>pyproject.toml</code>.</li>
+<li><strong>Deprecations.</strong> From 0.6.0 on, a deprecated name keeps working for at least
+  two minor releases before it is removed.</li>
+<li><strong>Before tagging.</strong> Date the unreleased section of <code>CHANGELOG.md</code>, update the
+  supported versions in <code>SECURITY.md</code>, and rerun
+  <code>python benchmarks/run_throughput.py</code> so <code>benchmarks/results/</code> holds the new
+  version.</li>
+<li><strong>Pinned actions.</strong> Workflows pin every action to a commit SHA, with the tag
+  in a trailing comment such as <code># v5</code>. To move to a newer release, resolve its
+  SHA with <code>git ls-remote https://github.com/actions/checkout refs/tags/v5</code>
+  and update the pin and the comment together.</li>
+</ul>
 <h2 id="commit-format">Commit Format<a class="headerlink" href="#commit-format" title="Permanent link">&para;</a></h2>
 <p>Use <a href="https://www.conventionalcommits.org/">Conventional Commits</a>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>&lt;type&gt;(&lt;scope&gt;): &lt;short summary&gt;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>&lt;type&gt;(&lt;scope&gt;): &lt;short summary&gt;
 </code></pre></div>
 <p>Common types: <code>feat</code>, <code>fix</code>, <code>docs</code>, <code>test</code>, <code>refactor</code>, <code>perf</code>, <code>chore</code>. Mark
 breaking changes with <code>!</code> (e.g. <code>refactor(core)!: ...</code>).</p>
 <p>Examples:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>feat(extractors): add PubMed async extractor
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>fix(exporters): serialize concurrent CSV upserts
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>docs(readme): document ETLPipeline event-loop behavior
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>feat(extractors): add PubMed async extractor
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>fix(exporters): serialize concurrent CSV upserts
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>docs(readme): document ETLPipeline event-loop behavior
 </code></pre></div>
 <p>Keep the summary imperative and under ~72 characters. Reference issues in the
 body (<code>Closes #123</code>).</p>
@@ -2950,8 +3067,8 @@ requested changes are about the code, never about you.</p>
 <tr>
 <td>LLM client</td>
 <td><code>AsyncLLMClient</code></td>
-<td><code>async complete_json(system_prompt, user_content, timeout)</code></td>
-<td>Return the parsed JSON object; raise <code>LLMError</code> on failure or when the body isn't a JSON object.</td>
+<td><code>async complete_json(system_prompt, user_content, timeout)</code>; optionally <code>complete_structured(..., schema, timeout)</code> and <code>invalidate(..., schema=None)</code></td>
+<td>Return the parsed JSON object; raise <code>LLMError</code> on failure or when the body isn't a JSON object. Override <code>complete_structured</code> when the provider supports JSON-schema output; the default calls <code>complete_json</code>.</td>
 </tr>
 <tr>
 <td>LLM response cache</td>
@@ -2967,15 +3084,15 @@ requested changes are about the code, never about you.</p>
 </tr>
 <tr>
 <td>Entity extractor</td>
-<td><code>AsyncEntityExtractor</code></td>
-<td><code>async extract(text) -&gt; list[dict]</code></td>
-<td>Each dict becomes one export row. Raise on failure instead of returning <code>[]</code>, so the record is retried.</td>
+<td><code>AsyncEntityExtractor[E]</code></td>
+<td><code>async extract(text) -&gt; Sequence[E]</code>; <code>extract_record(record, text)</code> when the record is needed</td>
+<td>The pipeline calls <code>extract_record</code>, whose default calls <code>extract</code>. Raise on failure instead of returning <code>[]</code>, so the record is retried. An extractor that needs the record sets <code>requires_record = True</code>; a wrapper delegates to the inner <code>extract_record</code>.</td>
 </tr>
 <tr>
 <td>Exporter</td>
-<td><code>AsyncExporter</code></td>
-<td><code>async export(data, destination)</code></td>
-<td>As a pipeline exporter it receives <code>list[dict]</code>, concurrently; serialize writes.</td>
+<td><code>AsyncExporter[E]</code></td>
+<td><code>async write(record, entities)</code>; optionally <code>open</code>, <code>flush</code>, <code>aclose</code>, and <code>durable_writes</code></td>
+<td>Take the destination in the constructor. <code>write</code> runs for every processed record, including one with no entities, possibly concurrently, and must be idempotent. With <code>durable_writes = False</code>, <code>flush</code> must make every earlier write durable.</td>
 </tr>
 <tr>
 <td>State manager</td>
@@ -3022,8 +3139,8 @@ requested changes are about the code, never about you.</p>
 <tr>
 <td>Validator</td>
 <td><code>RecordValidator</code></td>
-<td><code>is_valid(record) -&gt; bool</code></td>
-<td>Operates on one entity dict.</td>
+<td><code>is_valid(record) -&gt; bool</code>; optionally <code>validate(record) -&gt; ValidationResult</code></td>
+<td>Operates on one entity dict. Override <code>validate</code> to name the field and rule of each rejection; it must reject exactly what <code>is_valid</code> rejects.</td>
 </tr>
 </tbody>
 </table>

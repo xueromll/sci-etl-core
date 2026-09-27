@@ -644,6 +644,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -707,6 +711,62 @@
     
   
     Supported sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../typed-entities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Typed entities and validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims and provenance
   
 
     
@@ -823,7 +883,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -845,14 +905,14 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_3_4" id="__nav_3_4_label" tabindex="">
+              <label class="md-nav__link " for="__nav_3_6" id="__nav_3_6_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_4">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1153,8 +1213,6 @@
       
         
       
-        
-      
     
     
     
@@ -1171,10 +1229,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" checked>
         
           
-          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="">
             
   
   
@@ -1192,8 +1250,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_3_5">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_7">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1443,34 +1501,6 @@
     
   
     Rate limiting
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../sync-components/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Synchronous components
   
 
     
@@ -1928,6 +1958,8 @@
       
         
       
+        
+      
     
     
     
@@ -2221,6 +2253,34 @@
     
   
     Exporters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims
   
 
     
@@ -2704,9 +2764,12 @@ by offset saves the offset past the last entry, and any other extractor saves
 no cursor, so the next run starts from the first page.
 <a href="../run-semantics/">Run semantics</a> lists every rule a run follows, each with
 the test that checks it.</p>
-<p>Records are exported before they are marked processed, so a crash between the
-two re-exports that record on the next run. <code>AsyncCsvUpsertExporter</code> absorbs
-this; an appending exporter of your own should tolerate duplicates.</p>
+<p>A record is marked processed only once the exporter holds its entities
+durably: right after <code>write</code> for an exporter with <code>durable_writes = True</code>,
+and after the page's <code>flush</code> otherwise. A crash in between repeats the record
+on the next run and never loses it. The bundled exporters replace a record's
+earlier output when it is written again, so the repeat is harmless; an
+exporter of your own must be idempotent the same way.</p>
 <p><code>AsyncFileStateManager</code> raises <code>OSError</code> when a state file exists but can't be
 read, rather than treating it as empty. It rejects record ids that contain a
 line boundary or have leading or trailing whitespace, since neither would read
@@ -2811,7 +2874,19 @@ reprocesses nothing.</p>
 </tr>
 <tr>
 <td>One record raises, e.g. a transient full-text failure</td>
-<td>logged through <code>logger</code>; record left unmarked; saved cursor held at its page; the attempt counted; other records continue</td>
+<td>logged as a warning; record left unmarked; saved cursor held at its page; the attempt counted; other records continue</td>
+</tr>
+<tr>
+<td>The exporter's <code>write</code> raises for a record</td>
+<td>as above: the record fails and the attempt is counted</td>
+</tr>
+<tr>
+<td>The exporter's <code>flush</code> raises</td>
+<td>logged as an error; the records the flush would have made durable stay unmarked, no attempt is counted against them, and the page counts as stalled</td>
+</tr>
+<tr>
+<td>The exporter's <code>open</code> raises</td>
+<td><code>run()</code> raises <code>PipelineAborted</code> before any listing request</td>
 </tr>
 <tr>
 <td>Records on one page fail and none on it is processed, but a later page processes a record</td>

@@ -644,6 +644,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -707,6 +711,62 @@
     
   
     Supported sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../typed-entities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Typed entities and validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims and provenance
   
 
     
@@ -823,7 +883,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -845,14 +905,14 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_3_4" id="__nav_3_4_label" tabindex="">
+              <label class="md-nav__link " for="__nav_3_6" id="__nav_3_6_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_4">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1151,8 +1211,6 @@
       
         
       
-        
-      
     
     
     
@@ -1169,10 +1227,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" >
         
           
-          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="">
             
   
   
@@ -1190,8 +1248,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_5">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1328,34 +1386,6 @@
     
   
     Rate limiting
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../sync-components/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Synchronous components
   
 
     
@@ -1871,6 +1901,8 @@
       
         
       
+        
+      
     
     
     
@@ -2164,6 +2196,34 @@
     
   
     Exporters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims
   
 
     
@@ -2582,21 +2642,24 @@
 <a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>                                                  |      AsyncSearchIndexer: AsyncTextSearchStore
 <a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>                                                  |      AsyncCompositeIngestor: several at once
 <a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>                                                  v
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>                          AsyncEntityExtractor.extract
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>                                                  |
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>                          AsyncEntityExtractor.extract_record(record, text)
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>                                                  |      (typed entities; rejections with reasons)
 <a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>                                                  v
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>                          AsyncExporter.export(entities, destination) --&gt; mark processed
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>                          AsyncExporter.write(record, entities) --durable_writes--&gt; mark processed
 <a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>After each page: failed attempts to AsyncStateManager.record_failure (R18);
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>                 AsyncStateManager.save_metadata(cursor, truncated, newest-first head)
-<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>When the run ends: AsyncStateManager.flush(); RunFinished(metrics) to on_event
-<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>Throughout: ShutdownSignal stops new records; on_event receives RunStarted, PageFetched,
-<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>            RecordFinished, PageFinished
-<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>
-<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>Search:    AsyncHybridSearcher.search(query) --&gt; AsyncTextSearchStore.search (BM25) -------+--&gt; fusion --&gt; SearchOutcome
-<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>                                             --&gt; AsyncSimilarArticleFinder (vector memory) -+
-<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>Discovery: build_discovery_graph(seed) --&gt; AsyncEdgeSource.neighbours --&gt; DiscoveryGraph --&gt; filter_graph
-<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>Backfill:  AsyncEmbeddingStore.iter_records --&gt; merge_passages --&gt; AsyncTextSearchStore.index
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>Before the first page: AsyncExporter.open()
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>After each page: AsyncExporter.flush() --&gt; mark the records it made durable;
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>                 failed attempts to AsyncStateManager.record_failure (R18);
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>                 AsyncStateManager.save_metadata(cursor, truncated, newest-first head)
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>When the run ends: AsyncExporter.flush(), AsyncExporter.aclose(), AsyncStateManager.flush();
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>                   RunFinished(metrics) to on_event
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>Throughout: ShutdownSignal stops new records; on_event receives RunStarted, PageFetched,
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>            RecordFinished, PageFinished
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>Search:    AsyncHybridSearcher.search(query) --&gt; AsyncTextSearchStore.search (BM25) -------+--&gt; fusion --&gt; SearchOutcome
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>                                             --&gt; AsyncSimilarArticleFinder (vector memory) -+
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>Discovery: build_discovery_graph(seed) --&gt; AsyncEdgeSource.neighbours --&gt; DiscoveryGraph --&gt; filter_graph
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>Backfill:  AsyncEmbeddingStore.iter_records --&gt; merge_passages --&gt; AsyncTextSearchStore.index
 </code></pre></div>
 <h2 id="layers">Layers<a class="headerlink" href="#layers" title="Permanent link">&para;</a></h2>
 <table>
@@ -2642,14 +2705,20 @@
 <tr>
 <td>Entities</td>
 <td><code>AsyncEntityExtractor</code></td>
-<td><code>AsyncLLMEntityExtractor</code></td>
+<td><code>AsyncLLMEntityExtractor</code> (dicts, or Pydantic models with <code>schema=</code>)</td>
 <td><code>sci_etl_core.llm</code></td>
 </tr>
 <tr>
 <td>Export</td>
 <td><code>AsyncExporter</code></td>
-<td><code>AsyncCsvUpsertExporter</code> (list of dicts); <code>AsyncSqlTableExporter</code>, <code>AsyncPlotly3DExporter</code> (DataFrame, deprecated)</td>
-<td><code>sci_etl_core.exporters</code></td>
+<td><code>AsyncCsvExporter</code>, <code>AsyncJsonlExporter</code>, <code>AsyncClaimStoreExporter</code></td>
+<td><code>sci_etl_core.exporters</code>, <code>sci_etl_core.claims</code></td>
+</tr>
+<tr>
+<td>Claims (provisional)</td>
+<td><code>AsyncClaimStore</code>, <code>AsyncRejectionStore</code></td>
+<td><code>AsyncLLMClaimExtractor</code>; <code>InMemoryClaimStore</code>, <code>AsyncSqliteClaimStore</code>; <code>InMemoryRejectionStore</code>, <code>AsyncSqliteRejectionStore</code>; <code>locate_quote</code></td>
+<td><code>sci_etl_core.claims</code></td>
 </tr>
 <tr>
 <td>State</td>
@@ -2712,12 +2781,6 @@
 <td><code>sci_etl_core.processors.sinks</code></td>
 </tr>
 <tr>
-<td>Sync adapters (deprecated)</td>
-<td><code>Extractor</code>, <code>RelevanceFilter</code>, <code>EntityExtractor</code>, <code>LLMClient</code>, <code>Exporter</code>, <code>StateManager</code></td>
-<td><code>Sync*Adapter</code> for each</td>
-<td><code>sci_etl_core</code></td>
-</tr>
-<tr>
 <td>Orchestration</td>
 <td>—</td>
 <td><code>AsyncETLPipeline</code>, <code>ETLPipeline</code></td>
@@ -2725,14 +2788,15 @@
 </tr>
 </tbody>
 </table>
-<p>The pipelines, stage interfaces, adapters, and most implementations are also
+<p>The pipelines, stage interfaces, and most implementations are also
 re-exported from <code>sci_etl_core</code> itself; parser implementations, processor
-steps, and validators come from their subpackages. Supporting modules:
+steps, validators, and claims come from their subpackages. Supporting modules:
 <code>sci_etl_core.config</code>, <code>sci_etl_core.http_async</code> (<code>build_async_client</code>),
 <code>sci_etl_core.rate_limiter</code> (including <code>HostRateLimiter</code>),
 <code>sci_etl_core.signals</code>, <code>sci_etl_core.observability</code> (progress events and
-<code>RunMetrics</code>), <code>sci_etl_core.log_utils</code>, <code>sci_etl_core.exceptions</code>, and
-<code>sci_etl_core.discovery</code> (the read-model for user interfaces). Every package loads its public names on first access, so
+<code>RunMetrics</code>), <code>sci_etl_core.exceptions</code>, and <code>sci_etl_core.discovery</code> (the
+read-model for user interfaces). Every module logs through the standard
+<code>logging</code> module; see <a href="../logging/">Logging</a>. Every package loads its public names on first access, so
 importing one component never requires another component's optional
 dependencies.</p>
 <p>The <a href="../../reference/">API reference</a> documents each module in detail.</p>

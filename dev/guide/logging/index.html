@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://xueromll.github.io/sci-etl-core/dev/guide/logging/">
       
       
-        <link rel="prev" href="../sync-components/">
+        <link rel="prev" href="../rate-limiting/">
       
       
         <link rel="next" href="../observability/">
@@ -644,6 +644,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -707,6 +711,62 @@
     
   
     Supported sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../typed-entities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Typed entities and validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims and provenance
   
 
     
@@ -823,7 +883,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -845,14 +905,14 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_3_4" id="__nav_3_4_label" tabindex="">
+              <label class="md-nav__link " for="__nav_3_6" id="__nav_3_6_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_4">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1153,8 +1213,6 @@
       
         
       
-        
-      
     
     
     
@@ -1171,10 +1229,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" checked>
         
           
-          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="">
             
   
   
@@ -1192,8 +1250,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_3_5">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_7">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1330,34 +1388,6 @@
     
   
     Rate limiting
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../sync-components/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Synchronous components
   
 
     
@@ -1825,6 +1855,8 @@
       
         
       
+        
+      
     
     
     
@@ -2118,6 +2150,34 @@
     
   
     Exporters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims
   
 
     
@@ -2499,30 +2559,49 @@
 
 
 <h1 id="logging">Logging<a class="headerlink" href="#logging" title="Permanent link">&para;</a></h1>
-<div class="admonition warning">
-<p class="admonition-title">Deprecated in 0.5</p>
-<p>Every <code>logger=</code> argument and <code>configure_logging</code> are deprecated and emit a
-<code>PendingDeprecationWarning</code>, since there is nothing to migrate to before
-0.6.0; they keep working through 0.5.x. In 0.6.0 each
-module logs through the standard <code>logging</code> module under the
-<code>sci_etl_core</code> logger, and the library stops configuring logging, so the
-application configures handlers itself, for example with
-<code>logging.basicConfig</code>. The progress events in
-<a href="../observability/">Observability</a> remain the structured channel.</p>
-</div>
-<p><code>configure_logging(name, log_file, level=logging.INFO)</code> returns a
-<code>logging.Logger</code> that writes to a file and to stdout, creating the file's
-folder if it doesn't exist. Calling it again with the same name, file, and
-level returns the same logger; a different file or level replaces the handlers
-it installed.</p>
-<p>Components take a plain <code>logger</code> callable, so pass a bound method:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">configure_logging</span>
+<p>Each sci-etl-core module logs through the standard <code>logging</code> module, under a
+logger named after the module, such as <code>sci_etl_core.pipeline_async</code> or
+<code>sci_etl_core.extractors.arxiv_async</code>. All of them sit under the
+<code>sci_etl_core</code> logger. The library installs no handlers and sets no levels, so
+nothing is printed until the application configures logging:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">log</span> <span class="o">=</span> <span class="n">configure_logging</span><span class="p">(</span><span class="s2">"my_pipeline"</span><span class="p">,</span> <span class="s2">"pipeline.log"</span><span class="p">)</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="nb">format</span><span class="o">=</span><span class="s2">"</span><span class="si">%(asctime)s</span><span class="s2"> </span><span class="si">%(levelname)s</span><span class="s2"> </span><span class="si">%(name)s</span><span class="s2">: </span><span class="si">%(message)s</span><span class="s2">"</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">handlers</span><span class="o">=</span><span class="p">[</span><span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="s2">"pipeline.log"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">),</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()],</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"sci_etl_core.extractors"</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
 </code></pre></div>
-<p>For example, <code>AsyncETLPipeline(..., logger=log.warning)</code> logs record failures
-as warnings, and <code>AsyncArxivExtractor(..., logger=log.info)</code> logs retries as
-information.</p>
+<p>The levels mean:</p>
+<table>
+<thead>
+<tr>
+<th>Level</th>
+<th>Used for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ERROR</code></td>
+<td>A sink or store fault the run reports: an exporter <code>flush</code> or <code>aclose</code> failed, state could not be flushed, a resource could not be closed, an event handler raised</td>
+</tr>
+<tr>
+<td><code>WARNING</code></td>
+<td>Something that changes what the run produces or costs: a record failed or was skipped, a record was quarantined, a source stopped at its result cap or rejected a cursor, a memory backend failed, a download was unusable, a retry, a shutdown signal</td>
+</tr>
+<tr>
+<td><code>INFO</code></td>
+<td>Routine notes: an entity or claim was rejected by validation, where a <code>newest_first</code> run resumed</td>
+</tr>
+</tbody>
+</table>
+<p>Messages keep the wording earlier releases passed to <code>logger=</code> callables, such
+as <code>Record processing failed: LLMError('...')</code>, so a filter or alert written
+against them still matches.</p>
+<p>The progress events in <a href="../observability/">Observability</a> remain the
+structured channel: count records, pages, and outcomes from the events, and
+use logs for the reasons.</p>
 
 
 
@@ -2558,7 +2637,7 @@ information.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../sync-components/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Synchronous components">
+          <a href="../rate-limiting/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Rate limiting">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2568,7 +2647,7 @@ information.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                Synchronous components
+                Rate limiting
               </div>
             </div>
           </a>

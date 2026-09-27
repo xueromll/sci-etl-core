@@ -657,6 +657,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -717,6 +721,62 @@
     
   
     Supported sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/typed-entities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Typed entities and validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims and provenance
   
 
     
@@ -830,7 +890,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -852,14 +912,14 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_4">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1158,8 +1218,6 @@
       
         
       
-        
-      
     
     
     
@@ -1173,10 +1231,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" >
         
           
-          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
             
   
   
@@ -1194,8 +1252,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_5">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1332,34 +1390,6 @@
     
   
     Rate limiting
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../guide/sync-components/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Synchronous components
   
 
     
@@ -1817,6 +1847,8 @@
       
         
       
+        
+      
     
     
     
@@ -2110,6 +2142,34 @@
     
   
     Exporters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims
   
 
     
@@ -2492,19 +2552,19 @@
 
 <h1 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h1>
 <p>Python 3.11 or newer is required.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"sci-etl-core[async,llm,pdf]"</span><span class="w">   </span><span class="c1"># everything the Quick Start uses</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"sci-etl-core[full]"</span><span class="w">            </span><span class="c1"># every bundled component except local embeddings</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"sci-etl-core[async,arxiv,llm,pdf]"</span><span class="w">   </span><span class="c1"># everything the Quick Start uses</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"sci-etl-core[full]"</span><span class="w">                  </span><span class="c1"># every bundled component except local embeddings</span>
 </code></pre></div>
 <p>From a clone:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[full]"</span>
 </code></pre></div>
-<p>The base install covers configuration, both pipelines, graceful shutdown,
-progress events and run metrics, the state backends, the sync adapters, HTML,
-LaTeX, DOCX, and JATS XML parsing, LLM response caching, text chunking,
-Boolean text search, rank fusion, discovery graphs, and the pandas processor
-steps. Components load
-their optional dependencies only when you import them, so add the extras for
-the components you use:</p>
+<p>The base install requires only Pydantic. It covers both pipelines, graceful
+shutdown, progress events and run metrics, the component contracts, the
+configuration models, the state backends, LLM response caching, the CSV and
+JSON Lines exporters, claims and provenance, record validators, LaTeX parsing,
+text chunking, Boolean text search, rank fusion, and discovery graphs. A
+component that needs another package imports it when you import the
+component, so add the extras for the components you use:</p>
 <table>
 <thead>
 <tr>
@@ -2515,9 +2575,34 @@ the components you use:</p>
 </thead>
 <tbody>
 <tr>
+<td><code>config</code></td>
+<td><code>pyyaml</code>, <code>python-dotenv</code></td>
+<td><code>load_config</code>, <code>load_config_async</code>, <code>load_yaml</code></td>
+</tr>
+<tr>
 <td><code>async</code></td>
-<td><code>httpx</code>, <code>aiofiles</code>, <code>aiolimiter</code></td>
-<td><code>AsyncArxivExtractor</code>, <code>AsyncPubMedExtractor</code>, <code>AsyncSemanticScholarExtractor</code>, <code>AsyncOpenAlexExtractor</code>, <code>build_async_client</code>, <code>AsyncCsvUpsertExporter</code>, <code>load_config_async</code>, <code>AioLimiterRateLimiter</code></td>
+<td><code>httpx</code>, <code>aiolimiter</code></td>
+<td><code>AsyncArxivExtractor</code>, <code>AsyncPubMedExtractor</code>, <code>AsyncSemanticScholarExtractor</code>, <code>AsyncOpenAlexExtractor</code>, <code>build_async_client</code>, <code>AioLimiterRateLimiter</code></td>
+</tr>
+<tr>
+<td><code>arxiv</code></td>
+<td><code>beautifulsoup4</code>, <code>lxml</code></td>
+<td><code>AsyncArxivExtractor</code>, which also needs <code>async</code></td>
+</tr>
+<tr>
+<td><code>xml</code></td>
+<td><code>lxml</code></td>
+<td><code>JatsXmlParser</code>, <code>DocxParser</code>, and <code>AsyncPubMedExtractor</code>, which also needs <code>async</code></td>
+</tr>
+<tr>
+<td><code>html</code></td>
+<td><code>beautifulsoup4</code></td>
+<td><code>HtmlTextParser</code>, which <code>AsyncLLMEntityExtractor</code> uses by default for full text that starts with markup</td>
+</tr>
+<tr>
+<td><code>processors</code></td>
+<td><code>pandas</code>, <code>numpy</code></td>
+<td>every step in <code>sci_etl_core.processors</code> except the validators, and the table sinks</td>
 </tr>
 <tr>
 <td><code>llm</code></td>
@@ -2531,18 +2616,18 @@ the components you use:</p>
 </tr>
 <tr>
 <td><code>sql</code></td>
-<td><code>sqlalchemy[asyncio]</code>, <code>aiosqlite</code></td>
-<td><code>SqlTableSink</code>, and the deprecated <code>AsyncSqlTableExporter</code></td>
+<td><code>sqlalchemy</code></td>
+<td><code>SqlTableSink</code>, which also needs <code>processors</code></td>
 </tr>
 <tr>
 <td><code>viz</code></td>
-<td><code>plotly</code>, <code>aiofiles</code></td>
-<td><code>Plotly3DSink</code>, and the deprecated <code>AsyncPlotly3DExporter</code></td>
+<td><code>plotly</code></td>
+<td><code>Plotly3DSink</code>, which also needs <code>processors</code></td>
 </tr>
 <tr>
 <td><code>cluster</code></td>
 <td><code>scikit-learn</code>, <code>numpy</code></td>
-<td><code>ClusteringStep</code></td>
+<td><code>ClusteringStep</code>, which also needs <code>processors</code></td>
 </tr>
 <tr>
 <td><code>embeddings</code></td>
@@ -2558,6 +2643,11 @@ the components you use:</p>
 <td><code>search</code></td>
 <td>nothing</td>
 <td>nothing extra: <code>sci_etl_core.search</code> needs only the standard library, so this extra just records why the package is installed</td>
+</tr>
+<tr>
+<td><code>full</code></td>
+<td>every package above except <code>sentence-transformers</code></td>
+<td>every bundled component except local embeddings</td>
 </tr>
 <tr>
 <td><code>dev</code></td>

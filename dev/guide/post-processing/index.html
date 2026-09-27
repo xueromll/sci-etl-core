@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://xueromll.github.io/sci-etl-core/dev/guide/post-processing/">
       
       
-        <link rel="prev" href="../sources/">
+        <link rel="prev" href="../claims/">
       
       
         <link rel="next" href="../semantic-memory/">
@@ -644,6 +644,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -724,6 +728,62 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../typed-entities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Typed entities and validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims and provenance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -787,10 +847,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-csv-exporter" class="md-nav__link">
+  <a href="#the-exporters" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The CSV exporter
+        The exporters
       
     </span>
   </a>
@@ -920,7 +980,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -942,14 +1002,14 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_3_4" id="__nav_3_4_label" tabindex="">
+              <label class="md-nav__link " for="__nav_3_6" id="__nav_3_6_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_4">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1248,8 +1308,6 @@
       
         
       
-        
-      
     
     
     
@@ -1266,10 +1324,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" >
         
           
-          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="">
             
   
   
@@ -1287,8 +1345,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_5">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1425,34 +1483,6 @@
     
   
     Rate limiting
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../sync-components/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Synchronous components
   
 
     
@@ -1910,6 +1940,8 @@
       
         
       
+        
+      
     
     
     
@@ -2203,6 +2235,34 @@
     
   
     Exporters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims
   
 
     
@@ -2575,10 +2635,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-csv-exporter" class="md-nav__link">
+  <a href="#the-exporters" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The CSV exporter
+        The exporters
       
     </span>
   </a>
@@ -2642,24 +2702,41 @@
 
 
 <h1 id="post-processing-and-visualization">Post-processing and visualization<a class="headerlink" href="#post-processing-and-visualization" title="Permanent link">&para;</a></h1>
-<h2 id="the-csv-exporter">The CSV exporter<a class="headerlink" href="#the-csv-exporter" title="Permanent link">&para;</a></h2>
-<p>The pipeline's exporter receives each record's entities as a <code>list[dict]</code>, and
-<code>AsyncCsvUpsertExporter</code> is the built-in exporter that accepts that shape. It
-keeps one row per normalized key: later records only fill empty cells, value
-columns are converted to floats (anything non-numeric becomes empty), and
-optional <code>numeric_clip</code> bounds clamp them.</p>
-<p>The exporter reads the existing file (which must be UTF-8) before its first
-write. If that read fails, for example because of a different encoding or a
-malformed row, the export raises and the file is left untouched instead of
-being overwritten. On Windows, a write is retried for about a second and a
-half while another program holds the file open.</p>
-<p>Keys come straight from LLM output, so a key a spreadsheet would run as a
-formula (starting with <code>=</code>, <code>+</code>, <code>-</code>, <code>@</code>, a tab, or a carriage return) is
-written with a leading apostrophe. The exporter strips it again when it
-reloads the file; other tools reading the CSV see it. Pass
-<code>escape_formulas=False</code> to write keys unchanged.</p>
+<h2 id="the-exporters">The exporters<a class="headerlink" href="#the-exporters" title="Permanent link">&para;</a></h2>
+<p>The pipeline writes each processed record's entities to its exporter, with
+the record they came from, and a record with no entities too. Two exporters
+are bundled, and neither merges, coerces, or clips a value, so a conflict
+between papers stays visible until you decide how to resolve it.</p>
+<p><strong><code>AsyncCsvExporter(path, columns)</code></strong> writes one row per entity. The first
+column is <code>record_id</code>, then the <code>columns</code> you name, then <code>extra</code>, which holds
+every other key of the entity as a JSON object. Values are written as the
+model returned them, so <code>"3.2 ± 0.4"</code> stays text and <code>2.9</code> stays <code>2.9</code>.
+Writing a record again replaces all of its rows. The file is rendered once,
+when the run ends; during the run each page is appended to
+<code>&lt;path&gt;.journal</code>, which a crashed run leaves behind and the next run replays
+before anything else. An existing file must be UTF-8 and have the same
+header, or the run aborts before its first request instead of overwriting it.
+On Windows, the final rename is retried for about a second and a half while
+another program holds the file open.</p>
+<p>Cells a spreadsheet would run as a formula (starting with <code>=</code>, <code>+</code>, <code>-</code>, <code>@</code>,
+a tab, or a carriage return) are written with a leading apostrophe, which the
+exporter strips again when it reloads the file; other tools reading the CSV
+see it. Plain numbers such as <code>-5.361</code> or <code>+1e8</code> are written unchanged, so
+pandas and spreadsheets read them as numbers. Pass <code>escape_formulas=False</code> to
+write every cell unchanged.</p>
+<p><strong><code>AsyncJsonlExporter(path)</code></strong> appends one JSON line per written record, with
+its <code>record_id</code>, <code>title</code>, <code>source_url</code>, and <code>entities</code>. A record written again
+appends another line, and <code>read_jsonl_export(path)</code> keeps the last line for
+each record. Use it when entities are nested or you want the paper's title and
+link next to them.</p>
+<p>Both accept entities as dicts, Pydantic models, dataclass instances, or
+claims. To keep evidence and provenance in a queryable store instead, write
+claims to an <code>AsyncClaimStoreExporter</code>; see <a href="../claims/">Claims and provenance</a>.</p>
 <h2 id="cleaning-and-plotting">Cleaning and plotting<a class="headerlink" href="#cleaning-and-plotting" title="Permanent link">&para;</a></h2>
-<p>Cleanup, scoring, and plots are a separate step over a DataFrame:</p>
+<p>Cleanup, deduplication, scoring, and plots are a separate step over a
+DataFrame. The exporter's table has one row per paper and entity, so this is
+where you choose how rows about the same object from different papers become
+one:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.processors</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -2673,30 +2750,39 @@ reloads the file; other tools reading the CSV see it. Pass
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="p">)</span>
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.processors.sinks</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScatterPlotConfig</span>
 <a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="n">frame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">"results.csv"</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="nb">str</span><span class="p">})</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="n">clean</span> <span class="o">=</span> <span class="n">ProcessorChain</span><span class="p">(</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="p">[</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        <span class="n">NormalizationStep</span><span class="p">(</span><span class="s2">"name"</span><span class="p">,</span> <span class="n">DefaultKeyNormalizer</span><span class="p">()),</span>  <span class="c1"># adds _norm_key</span>
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>        <span class="n">DeduplicationStep</span><span class="p">(</span><span class="s2">"_norm_key"</span><span class="p">),</span>                     <span class="c1"># one row per key</span>
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>        <span class="n">CompletenessStep</span><span class="p">([</span><span class="s2">"value_a"</span><span class="p">,</span> <span class="s2">"value_b"</span><span class="p">]),</span>           <span class="c1"># adds completeness_pct</span>
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>        <span class="n">QualityFlagStep</span><span class="p">(),</span>                                  <span class="c1"># adds quality_flag</span>
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    <span class="p">]</span>
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="p">)</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="n">plot</span> <span class="o">=</span> <span class="n">Plotly3DSink</span><span class="p">(</span>
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="n">ScatterPlotConfig</span><span class="p">(</span>
-<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>        <span class="n">x_column</span><span class="o">=</span><span class="s2">"value_a"</span><span class="p">,</span>
-<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>        <span class="n">y_column</span><span class="o">=</span><span class="s2">"value_b"</span><span class="p">,</span>
-<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>        <span class="n">z_column</span><span class="o">=</span><span class="s2">"completeness_pct"</span><span class="p">,</span>
-<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>        <span class="n">color_column</span><span class="o">=</span><span class="s2">"quality_flag"</span><span class="p">,</span>
-<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>        <span class="n">hover_name_column</span><span class="o">=</span><span class="s2">"name"</span><span class="p">,</span>
-<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>        <span class="n">title</span><span class="o">=</span><span class="s2">"Corpus overview"</span><span class="p">,</span>
-<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>    <span class="p">),</span>
-<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>    <span class="s2">"overview.html"</span><span class="p">,</span>
-<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="p">)</span>
-<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="n">plot</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">clean</span><span class="p">)</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="n">frame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">"results.csv"</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="p">{</span><span class="s2">"record_id"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">:</span> <span class="nb">str</span><span class="p">},</span> <span class="n">keep_default_na</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">na_values</span><span class="o">=</span><span class="p">[</span><span class="s2">""</span><span class="p">])</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"value_a"</span><span class="p">,</span> <span class="s2">"value_b"</span><span class="p">):</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="n">frame</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">frame</span><span class="p">[</span><span class="n">column</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">"coerce"</span><span class="p">)</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="n">clean</span> <span class="o">=</span> <span class="n">ProcessorChain</span><span class="p">(</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="p">[</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>        <span class="n">NormalizationStep</span><span class="p">(</span><span class="s2">"name"</span><span class="p">,</span> <span class="n">DefaultKeyNormalizer</span><span class="p">()),</span>  <span class="c1"># adds _norm_key</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>        <span class="n">DeduplicationStep</span><span class="p">(</span><span class="s2">"_norm_key"</span><span class="p">),</span>                     <span class="c1"># one row per key</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>        <span class="n">CompletenessStep</span><span class="p">([</span><span class="s2">"value_a"</span><span class="p">,</span> <span class="s2">"value_b"</span><span class="p">]),</span>           <span class="c1"># adds completeness_pct</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>        <span class="n">QualityFlagStep</span><span class="p">(),</span>                                  <span class="c1"># adds quality_flag</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    <span class="p">]</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="p">)</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="n">plot</span> <span class="o">=</span> <span class="n">Plotly3DSink</span><span class="p">(</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>    <span class="n">ScatterPlotConfig</span><span class="p">(</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>        <span class="n">x_column</span><span class="o">=</span><span class="s2">"value_a"</span><span class="p">,</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>        <span class="n">y_column</span><span class="o">=</span><span class="s2">"value_b"</span><span class="p">,</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>        <span class="n">z_column</span><span class="o">=</span><span class="s2">"completeness_pct"</span><span class="p">,</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>        <span class="n">color_column</span><span class="o">=</span><span class="s2">"quality_flag"</span><span class="p">,</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>        <span class="n">hover_name_column</span><span class="o">=</span><span class="s2">"name"</span><span class="p">,</span>
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>        <span class="n">title</span><span class="o">=</span><span class="s2">"Corpus overview"</span><span class="p">,</span>
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>    <span class="p">),</span>
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>    <span class="s2">"overview.html"</span><span class="p">,</span>
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="p">)</span>
+<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="n">plot</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">clean</span><span class="p">)</span>
 </code></pre></div>
-<p><code>clean</code> then looks like this:</p>
+<p><code>pd.to_numeric(..., errors="coerce")</code> turns text such as <code>"3.2 ± 0.4"</code> into
+an empty cell, so decide first whether such values need parsing instead.
+<code>DeduplicationStep</code> keeps the first row of each key and fills its empty cells
+from the others, so sort the rows first when one source should win. Pass
+<code>source_column="record_id"</code> to add a <code>sources</code> column that lists every paper
+merged into each row. The raw
+table stays on disk as the record of what each paper reported. <code>clean</code> then
+looks like this:</p>
 <table>
 <thead>
 <tr>
@@ -2738,9 +2824,8 @@ reloads the file; other tools reading the CSV see it. Pass
 <p><code>Plotly3DSink</code> drops rows that are missing any axis value, writes nothing when
 no row remains, and replaces the HTML file atomically. It needs the <code>viz</code>
 extra when constructed; importing <code>sci_etl_core.processors.sinks</code> needs only
-the <code>processors</code> dependencies. The sinks are blocking, so call <code>write</code> through
-<code>asyncio.to_thread</code> from async code. <code>AsyncPlotly3DExporter</code>, the 0.4 way to
-write this plot, is deprecated and will be removed in 0.6.0.</p>
+the <code>processors</code> extra. The sinks are blocking, so call <code>write</code> through
+<code>asyncio.to_thread</code> from async code.</p>
 <h3 id="styling-the-plot">Styling the plot<a class="headerlink" href="#styling-the-plot" title="Permanent link">&para;</a></h3>
 <p><code>ScatterPlotConfig</code> also controls hover text and colors:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.processors.sinks</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScatterPlotConfig</span>
@@ -2781,19 +2866,22 @@ write this plot, is deprecated and will be removed in 0.6.0.</p>
   your own <code>FeatureExtractor</code>.</li>
 <li><strong><code>ValueClipStep(bounds)</code></strong> clamps numeric columns into ranges, such as
   <code>{"fraction": (0.0, 1.0)}</code>, turning values that aren't numbers into empty
-  cells. It does during post-processing what the CSV exporter's <code>numeric_clip</code>
-  does during export.</li>
+  cells. Clamping hides an out-of-range value behind a plausible one, so
+  prefer rejecting such values with a validator during extraction.</li>
 <li><strong><code>TableLayoutStep(sort_by, leading_columns, hidden_prefixes)</code></strong> prepares a
   table for publishing: it sorts rows by <code>(column, ascending)</code> pairs with
   missing values last, drops helper columns such as <code>_norm_key</code> by prefix, and
   moves the <code>leading_columns</code> to the front.</li>
 <li><strong>Record validators</strong> check individual entity dicts: <code>NumericRangeValidator</code>,
-  <code>KeywordExclusionValidator</code>, and <code>CompositeValidator</code>. Pass one to
-  <code>AsyncLLMEntityExtractor(validator=...)</code> to drop invalid entities before
-  export; each rejection is logged through its <code>logger</code>, labelled by the
-  <code>label_field</code> value when you name one:</li>
+  <code>KeywordExclusionValidator</code>, and <code>CompositeValidator</code>. <code>validate(entity)</code>
+  returns a <code>ValidationResult</code> whose <code>violations</code> name the field and the rule
+  each rejection broke; <code>CompositeValidator</code> collects the violations of every
+  validator it holds. Pass one to <code>AsyncLLMEntityExtractor(validator=...)</code> to
+  drop invalid entities before export. Each rejection is logged with its
+  reasons, labelled by the <code>label_field</code> value when you name one, and stored
+  for review when you pass a rejection store as <code>rejections=</code>:</li>
 </ul>
-<p><div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncLLMEntityExtractor</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncLLMEntityExtractor</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.processors</span><span class="w"> </span><span class="kn">import</span> <span class="n">CompositeValidator</span><span class="p">,</span> <span class="n">KeywordExclusionValidator</span><span class="p">,</span> <span class="n">NumericRangeValidator</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">extractor</span> <span class="o">=</span> <span class="n">AsyncLLMEntityExtractor</span><span class="p">(</span>
@@ -2805,17 +2893,18 @@ write this plot, is deprecated and will be removed in 0.6.0.</p>
 <a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>            <span class="n">NumericRangeValidator</span><span class="p">({</span><span class="s2">"ra"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">360.0</span><span class="p">)}),</span>
 <a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>        <span class="p">]</span>
 <a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>    <span class="p">),</span>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>    <span class="n">logger</span><span class="o">=</span><span class="nb">print</span><span class="p">,</span>
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    <span class="n">label_field</span><span class="o">=</span><span class="s2">"name"</span><span class="p">,</span>
-<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="p">)</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>    <span class="n">label_field</span><span class="o">=</span><span class="s2">"name"</span><span class="p">,</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="p">)</span>
 </code></pre></div>
+<p>A validator of your own subclasses <code>RecordValidator</code> and implements
+  <code>is_valid</code>; override <code>validate</code> too, to report reasons other than
+  "rejected".
 - <strong><code>SqlTableSink(url, table_name)</code></strong> writes a DataFrame to a database
   through a synchronous SQLAlchemy URL, in one transaction, e.g.
   <code>SqlTableSink("sqlite:///results.db", "entities").write(clean)</code>. It needs
   the <code>sql</code> extra when constructed. Like <code>Plotly3DSink</code>, it takes a
   DataFrame, so use it after post-processing rather than as the pipeline's
-  exporter. It replaces <code>AsyncSqlTableExporter</code>, which is deprecated and will
-  be removed in 0.6.0.</p>
+  exporter.</p>
 
 
 
@@ -2851,7 +2940,7 @@ write this plot, is deprecated and will be removed in 0.6.0.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../sources/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Supported sources">
+          <a href="../claims/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Claims and provenance">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2861,7 +2950,7 @@ write this plot, is deprecated and will be removed in 0.6.0.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                Supported sources
+                Claims and provenance
               </div>
             </div>
           </a>

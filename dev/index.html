@@ -709,6 +709,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -769,6 +773,62 @@
     
   
     Supported sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="guide/typed-entities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Typed entities and validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="guide/claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims and provenance
   
 
     
@@ -882,7 +942,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -904,14 +964,14 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_4">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1210,8 +1270,6 @@
       
         
       
-        
-      
     
     
     
@@ -1225,10 +1283,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" >
         
           
-          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
             
   
   
@@ -1246,8 +1304,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_5">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1384,34 +1442,6 @@
     
   
     Rate limiting
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="guide/sync-components/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Synchronous components
   
 
     
@@ -1869,6 +1899,8 @@
       
         
       
+        
+      
     
     
     
@@ -2162,6 +2194,34 @@
     
   
     Exporters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims
   
 
     
@@ -2630,9 +2690,8 @@ over a local SQLite index.</p>
 <li><strong>Pluggable async interfaces</strong> for every stage: <code>AsyncExtractor</code>, <code>Parser</code>,
   <code>AsyncLLMClient</code>, <code>AsyncRelevanceFilter</code>, <code>AsyncEntityExtractor</code>,
   <code>AsyncExporter</code>, <code>AsyncStateManager</code>, plus <code>AsyncEmbedder</code>, <code>TextChunker</code>,
-  and <code>AsyncEmbeddingStore</code> for semantic memory. Existing blocking
-  implementations plug in through <code>Sync*Adapter</code> wrappers. Run the whole
-  pipeline, or use only the parts you need, such as search.</li>
+  and <code>AsyncEmbeddingStore</code> for semantic memory. Run the whole pipeline, or
+  use only the parts you need, such as search.</li>
 <li><strong>Async-first orchestration</strong> — every component is an <code>async</code>
   implementation. <code>AsyncETLPipeline</code> processes records with bounded
   concurrency, and <code>ETLPipeline</code> runs the same pipeline from blocking code.</li>
@@ -2654,6 +2713,10 @@ over a local SQLite index.</p>
 <li><strong>Progress events, metrics, and token usage</strong> — typed per-record events,
   run metrics with counts, durations, and failures, and the tokens each run
   used.</li>
+<li><strong>Typed extraction and claims</strong> — describe an entity with a Pydantic model
+  to get validated, typed entities and the reasons behind every rejection, or
+  extract claims that keep the paper, evidence sentence, and model behind each
+  value.</li>
 <li><strong>LLM response caching</strong> — an in-memory or SQLite cache answers repeated
   prompts without another API call.</li>
 <li><strong>Semantic memory (optional)</strong> — chunk and embed full texts into an
@@ -2663,14 +2726,14 @@ over a local SQLite index.</p>
   index that needs only the standard library, hybrid search that fuses BM25
   with embedding similarity, metadata facets, and graphs of related papers.</li>
 <li><strong>Dependency injection everywhere</strong> — HTTP clients, parsers, models,
-  prompts, and destinations are constructor arguments.</li>
+  prompts, schemas, and output paths are constructor arguments.</li>
 <li><strong>Concrete implementations included</strong> — arXiv, PubMed, Semantic Scholar,
   and OpenAlex extractors; OpenAI-compatible chat and embedding clients; local
   sentence-transformers embedder; PDF / LaTeX / HTML / DOCX / JATS XML parsers;
-  CSV upsert, SQL table, and 3D Plotly exporters; dataframe processors and
-  record validators.</li>
-<li><strong>Typed configuration</strong> from YAML + <code>.env</code> with Pydantic validation and
-  <code>SecretStr</code> API keys.</li>
+  CSV and JSON Lines exporters; SQL table and 3D Plotly sinks; dataframe
+  processors and record validators.</li>
+<li><strong>Typed configuration</strong> from YAML and environment variables with Pydantic
+  validation and <code>SecretStr</code> API keys.</li>
 <li><strong>Offline test suite</strong> — pytest with mocks, Hypothesis property tests, and
   ABC conformance tests.</li>
 <li><strong>PEP 561 typed</strong> (<code>py.typed</code>) for downstream type checking.</li>
