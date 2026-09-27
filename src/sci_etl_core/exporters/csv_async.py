@@ -5,6 +5,7 @@ import csv
 import io
 import json
 import os
+import re
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
@@ -20,6 +21,7 @@ EXTRA_COLUMN = "extra"
 
 _FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
 _ESCAPE = "'"
+_PLAIN_NUMBER = re.compile(r"[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?")
 
 Row = tuple[str, ...]
 
@@ -27,10 +29,14 @@ Row = tuple[str, ...]
 def _escape_cell(value: str) -> str:
     """Prefix text a spreadsheet would evaluate as a formula with an apostrophe.
 
-    A value that already starts with an apostrophe is escaped as well, so that
-    :func:`_unescape_cell` restores every written cell exactly.
+    A plain number such as ``-5.361`` or ``+1e8`` is left as it is, since a
+    spreadsheet reads it as that number. A value that already starts with an
+    apostrophe is escaped as well, so that :func:`_unescape_cell` restores
+    every written cell exactly.
     """
-    if value.startswith((*_FORMULA_PREFIXES, _ESCAPE)):
+    if value.startswith(_ESCAPE):
+        return _ESCAPE + value
+    if value.startswith(_FORMULA_PREFIXES) and not _PLAIN_NUMBER.fullmatch(value):
         return _ESCAPE + value
     return value
 
@@ -75,7 +81,8 @@ class AsyncCsvExporter(AsyncExporter[Any]):
     in the number of rows.
 
     Cells a spreadsheet would read as a formula are written with a leading
-    apostrophe and restored when the file is read back, unless
+    apostrophe and restored when the file is read back; plain numbers such as
+    ``-5.361`` are written unchanged. Escaping is on unless
     ``escape_formulas`` is ``False``. Entities may be dicts, Pydantic models,
     dataclass instances, or claims.
     """

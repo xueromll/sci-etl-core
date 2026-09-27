@@ -13,17 +13,21 @@ jobs:
     name: Run the CI suite
     uses: ./.github/workflows/ci.yml
 
+  downstream:
+    name: Run the sci-etl-cli and udg-catalogue suites
+    uses: ./.github/workflows/downstream.yml
+
   build:
     name: Build the distribution
-    needs: tests
+    needs: [tests, downstream]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
 
@@ -51,7 +55,7 @@ jobs:
         run: python -m twine check --strict dist/*
 
       - name: Upload the distribution
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         with:
           name: dist
           path: dist/
@@ -70,13 +74,13 @@ jobs:
       id-token: write
     steps:
       - name: Download the distribution
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
           name: dist
           path: dist/
 
       - name: Publish to TestPyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
 
@@ -93,13 +97,13 @@ jobs:
       id-token: write
     steps:
       - name: Download the distribution
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
           name: dist
           path: dist/
 
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
 
   github-release:
     name: Create the GitHub release
@@ -110,7 +114,7 @@ jobs:
       contents: write
     steps:
       - name: Download the distribution
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
           name: dist
           path: dist/

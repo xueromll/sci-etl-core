@@ -126,16 +126,29 @@ pytest --cov=sci_etl_core --cov-report=term-missing   # coverage report
   at most 1.5 times its time at the smallest. `--sizes`, `--repeats`, and
   `--exporters` narrow a run.
 - **Downstream tests.** The Downstream workflow runs the
-  [sci-etl-cli](https://github.com/xueromll/sci-etl-cli) suite against every
-  push and pull request, and fails on any `DeprecationWarning`. To run it
-  locally, install the CLI without its pinned core and run its suite:
+  [sci-etl-cli](https://github.com/xueromll/sci-etl-cli) and
+  [udg-catalogue](https://github.com/xueromll/udg-catalogue) suites against
+  every push and pull request, with this checkout installed in place of the
+  release each project pins, and fails on any `DeprecationWarning`. Each job
+  installs the extras the project's own requirement names. To run the CLI
+  suite locally:
 
   ```bash
   git clone https://github.com/xueromll/sci-etl-cli.git ../sci-etl-cli
-  pip install -e ".[async,llm,pdf]"
+  pip install -e ".[config,async,arxiv,html,llm,pdf]"
   pip install --no-deps -e ../sci-etl-cli
-  pip install click rich python-dotenv pytest pytest-asyncio pytest-mock
+  pip install click rich pytest pytest-asyncio pytest-mock pytest-cov
   cd ../sci-etl-cli && python -m pytest -W error::DeprecationWarning
+  ```
+
+  And the udg-catalogue suite, which also installs the CPU build of PyTorch:
+
+  ```bash
+  git clone https://github.com/xueromll/udg-catalogue.git ../udg-catalogue
+  export PIP_EXTRA_INDEX_URL=https://download.pytorch.org/whl/cpu
+  pip install -e ".[config,async,arxiv,html,llm,pdf,processors,cluster,embeddings,embeddings-local,search]" \
+      -r ../udg-catalogue/requirements/app.txt -r ../udg-catalogue/requirements/dev.txt
+  cd ../udg-catalogue && python -m pytest -W error::DeprecationWarning
   ```
 
 ## Code Style
@@ -203,6 +216,26 @@ mkdocs build --strict                                 # the check CI runs
   alias. A tag build uses the CLI pages from the latest sci-etl-cli release, or
   from its default branch when that release has no `mkdocs.yml`. Nothing needs
   to be published by hand.
+
+## Releasing
+
+- **Development versions.** Right after a release, `master` moves to the next
+  development version, such as `0.7.0.dev0` after `0.6.0`, so a build from
+  `master` never claims to be a release.
+- **Release gate.** Pushing a `v*` tag runs the CI suite and the Downstream
+  workflow on the tagged commit. The distribution is built and published only
+  when both pass, so a release that breaks sci-etl-cli or udg-catalogue is
+  never published. The tag must match the version in `pyproject.toml`.
+- **Deprecations.** From 0.6.0 on, a deprecated name keeps working for at least
+  two minor releases before it is removed.
+- **Before tagging.** Date the unreleased section of `CHANGELOG.md`, update the
+  supported versions in `SECURITY.md`, and rerun
+  `python benchmarks/run_throughput.py` so `benchmarks/results/` holds the new
+  version.
+- **Pinned actions.** Workflows pin every action to a commit SHA, with the tag
+  in a trailing comment such as `# v5`. To move to a newer release, resolve its
+  SHA with `git ls-remote https://github.com/actions/checkout refs/tags/v5`
+  and update the pin and the comment together.
 
 ## Commit Format
 

@@ -1,7 +1,8 @@
 # Steps 7–10 of `audit-analysis.md`: progress handoff
 
-Written 2026-09-26 when the session stopped near the usage limit. Nothing is
-committed; every change sits in the working trees. This file is untracked; add
+Written 2026-09-26 and updated 2026-09-27. Core's 0.6 work is committed as
+`9327cb3`; the changes of 2026-09-27 and both consumer ports sit in the
+working trees. This file is untracked; add
 it to `.gitignore` next to the other plan files, or delete it once the work is done.
 
 Sources followed: `audit-analysis.md` §6 steps 7–10, `release-plan.md` §5
@@ -107,23 +108,40 @@ Run it with the scratch venv or any env with `pip install -e ".[full,dev,lint]"`
   `tests/test_docs.py` passes; MIGRATION 0.6 examples were checked with the
   same checks.
 
+## sci-etl-core: done on 2026-09-27, not committed
+
+- DONE: `AsyncCsvExporter` no longer escapes plain numbers. It wrote
+  `dec=-5.361` as `'-5.361`, so pandas read every southern declination in
+  udg-catalogue's raw catalogue (and any negative number in a CLI CSV) as
+  text. Tests in `tests/async/test_csv_async.py`; CHANGELOG, post-processing
+  guide, SECURITY updated. Suite: 2,564 tests at 100%, ruff and mypy clean,
+  `mkdocs build --strict` clean.
+- DONE: `docs/guide/migrating-a-pipeline.md` — "Where you'll end up" shows the
+  0.6 code, the mapping table names 0.6 components, and "Upgrading the
+  project" gained "Moving to 0.5" and "Moving to 0.6".
+- DONE: `release-plan.md` and `claims-provenance-plan.md` Progress sections.
+- DONE: step 10 workflows — `downstream.yml` has a `catalogue` job and
+  `workflow_call`; both jobs read the extras from the consumer's own
+  requirement; `release.yml` builds only after `tests` and `downstream`; every
+  `uses:` in all three repos is pinned by SHA with the tag in a comment.
+  CONTRIBUTING: downstream commands for both consumers and a "Releasing"
+  section. ROADMAP consumer table updated.
+- Suggested commit titles:
+  1. `fix: write plain numbers unescaped in AsyncCsvExporter`
+  2. `ci: gate releases on the sci-etl-cli and udg-catalogue suites and pin actions by SHA`
+  3. `docs: bring the udg-catalogue guide to 0.6 and document releasing`
+
 ## sci-etl-core: NOT DONE
 
-- TODO: `docs/guide/migrating-a-pipeline.md` (the udg-catalogue walkthrough)
-  still shows 0.5 code (`AsyncCsvUpsertExporter`, `destination=`, `logger=`,
-  `configure_logging`). Update it after the udg-catalogue port is final, to
-  mirror the real code. `tests/test_docs.py` currently passes on it only
-  because its blocks aren't import-checked the same way; recheck.
 - TODO: `SECURITY.md` supported-versions table says 0.5.x; update at release.
 - TODO: `benchmarks/results/0.6.0.json` — rerun
   `python benchmarks/run_throughput.py` after reinstalling so the version
-  reads 0.6.0; the measured ratios are recorded above.
+  reads 0.6.0.
 - TODO: compat fixtures `tests/compat/v0_6_0/` (claim store, rejection store)
   can only be written from the tagged 0.6.0 release.
-- TODO: `release-plan.md` and `claims-provenance-plan.md` Progress sections
-  are not updated yet; mark Phase 3 and claims 0a/0b/1 DONE, with the
-  decisions above.
-- TODO: generate the patch series (see "Patches" below).
+- NOTE: the Downstream workflow stays red on core `master` until both
+  consumer ports reach their default branches, and CLI CI stays red until
+  core 0.6.0 is on PyPI (it installs core from PyPI).
 
 ## sci-etl-cli (`../sci-etl-cli`): port to core 0.6 DONE, not committed
 
@@ -143,53 +161,27 @@ Version `0.4.0.dev0`, requires `sci-etl-core[config,async,arxiv,html,llm,pdf]>=0
   0.6.0 is published. Either commit the port on a branch until then, or accept
   the red build between the two releases.
 
-## udg-catalogue (`../udg-catalogue`): port IN PROGRESS, not committed
+## udg-catalogue (`../udg-catalogue`): port DONE, not committed
 
-Done in the working tree, **untested** (the session stopped while installing
-astropy/streamlit into the scratch venv; udg's own `.venv` has core 0.4.0 and
-was left untouched):
+209 tests pass at 100% coverage, `-W error::DeprecationWarning` clean
+(scratch venv, Python 3.14, with astropy and streamlit).
 
-- `udg_catalogue/pipeline.py` rewritten: raw catalogue via
-  `AsyncCsvExporter(paths.raw_catalogue, [galaxy_name, *MEASUREMENT_FIELDS])`;
-  core `validator=GalaxyValidator` + `label_field` + `rejections=`
-  `AsyncSqliteRejectionStore(paths.rejections)`; `ValidatedEntityExtractor`
-  removed; indexing run uses a new `DiscardingExporter` (it must never write
-  the catalogue, since `write(record, [])` would clear a paper's rows);
-  no `logger=`/`destination=`.
-- `udg_catalogue/validation.py`: `GalaxyValidator.validate()` returns
-  `Violation`s (codes `no-name`, `paper-local-name`, `simulation-keyword`,
-  `not-a-number`, `not-positive`, `out-of-range`, `no-measurement`);
-  `rejection_reason` and `ValidatedEntityExtractor` removed.
-- `udg_catalogue/postprocess.py`: new `RawRowsStep` (hides `record_id`/`extra`
-  as `_record_id`/`_extra`, coerces measurements to numbers); dedup with
-  `source_column="_record_id"`, `sources_column="source_papers"`;
-  `source_papers` in `LEADING_COLUMNS`; `read_catalogue` dtypes.
-- New `udg_catalogue/logs.py` (`configure_run_logging`, `PaperContextFilter`
-  prefixing core lines with the paper id) and `udg_catalogue/manifest.py`
-  (`write_manifest` → `data/run_manifest.json`: core/udg versions, model,
-  base URL, prompt hashes, query, processed arXiv ids, row counts and SHA-256
-  of both catalogues).
-- `config.py`/`config.yaml`: `paths.rejections`, `paths.run_manifest`.
-- `main.py`: `configure_run_logging`, `ShutdownSignal()`, writes the manifest
-  after the catalogue. `app.py`: `configure_run_logging`.
-- `literature.py`: `memory_ingestor(chunker)`, `searcher()`, `search()` lost
-  their `logger` parameters.
-
-TODO for udg-catalogue:
-
-- Fix the tests: `tests/test_pipeline.py`, `test_validation.py` (uses
-  `rejection_reason`, `ValidatedEntityExtractor`), `test_main.py` (patches
-  `configure_logging`), `test_literature.py` (passes `print` to
-  `memory_ingestor`), `test_postprocess.py` (raw CSV is now long format with
-  `record_id`/`extra`), `test_app.py`, `test_published_catalogue.py`; add tests
-  for `logs.py`, `manifest.py`, `RawRowsStep`, `DiscardingExporter`,
-  `source_papers`. Keep 100% coverage.
-- `requirements.txt`: `sci-etl-core[config,async,arxiv,html,llm,pdf,processors,cluster,embeddings,embeddings-local,search]>=0.6.0,<0.7`;
-  `requirements/local.txt` the same extras; drop `aiofiles` from
-  `requirements/app.txt`.
-- `.gitignore`: add `!data/run_manifest.json` so the manifest is committed.
-- README/CONTRIBUTING: long-format raw catalogue, `source_papers`, rejection
-  store and how to review it, manifest, logging.
+- DONE: pipeline on `AsyncCsvExporter` (long format), core validator with
+  `label_field` and `AsyncSqliteRejectionStore`, `DiscardingExporter` for the
+  indexing run, `GalaxyValidator.validate` with rule codes, `RawRowsStep`,
+  `source_papers`, `logs.py`, `manifest.py`, `ShutdownSignal` in `main.py`.
+- DONE: post-processing refuses a raw catalogue without `record_id` (the 0.5
+  wide format) and says to rebuild with `--rescan`.
+- DONE: tests fixed and added (`test_logs.py`, `test_manifest.py`,
+  `RawRowsStep`, rejection store, negative coordinates round trip).
+- DONE: `requirements.txt` and `requirements/local.txt` on
+  `[config,async,arxiv,html,llm,pdf,processors,cluster,embeddings,embeddings-local,search]>=0.6.0,<0.7`;
+  `aiofiles` dropped from `requirements/app.txt`; `.gitignore` keeps
+  `data/run_manifest.json`.
+- DONE: README (long-format raw catalogue, `source_papers`, rejection store
+  with a review example, manifest, logs, rebuild notes) and CONTRIBUTING.
+- The README "Results at a Glance" numbers and its `sci-etl-core 0.5` row
+  describe the committed catalogue; refresh them after the step 8 rebuild.
 
 ## Step 8 (udg-catalogue rebuild and versioning): NOT DONE
 
@@ -215,55 +207,26 @@ the result (pinned positioning rule), and point the docs landing page's
 "See a complete project" card at `guide/migrating-a-pipeline.md` (the
 udg-catalogue guide) instead of the repository, as ROADMAP v0.6.0 says.
 
-## Step 10 (process): partly DONE
+## Step 10 (process): DONE in the working trees
 
 - DONE: `.devN` bump in core (`0.6.0.dev0`) and CLI (`0.4.0.dev0`);
   two-minor deprecation rule and release gate stated in ROADMAP.
-- TODO: `.github/workflows/downstream.yml`: add a udg-catalogue job next to the
-  CLI job (install core from the checkout with udg's extras, then udg without
-  its pinned core, run `pytest -W error::DeprecationWarning`).
-- TODO: `.github/workflows/release.yml`: make publishing `needs:` both
-  downstream jobs (call `downstream.yml` via `workflow_call`, or duplicate the
-  jobs), so a tag cannot publish unless both consumers pass.
-- TODO: pin every `uses:` by commit SHA in all three repos (resolve with
-  `git ls-remote https://github.com/actions/checkout refs/tags/v5` etc., keep
-  the tag in a trailing `# v5` comment).
-- TODO: CONTRIBUTING "Downstream tests" and a "Releasing" section: dev bump
-  after each release, gate, two-minor deprecations; the local downstream
-  install line needs `.[config,async,arxiv,html,llm,pdf]`.
+- DONE: udg-catalogue job in `downstream.yml`; `release.yml` needs both
+  downstream jobs; actions pinned by SHA in all three repos; CONTRIBUTING
+  "Downstream tests" and "Releasing".
 
 ## Patches (delivery format)
 
-The consumer repos keep a `.patches/` series with one Conventional Commits
-title per patch; core's `.patches/` holds the already-committed 0.5.1 series.
-Snapshot trees were written with a temporary git index (the real index was
-never touched). The tree objects may be garbage-collected eventually; if they
-are gone, regenerate patches from the working trees instead.
+Core's 0.6 work was committed directly (`9327cb3`), so core needs no patch
+series; commit the working tree with the titles above. The consumer series
+are written:
 
-| Snapshot | Tree | Contents |
+| Repo | Patch | Title |
 |---|---|---|
-| core T0 | `70a41d2874c1b2d1f1fb3fa06e3582ab5ab32159` | `HEAD` + version bump only |
-| core T1 | `43ac800dfa25ad4154cedfeb9d7ff5055ac53b39` | + data contract and removals |
-| core T2 | `57ca2f3a7fe5d1fd18130cbe3615f8b61f44c43f` | + claims package |
-| core T3 | `86403b69f55bf43df012a244ce44a5bd30514ed8` | + stdlib logging |
-| core T4 | `b7f8a944d1c9d3ad2a0e66dc6e4bd82142aae6c9` | + extras and `load_env` |
-| CLI C0 | `c8f313582cacfecf9b891c903b48945534a20392` | CLI working tree with patches 01–06 |
-| CLI C1 | `5e2a10ad5b54ecea45fd3205af003df99663357a` | + port to core 0.6 |
-| udg U0 | `65667d1d52a91eeafc1587b8a1a56b43c4f0adec` | udg working tree with patches 01–09 |
+| sci-etl-cli | `07-core-0.6.patch` | `feat!: run on sci-etl-core 0.6 with one CSV row per entity` |
+| sci-etl-cli | `08-pin-actions.patch` | `ci: pin GitHub Actions to commit SHAs` |
+| udg-catalogue | `10-core-0.6.patch` | `feat!: port to sci-etl-core 0.6 with per-paper rows, rejection store, and run manifest` |
+| udg-catalogue | `11-pin-actions.patch` | `ci: pin GitHub Actions to commit SHAs` |
 
-Everything after T4 in core (docs, CSV journal folder fix, dedup sources) is
-only in the working tree. Suggested core series and commit titles:
-
-1. `chore: mark master as 0.6.0.dev0` (HEAD..T0)
-2. `feat!: typed entities, validation reasons, and the exporter lifecycle` (T0..T1)
-3. `feat: add claims and provenance (provisional)` (T1..T2)
-4. `refactor!: log through the standard logging module` (T2..T3)
-5. `build!: require only pydantic in the base install` (T3..T4)
-6. `feat: record merged sources in DeduplicationStep; create the CSV journal folder` (T4..working tree, code only)
-7. `docs: document the 0.6.0 data contract, claims, logging, and extras` (docs part of the rest)
-
-CLI: `07-core-0.6.patch` — `feat!: run on sci-etl-core 0.6 with one CSV row per entity` (C0..C1).
-udg-catalogue: `10-core-0.6.patch` — `feat!: port to sci-etl-core 0.6 with per-paper rows, rejection store, and run manifest` (U0..final).
-
-Example: `git diff <old-tree> <new-tree> > .patches/NN-name.patch`, then add a
-line to `.patches/SERIES`.
+Each series starts from the repository's `HEAD`; patches 01–06 (CLI) and
+01–09 (udg-catalogue) come first.

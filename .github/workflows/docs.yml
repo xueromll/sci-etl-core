@@ -38,7 +38,7 @@ jobs:
       targets: ${{ steps.targets.outputs.targets }}
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           fetch-depth: 0
 
@@ -124,13 +124,13 @@ jobs:
       SCI_ETL_CLI_DIR: .sci-etl-cli
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           ref: ${{ matrix.target.ref }}
           fetch-depth: 0
 
       - name: Check out the CLI documentation
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           repository: ${{ env.CLI_REPOSITORY }}
           ref: ${{ matrix.target.cli_ref != 'HEAD' && matrix.target.cli_ref || '' }}
@@ -138,13 +138,13 @@ jobs:
 
       - name: Fall back to the CLI default branch when the release has no documentation
         if: hashFiles('.sci-etl-cli/mkdocs.yml') == ''
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           repository: ${{ env.CLI_REPOSITORY }}
           path: .sci-etl-cli
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
           cache: pip

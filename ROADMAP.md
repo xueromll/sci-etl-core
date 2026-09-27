@@ -17,8 +17,8 @@ changes.
 
 | Consumer | Requires | Runs |
 |----------|----------|------|
-| [udg-catalogue](https://github.com/xueromll/udg-catalogue) | `sci-etl-core>=0.4.0,<0.5` in its latest commit, with the `embeddings`, `embeddings-local`, and `search` extras; its next commit requires `>=0.5.1,<0.6` | 0.4 in production, including search, discovery, and embeddings |
-| [sci-etl-cli](https://github.com/xueromll/sci-etl-cli) | `>=0.5.0.dev0,<0.6` on `master`, and its suite passes against core `master`; its next release, 0.3.0, requires `>=0.5.1,<0.6` | 0.2, in its latest release 0.2.1 |
+| [udg-catalogue](https://github.com/xueromll/udg-catalogue) | `sci-etl-core>=0.4.0,<0.5` in its latest commit, with the `embeddings`, `embeddings-local`, and `search` extras; its port to 0.6 requires `>=0.6.0,<0.7` and its suite passes against core `master` | 0.4 in production, including search, discovery, and embeddings |
+| [sci-etl-cli](https://github.com/xueromll/sci-etl-cli) | `>=0.5.0.dev0,<0.6` on `master`; 0.3.0 requires `>=0.5.1,<0.6`, and 0.4.0, its port to 0.6, requires `>=0.6.0,<0.7` and passes against core `master` | 0.2, in its latest release 0.2.1 |
 
 | Area | Shipped |
 |------|---------|
@@ -34,8 +34,8 @@ changes.
 | Project health | Offline pytest and Hypothesis suite at 100% line coverage, with branch coverage reported; ruff with the `ASYNC`, `UP`, `RUF`, and `PT` rule sets, and mypy with stricter flags on the core contracts; CI on Linux, Windows, and macOS for Python 3.11–3.14, PyPI trusted publishing, a documentation site with a generated API reference |
 | Guardrails | A committed snapshot of every stable signature, which also covers every name a known consumer uses; the guarantees of `AsyncETLPipeline.run` numbered in a run-semantics guide, each with a named test; the sci-etl-cli suite run against every core change; nightly smoke tests against each bundled source; a throughput benchmark that runs every exporter through the pipeline |
 
-Still open: a sci-etl-cli release and a udg-catalogue commit that require core
-0.5.1, and a live check of how long OpenAlex cursors stay valid.
+Still open: sci-etl-cli and udg-catalogue releases on the new core, and a live
+check of how long OpenAlex cursors stay valid.
 PubMed and Semantic Scholar keep offset paging and report their caps as
 truncated: E-utilities serves at most 9,999 results even through its history
 server, and Semantic Scholar's bulk search returns fixed pages of 1,000

@@ -25,7 +25,8 @@ in MIGRATION.md.
   its paper, keeps every other key in an `extra` column, and never merges,
   clips, or coerces a value. It renders the file once per run from an
   append-only journal, so export time grows linearly with the number of
-  records.
+  records. Cells a spreadsheet would run as a formula get a leading
+  apostrophe; plain numbers such as `-5.361` are written unchanged.
 - `AsyncJsonlExporter`, which appends one JSON line per record, and
   `read_jsonl_export`, which reads the last line of each record back.
 - **Typed entities.** `AsyncLLMEntityExtractor(schema=Model)` validates every

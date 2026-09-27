@@ -22,7 +22,9 @@ another program holds the file open.
 Cells a spreadsheet would run as a formula (starting with `=`, `+`, `-`, `@`,
 a tab, or a carriage return) are written with a leading apostrophe, which the
 exporter strips again when it reloads the file; other tools reading the CSV
-see it. Pass `escape_formulas=False` to write cells unchanged.
+see it. Plain numbers such as `-5.361` or `+1e8` are written unchanged, so
+pandas and spreadsheets read them as numbers. Pass `escape_formulas=False` to
+write every cell unchanged.
 
 **`AsyncJsonlExporter(path)`** appends one JSON line per written record, with
 its `record_id`, `title`, `source_url`, and `entities`. A record written again

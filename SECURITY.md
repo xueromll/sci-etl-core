@@ -75,8 +75,8 @@ control:
 - **CSV formula injection.** Every cell comes straight from LLM output.
   `AsyncCsvExporter` by default prefixes an apostrophe to any cell starting
   with `=`, `+`, `-`, `@`, a tab, or a carriage return, so spreadsheets don't
-  evaluate it. Keep `escape_formulas` enabled for files people open in
-  spreadsheet software. Other outputs — JSON Lines from `AsyncJsonlExporter`,
+  evaluate it. Plain numbers such as `-5.361` are left unchanged. Keep
+  `escape_formulas` enabled for files people open in spreadsheet software. Other outputs — JSON Lines from `AsyncJsonlExporter`,
   SQL tables from `SqlTableSink`, Plotly hover text from `Plotly3DSink`, and
   your own exporters and sinks — are not escaped.
 - **No secrets in outputs.** Exporters write only the data they are given;

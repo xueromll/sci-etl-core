@@ -9,12 +9,14 @@ Every "before" snippet is taken from udg-catalogue as it was before the
 migration. Every "after" snippet in Steps 1 to 9 is taken from the migrated
 project on sci-etl-core 0.2, at
 [commit `8cd9471`](https://github.com/xueromll/udg-catalogue/tree/8cd94711b864212a8fa0d55d60f51e500cf42ec3).
-[Upgrading the project](#upgrading-the-project) shows how that code changed on
+Some of those 0.2 calls were renamed or removed since.
+[Where you'll end up](#where-youll-end-up) shows the project on 0.6, and
+[Upgrading the project](#upgrading-the-project) shows how the code changed on
 the project's [`main` branch](https://github.com/xueromll/udg-catalogue/tree/main)
-when it moved to 0.4. Some of the 0.2 calls shown here were renamed or removed
-since; the [migration guide](../project/migration.md) lists every change by
-release. The science is astronomy, but nothing in the steps depends on it:
-swap the prompts, fields, and domain rules for your own.
+as it moved to 0.4, 0.5, and 0.6. The
+[migration guide](../project/migration.md) lists every change by release. The
+science is astronomy, but nothing in the steps depends on it: swap the
+prompts, fields, and domain rules for your own.
 
 - [The project before](#the-project-before)
 - [Where you'll end up](#where-youll-end-up)
@@ -82,73 +84,65 @@ while papers_processed < MAX_PAPERS:
 
 ## Where you'll end up
 
-After the migration, the whole ingestion side is one function that wires
-library components together. This is `udg_catalogue/pipeline.py`:
+After the migration, the whole ingestion side is a few functions that wire
+library components together. This is `udg_catalogue/pipeline.py` on
+sci-etl-core 0.6, trimmed to the ingestion pipeline and without the wrappers
+that log progress:
 
 ```python
-def build_catalogue_exporter() -> AsyncCsvUpsertExporter:
-    return AsyncCsvUpsertExporter(
-        key_column=KEY_COLUMN,
-        value_columns=list(MEASUREMENT_FIELDS),
-        normalizer=GalaxyNameNormalizer(),
-        numeric_clip=dict(FRACTION_BOUNDS),
+def build_catalogue_exporter(config: CatalogueConfig) -> AsyncCsvExporter:
+    return AsyncCsvExporter(config.paths.raw_catalogue, [KEY_COLUMN, *MEASUREMENT_FIELDS])
+
+
+def build_entity_extractor(
+    config: CatalogueConfig,
+    llm_client: AsyncLLMClient,
+    rejections: AsyncRejectionStore | None = None,
+) -> AsyncLLMEntityExtractor[dict[str, Any]]:
+    return AsyncLLMEntityExtractor(
+        llm_client,
+        EXTRACTION_PROMPT,
+        result_key=EXTRACTION_RESULT_KEY,
+        timeout=config.llm.timeout,
+        validator=build_galaxy_validator(),
+        rejections=rejections,
+        label_field=KEY_COLUMN,
     )
 
 
-def build_pipeline(
-    config: CatalogueConfig,
-    logger: logging.Logger,
-    http_client: httpx.AsyncClient,
-    llm_client: AsyncLLMClient,
-) -> AsyncETLPipeline:
-    extractor = AsyncArxivExtractor(
+def build_pipeline(config, logger, http_client, llm_client, library, shutdown=None):
+    cache = AsyncSqliteLLMResponseCache(config.paths.llm_cache)
+    cached_llm = CachingLLMClient(llm_client, cache, model=config.llm.model)
+    rejections = AsyncSqliteRejectionStore(config.paths.rejections)
+    extractor = AsyncArxivExtractor.from_config(
+        config.http,
+        config.pipeline,
         client=http_client,
         pdf_parser=PdfPlumberParser(),
         latex_parser=LatexTarballParser(),
-        max_retries=config.http.max_retries,
-        backoff_factor=config.http.backoff_factor,
-        sleep_before_search=config.pipeline.search_delay,
-        logger=logger.info,
+        full_text=config.full_text,
     )
-    entity_extractor = ValidatedEntityExtractor(
-        AsyncLLMEntityExtractor(
-            llm_client=llm_client,
-            system_prompt=EXTRACTION_PROMPT,
-            result_key=EXTRACTION_RESULT_KEY,
-            timeout=config.llm.timeout,
-        ),
-        build_galaxy_validator(),
-        logger=logger.info,
-    )
-    return AsyncETLPipeline(
+    return AsyncETLPipeline.from_config(
+        config.pipeline,
         extractor=extractor,
-        relevance_filter=AsyncLLMRelevanceFilter(llm_client=llm_client, system_prompt=RELEVANCE_PROMPT),
-        entity_extractor=entity_extractor,
-        exporter=build_catalogue_exporter(),
+        relevance_filter=AsyncLLMRelevanceFilter(llm_client=cached_llm, system_prompt=RELEVANCE_PROMPT),
+        entity_extractor=build_entity_extractor(config, cached_llm, rejections),
+        exporter=build_catalogue_exporter(config),
         state_manager=AsyncFileStateManager(config.paths.processed_ids, config.paths.pipeline_metadata),
-        destination=str(config.paths.raw_catalogue),
-        max_concurrency=config.pipeline.max_workers,
-        logger=logger.warning,
-        closeables=[http_client, llm_client],
+        closeables=[http_client, llm_client, cache, rejections, *library.closeables],
+        memory_ingestor=library.memory_ingestor(build_chunker(config.embeddings)),
+        shutdown=shutdown,
+        on_event=PipelineEventLogger(logger.info, logger.warning),
+        usage_sources=[llm_client, *library.usage_sources],
     )
 
 
-async def run_ingestion(config: CatalogueConfig, logger: logging.Logger, start_index: int | None = 0) -> int:
-    http_client = build_async_client(timeout=config.http.timeout, user_agent=config.http.user_agent)
-    llm_client = AsyncOpenAICompatibleClient(
-        api_key=config.llm.api_key,
-        base_url=config.llm.base_url,
-        model=config.llm.model,
-        default_timeout=config.llm.timeout,
-    )
-    async with build_pipeline(config, logger, http_client, llm_client) as pipeline:
-        return await pipeline.run(
-            query=config.pipeline.search_query,
-            page_size=config.pipeline.page_size,
-            total_limit=config.pipeline.max_records,
-            sleep_between=config.pipeline.sleep_between,
-            start_index=start_index,
-        )
+async def run_ingestion(config, logger, start_index=None, shutdown=None) -> int:
+    library = open_paper_library(config)
+    http_client = build_http_client(config)
+    llm_client = build_llm_client(config)
+    async with build_pipeline(config, logger, http_client, llm_client, library, shutdown) as pipeline:
+        return await pipeline.run(**run_arguments(config.pipeline, start_index))
 ```
 
 `build_pipeline` takes the HTTP and LLM clients as arguments, so the project's
@@ -160,9 +154,10 @@ outputs:
 
 ```python
 config = load_catalogue_config(arguments.config)
-log = configure_logging(LOGGER_NAME, config.paths.log_file)
-processed = asyncio.run(run_ingestion(config, log, start_index))
-catalogue = build_sorted_catalogue(config, log.info)
+log = configure_run_logging(config.paths.log_file)
+processed = asyncio.run(run_ingestion(config, log, start_index, ShutdownSignal()))
+catalogue = build_sorted_catalogue(config, log.info, replace=arguments.replace_catalogue)
+write_manifest(config, log.info)
 ```
 
 What stays in the project is the part only an astronomer can write: prompts,
@@ -183,17 +178,21 @@ plug-in, or kept.
 | `is_paper_relevant` | `AsyncLLMRelevanceFilter` | the prompt |
 | `extract_udg_data` | `AsyncLLMEntityExtractor(result_key="galaxies")` | the prompt |
 | OpenAI client pointed at DeepSeek | `AsyncOpenAICompatibleClient` | base URL and model |
-| `upsert_to_csv` | `AsyncCsvUpsertExporter` | key column, value columns, clip bounds |
+| `upsert_to_csv` | `AsyncCsvExporter`, then `DeduplicationStep` in post-processing | the column list |
 | `load_processed_ids`, `save_processed_id`, `incremental.py` | `AsyncFileStateManager` | file paths |
 | `main.py` loop | `AsyncETLPipeline` | the wiring above |
-| `logger.py` | `configure_logging` | nothing |
+| `logger.py` | the standard `logging` module | handlers for the run log |
 | `config.py` | `BaseAppConfig` subclass and `load_config` | project settings |
 | `universal_normalize_name` | `KeyNormalizer` subclass | name-matching rules |
-| `is_valid_galaxy` | `CompositeValidator` of `RecordValidator`s | field rules, plus a small extractor wrapper |
+| `is_valid_galaxy` | `RecordValidator`s passed to `AsyncLLMEntityExtractor(validator=)` | field rules |
 | `clean_duplicates` | `NormalizationStep` and `DeduplicationStep` | a `NeighborMatcher` for sky positions |
 | `calculate_completeness`, `assign_quality_flag` | `CompletenessStep`, `QualityFlagStep` | the field list |
 | `assign_3d_clusters` | `ClusteringStep` | a `FeatureExtractor` for 3D positions |
 | `assign_constellations`, plots, dashboard | kept | domain code, as `Processor`s where it fits |
+
+The table names the components of sci-etl-core 0.6. Steps 1 to 9 show the
+0.2 components udg-catalogue used at the time, such as an upserting CSV
+exporter and a validating extractor wrapper, which later releases replaced.
 
 ## Step 1: Install and link the library
 
@@ -852,6 +851,8 @@ new minor release against the project's tests. The
 [migration guide](../project/migration.md) lists what each release changes;
 this section records what those changes meant for udg-catalogue.
 
+### Moving to 0.4
+
 udg-catalogue skipped 0.3: its `build_pipeline` passed no `memory_ingestor`,
 and `AsyncFileStateManager` was unchanged, so nothing in 0.3 affected it. It
 moved from `>=0.2.0,<0.3` straight to `>=0.4.0,<0.5`, adding the `embeddings`,
@@ -946,6 +947,72 @@ them again through the same pipeline with an entity extractor that returns
 nothing, a relevance filter that skips papers already in the text index, and
 a separate state manager (`indexed_arxiv_ids.txt`, `indexing_meta.json`), so
 the galaxy catalogue and its processed ids are left alone.
+
+### Moving to 0.5
+
+udg-catalogue moved to `>=0.5.1,<0.6`. Two changes touched it:
+
+- **Strict config.** The library's config sections reject unknown keys, and
+  udg-catalogue made its own sections (`paths`, `embeddings`, `clustering`,
+  `deduplication`) strict as well, so a typo in `config.yaml` fails at startup
+  with the key's name. The 0.2 names `max_records` and `max_workers` no longer
+  load.
+- **Parsed listing pages.** Extractors return a `ListingPage` from
+  `fetch_page(query, cursor, page_size)` instead of raw bytes from `search`
+  and `parse_listing`, so the project's wrapper that logs each listing request
+  forwards `cursor_for_offset` and `fetch_page` instead.
+
+### Moving to 0.6
+
+udg-catalogue moved to `>=0.6.0,<0.7`. A base install needs only Pydantic
+since 0.6, so the project lists every extra it imports, adding `config` (YAML
+and `.env`), `arxiv` (Atom parsing), `html`, and `processors` (pandas):
+
+```text
+sci-etl-core[config,async,arxiv,html,llm,pdf,processors,cluster,embeddings,embeddings-local,search]>=0.6.0,<0.7
+```
+
+The rest of the upgrade changed what the catalogue records:
+
+- **One row per galaxy per paper.** `AsyncCsvUpsertExporter` is gone.
+  `AsyncCsvExporter` writes one row per galaxy, tagged with the paper's
+  `record_id`, never merges, clips, or coerces a value, and replaces a paper's
+  rows when the paper is extracted again. All merging moved into
+  post-processing. The raw catalogue written by 0.5 has no `record_id` column,
+  so the catalogue is rebuilt from scratch once, and post-processing refuses
+  an old raw file with a message that says so.
+- **The papers behind each galaxy.** The post-processing chain starts with a
+  small `RawRowsStep` that hides `record_id` and `extra` as `_record_id` and
+  `_extra` and reads the measurements as numbers. Then
+  `DeduplicationStep(source_column="_record_id", sources_column="source_papers")`
+  lists the papers merged into each galaxy in the published catalogue.
+- **Rejections with reasons, kept for review.** `GalaxyValidator.validate`
+  returns a `Violation` whose code names the broken rule (`no-name`,
+  `paper-local-name`, `simulation-keyword`, `not-a-number`, `not-positive`,
+  `out-of-range`, or `no-measurement`), where `is_valid` only said `False`.
+  The extractor logs each rejection with its reason and stores it in an
+  `AsyncSqliteRejectionStore`, where a reviewer can list and resolve it.
+- **Standard logging.** The `logger=` arguments and `configure_logging` are
+  gone. The project's `configure_run_logging` attaches the run log's handlers
+  to its own logger and to `sci_etl_core`, and a `logging.Filter` prefixes the
+  library's lines with the arXiv id of the paper being processed.
+- **Indexing never touches the catalogue.** The `--index-papers` run passed the
+  catalogue exporter along with an extractor that returns nothing. Since 0.6
+  the pipeline writes every processed record, including one without entities,
+  and such a write clears that paper's rows. The indexing pipeline therefore
+  gets an exporter that keeps nothing:
+
+    ```python
+    class DiscardingExporter(AsyncExporter[Any]):
+        async def write(self, record: RawRecord, entities: Sequence[Any]) -> None:
+            return None
+    ```
+
+- **A run manifest.** After each build, `write_manifest` records the
+  sci-etl-core version, the model and base URL, hashes of both prompts, the
+  query, the processed arXiv ids, and the row count and SHA-256 of both
+  catalogues in `data/run_manifest.json`, which is committed next to the
+  published catalogue.
 
 ## What the migration uncovered
 

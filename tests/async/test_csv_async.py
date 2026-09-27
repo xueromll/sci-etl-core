@@ -258,7 +258,9 @@ class TestExistingFile:
 
 class TestFormulaEscaping:
     @pytest.mark.asyncio
-    @pytest.mark.parametrize("value", ["=cmd()", "+1", "-1", "@SUM", "\tx", "'quoted"])
+    @pytest.mark.parametrize(
+        "value", ["=cmd()", "+A1", "-1+cmd|' /C calc'!A0", "-", "@SUM", "\tx", "\t5", "'quoted", "'-5"]
+    )
     async def test_formula_cells_are_escaped_on_disk_and_restored_on_reload(self, tmp_path, value):
         path = tmp_path / "out.csv"
         await run(path, [("=p1", [{"name": value}])], columns=("name",))
@@ -266,6 +268,25 @@ class TestFormulaEscaping:
         assert read(path)[1][:2] == ["'=p1", "'" + value]
         await run(path, [("p2", [{"name": "B"}])], columns=("name",))
         assert read(path)[1][:2] == ["'=p1", "'" + value]
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("value", ["-5.361", "+1", "-1", "-.5", "+1e8", "-2.5E-3", "-10."])
+    async def test_plain_numbers_are_written_unchanged(self, tmp_path, value):
+        path = tmp_path / "out.csv"
+        await run(path, [("p1", [{"name": value}]), ("p2", [{"name": float(value)}])], columns=("name",))
+
+        assert [row[1] for row in read(path)[1:]] == [value, repr(float(value))]
+        await run(path, [("p3", [{"name": "B"}])], columns=("name",))
+        assert [row[1] for row in read(path)[1:]] == [value, repr(float(value)), "B"]
+
+    @pytest.mark.asyncio
+    async def test_cells_escaped_by_an_earlier_version_are_restored(self, tmp_path):
+        path = tmp_path / "out.csv"
+        path.write_text("record_id,name,extra\np1,'-5.361,\n", encoding="utf-8")
+
+        await run(path, [("p2", [{"name": "B"}])], columns=("name",))
+
+        assert [row[1] for row in read(path)[1:]] == ["-5.361", "B"]
 
     @pytest.mark.asyncio
     async def test_escaping_can_be_turned_off(self, tmp_path):
