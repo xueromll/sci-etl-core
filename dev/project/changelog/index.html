@@ -3559,6 +3559,8 @@ in MIGRATION.md.</p>
 <li><code>AsyncLLMClient.invalidate</code> takes <code>schema=</code> for a typed request.</li>
 <li>The <code>async</code> extra no longer installs <code>aiofiles</code>, and the <code>sql</code> extra no
   longer installs <code>aiosqlite</code>.</li>
+<li><code>AsyncArxivExtractor</code> retries a <code>406</code> response instead of failing the
+  request, because arXiv returns it intermittently for valid requests.</li>
 </ul>
 <h3 id="removed">Removed<a class="headerlink" href="#removed" title="Permanent link">&para;</a></h3>
 <ul>

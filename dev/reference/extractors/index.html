@@ -3750,7 +3750,8 @@ filter and facet on. The injected <code>client</code> is borrowed and never clos
 
         <p>Configure the extractor.</p>
 <p>Transport faults, <code>408</code>, <code>429</code>, and server errors are retried, as
-by every bundled extractor. Between attempts the extractor waits
+by every bundled extractor, and so is <code>406</code>, which arXiv's gateway
+returns intermittently for valid requests. Between attempts the extractor waits
 <code>backoff_factor ** attempt</code> seconds, or longer when arXiv's
 <code>Retry-After</code> header asks for it, up to <code>max_retry_after</code> seconds.
 Each retry is logged with its wait.</p>
