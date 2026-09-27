@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import Any
 
@@ -42,8 +42,8 @@ class FetchedResponse:
 class RetryingFetcher:
     """GET requests with the retry, ``Retry-After``, and rate-limit behavior every bundled extractor shares.
 
-    Transport faults, ``408``, ``429``, and server errors are retried, waiting
-    ``backoff_factor ** attempt`` seconds or longer when the response's
+    Transport faults, ``408``, ``429``, server errors, and any status in
+    ``retry_status`` are retried, waiting ``backoff_factor ** attempt`` seconds or longer when the response's
     ``Retry-After`` asks, up to ``max_retry_after``. Each attempt enters the
     rate limiter for its URL and releases it once the response body has been
     read. Redirects are followed.
@@ -66,6 +66,7 @@ class RetryingFetcher:
         rate_limiter: RateLimiting | None,
         headers: Mapping[str, str] | None = None,
         max_bytes: int | None = None,
+        retry_status: Iterable[int] = (),
     ) -> None:
         if max_retries < 1:
             raise ValueError("max_retries must be a positive integer")
@@ -82,6 +83,7 @@ class RetryingFetcher:
         self._rate_limiter = rate_limiter
         self._headers = dict(headers or {})
         self._max_bytes = max_bytes
+        self._retryable_status = _RETRYABLE_STATUS | frozenset(retry_status)
 
     async def fetch(self, url: str, action: str, params: Mapping[str, Any] | None = None) -> bytes:
         """Return the body of a successful response.
@@ -148,7 +150,7 @@ class RetryingFetcher:
             except httpx.RequestError as exc:
                 last_error = exc
             else:
-                if response.is_success or not _retryable(response.status_code):
+                if response.is_success or not self._retryable(response.status_code):
                     return response
                 last_error = UpstreamError(f"{self._source} returned status {response.status_code}")
                 retry_after = retry_after_from_headers(response.headers)
@@ -162,6 +164,9 @@ class RetryingFetcher:
         _logger.warning(f"{message}: {last_error!r}")
         raise UpstreamError(message) from last_error
 
+    def _retryable(self, status_code: int) -> bool:
+        return status_code in self._retryable_status or status_code >= _SERVER_ERROR_FLOOR
+
 
 async def parse_document(parser: Parser, content: bytes, label: str, record: RawRecord) -> str:
     """Parse a fetched document off the event loop, treating an unreadable one as unavailable."""
@@ -171,7 +176,3 @@ async def parse_document(parser: Parser, content: bytes, label: str, record: Raw
         _logger.warning(f"{label} unusable for {record.record_id!r}: {exc}")
         return ""
     return text.strip()
-
-
-def _retryable(status_code: int) -> bool:
-    return status_code in _RETRYABLE_STATUS or status_code >= _SERVER_ERROR_FLOOR

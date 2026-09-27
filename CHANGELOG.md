@@ -89,6 +89,8 @@ in MIGRATION.md.
 - `AsyncLLMClient.invalidate` takes `schema=` for a typed request.
 - The `async` extra no longer installs `aiofiles`, and the `sql` extra no
   longer installs `aiosqlite`.
+- `AsyncArxivExtractor` retries a `406` response instead of failing the
+  request, because arXiv returns it intermittently for valid requests.
 
 ### Removed
 

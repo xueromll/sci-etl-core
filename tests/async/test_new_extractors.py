@@ -111,6 +111,15 @@ class TestRetryingFetcher:
         assert len(router.requests) == 1
 
     @pytest.mark.asyncio
+    async def test_a_406_is_permanent_unless_the_source_lists_it_as_retryable(self):
+        router = Router()
+        router.add(lambda request: True, httpx.Response(406), httpx.Response(406), httpx.Response(200, content=b"ok"))
+        with pytest.raises(ExtractionError, match="status 406"):
+            await self._fetcher(router, []).fetch("https://source.test/x", "search")
+        assert await self._fetcher(router, [], retry_status={406}).fetch("https://source.test/x", "search") == b"ok"
+        assert len(router.requests) == 3
+
+    @pytest.mark.asyncio
     async def test_an_optional_fetch_reads_a_permanent_rejection_as_unavailable(self):
         router = Router()
         router.add(lambda request: True, httpx.Response(404))

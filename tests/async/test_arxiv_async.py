@@ -92,6 +92,13 @@ class TestAsyncArxivSearch:
         assert len(client.requests) == 2
 
     @pytest.mark.asyncio
+    async def test_handles_406_by_retrying_because_arxiv_returns_it_intermittently(self, mocker):
+        client = _client(mocker, side_effect=[_resp(mocker, 406), _resp(mocker, 200, b"ok")])
+        extractor = _build(client, mocker, max_retries=3)
+        assert await extractor._search("q", 10, 0) == b"ok"
+        assert len(client.requests) == 2
+
+    @pytest.mark.asyncio
     async def test_raises_upstream_error_after_exhausting_retries(self, mocker):
         logged = capture_logs()
         client = _client(mocker, side_effect=httpx.TimeoutException("timeout"))
@@ -350,7 +357,7 @@ class TestAsyncArxivInternals:
         assert await extractor._get_bytes("http://x", "X", "id") is None
         assert len(client.requests) == 1
 
-    @pytest.mark.parametrize("status", [408, 503])
+    @pytest.mark.parametrize("status", [406, 408, 503])
     @pytest.mark.asyncio
     async def test_get_bytes_retries_retryable_status_then_succeeds(self, mocker, status):
         client = _client(mocker, side_effect=[_resp(mocker, status), _resp(mocker, 200, b"payload")])

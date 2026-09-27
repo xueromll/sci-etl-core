@@ -25,6 +25,7 @@ if TYPE_CHECKING:
 _VERSION_SUFFIX = re.compile(r"v\d+$")
 _YEAR_PREFIX = re.compile(r"[0-9]{4}(?![0-9])")
 _FEED_ROOT = "feed"
+_ARXIV_RETRYABLE_STATUS = frozenset({406})
 
 
 def _element_text(element: Any) -> str:
@@ -61,7 +62,8 @@ class AsyncArxivExtractor(AsyncExtractor):
         """Configure the extractor.
 
         Transport faults, ``408``, ``429``, and server errors are retried, as
-        by every bundled extractor. Between attempts the extractor waits
+        by every bundled extractor, and so is ``406``, which arXiv's gateway
+        returns intermittently for valid requests. Between attempts the extractor waits
         ``backoff_factor ** attempt`` seconds, or longer when arXiv's
         ``Retry-After`` header asks for it, up to ``max_retry_after`` seconds.
         Each retry is logged with its wait.
@@ -94,6 +96,7 @@ class AsyncArxivExtractor(AsyncExtractor):
             sleep=sleep,
             rate_limiter=rate_limiter,
             max_bytes=max_download_bytes,
+            retry_status=_ARXIV_RETRYABLE_STATUS,
         )
         self._pdf_parser = pdf_parser
         self._latex_parser = latex_parser

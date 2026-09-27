@@ -4,7 +4,8 @@
 `AsyncOpenAlexExtractor`, `AsyncOpenAICompatibleClient`, and `AsyncOpenAIEmbedder`
 retry throttling (`429`), server errors, and transport faults, making at most
 `max_retries` attempts per request (default 3). The four extractors share one
-retry path and retry a `408` request timeout too:
+retry path and retry a `408` request timeout too. `AsyncArxivExtractor` also
+retries `406`, which arXiv's gateway returns intermittently for valid requests:
 
 - **Backoff.** Between attempts they wait `backoff_factor ** attempt` seconds:
   1 s, then 2 s with the default factor of 2.
