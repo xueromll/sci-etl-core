@@ -139,6 +139,11 @@ Run it with the scratch venv or any env with `pip install -e ".[full,dev,lint]"`
   reads 0.6.0.
 - TODO: compat fixtures `tests/compat/v0_6_0/` (claim store, rejection store)
   can only be written from the tagged 0.6.0 release.
+- TODO: once 0.6.0 is on PyPI, set both consumers back to `>=0.6.0,<0.7`
+  (CLI `pyproject.toml`, udg `requirements.txt`) and remove the
+  "install sci-etl-core from its master branch" CI steps.
+- TODO: PyPI lists no 0.5.1 although `v0.5.1` is tagged; check that tag's
+  Release workflow run.
 - NOTE: the Downstream workflow stays red on core `master` until both
   consumer ports reach their default branches, and CLI CI stays red until
   core 0.6.0 is on PyPI (it installs core from PyPI).

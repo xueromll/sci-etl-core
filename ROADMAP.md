@@ -17,8 +17,8 @@ changes.
 
 | Consumer | Requires | Runs |
 |----------|----------|------|
-| [udg-catalogue](https://github.com/xueromll/udg-catalogue) | `sci-etl-core>=0.4.0,<0.5` in its latest commit, with the `embeddings`, `embeddings-local`, and `search` extras; its port to 0.6 requires `>=0.6.0,<0.7` and its suite passes against core `master` | 0.4 in production, including search, discovery, and embeddings |
-| [sci-etl-cli](https://github.com/xueromll/sci-etl-cli) | `>=0.5.0.dev0,<0.6` on `master`; 0.3.0 requires `>=0.5.1,<0.6`, and 0.4.0, its port to 0.6, requires `>=0.6.0,<0.7` and passes against core `master` | 0.2, in its latest release 0.2.1 |
+| [udg-catalogue](https://github.com/xueromll/udg-catalogue) | `>=0.6.0.dev0,<0.7` on `main`, with every extra it imports, and its suite passes against core `master` | 0.4 in production, including search, discovery, and embeddings |
+| [sci-etl-cli](https://github.com/xueromll/sci-etl-cli) | `>=0.6.0.dev0,<0.7` on `master`, and its suite passes against core `master`; its next release, 0.4.0, requires `>=0.6.0,<0.7` | 0.2, in its latest release 0.2.1 |
 
 | Area | Shipped |
 |------|---------|
