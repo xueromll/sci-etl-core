@@ -150,10 +150,23 @@ jobs:
           cache: pip
           cache-dependency-path: pyproject.toml
 
-      - name: Install the documentation tools
+      - name: Install the documentation tools, with the extras and packages the CLI requires
+        shell: python
         run: |
-          python -m pip install -e ".[docs,async,llm,pdf]" click rich
-          python -m pip install --no-deps ./.sci-etl-cli
+          import re
+          import subprocess
+          import sys
+          import tomllib
+          from pathlib import Path
+
+          project = tomllib.loads(Path(".sci-etl-cli/pyproject.toml").read_text(encoding="utf-8"))["project"]
+          core = next(requirement for requirement in project["dependencies"] if requirement.startswith("sci-etl-core"))
+          match = re.fullmatch(r"sci-etl-core\[([^\]]*)\].*", core)
+          extras = ["docs", *(match.group(1).replace(" ", "").split(",") if match else [])]
+          others = [requirement for requirement in project["dependencies"] if not requirement.startswith("sci-etl-core")]
+          pip = [sys.executable, "-m", "pip", "install"]
+          subprocess.run([*pip, "-e", f".[{','.join(extras)}]", *others], check=True)
+          subprocess.run([*pip, "--no-deps", "./.sci-etl-cli"], check=True)
 
       - name: Build the site
         if: matrix.target.version == ''
