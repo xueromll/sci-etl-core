@@ -55,8 +55,7 @@ workflow runs both and refuses to publish otherwise.
 
 ## v0.6.0 — Data contract and claims
 
-Breaking, for the last time before 1.0. Implemented on `master` as
-`0.6.0.dev0`; tagged once both consumers pass against it.
+Breaking, for the last time before 1.0.
 
 - **Typed entity schemas.** `AsyncLLMEntityExtractor(schema=...)` requests
   JSON-schema structured output where the provider supports it, validates

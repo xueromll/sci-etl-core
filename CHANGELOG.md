@@ -6,7 +6,7 @@ All notable changes to sci-etl-core are recorded here. The format follows
 change behavior; each such change is listed under **Changed**.
 
 
-## [Unreleased]
+## [0.6.0] - 2026-09-27
 
 This release changes the data contract: entity extractors can return typed
 entities, exporters receive each record with its entities, the library logs
