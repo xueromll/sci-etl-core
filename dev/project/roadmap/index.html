@@ -2453,10 +2453,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#current-release-v051" class="md-nav__link">
+  <a href="#current-release-v060" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Current release — v0.5.1
+        Current release — v0.6.0
       
     </span>
   </a>
@@ -2468,17 +2468,6 @@
     <span class="md-ellipsis">
       
         Path to 1.0
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#v060-data-contract-and-claims" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        v0.6.0 — Data contract and claims
       
     </span>
   </a>
@@ -2667,10 +2656,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#current-release-v051" class="md-nav__link">
+  <a href="#current-release-v060" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Current release — v0.5.1
+        Current release — v0.6.0
       
     </span>
   </a>
@@ -2682,17 +2671,6 @@
     <span class="md-ellipsis">
       
         Path to 1.0
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#v060-data-contract-and-claims" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        v0.6.0 — Data contract and claims
       
     </span>
   </a>
@@ -2779,10 +2757,10 @@ however useful it would be elsewhere. To work on an item, comment on its issue
 or open one. Items marked <strong>good first issue</strong> suit newcomers.</p>
 <p>Each milestone lists its exit criteria. A milestone ships when every criterion
 holds with the test suite offline and line coverage at 100%.</p>
-<h2 id="current-release-v051">Current release — v0.5.1<a class="headerlink" href="#current-release-v051" title="Permanent link">&para;</a></h2>
+<h2 id="current-release-v060">Current release — v0.6.0<a class="headerlink" href="#current-release-v060" title="Permanent link">&para;</a></h2>
 <p><a href="../changelog/">CHANGELOG.md</a> lists every change by release, and
-<a href="../migration/">MIGRATION.md</a> explains how to upgrade from 0.4 and what 0.5.1
-changes.</p>
+<a href="../migration/">MIGRATION.md</a> explains how to upgrade from 0.4 and what 0.5
+and 0.6 change.</p>
 <table>
 <thead>
 <tr>
@@ -2818,11 +2796,15 @@ changes.</p>
 </tr>
 <tr>
 <td>Contracts</td>
-<td>ABCs for extractors, relevance filters, entity extractors, LLM clients, exporters, state managers, parsers, embedders, chunkers, vector and text stores, processors, and validators; <code>Sync*Adapter</code> wrappers for blocking implementations, deprecated until their removal in 0.6.0</td>
+<td>ABCs for extractors, relevance filters, entity extractors, LLM clients, exporters, state managers, parsers, embedders, chunkers, vector and text stores, processors, and validators; entity extractors and exporters generic in the entity type</td>
+</tr>
+<tr>
+<td>Delivery</td>
+<td>Exporters receive each record with its entities through <code>open</code>, <code>write</code>, <code>flush</code>, and <code>aclose</code>, and a record is marked processed only once its entities are durable, so a crash can repeat a record but never lose one; <code>AsyncCsvExporter</code> with one row per entity and <code>AsyncJsonlExporter</code> with one line per record, both linear in the number of records</td>
 </tr>
 <tr>
 <td>Reliability</td>
-<td>Graceful shutdown through <code>ShutdownSignal</code>, state flushed however a run ends, atomic writes and OS file locks, <code>Retry-After</code>-aware retries, shared and per-host rate limiters</td>
+<td>Graceful shutdown through <code>ShutdownSignal</code>, state flushed however a run ends, atomic writes and OS file locks, <code>Retry-After</code>-aware retries, shared and per-host rate limiters, download and decompression size limits</td>
 </tr>
 <tr>
 <td>Resumption</td>
@@ -2834,7 +2816,11 @@ changes.</p>
 </tr>
 <tr>
 <td>LLM</td>
-<td>OpenAI-compatible chat and embedding clients with token usage, response caching in memory or SQLite, entity validation in the extractor</td>
+<td>OpenAI-compatible chat and embedding clients with token usage and JSON-schema structured output, response caching in memory or SQLite keyed on the entity schema, typed entities validated against a Pydantic model</td>
+</tr>
+<tr>
+<td>Claims (provisional)</td>
+<td><code>sci_etl_core.claims</code>: each extracted value with its paper, its evidence sentence, and the model, prompt, and schema that produced it; claim and rejection stores in memory or SQLite; validators that name the field and rule behind each rejection</td>
 </tr>
 <tr>
 <td>Memory and search</td>
@@ -2842,11 +2828,15 @@ changes.</p>
 </tr>
 <tr>
 <td>Configuration</td>
-<td>Pydantic models loaded from YAML and <code>.env</code>, <code>SecretStr</code> keys, secret-safe validation errors, <code>from_config</code> builders</td>
+<td>Pydantic models loaded from YAML, with <code>.env</code> read only on request, <code>SecretStr</code> keys, secret-safe validation errors, <code>from_config</code> builders</td>
+</tr>
+<tr>
+<td>Installation</td>
+<td>A base install that requires only <code>pydantic</code>, with each parser, loader, extractor, and processor behind the extra it needs</td>
 </tr>
 <tr>
 <td>Observability</td>
-<td>Progress events and <code>RunMetrics</code> with counts, durations, outcome, and token usage</td>
+<td>Standard <code>logging</code> under the <code>sci_etl_core</code> logger, progress events, and <code>RunMetrics</code> with counts, durations, outcome, and token usage</td>
 </tr>
 <tr>
 <td>Project health</td>
@@ -2854,52 +2844,30 @@ changes.</p>
 </tr>
 <tr>
 <td>Guardrails</td>
-<td>A committed snapshot of every stable signature, which also covers every name a known consumer uses; the guarantees of <code>AsyncETLPipeline.run</code> numbered in a run-semantics guide, each with a named test; the sci-etl-cli suite run against every core change; nightly smoke tests against each bundled source; a throughput benchmark that runs every exporter through the pipeline</td>
+<td>A committed snapshot of every stable signature, which also covers every name a known consumer uses; the guarantees of <code>AsyncETLPipeline.run</code> numbered in a run-semantics guide, each with a named test; a CI check that every stable name imports from a bare install or from the extra its component needs; the sci-etl-cli and udg-catalogue suites run against every core change and gate every release; nightly smoke tests against each bundled source; a throughput benchmark that runs every exporter through the pipeline</td>
 </tr>
 </tbody>
 </table>
-<p>Still open: sci-etl-cli and udg-catalogue releases on the new core, and a live
-check of how long OpenAlex cursors stay valid.
-PubMed and Semantic Scholar keep offset paging and report their caps as
+<p>Still open:</p>
+<ul>
+<li>sci-etl-cli 0.4.0 and udg-catalogue on the released 0.6.0, requiring
+  <code>&gt;=0.6.0,&lt;0.7</code> instead of a development version and running without
+  <code>DeprecationWarning</code>.</li>
+<li>A live check of how long OpenAlex cursors stay valid.</li>
+</ul>
+<p>PubMed and Semantic Scholar keep offset paging and report their caps as
 truncated: E-utilities serves at most 9,999 results even through its history
 server, and Semantic Scholar's bulk search returns fixed pages of 1,000
 papers, which cannot honor <code>page_size</code>.</p>
 <h2 id="path-to-10">Path to 1.0<a class="headerlink" href="#path-to-10" title="Permanent link">&para;</a></h2>
-<p>Each public contract changes at most once more before 1.0. The run contract
-(extractor, state, constructor) breaks in 0.5.0, the data contract (entities,
-exporter, logging, dependencies) in 0.6.0, and every later release is
-additive. Each breaking change gets a <a href="../migration/">MIGRATION.md</a> entry.</p>
+<p>Every public contract has now had its last planned break before 1.0. The run
+contract (extractor, state, constructor) broke in 0.5.0 and the data contract
+(entities, exporter, logging, dependencies) in 0.6.0; every later release is
+additive. Each breaking change has a <a href="../migration/">MIGRATION.md</a> entry.</p>
 <p>From 0.6.0 on, a deprecated name keeps working for at least two minor
 releases before it is removed. A release is tagged only when the test suites
 of sci-etl-cli and udg-catalogue pass against the release commit; the release
 workflow runs both and refuses to publish otherwise.</p>
-<h2 id="v060-data-contract-and-claims">v0.6.0 — Data contract and claims<a class="headerlink" href="#v060-data-contract-and-claims" title="Permanent link">&para;</a></h2>
-<p>Breaking, for the last time before 1.0.</p>
-<ul>
-<li><strong>Typed entity schemas.</strong> <code>AsyncLLMEntityExtractor(schema=...)</code> requests
-  JSON-schema structured output where the provider supports it, validates
-  every entity, and adds the schema to the LLM cache key.</li>
-<li><strong>Exporter lifecycle.</strong> Exporters receive each record with its entities
-  through <code>open</code>, <code>write</code>, <code>flush</code>, and <code>aclose</code>, with at-least-once delivery.
-  New JSONL and CSV exporters write in time linear in the number of records.</li>
-<li><strong>Claims and provenance.</strong> A <code>sci_etl_core.claims</code> package, provisional at
-  first, records each extracted value with its paper, its evidence sentence,
-  and the model, prompt, and schema that produced it, and keeps rejected
-  entities, with reasons, for review.</li>
-<li><strong>Standard logging.</strong> Modules log through <code>logging.getLogger(__name__)</code>.</li>
-<li><strong>Lighter install.</strong> The base install requires only <code>pydantic</code>; parsers,
-  loaders, and processors move to extras. <code>load_config</code> no longer loads <code>.env</code>
-  implicitly.</li>
-<li><strong>Rejection reasons.</strong> Validators return the field and rule behind each
-  rejection, and a composite collects every validator's reasons.</li>
-<li><strong>udg-catalogue guide.</strong> A guide page follows udg-catalogue end to end,
-  from an arXiv query to a catalog and a search over its papers. The docs
-  landing page then links to it instead of the udg-catalogue repository.</li>
-</ul>
-<p>Exit criteria: no delivery test loses a record; every stable name imports
-from a bare install, or from the extra its component needs, which the
-base-install import map in CI checks; and both consumers run on 0.6.0 without
-<code>DeprecationWarning</code>.</p>
 <h2 id="v070-additive-features-and-the-testing-kit">v0.7.0 — Additive features and the testing kit<a class="headerlink" href="#v070-additive-features-and-the-testing-kit" title="Permanent link">&para;</a></h2>
 <p>No breaking change and no new deprecation.</p>
 <ul>

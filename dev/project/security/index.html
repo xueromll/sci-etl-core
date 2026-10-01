@@ -2796,11 +2796,11 @@ helping keep the project and its community safe.</p>
 </thead>
 <tbody>
 <tr>
-<td>0.5.x</td>
+<td>0.6.x</td>
 <td>✅</td>
 </tr>
 <tr>
-<td>&lt; 0.5</td>
+<td>&lt; 0.6</td>
 <td>❌</td>
 </tr>
 </tbody>
@@ -2836,9 +2836,9 @@ control:</p>
     client.</li>
 <li><strong>Environment-sourced secrets.</strong></li>
 <li><code>load_config</code> reads the key from an environment variable (<code>LLM_API_KEY</code> by
-    default; configurable with <code>api_key_env_var</code>), optionally loaded from
-    <code>.env</code>.</li>
-<li>Variables already set in the environment take precedence over <code>.env</code>.</li>
+    default; configurable with <code>api_key_env_var</code>).</li>
+<li>A <code>.env</code> file is read only when you pass <code>env_path</code> or <code>load_env=True</code>,
+    and variables already set in the environment take precedence over it.</li>
 <li><strong>Keep keys out of YAML.</strong> A set environment variable always overrides
   <code>llm.api_key</code> from the YAML file, which is only a fallback. A key committed
   in a config file is still a leak.</li>
@@ -2858,17 +2858,20 @@ control:</p>
 <li><code>AsyncSqliteEmbeddingStore</code> and <code>AsyncSqliteFts5Store</code> persist full-text
     passages with their titles and source URLs.</li>
 <li><code>AsyncSqliteLLMResponseCache</code> persists model responses as JSON.</li>
+<li><code>AsyncSqliteClaimStore</code> and <code>AsyncSqliteRejectionStore</code> persist extracted
+    values with the evidence sentences quoted from each paper.</li>
 <li>State files and state databases, which record the last error of each
-    failed record, and CSV outputs are plain files.</li>
+    failed record, and CSV and JSON Lines outputs are plain files.</li>
 <li>If your corpus is licensed or sensitive, use filesystem permissions and
     encryption at rest.</li>
 <li><strong>CSV formula injection.</strong> Every cell comes straight from LLM output.
   <code>AsyncCsvExporter</code> by default prefixes an apostrophe to any cell starting
   with <code>=</code>, <code>+</code>, <code>-</code>, <code>@</code>, a tab, or a carriage return, so spreadsheets don't
   evaluate it. Plain numbers such as <code>-5.361</code> are left unchanged. Keep
-  <code>escape_formulas</code> enabled for files people open in spreadsheet software. Other outputs — JSON Lines from <code>AsyncJsonlExporter</code>,
-  SQL tables from <code>SqlTableSink</code>, Plotly hover text from <code>Plotly3DSink</code>, and
-  your own exporters and sinks — are not escaped.</li>
+  <code>escape_formulas</code> enabled for files people open in spreadsheet software.
+  Other outputs — JSON Lines from <code>AsyncJsonlExporter</code>, SQL tables from
+  <code>SqlTableSink</code>, Plotly hover text from <code>Plotly3DSink</code>, and your own
+  exporters and sinks — are not escaped.</li>
 <li><strong>No secrets in outputs.</strong> Exporters write only the data they are given;
   scrub credential-bearing fields before export.</li>
 </ul>
@@ -2912,12 +2915,12 @@ control:</p>
 <ul>
 <li>Rotate API keys regularly and scope them to least privilege.</li>
 <li>Pin dependencies and monitor advisories, especially for:</li>
-<li>networking and LLM clients: <code>httpx</code>, <code>openai</code></li>
+<li>validation, which every install needs: <code>pydantic</code></li>
+<li>networking and LLM clients: <code>httpx</code>, <code>aiolimiter</code>, <code>openai</code>, <code>tiktoken</code></li>
 <li>document, markup, and config parsing: <code>pdfplumber</code>, <code>beautifulsoup4</code>,
-    <code>lxml</code>, <code>pyyaml</code></li>
+    <code>lxml</code>, <code>pyyaml</code>, <code>python-dotenv</code></li>
 <li>data and numerics: <code>pandas</code>, <code>numpy</code>, <code>scikit-learn</code></li>
-<li>storage, plotting, and file IO: <code>SQLAlchemy</code>, <code>aiosqlite</code>, <code>plotly</code>,
-    <code>aiofiles</code></li>
+<li>storage and plotting: <code>SQLAlchemy</code>, <code>plotly</code></li>
 <li><code>sentence-transformers</code>, if installed</li>
 <li>Validate and sanitize any user-supplied query strings, file paths, and
   destinations before passing them to extractors or exporters.</li>
