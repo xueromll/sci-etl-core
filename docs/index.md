@@ -7,7 +7,7 @@ ask for with an LLM, and keeps the papers searchable on your own machine.
 
 udg-catalogue shows the result. It screens astrophysics papers on arXiv,
 extracts measurements of ultra-diffuse galaxies, and publishes a cross-matched
-catalog of 1,285 objects, with keyword and semantic search over the papers
+catalog of 1,927 objects, with keyword and semantic search over the papers
 behind it. `sci-etl-core` supplies the fetching, parsing, extraction, caching,
 resumable state, and search, while udg-catalogue adds the astronomy: prompts,
 validation rules, sky-position matching, and the dashboard.
@@ -34,6 +34,7 @@ field of science.
     From an arXiv query to a published catalog and a searchable memory of the
     papers behind it.
 
+    [Walkthrough](guide/migrating-a-pipeline.md) ·
     [udg-catalogue](https://github.com/xueromll/udg-catalogue)
 
 - **Get started**

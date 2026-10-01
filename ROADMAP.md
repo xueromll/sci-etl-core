@@ -9,11 +9,11 @@ or open one. Items marked **good first issue** suit newcomers.
 Each milestone lists its exit criteria. A milestone ships when every criterion
 holds with the test suite offline and line coverage at 100%.
 
-## Current release — v0.5.1
+## Current release — v0.6.0
 
 [CHANGELOG.md](CHANGELOG.md) lists every change by release, and
-[MIGRATION.md](MIGRATION.md) explains how to upgrade from 0.4 and what 0.5.1
-changes.
+[MIGRATION.md](MIGRATION.md) explains how to upgrade from 0.4 and what 0.5
+and 0.6 change.
 
 | Consumer | Requires | Runs |
 |----------|----------|------|
@@ -23,19 +23,27 @@ changes.
 | Area | Shipped |
 |------|---------|
 | Orchestration | `AsyncETLPipeline` with bounded per-record concurrency, exact `total_limit`, stall detection, and `PipelineAborted` carrying partial counts; `ETLPipeline` as the blocking facade on a background event loop |
-| Contracts | ABCs for extractors, relevance filters, entity extractors, LLM clients, exporters, state managers, parsers, embedders, chunkers, vector and text stores, processors, and validators; `Sync*Adapter` wrappers for blocking implementations, deprecated until their removal in 0.6.0 |
-| Reliability | Graceful shutdown through `ShutdownSignal`, state flushed however a run ends, atomic writes and OS file locks, `Retry-After`-aware retries, shared and per-host rate limiters |
+| Contracts | ABCs for extractors, relevance filters, entity extractors, LLM clients, exporters, state managers, parsers, embedders, chunkers, vector and text stores, processors, and validators; entity extractors and exporters generic in the entity type |
+| Delivery | Exporters receive each record with its entities through `open`, `write`, `flush`, and `aclose`, and a record is marked processed only once its entities are durable, so a crash can repeat a record but never lose one; `AsyncCsvExporter` with one row per entity and `AsyncJsonlExporter` with one line per record, both linear in the number of records |
+| Reliability | Graceful shutdown through `ShutdownSignal`, state flushed however a run ends, atomic writes and OS file locks, `Retry-After`-aware retries, shared and per-host rate limiters, download and decompression size limits |
 | Resumption | Saved listing cursors that advance only past settled pages, result caps reported as truncated with the next run starting from the first page, a quarantine for records that keep failing, schema-versioned state that upgrades files written by 0.4, and `newest_first` runs that pick up new submissions without rescanning |
 | Sources | arXiv, PubMed, Semantic Scholar, and OpenAlex extractors; PDF, LaTeX, HTML, DOCX, and JATS XML parsers |
-| LLM | OpenAI-compatible chat and embedding clients with token usage, response caching in memory or SQLite, entity validation in the extractor |
+| LLM | OpenAI-compatible chat and embedding clients with token usage and JSON-schema structured output, response caching in memory or SQLite keyed on the entity schema, typed entities validated against a Pydantic model |
+| Claims (provisional) | `sci_etl_core.claims`: each extracted value with its paper, its evidence sentence, and the model, prompt, and schema that produced it; claim and rejection stores in memory or SQLite; validators that name the field and rule behind each rejection |
 | Memory and search | Vector memory, Boolean query language with `NEAR`, SQLite FTS5 and in-memory text stores, hybrid rank fusion, range and metadata filters, facets, snippets, discovery graphs, and backfill from vector memory |
-| Configuration | Pydantic models loaded from YAML and `.env`, `SecretStr` keys, secret-safe validation errors, `from_config` builders |
-| Observability | Progress events and `RunMetrics` with counts, durations, outcome, and token usage |
+| Configuration | Pydantic models loaded from YAML, with `.env` read only on request, `SecretStr` keys, secret-safe validation errors, `from_config` builders |
+| Installation | A base install that requires only `pydantic`, with each parser, loader, extractor, and processor behind the extra it needs |
+| Observability | Standard `logging` under the `sci_etl_core` logger, progress events, and `RunMetrics` with counts, durations, outcome, and token usage |
 | Project health | Offline pytest and Hypothesis suite at 100% line coverage, with branch coverage reported; ruff with the `ASYNC`, `UP`, `RUF`, and `PT` rule sets, and mypy with stricter flags on the core contracts; CI on Linux, Windows, and macOS for Python 3.11–3.14, PyPI trusted publishing, a documentation site with a generated API reference |
-| Guardrails | A committed snapshot of every stable signature, which also covers every name a known consumer uses; the guarantees of `AsyncETLPipeline.run` numbered in a run-semantics guide, each with a named test; the sci-etl-cli suite run against every core change; nightly smoke tests against each bundled source; a throughput benchmark that runs every exporter through the pipeline |
+| Guardrails | A committed snapshot of every stable signature, which also covers every name a known consumer uses; the guarantees of `AsyncETLPipeline.run` numbered in a run-semantics guide, each with a named test; a CI check that every stable name imports from a bare install or from the extra its component needs; the sci-etl-cli and udg-catalogue suites run against every core change and gate every release; nightly smoke tests against each bundled source; a throughput benchmark that runs every exporter through the pipeline |
 
-Still open: sci-etl-cli and udg-catalogue releases on the new core, and a live
-check of how long OpenAlex cursors stay valid.
+Still open:
+
+- sci-etl-cli 0.4.0 and udg-catalogue on the released 0.6.0, requiring
+  `>=0.6.0,<0.7` instead of a development version and running without
+  `DeprecationWarning`.
+- A live check of how long OpenAlex cursors stay valid.
+
 PubMed and Semantic Scholar keep offset paging and report their caps as
 truncated: E-utilities serves at most 9,999 results even through its history
 server, and Semantic Scholar's bulk search returns fixed pages of 1,000
@@ -43,44 +51,15 @@ papers, which cannot honor `page_size`.
 
 ## Path to 1.0
 
-Each public contract changes at most once more before 1.0. The run contract
-(extractor, state, constructor) breaks in 0.5.0, the data contract (entities,
-exporter, logging, dependencies) in 0.6.0, and every later release is
-additive. Each breaking change gets a [MIGRATION.md](MIGRATION.md) entry.
+Every public contract has now had its last planned break before 1.0. The run
+contract (extractor, state, constructor) broke in 0.5.0 and the data contract
+(entities, exporter, logging, dependencies) in 0.6.0; every later release is
+additive. Each breaking change has a [MIGRATION.md](MIGRATION.md) entry.
 
 From 0.6.0 on, a deprecated name keeps working for at least two minor
 releases before it is removed. A release is tagged only when the test suites
 of sci-etl-cli and udg-catalogue pass against the release commit; the release
 workflow runs both and refuses to publish otherwise.
-
-## v0.6.0 — Data contract and claims
-
-Breaking, for the last time before 1.0.
-
-- **Typed entity schemas.** `AsyncLLMEntityExtractor(schema=...)` requests
-  JSON-schema structured output where the provider supports it, validates
-  every entity, and adds the schema to the LLM cache key.
-- **Exporter lifecycle.** Exporters receive each record with its entities
-  through `open`, `write`, `flush`, and `aclose`, with at-least-once delivery.
-  New JSONL and CSV exporters write in time linear in the number of records.
-- **Claims and provenance.** A `sci_etl_core.claims` package, provisional at
-  first, records each extracted value with its paper, its evidence sentence,
-  and the model, prompt, and schema that produced it, and keeps rejected
-  entities, with reasons, for review.
-- **Standard logging.** Modules log through `logging.getLogger(__name__)`.
-- **Lighter install.** The base install requires only `pydantic`; parsers,
-  loaders, and processors move to extras. `load_config` no longer loads `.env`
-  implicitly.
-- **Rejection reasons.** Validators return the field and rule behind each
-  rejection, and a composite collects every validator's reasons.
-- **udg-catalogue guide.** A guide page follows udg-catalogue end to end,
-  from an arXiv query to a catalog and a search over its papers. The docs
-  landing page then links to it instead of the udg-catalogue repository.
-
-Exit criteria: no delivery test loses a record; every stable name imports
-from a bare install, or from the extra its component needs, which the
-base-install import map in CI checks; and both consumers run on 0.6.0 without
-`DeprecationWarning`.
 
 ## v0.7.0 — Additive features and the testing kit
 

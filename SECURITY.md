@@ -7,8 +7,8 @@ helping keep the project and its community safe.
 
 | Version | Supported |
 |---------|-----------|
-| 0.5.x   | ✅        |
-| < 0.5   | ❌        |
+| 0.6.x   | ✅        |
+| < 0.6   | ❌        |
 
 Security fixes land on the latest minor release. Please upgrade before
 reporting issues against older versions.
@@ -46,9 +46,9 @@ control:
     client.
 - **Environment-sourced secrets.**
   - `load_config` reads the key from an environment variable (`LLM_API_KEY` by
-    default; configurable with `api_key_env_var`), optionally loaded from
-    `.env`.
-  - Variables already set in the environment take precedence over `.env`.
+    default; configurable with `api_key_env_var`).
+  - A `.env` file is read only when you pass `env_path` or `load_env=True`,
+    and variables already set in the environment take precedence over it.
 - **Keep keys out of YAML.** A set environment variable always overrides
   `llm.api_key` from the YAML file, which is only a fallback. A key committed
   in a config file is still a leak.
@@ -68,17 +68,20 @@ control:
   - `AsyncSqliteEmbeddingStore` and `AsyncSqliteFts5Store` persist full-text
     passages with their titles and source URLs.
   - `AsyncSqliteLLMResponseCache` persists model responses as JSON.
+  - `AsyncSqliteClaimStore` and `AsyncSqliteRejectionStore` persist extracted
+    values with the evidence sentences quoted from each paper.
   - State files and state databases, which record the last error of each
-    failed record, and CSV outputs are plain files.
+    failed record, and CSV and JSON Lines outputs are plain files.
   - If your corpus is licensed or sensitive, use filesystem permissions and
     encryption at rest.
 - **CSV formula injection.** Every cell comes straight from LLM output.
   `AsyncCsvExporter` by default prefixes an apostrophe to any cell starting
   with `=`, `+`, `-`, `@`, a tab, or a carriage return, so spreadsheets don't
   evaluate it. Plain numbers such as `-5.361` are left unchanged. Keep
-  `escape_formulas` enabled for files people open in spreadsheet software. Other outputs — JSON Lines from `AsyncJsonlExporter`,
-  SQL tables from `SqlTableSink`, Plotly hover text from `Plotly3DSink`, and
-  your own exporters and sinks — are not escaped.
+  `escape_formulas` enabled for files people open in spreadsheet software.
+  Other outputs — JSON Lines from `AsyncJsonlExporter`, SQL tables from
+  `SqlTableSink`, Plotly hover text from `Plotly3DSink`, and your own
+  exporters and sinks — are not escaped.
 - **No secrets in outputs.** Exporters write only the data they are given;
   scrub credential-bearing fields before export.
 
@@ -122,12 +125,12 @@ control:
 
 - Rotate API keys regularly and scope them to least privilege.
 - Pin dependencies and monitor advisories, especially for:
-  - networking and LLM clients: `httpx`, `openai`
+  - validation, which every install needs: `pydantic`
+  - networking and LLM clients: `httpx`, `aiolimiter`, `openai`, `tiktoken`
   - document, markup, and config parsing: `pdfplumber`, `beautifulsoup4`,
-    `lxml`, `pyyaml`
+    `lxml`, `pyyaml`, `python-dotenv`
   - data and numerics: `pandas`, `numpy`, `scikit-learn`
-  - storage, plotting, and file IO: `SQLAlchemy`, `aiosqlite`, `plotly`,
-    `aiofiles`
+  - storage and plotting: `SQLAlchemy`, `plotly`
   - `sentence-transformers`, if installed
 - Validate and sanitize any user-supplied query strings, file paths, and
   destinations before passing them to extractors or exporters.
