@@ -1166,7 +1166,7 @@
   <span class="md-ellipsis">
     
   
-    Заполнение из векторной памяти
+    Дозаполнение из векторной памяти
   
 
     
@@ -1427,7 +1427,7 @@
   <span class="md-ellipsis">
     
   
-    Корректное завершение
+    Плавное завершение
   
 
     
@@ -2675,9 +2675,9 @@
 
 
 <h1 id="_1">Графы связанных статей<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
-<p><code>build_discovery_graph</code> выращивает граф связанных статей вокруг исходной
-записи, в духе Connected Papers, из источников рёбер, которые связывают записи
-по сходству:</p>
+<p><code>build_discovery_graph</code> выращивает граф связанных статей вокруг seed-записи,
+в духе Connected Papers, из источников рёбер, которые связывают записи по
+сходству:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.search</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">EmbeddingEdgeSource</span><span class="p">,</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">GraphParams</span><span class="p">,</span>
@@ -2712,7 +2712,7 @@
   умолчанию 0,35), а <code>max_nodes</code> (по умолчанию 200) проверяется перед каждым
   уровнем. При <code>mutual_only</code> (по умолчанию) ребро сохраняется, только когда
   каждая запись входит в число ближайших для другой, что не даёт статье-хабу
-  связаться со всем подряд. Остаются только записи, связанные с исходной.</li>
+  связаться со всем подряд. Остаются только записи, связанные с seed-записью.</li>
 <li><strong>Сообщества.</strong> <code>GraphNode.community</code> вычисляется распространением меток,
   которое детерминировано: один и тот же граф всегда даёт одни и те же
   сообщества. Когда <code>max_iterations</code> (по умолчанию 20) прерывает его раньше,
@@ -2722,7 +2722,7 @@
   выполняет собственную раскладку.</li>
 <li><strong>Фильтрация без ввода-вывода.</strong> <code>filter_graph</code> — чистая синхронная функция,
   поэтому интерфейс может перезапускать её при каждом переключении фасета.
-  Исходная запись остаётся всегда, рёбра, потерявшие конец, удаляются, а
+  Seed-запись остаётся всегда, рёбра, потерявшие конец, удаляются, а
   сообщества сохраняются, чтобы цвета оставались стабильными. Передайте
   <code>matched_ids=await text_store.filter_ids(parse_query(...))</code>, чтобы оставить
   только записи, подходящие под запрос; этот вызов принимает и чистое
@@ -2770,7 +2770,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Нижний колонтитул" >
         
           
-          <a href="../backfill/" class="md-footer__link md-footer__link--prev" aria-label="Назад: Заполнение из векторной памяти">
+          <a href="../backfill/" class="md-footer__link md-footer__link--prev" aria-label="Назад: Дозаполнение из векторной памяти">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2780,7 +2780,7 @@
                 Назад
               </span>
               <div class="md-ellipsis">
-                Заполнение из векторной памяти
+                Дозаполнение из векторной памяти
               </div>
             </div>
           </a>

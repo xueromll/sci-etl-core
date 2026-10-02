@@ -1164,7 +1164,7 @@
   <span class="md-ellipsis">
     
   
-    Заполнение из векторной памяти
+    Дозаполнение из векторной памяти
   
 
     
@@ -1415,7 +1415,7 @@
   <span class="md-ellipsis">
     
   
-    Корректное завершение
+    Плавное завершение
   
 
     
@@ -3872,7 +3872,7 @@ udg-catalogue переехало в синхронизируемую папку 
 <p>Экспортёр сохраняет старое правило слияния: одна строка на нормализованное имя,
 более поздние записи только заполняют пустые ячейки, значения приводятся к
 числам с плавающей точкой, а <code>numeric_clip</code> заменяет написанное вручную
-зажатие доли тёмной материи. Он также сериализует параллельный экспорт и
+ограничение доли тёмной материи. Он также сериализует параллельный экспорт и
 публикует каждый снимок атомарным переименованием.</p>
 <p><strong>Проверьте, можно ли использовать существующие файлы состояния как есть.</strong>
 У udg-catalogue это получилось: <code>processed_arxiv_ids.txt</code> уже содержал голые
@@ -4096,9 +4096,9 @@ extras <code>embeddings</code>, <code>embeddings-local</code> и <code>search</c
 <li><strong>Графики.</strong> <code>ScatterPlotConfig</code> получил собственные всплывающие подсказки и
   фиксированный диапазон цветов, из-за отсутствия которых udg-catalogue на шаге
   9 не использовал <code>AsyncPlotly3DExporter</code>.</li>
-<li><strong>Зажатие и раскладка таблицы.</strong> udg-catalogue удалил свои собственные
-  <code>ValueClipStep</code> и <code>CatalogueLayoutStep</code> из шага 7; цепочка теперь
-  импортирует <code>ValueClipStep</code> из библиотеки и заканчивается
+<li><strong>Ограничение значений и раскладка таблицы.</strong> udg-catalogue удалил свои
+  собственные <code>ValueClipStep</code> и <code>CatalogueLayoutStep</code> из шага 7; цепочка
+  теперь импортирует <code>ValueClipStep</code> из библиотеки и заканчивается
   <code>TableLayoutStep(sort_by=SORT_ORDER, leading_columns=LEADING_COLUMNS,
   hidden_prefixes=("_",))</code>.</li>
 </ul>
@@ -4145,7 +4145,7 @@ extras <code>embeddings</code>, <code>embeddings-local</code> и <code>search</c
 <a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a>        <span class="k">return</span> <span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="n">run_arguments</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">pipeline</span><span class="p">,</span> <span class="n">start_index</span><span class="p">))</span>
 </code></pre></div>
 <p>Статьи, отобранные до обновления, никогда не индексировались, а векторной памяти
-для заполнения у udg-catalogue не было. <code>python main.py --index-papers</code> заново
+для дозаполнения у udg-catalogue не было. <code>python main.py --index-papers</code> заново
 получает их через тот же пайплайн с экстрактором сущностей, который ничего не
 возвращает, фильтром релевантности, пропускающим статьи, уже имеющиеся в
 текстовом индексе, и отдельным менеджером состояния (<code>indexed_arxiv_ids.txt</code>,

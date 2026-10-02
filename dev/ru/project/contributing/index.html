@@ -1156,7 +1156,7 @@
   <span class="md-ellipsis">
     
   
-    Заполнение из векторной памяти
+    Дозаполнение из векторной памяти
   
 
     
@@ -1404,7 +1404,7 @@
   <span class="md-ellipsis">
     
   
-    Корректное завершение
+    Плавное завершение
   
 
     
@@ -2961,7 +2961,7 @@
   <code>AsyncCsvExporter</code> и <code>AsyncFileStateManager</code>.</li>
 <li><strong>Пишите журнал через логгер модуля.</strong> Каждый модуль журналирует через
   <code>_logger = logging.getLogger(__name__)</code>: уровнем <code>WARNING</code> — всё, что меняет
-  результат запуска или его стоимость, <code>ERROR</code> — сбой приёмника или хранилища,
+  результат запуска или его стоимость, <code>ERROR</code> — сбой стока или хранилища,
   о котором сообщает запуск, <code>INFO</code> — рутинные заметки. Никогда не
   настраивайте обработчики или уровни; это задача приложения.</li>
 <li><strong>Импортируйте необязательные зависимости лениво.</strong> Каждый пакетный
@@ -3257,7 +3257,7 @@
 <td>Векторное хранилище</td>
 <td><code>AsyncEmbeddingStore</code></td>
 <td><code>add</code>, <code>delete_record</code>, <code>query</code>, <code>count</code></td>
-<td>Заменяйте чанки с тем же <code>(record_id, chunk_index)</code>; <code>delete_record</code> удаляет все чанки записи. Переопределите <code>replace_record</code> (по умолчанию удаление, затем добавление), если ваш бэкенд умеет делать и то и другое атомарно. Никогда не возвращайте результаты с неконечными оценками. Ведите себя как <code>InMemoryEmbeddingStore</code> в отношении <code>top_k</code>, <code>min_score</code> и <code>exclude_record_id</code>. Сериализуйте использование общего соединения и выбрасывайте <code>EmbeddingStoreError</code>. Реализуйте <code>iter_records</code> (чанки в порядке <code>chunk_index</code>, записи в порядке <code>record_id</code>, без векторов), если текстовый индекс должен заполняться из вашего хранилища.</td>
+<td>Заменяйте чанки с тем же <code>(record_id, chunk_index)</code>; <code>delete_record</code> удаляет все чанки записи. Переопределите <code>replace_record</code> (по умолчанию удаление, затем добавление), если ваш бэкенд умеет делать и то и другое атомарно. Никогда не возвращайте результаты с неконечными оценками. Ведите себя как <code>InMemoryEmbeddingStore</code> в отношении <code>top_k</code>, <code>min_score</code> и <code>exclude_record_id</code>. Сериализуйте использование общего соединения и выбрасывайте <code>EmbeddingStoreError</code>. Реализуйте <code>iter_records</code> (чанки в порядке <code>chunk_index</code>, записи в порядке <code>record_id</code>, без векторов), если текстовый индекс должен дозаполняться из вашего хранилища.</td>
 </tr>
 <tr>
 <td>Чанкер</td>

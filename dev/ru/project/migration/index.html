@@ -1156,7 +1156,7 @@
   <span class="md-ellipsis">
     
   
-    Заполнение из векторной памяти
+    Дозаполнение из векторной памяти
   
 
     
@@ -1404,7 +1404,7 @@
   <span class="md-ellipsis">
     
   
-    Корректное завершение
+    Плавное завершение
   
 
     
@@ -2699,7 +2699,7 @@
   <a href="#table-sinks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Табличные приёмники
+        Стоки таблиц
       
     </span>
   </a>
@@ -3113,7 +3113,7 @@
   <a href="#table-sinks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Табличные приёмники
+        Стоки таблиц
       
     </span>
   </a>
@@ -3322,7 +3322,7 @@ JSON на запись.</p>
 нумерует это как R20–R23.</p>
 <p><code>AsyncSqlTableExporter</code> и <code>AsyncPlotly3DExporter</code> удалены; используйте
 <code>SqlTableSink</code> и <code>Plotly3DSink</code> из <code>sci_etl_core.processors.sinks</code>, как
-показано в разделе <a href="#table-sinks">Табличные приёмники</a>. <code>ScatterPlotConfig</code>
+показано в разделе <a href="#table-sinks">Стоки таблиц</a>. <code>ScatterPlotConfig</code>
 импортируется из <code>sci_etl_core.processors</code>.</p>
 <h3 id="entity-extractors-are-typed-and-record-aware">Экстракторы сущностей типизированы и учитывают запись<a class="headerlink" href="#entity-extractors-are-typed-and-record-aware" title="Permanent link">&para;</a></h3>
 <p><code>AsyncEntityExtractor</code> обобщён по типу сущности, а пайплайн вызывает
@@ -3575,9 +3575,9 @@ JSON на запись.</p>
 </code></pre></div>
 <p>Разделы верхнего уровня, которые определяет приложение, сохраняются, как и
 раньше.</p>
-<h3 id="table-sinks">Табличные приёмники<a class="headerlink" href="#table-sinks" title="Permanent link">&para;</a></h3>
+<h3 id="table-sinks">Стоки таблиц<a class="headerlink" href="#table-sinks" title="Permanent link">&para;</a></h3>
 <p><code>AsyncSqlTableExporter</code> и <code>AsyncPlotly3DExporter</code> принимали <code>DataFrame</code> и не
-могли работать в пайплайне. Их замена — блокирующие приёмники для результатов
+могли работать в пайплайне. Их замена — блокирующие стоки для результатов
 постобработки:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.processors.sinks</span><span class="w"> </span><span class="kn">import</span> <span class="n">Plotly3DSink</span><span class="p">,</span> <span class="n">ScatterPlotConfig</span><span class="p">,</span> <span class="n">SqlTableSink</span>
 <a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
@@ -3596,13 +3596,13 @@ JSON на запись.</p>
 <p>Блокирующие контракты и их <code>Sync*Adapter</code>, <code>LegacyExtractorAdapter</code> и два
 табличных экспортёра выдают <code>DeprecationWarning</code>, потому что их замены уже
 есть в 0.5; переходите на асинхронные контракты, которые уже реализует каждый
-компонент, на <code>fetch_page</code> и на табличные приёмники.</p>
+компонент, на <code>fetch_page</code> и на стоки таблиц.</p>
 <p><code>build_retrying_session</code> удалён, а extra <code>full</code> больше не устанавливает
 <code>requests</code>.</p>
 <h2 id="upgrading-to-04">Обновление до 0.4<a class="headerlink" href="#upgrading-to-04" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>sci-etl-core[async]&gt;=0.4.0,&lt;0.5
 </code></pre></div>
-<p>0.4 добавляет новые источники, парсеры, кэширование ответов LLM, корректное
+<p>0.4 добавляет новые источники, парсеры, кэширование ответов LLM, плавное
 завершение, события прогресса, ограничители частоты и функции поиска. На
 существующий код влияют следующие изменения:</p>
 <ul>
@@ -3633,9 +3633,10 @@ JSON на запись.</p>
   <code>hover_template</code>, <code>color_continuous_scale</code> и <code>color_range</code>, которые
   покрывают собственные всплывающие подсказки и фиксированные диапазоны
   цветов, раньше требовавшие построения фигуры вручную.</li>
-<li><strong>Зажатие и раскладка таблицы.</strong> <code>ValueClipStep</code> зажимает столбцы при
-  постобработке, а <code>TableLayoutStep</code> сортирует строки и упорядочивает столбцы
-  вместо процессоров конкретного проекта, делавших то или другое.</li>
+<li><strong>Ограничение значений и раскладка таблицы.</strong> <code>ValueClipStep</code> ограничивает
+  столбцы при постобработке, а <code>TableLayoutStep</code> сортирует строки и
+  упорядочивает столбцы вместо процессоров конкретного проекта, делавших то
+  или другое.</li>
 <li><strong>Поиск по уже имеющейся памяти.</strong> Проект, хранивший чанки в
   <code>AsyncSqliteEmbeddingStore</code>, может построить из них текстовый индекс с
   помощью <code>backfill_text_index</code>, а не загружать каждую статью заново.</li>

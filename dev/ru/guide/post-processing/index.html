@@ -1261,7 +1261,7 @@
   <span class="md-ellipsis">
     
   
-    Заполнение из векторной памяти
+    Дозаполнение из векторной памяти
   
 
     
@@ -1512,7 +1512,7 @@
   <span class="md-ellipsis">
     
   
-    Корректное завершение
+    Плавное завершение
   
 
     
@@ -2945,7 +2945,7 @@ dataclass или утверждений. Чтобы вместо этого хр
 <p><code>Plotly3DSink</code> отбрасывает строки, в которых нет значения хотя бы по одной оси,
 ничего не пишет, если не осталось ни одной строки, и атомарно заменяет файл
 HTML. При создании ему нужен extra <code>viz</code>; импорт
-<code>sci_etl_core.processors.sinks</code> требует только extra <code>processors</code>. Приёмники
+<code>sci_etl_core.processors.sinks</code> требует только extra <code>processors</code>. Стоки
 блокирующие, поэтому из асинхронного кода вызывайте <code>write</code> через
 <code>asyncio.to_thread</code>.</p>
 <h3 id="styling-the-plot">Оформление графика<a class="headerlink" href="#styling-the-plot" title="Permanent link">&para;</a></h3>
@@ -2986,10 +2986,10 @@ HTML. При создании ему нужен extra <code>viz</code>; импо
 <ul>
 <li><strong><code>ClusteringStep(feature_extractor)</code></strong> запускает DBSCAN по признакам,
   которые возвращает ваш собственный <code>FeatureExtractor</code>.</li>
-<li><strong><code>ValueClipStep(bounds)</code></strong> зажимает числовые столбцы в диапазоны, например
-  <code>{"fraction": (0.0, 1.0)}</code>, превращая нечисловые значения в пустые ячейки.
-  Зажатие прячет значение вне диапазона за правдоподобным, поэтому лучше
-  отвергать такие значения валидатором во время извлечения.</li>
+<li><strong><code>ValueClipStep(bounds)</code></strong> ограничивает числовые столбцы диапазонами,
+  например <code>{"fraction": (0.0, 1.0)}</code>, превращая нечисловые значения в пустые
+  ячейки. Ограничение прячет значение вне диапазона за правдоподобным, поэтому
+  лучше отвергать такие значения валидатором во время извлечения.</li>
 <li><strong><code>TableLayoutStep(sort_by, leading_columns, hidden_prefixes)</code></strong> готовит
   таблицу к публикации: сортирует строки по парам <code>(column, ascending)</code>, ставя
   пропуски в конец, удаляет вспомогательные столбцы, такие как <code>_norm_key</code>, по

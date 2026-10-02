@@ -1156,7 +1156,7 @@
   <span class="md-ellipsis">
     
   
-    Заполнение из векторной памяти
+    Дозаполнение из векторной памяти
   
 
     
@@ -1404,7 +1404,7 @@
   <span class="md-ellipsis">
     
   
-    Корректное завершение
+    Плавное завершение
   
 
     
@@ -3666,15 +3666,15 @@ MIGRATION.md.</p>
 <li><strong>Ломающее изменение:</strong> базовая установка требует только <code>pydantic</code>.
   Установите extra <code>config</code> для <code>load_config</code>, <code>arxiv</code> для
   <code>AsyncArxivExtractor</code>, <code>xml</code> для экстрактора PubMed и парсеров JATS и DOCX,
-  <code>html</code> для <code>HtmlTextParser</code> и <code>processors</code> для процессоров pandas и табличных
-  приёмников.</li>
+  <code>html</code> для <code>HtmlTextParser</code> и <code>processors</code> для процессоров pandas и стоков
+  таблиц.</li>
 <li><strong>Ломающее изменение:</strong> <code>load_config</code> и <code>load_config_async</code> читают файл
   <code>.env</code> только при передаче <code>env_path</code> или <code>load_env=True</code>.</li>
 <li><strong>Ломающее изменение:</strong> каждый модуль пишет журнал через
   <code>logging.getLogger(__name__)</code> под логгером <code>sci_etl_core</code>, с уровнем
-  <code>WARNING</code> для неудавшихся и пропущенных записей, <code>ERROR</code> для сбоев
-  приёмников и состояния и <code>INFO</code> для рутинных заметок. Библиотека не
-  настраивает обработчики.</li>
+  <code>WARNING</code> для неудавшихся и пропущенных записей, <code>ERROR</code> для сбоев стоков и
+  состояния и <code>INFO</code> для рутинных заметок. Библиотека не настраивает
+  обработчики.</li>
 <li><strong>Ломающее изменение:</strong> <code>AsyncEntityExtractor</code> и <code>AsyncExporter</code> обобщены
   по типу сущности, а все аргументы <code>AsyncLLMEntityExtractor</code> после
   <code>system_prompt</code> — только именованные.</li>
@@ -3790,7 +3790,7 @@ MIGRATION.md.</p>
   <code>PageFetched.truncated</code> и <code>PipelineMetadata.truncated</code> показывают, когда
   источник остановился на своём лимите результатов. События прогресса также
   содержат <code>cursor</code> страницы.</li>
-<li><strong>Табличные приёмники.</strong> <code>SqlTableSink</code> и <code>Plotly3DSink</code> в
+<li><strong>Стоки таблиц.</strong> <code>SqlTableSink</code> и <code>Plotly3DSink</code> в
   <code>sci_etl_core.processors.sinks</code> записывают <code>DataFrame</code> после постобработки.</li>
 <li><strong>Версии схем.</strong> База данных состояния SQLite, кэш LLM, хранилище
   эмбеддингов и файловое состояние записывают версию схемы. Файл, записанный
@@ -3890,7 +3890,7 @@ MIGRATION.md.</p>
   <code>AsyncSqliteLLMResponseCache</code>. Сбой кэша записывается в журнал и учитывается в
   <code>CacheStats</code>, выбрасывается хранилищами как <code>LLMCacheError</code> и никогда не
   приводит к неудаче запроса к модели.</li>
-<li>Корректное завершение: <code>AsyncETLPipeline(shutdown=)</code> и
+<li>Плавное завершение: <code>AsyncETLPipeline(shutdown=)</code> и
   <code>ETLPipeline(shutdown=)</code> принимают <code>ShutdownSignal</code>, поэтому SIGINT, SIGTERM
   или <code>request()</code> дают завершиться записям в обработке и выбрасывают
   <code>PipelineInterrupted</code> — подкласс <code>PipelineAborted</code>. Теперь каждый запуск,
@@ -3918,7 +3918,7 @@ MIGRATION.md.</p>
   записывает в журнал сущности, которые отвергает <code>RecordValidator</code>.</li>
 <li><code>ScatterPlotConfig</code> принимает <code>hover_data_columns</code>, <code>hover_template</code>,
   <code>color_continuous_scale</code>, <code>color_range</code>, <code>color_label</code>, <code>marker</code> и <code>layout</code>.</li>
-<li><code>ValueClipStep</code> зажимает числовые столбцы при постобработке, а
+<li><code>ValueClipStep</code> ограничивает числовые столбцы при постобработке, а
   <code>TableLayoutStep</code> сортирует строки и упорядочивает столбцы.</li>
 <li>Запросы близости <code>NEAR(...)</code> в языке запросов — как узел <code>Near</code> с
   <code>NEAR_DISTANCE</code>, поддерживаемый обоими текстовыми хранилищами, — и
@@ -3987,7 +3987,7 @@ MIGRATION.md.</p>
     гибридный поиск и сообщает в <code>SearchOutcome.degraded</code> и
     <code>SearchOutcome.skipped</code>, какие ветви поиска отказали или были пропущены.</li>
 <li>Графы связанных статей в <code>sci_etl_core.search</code>. <code>build_discovery_graph</code>
-  выращивает окрестность исходной записи в ширину из одного или нескольких
+  выращивает окрестность seed-записи в ширину из одного или нескольких
   источников рёбер, по умолчанию оставляет только взаимных ближайших соседей и
   группирует записи в сообщества детерминированным распространением меток.
   <code>GraphParams</code> ограничивает глубину, ветвление, минимальный вес ребра, число
