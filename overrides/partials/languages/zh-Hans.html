@@ -1,0 +1,10 @@
+{#-
+  Material ships its Simplified Chinese translation as `zh`, so the `zh-Hans`
+  locale this site uses has no partial of its own. Reuse the `zh` one, and
+  report `zh-Hans` as the language so the `<html lang>` attribute names the
+  script. `zh-Hant` is shipped by Material and needs no override.
+-#}
+{% import "partials/languages/zh.html" as zh %}
+{% macro t(key) %}{{
+  "zh-Hans" if key == "language" else zh.t(key)
+}}{% endmacro %}

@@ -78,7 +78,7 @@ await pipeline.run(**config.pipeline.run_arguments())
 `AsyncArxivExtractor.from_config` берёт `max_retries` и `backoff_factor` из
 `http`, `search_delay` из `pipeline`, а свой `rate_limiter` — из `full_text`.
 Если опустить `full_text`, у экстрактора не будет ограничителя частоты, и
-конвейер с `max_concurrency`, равным 6, будет загружать с arxiv.org шесть
+пайплайн с `max_concurrency`, равным 6, будет загружать с arxiv.org шесть
 статей одновременно. `AsyncOpenAICompatibleClient` берёт `api_key`
 (загруженный `SecretStr` как есть), `base_url`, `model`, `structured_output`
 и `timeout` в качестве `default_timeout`. Устанавливайте
@@ -87,7 +87,7 @@ await pipeline.run(**config.pipeline.run_arguments())
 другой аргумент конструктора, например `rate_limiter`, как именованный.
 У экстракторов PubMed, Semantic Scholar и OpenAlex нет `from_config`;
 передавайте `config.http.max_retries` и `config.http.backoff_factor` в их
-конструкторы сами. Конвейер берёт `max_concurrency`, а `run_arguments()`
+конструкторы сами. Пайплайн берёт `max_concurrency`, а `run_arguments()`
 возвращает для `run()` значения `query`, `page_size`, `total_limit`,
 `sleep_between` и `newest_first`; добавляйте `max_attempts` или `start_index`
 сами, когда они нужны. `ETLPipeline.from_config` работает так же.

@@ -215,11 +215,13 @@ mkdocs build --strict                                 # la comprobación que eje
   enlaces entre ellos se reescriben para el sitio.
 - **Traducciones.** Las versiones en ruso, español, chino simplificado y árabe
   de una página están junto a ella como `page.ru.md`, `page.es.md`,
-  `page.zh.md` y `page.ar.md`, y el complemento mkdocs-static-i18n construye
-  cada idioma en su propia ruta, como `/ru/`. Un pull request que cambia una
-  página en inglés actualiza también sus cuatro traducciones.
-  [TRANSLATING.md](translating.md) nombra al responsable de cada idioma y
-  contiene el glosario y las reglas que sigue una página traducida.
+  `page.zh-Hans.md` y `page.ar.md`, y el complemento mkdocs-static-i18n
+  construye cada idioma en su propia ruta, como `/ru/`. Un pull request que cambia una
+  página en inglés actualiza también sus cuatro traducciones. Las cuatro son
+  traducción automática y esperan una revisión de hablantes nativos, así que el
+  inglés es el texto autorizado. [TRANSLATING.md](translating.md) nombra al
+  coordinador de cada idioma y contiene el glosario y las reglas que sigue una
+  página traducida.
 - **La sección de la CLI** procede de la carpeta `docs/` y de la `nav` del
   repositorio sci-etl-cli. La construcción busca un clon junto a este, o en la
   ruta de `SCI_ETL_CLI_DIR`; sin él, omite la sección, lo que `--strict`
@@ -295,7 +297,7 @@ referencia a las incidencias en el cuerpo (`Closes #123`).
      breve
    - las traducciones al ruso, al español, al chino y al árabe de cada página
      en inglés que cambies, siguiendo [TRANSLATING.md](translating.md); si no
-     puedes escribir alguna de ellas, dilo, y el responsable de ese idioma la
+     puedes escribir alguna de ellas, dilo, y el coordinador de ese idioma la
      añade antes de la fusión
    - `MIGRATION.md` para un cambio incompatible, bajo la versión que lo publica
    - `docs/guide/migrating-a-pipeline.md` cuando el cambio afecte al traslado

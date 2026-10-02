@@ -5,17 +5,17 @@
 английском языке. Каждая страница документирует модули, в которых определены
 имена; импортируйте их из пакета, указанного в начале страницы, а не из модуля,
 где они определены, поскольку расположение модулей внутри пакета может меняться
-от выпуска к выпуску.
+от релиза к релизу.
 
 | Страница | Пакет | Содержание |
 |----------|-------|------------|
-| [Конвейеры](pipelines.md) | `sci_etl_core` | `AsyncETLPipeline`, `ETLPipeline`, загрузка в память, `ShutdownSignal`, события прогресса и `RunMetrics` |
+| [Пайплайны](pipelines.md) | `sci_etl_core` | `AsyncETLPipeline`, `ETLPipeline`, загрузка в память, `ShutdownSignal`, события прогресса и `RunMetrics` |
 | [Конфигурация](configuration.md) | `sci_etl_core` | `BaseAppConfig` и его разделы, `load_config`, `load_config_async` |
 | [Модели и исключения](models.md) | `sci_etl_core` | `RawRecord`, `TokenUsage`, иерархия `SciEtlError`, модель чтения для обзора (discovery read-model) |
 | [Экстракторы](extractors.md) | `sci_etl_core.extractors` | `AsyncExtractor`, экстракторы arXiv, PubMed, Semantic Scholar и OpenAlex |
 | [Парсеры](parsers.md) | `sci_etl_core.parsers` | парсеры PDF, LaTeX, HTML, DOCX и JATS XML, отсечение списка литературы |
 | [LLM](llm.md) | `sci_etl_core.llm` | клиенты LLM, кэширование ответов, фильтры релевантности, экстракторы сущностей и типизированные схемы |
-| [Эмбеддинги](embeddings.md) | `sci_etl_core.embeddings` | эмбеддеры, разбиение на фрагменты, векторные хранилища, поиск по сходству |
+| [Эмбеддинги](embeddings.md) | `sci_etl_core.embeddings` | эмбеддеры, разбиение на чанки, векторные хранилища, поиск по сходству |
 | [Поиск](search.md) | `sci_etl_core.search` | язык запросов, текстовые хранилища, слияние ранжирований, гибридный поиск, графы связанных статей |
 | [Экспортёры](exporters.md) | `sci_etl_core.exporters` | жизненный цикл экспортёра, экспортёры CSV и JSON Lines |
 | [Утверждения](claims.md) | `sci_etl_core.claims` | утверждения, фрагменты-доказательства, штампы, хранилища утверждений и отклонений, экстрактор и экспортёр утверждений (предварительный API) |

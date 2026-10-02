@@ -2,22 +2,46 @@
 
 The documentation site is published in English, Russian, Spanish, Simplified
 Chinese, and Modern Standard Arabic. English is the source, and every
-translated page follows its English page. This guide names the owner of each
-language, says how translations stay in sync, and lists the words to use.
+translated page follows its English page. This guide names the coordinator of
+each language, says how translations stay in sync, and lists the words to use.
 
-## Ownership
+## Machine translation
 
-| Language | Pages | Owner | Native-speaker reviewer |
-|----------|-------|-------|-------------------------|
+**Every translated page is currently machine translation.** The Russian,
+Spanish, Simplified Chinese, and Arabic pages were produced in one pass by a
+language model rather than written by translators, and no native speaker has
+reviewed them yet.
+
+That pass checked structure and terminology: every page keeps its English
+page's headings, `{#anchor}` ids, code blocks, links, tables, and admonitions,
+and uses the [glossary](#glossary) terms. What it can't promise is that the
+prose reads the way a practitioner in that language would write it.
+
+So:
+
+- **English is authoritative.** Where a translated page and its English page
+  disagree, the English page is right; please report the difference as an
+  issue.
+- **A native-speaker review is the most valuable contribution a language can
+  get.** Every reviewer slot in the table below is open, and the table records
+  who fills one.
+- **Fix the glossary, not only the page.** A term translated badly is usually
+  wrong on every page that uses it, so correct the [glossary](#glossary) row
+  and the pages that follow it in the same change.
+
+## Coordinators and reviewers
+
+| Language | Pages | Coordinator | Native-speaker reviewer |
+|----------|-------|-------------|-------------------------|
 | Russian | `docs/**/*.ru.md` | [@xueromll](https://github.com/xueromll) | open |
 | Spanish | `docs/**/*.es.md` | [@xueromll](https://github.com/xueromll) | open |
-| Simplified Chinese | `docs/**/*.zh.md` | [@xueromll](https://github.com/xueromll) | open |
+| Simplified Chinese | `docs/**/*.zh-Hans.md` | [@xueromll](https://github.com/xueromll) | open |
 | Arabic (Modern Standard) | `docs/**/*.ar.md` | [@xueromll](https://github.com/xueromll) | open |
 
-[`.github/CODEOWNERS`](.github/CODEOWNERS) assigns the same owners, so GitHub
-asks the owner to review every pull request that touches their language.
+[`.github/CODEOWNERS`](.github/CODEOWNERS) assigns the same people, so GitHub
+asks the coordinator to review every pull request that touches their language.
 
-The owner of a language:
+The coordinator of a language:
 
 - keeps every translated page in step with its English page, as
   [Keeping translations in sync](#keeping-translations-in-sync) describes;
@@ -26,10 +50,11 @@ The owner of a language:
   [glossary](#glossary) before a page uses it.
 
 A native-speaker reviewer checks that the wording reads naturally and that the
-glossary uses the terms practitioners use. To review a language, open an issue
-that names it, and the owner adds you to the table. Ownership of a language
-moves when the current owner and the new owner agree; the table and
-`CODEOWNERS` change in the same pull request.
+glossary uses the terms practitioners use — the review the machine-translated
+pages have not had yet. To review a language, open an issue that names it, and
+the coordinator adds you to the table. A language's coordination moves when the
+current coordinator and the new one agree; the table and `CODEOWNERS` change in
+the same pull request.
 
 ## Keeping translations in sync
 
@@ -39,8 +64,12 @@ moves when the current owner and the new owner agree; the table and
   `SECURITY.md`, or `CODE_OF_CONDUCT.md`), updates the page's four
   translations too.
 - **Can't write a language?** Say which in the pull request description. The
-  owner of that language adds the translation before the pull request merges,
-  so no translated page falls behind its English page on `master`.
+  coordinator of that language adds the translation before the pull request
+  merges, so no translated page falls behind its English page on `master`.
+- **Machine translation is accepted for now.** Until a language has a
+  native-speaker reviewer, a machine-translated page that keeps the structure
+  and the glossary terms beats a page that falls behind its English one. Say in
+  the pull request description which pages were machine translated.
 - **New pages** ship with their four translations, and their menu title gets a
   `nav_translations` entry for each language in `mkdocs.yml`.
 - **Glossary first.** A term the glossary lacks is added, in all four
@@ -53,7 +82,9 @@ moves when the current owner and the new owner agree; the table and
 ## Writing a translated page
 
 - **File.** `page.<lang>.md` beside `page.md`, where `<lang>` is `ru`, `es`,
-  `zh`, or `ar`.
+  `zh-Hans`, or `ar`. Chinese carries its script subtag so that Traditional
+  Chinese can join later as `zh-Hant` without renaming anything, which is also
+  why the Chinese pages are published under `/zh-Hans/`.
 - **Structure.** The same headings in the same order and at the same levels,
   the same code blocks, the same links, and the same tables and admonitions.
   Only the words change.
@@ -76,6 +107,18 @@ moves when the current owner and the new owner agree; the table and
   not in the page.
 - **Check.** `mkdocs build --strict` must pass. It fails on a link to an
   anchor that a translated heading lost.
+
+Two settings in `mkdocs.yml` exist only because the Chinese locale is
+`zh-Hans` rather than `zh`:
+
+- `theme.custom_dir: overrides` supplies
+  `overrides/partials/languages/zh-Hans.html`, since Material ships its
+  Simplified Chinese interface strings as `zh` and would otherwise fail to
+  render the Chinese pages. Material does ship `zh-Hant`, so Traditional
+  Chinese would need no such file.
+- `plugins.search.lang` lists the lunr languages explicitly, including `zh`.
+  lunr has no `zh-Hans`, so leaving the list out would drop Chinese word
+  segmentation from the search index.
 
 ## Style
 
@@ -107,7 +150,7 @@ ideas.
 |---------|---------|---------|--------------------|--------|
 | library | библиотека | biblioteca | 库 | المكتبة |
 | field of science | область науки | campo de la ciencia | 科学领域 | مجال من مجالات العلم |
-| pipeline | конвейер | pipeline | 流水线 | خط المعالجة |
+| pipeline | пайплайн | pipeline | 流水线 | خط المعالجة |
 | run (noun) | запуск | ejecución | 运行 | التشغيل |
 | paper | статья | artículo | 论文 | الورقة |
 | record | запись | registro | 记录 | السجل |
@@ -115,11 +158,11 @@ ideas.
 | source | источник | fuente | 来源 | المصدر |
 | extractor | экстрактор | extractor | 提取器 | المستخرِج |
 | parser | парсер | analizador | 解析器 | المحلِّل |
-| listing | выдача | listado | 列表 | القائمة |
-| listing page | страница выдачи | página de listado | 列表页 | صفحة القائمة |
+| listing | листинг | listado | 列表 | القائمة |
+| listing page | страница листинга | página de listado | 列表页 | صفحة القائمة |
 | cursor | курсор | cursor | 游标 | المؤشر |
 | offset | смещение | desplazamiento | 偏移量 | الإزاحة |
-| paging | листание | paginación | 分页 | التنقل بين الصفحات |
+| paging | пагинация | paginación | 分页 | التنقل بين الصفحات |
 | result cap | лимит результатов | límite de resultados | 结果上限 | حد النتائج |
 | truncated | усечённая | truncada | 截断 | مقتطعة |
 | newest-first | «сначала новые» | de más recientes primero | 最新优先 | من الأحدث |
@@ -129,17 +172,17 @@ ideas.
 | exporter | экспортёр | exportador | 导出器 | المصدِّر |
 | state manager | менеджер состояния | gestor de estado | 状态管理器 | مدير الحالة |
 | processed / mark processed | обработанная / пометить как обработанную | procesado / marcar como procesado | 已处理 / 标记为已处理 | معالَج / تعليمه معالَجًا |
-| settled | завершённая | resuelto | 已落定 | مُسوًّى |
+| settled | устоявшаяся | resuelto | 已落定 | مُسوًّى |
 | durable | надёжно сохранённая | duradero | 已持久化 | دائم |
 | stalled page | застрявшая страница | página atascada | 停滞页 | صفحة متعثرة |
 | quarantine / quarantined | карантин / в карантине | cuarentena / en cuarentena | 隔离 / 被隔离 | الحجر / محجور |
 | attempt | попытка | intento | 尝试 | المحاولة |
 | retry | повторная попытка | reintento | 重试 | إعادة المحاولة |
-| backoff | отсрочка | espera exponencial | 退避 | التراجع |
+| backoff | задержка | espera exponencial | 退避 | التراجع |
 | throttling | ограничение частоты | limitación de frecuencia | 限流 | الخنق |
 | rate limiter | ограничитель частоты | limitador de frecuencia | 速率限制器 | محدِّد المعدل |
-| flush the exporter | сбросить экспортёр | volcar el exportador | 刷新导出器 | تفريغ المصدِّر |
-| flush the state | сбросить состояние на диск | volcar el estado | 写回状态 | حفظ الحالة |
+| flush the exporter | выгрузить экспортёр | volcar el exportador | 刷新导出器 | تفريغ المصدِّر |
+| flush the state | записать состояние на диск | volcar el estado | 写回状态 | حفظ الحالة |
 | abort / aborted | прервать / прерванный | abortar / abortado | 中止 / 已中止 | إجهاض / مُجهَض |
 | graceful shutdown | корректное завершение | apagado ordenado | 优雅关闭 | الإيقاف السلس |
 | event loop | цикл событий | bucle de eventos | 事件循环 | حلقة الأحداث |
@@ -158,7 +201,7 @@ ideas.
 | response format | формат ответа | formato de respuesta | 响应格式 | تنسيق الاستجابة |
 | structured output | структурированный вывод | salida estructurada | 结构化输出 | المخرجات المنظَّمة |
 | response cache | кэш ответов | caché de respuestas | 响应缓存 | الذاكرة المؤقتة للاستجابات |
-| cache hit / miss | попадание / промах | acierto / fallo de caché | 命中 / 未命中 | إصابة / إخفاق |
+| cache hit / miss | попадание / промах кэша | acierto / fallo de caché | 命中 / 未命中 | إصابة / إخفاق |
 | schema | схема | esquema | 模式 | المخطط |
 | typed entity | типизированная сущность | entidad tipada | 类型化实体 | الكيان المنمّط |
 | validator | валидатор | validador | 校验器 | المدقّق |
@@ -179,15 +222,15 @@ ideas.
 |---------|---------|---------|--------------------|--------|
 | embedding | эмбеддинг | embedding | 嵌入 | التضمين |
 | embedder | эмбеддер | generador de embeddings | 嵌入器 | مولّد التضمينات |
-| chunk | фрагмент | fragmento | 文本块 | المقطع |
-| chunker | разбивщик | fragmentador | 分块器 | المقطِّع |
+| chunk | чанк | fragmento | 文本块 | المقطع |
+| chunker | чанкер | fragmentador | 分块器 | المقطِّع |
 | passage | фрагмент | pasaje | 段落 | المقطع |
 | vector store | векторное хранилище | almacén vectorial | 向量存储 | المخزن المتجهي |
 | vector memory | векторная память | memoria vectorial | 向量记忆 | الذاكرة المتجهية |
 | semantic memory | семантическая память | memoria semántica | 语义记忆 | الذاكرة الدلالية |
 | memory ingest | загрузка в память | ingesta en memoria | 记忆摄取 | الاستيعاب في الذاكرة |
 | memory ingestor | загрузчик | ingestor | 摄取器 | المستوعِب |
-| memory fault | сбой памяти | fallo de memoria | 记忆故障 | عطل الذاكرة |
+| memory fault | сбой компонента памяти | fallo de memoria | 记忆故障 | عطل الذاكرة |
 | store | хранилище | almacén | 存储 | المخزن |
 | store owner | владелец хранилища | propietario del almacén | 存储的所有者 | مالك المخزن |
 | text index | текстовый индекс | índice de texto | 文本索引 | الفهرس النصي |
@@ -231,8 +274,8 @@ ideas.
 
 | English | Russian | Spanish | Simplified Chinese | Arabic |
 |---------|---------|---------|--------------------|--------|
-| release | выпуск | versión | 版本 | الإصدار |
-| minor release | минорный выпуск | versión menor | 次版本 | الإصدار الفرعي |
+| release | релиз | versión | 版本 | الإصدار |
+| minor release | минорный релиз | versión menor | 次版本 | الإصدار الفرعي |
 | breaking change | ломающее изменение | cambio incompatible | 破坏性变更 | تغيير كاسر |
 | deprecated | устаревший | obsoleto | 已弃用 | مهمل |
 | provisional | предварительный | provisional | 临时性 | مؤقت |
@@ -242,9 +285,12 @@ ideas.
 | base install | базовая установка | instalación base | 基础安装 | التثبيت الأساسي |
 | test suite | набор тестов | batería de pruebas | 测试套件 | مجموعة الاختبارات |
 | coverage | покрытие | cobertura | 覆盖率 | التغطية |
-| issue | задача | incidencia | 议题 | المشكلة |
+| issue | issue | incidencia | 议题 | المشكلة |
 | pull request | pull request | pull request | pull request | طلب السحب |
-| maintainer | сопровождающий | persona responsable del mantenimiento | 维护者 | القائم على الصيانة |
+| maintainer | мейнтейнер | persona responsable del mantenimiento | 维护者 | القائم على الصيانة |
+| machine translation | машинный перевод | traducción automática | 机器翻译 | ترجمة آلية |
+| coordinator | координатор | coordinador | 协调人 | المنسّق |
+| native-speaker review | проверка носителем языка | revisión de hablantes nativos | 母语者审校 | مراجعة ناطق أصلي |
 
 ### Changelog headings
 

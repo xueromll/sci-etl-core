@@ -167,9 +167,10 @@ mkdocs build --strict                                 # CI 运行的检查
   `CODE_OF_CONDUCT.md` 都保留在仓库根目录；`docs/project/` 下的页面负责渲染它们，并为站点
   改写它们之间的链接。
 - **翻译。** 页面的俄语、西班牙语、简体中文和阿拉伯语版本以 `page.ru.md`、`page.es.md`、
-  `page.zh.md` 和 `page.ar.md` 的形式放在原页面旁边，由 mkdocs-static-i18n 插件把每种语言
+  `page.zh-Hans.md` 和 `page.ar.md` 的形式放在原页面旁边，由 mkdocs-static-i18n 插件把每种语言
   构建到各自的路径下，例如 `/ru/`。修改英文页面的 pull request 也要同时更新它的四个译本。
-  [TRANSLATING.md](translating.md) 列出了每种语言的负责人，并包含术语表以及译文页面需要
+  这四种译本目前都是机器翻译，尚待母语者审校，因此英文是权威文本。
+  [TRANSLATING.md](translating.md) 列出了每种语言的协调人，并包含术语表以及译文页面需要
   遵循的规则。
 - **CLI 部分**来自 sci-etl-cli 仓库的 `docs/` 文件夹和 `nav`。构建时会在本仓库旁边或
   `SCI_ETL_CLI_DIR` 指定的路径查找检出副本；找不到时会省略该部分，而 `--strict` 会把这报告
@@ -229,7 +230,7 @@ docs(readme): document ETLPipeline event-loop behavior
    - 用法写在 `docs/` 下的页面中；`README.md` 只保留简短概述
    - 你修改的每个英文页面的俄语、西班牙语、中文和阿拉伯语译本，按照
      [TRANSLATING.md](translating.md) 的规定更新；如果你无法写其中某种语言，请说明，由该语言的
-     负责人在合并之前补上
+     协调人在合并之前补上
    - 破坏性变更写进 `MIGRATION.md`，放在包含该变更的版本之下
    - 当变更影响把现有流水线迁移到本库时，更新 `docs/guide/migrating-a-pipeline.md`
    - 当你完成了列出的事项时，更新 `ROADMAP.md`

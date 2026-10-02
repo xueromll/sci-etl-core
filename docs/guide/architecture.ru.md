@@ -27,7 +27,7 @@ AsyncExtractor.fetch_page(cursor) --> ListingPage --> записи, не обр�
 Перед первой страницей: AsyncExporter.open()
 После каждой страницы: AsyncExporter.flush() --> пометить записи, которые он надёжно сохранил;
                  неудачные попытки -> AsyncStateManager.record_failure (R18);
-                 AsyncStateManager.save_metadata(курсор, truncated, голова выдачи newest-first)
+                 AsyncStateManager.save_metadata(курсор, truncated, голова листинга newest-first)
 По окончании запуска: AsyncExporter.flush(), AsyncExporter.aclose(), AsyncStateManager.flush();
                    RunFinished(metrics) -> on_event
 На протяжении всего запуска: ShutdownSignal останавливает новые записи; on_event получает
@@ -53,7 +53,7 @@ Backfill:  AsyncEmbeddingStore.iter_records --> merge_passages --> AsyncTextSear
 | Утверждения (предварительный API) | `AsyncClaimStore`, `AsyncRejectionStore` | `AsyncLLMClaimExtractor`; `InMemoryClaimStore`, `AsyncSqliteClaimStore`; `InMemoryRejectionStore`, `AsyncSqliteRejectionStore`; `locate_quote` | `sci_etl_core.claims` |
 | Состояние | `AsyncStateManager` | `AsyncFileStateManager`, `AsyncSqliteStateManager` | `sci_etl_core.state` |
 | Эмбеддинги | `AsyncEmbedder` | `AsyncOpenAIEmbedder`, `AsyncSentenceTransformerEmbedder` | `sci_etl_core.embeddings` |
-| Разбиение на фрагменты | `TextChunker` | `SlidingWindowChunker` | `sci_etl_core.embeddings` |
+| Разбиение на чанки | `TextChunker` | `SlidingWindowChunker` | `sci_etl_core.embeddings` |
 | Векторная память | `AsyncEmbeddingStore` | `InMemoryEmbeddingStore`, `AsyncSqliteEmbeddingStore` | `sci_etl_core.embeddings` |
 | Загрузка в память | `MemoryIngestor` | `AsyncChunkIngestor`, `AsyncSearchIndexer`, `AsyncCompositeIngestor` | `sci_etl_core.embeddings`, `sci_etl_core.search`, `sci_etl_core` |
 | Текстовый поиск | `AsyncTextSearchStore` | `InMemoryTextSearchStore`, `AsyncSqliteFts5Store`; `MetadataFilter`, `RangeFilter`; `backfill_text_index` | `sci_etl_core.search` |
@@ -63,7 +63,7 @@ Backfill:  AsyncEmbeddingStore.iter_records --> merge_passages --> AsyncTextSear
 | Табличные приёмники | `TableSink` | `SqlTableSink`, `Plotly3DSink` | `sci_etl_core.processors.sinks` |
 | Оркестрация | — | `AsyncETLPipeline`, `ETLPipeline` | `sci_etl_core` |
 
-Конвейеры, интерфейсы этапов и большинство реализаций также реэкспортируются
+Пайплайны, интерфейсы этапов и большинство реализаций также реэкспортируются
 из самого `sci_etl_core`; реализации парсеров, шаги процессоров, валидаторы и
 утверждения импортируются из своих подпакетов. Вспомогательные модули:
 `sci_etl_core.config`, `sci_etl_core.http_async` (`build_async_client`),

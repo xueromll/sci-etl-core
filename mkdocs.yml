@@ -23,6 +23,7 @@ hooks:
 
 theme:
   name: material
+  custom_dir: overrides
   icon:
     repo: fontawesome/brands/github
   features:
@@ -66,7 +67,13 @@ extra:
       link: https://pypi.org/project/sci-etl-core/
 
 plugins:
-  - search
+  - search:
+      lang:
+        - en
+        - ru
+        - es
+        - zh
+        - ar
   - i18n:
       docs_structure: suffix
       fallback_to_default: true
@@ -105,7 +112,7 @@ plugins:
             Discovery graphs: Графы связанных статей
             Building a user interface: Создание пользовательского интерфейса
             Store ownership: Владение хранилищами
-            Running pipelines: Запуск конвейеров
+            Running pipelines: Запуск пайплайнов
             State, resuming, and errors: Состояние, возобновление и ошибки
             Run semantics: Семантика запуска
             Graceful shutdown: Корректное завершение
@@ -115,7 +122,7 @@ plugins:
             Progress events and metrics: События прогресса и метрики
             Token usage: Расход токенов
             LLM response caching: Кэширование ответов LLM
-            Migrating a pipeline: Перенос конвейера
+            Migrating a pipeline: Перенос пайплайна
             Architecture: Архитектура
             API reference: Справочник API
             Pipelines: Конвейеры
@@ -197,7 +204,7 @@ plugins:
             Translations: Traducciones
             Security: Seguridad
             Code of conduct: Código de conducta
-        - locale: zh
+        - locale: zh-Hans
           name: 简体中文
           build: true
           site_description: 一个 Python 库，用于把任何科学领域的论文转换为结构化、可检索的数据；sci-etl 命令行工具则通过 YAML 运行它。
