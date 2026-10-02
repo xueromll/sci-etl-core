@@ -1,0 +1,3436 @@
+
+<!doctype html>
+<html lang="es" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Una biblioteca de Python para convertir artículos científicos de cualquier campo de la ciencia en datos estructurados y consultables, y la CLI sci-etl que la ejecuta desde YAML.">
+      
+      
+      
+        <link rel="canonical" href="https://xueromll.github.io/sci-etl-core/dev/es/project/contributing/">
+      
+      
+        <link rel="prev" href="../roadmap/">
+      
+      
+        <link rel="next" href="../translating/">
+      
+      
+        
+          <link rel="alternate" href="../../../project/contributing/" hreflang="en">
+        
+          <link rel="alternate" href="../../../ru/project/contributing/" hreflang="ru">
+        
+          <link rel="alternate" href="./" hreflang="es">
+        
+          <link rel="alternate" href="../../../zh/project/contributing/" hreflang="zh">
+        
+          <link rel="alternate" href="../../../ar/project/contributing/" hreflang="ar">
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Contribuir - sci-etl-core</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#contribuir-a-sci-etl-core" class="md-skip">
+          Saltar a contenido
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Cabecera">
+    <a href="../../" title="sci-etl-core" class="md-header__button md-logo" aria-label="sci-etl-core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            sci-etl-core
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Contribuir
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Seleccionar idioma">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../../project/contributing/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../../ru/project/contributing/" hreflang="ru" class="md-select__link">
+              Русский
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="es" class="md-select__link">
+              Español
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../../zh/project/contributing/" hreflang="zh" class="md-select__link">
+              简体中文
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../../ar/project/contributing/" hreflang="ar" class="md-select__link">
+              العربية
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Búsqueda" placeholder="Búsqueda" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Buscar">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Limpiar" aria-label="Limpiar" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Inicializando búsqueda
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/xueromll/sci-etl-core" title="Ir al repositorio" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    xueromll/sci-etl-core
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Pestañas" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Inicio
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Primeros pasos
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../guide/sources/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Guía
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../cli/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  CLI
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Referencia de la API
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../changelog/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Proyecto
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navegación" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../" title="sci-etl-core" class="md-nav__button md-logo" aria-label="sci-etl-core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    sci-etl-core
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/xueromll/sci-etl-core" title="Ir al repositorio" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    xueromll/sci-etl-core
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inicio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Primeros pasos
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Primeros pasos
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instalación
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inicio rápido
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/blocking-usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Uso bloqueante
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuración
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/when-not-to-use/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cuándo no usarla
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guía
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guía
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/sources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fuentes compatibles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/typed-entities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entidades tipadas y validación
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Afirmaciones y procedencia
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/post-processing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Posprocesamiento y visualización
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/semantic-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Memoria semántica
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../guide/search/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Búsqueda y descubrimiento locales
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Búsqueda y descubrimiento locales
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/query-syntax/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sintaxis de consultas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/ranked-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Búsqueda por relevancia y filtrado
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/hybrid-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Búsqueda híbrida
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/filters-and-facets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Filtros y facetas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/text-stores/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Almacenes de texto
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/backfill/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Relleno desde la memoria vectorial
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/discovery-graphs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Grafos de descubrimiento
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/user-interfaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Crear una interfaz de usuario
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/store-ownership/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Propiedad de los almacenes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ejecutar pipelines
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Ejecutar pipelines
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Estado, reanudación y errores
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/run-semantics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Semántica de ejecución
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/shutdown/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Apagado ordenado
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/retries/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reintentos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/rate-limiting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Limitación de frecuencia
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/logging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registro
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Eventos de progreso y métricas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/token-usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Consumo de tokens
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/llm-caching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Caché de respuestas del LLM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/migrating-a-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrar un pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Arquitectura
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../cli/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CLI
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inicio rápido
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/commands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Commands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/config-file/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Config file
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plug-ins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/exit-codes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exit codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../reference/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Referencia de la API
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Referencia de la API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/pipelines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipelines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuración
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Modelos y excepciones
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/extractors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Extractores
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/parsers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Analizadores
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/llm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/embeddings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Embeddings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Búsqueda
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/exporters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exportadores
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Afirmaciones
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/processors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Procesadores
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Estado
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilidades
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Proyecto
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Proyecto
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registro de cambios
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guía de migración
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hoja de ruta
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contribuir
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contribuir
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Tabla de contenidos">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Tabla de contenidos
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#development-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preparación del entorno de desarrollo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-the-codebase-works-read-this-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cómo funciona el código: lee esto primero
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ejecutar las pruebas
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-style" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Estilo de código
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentación
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#releasing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publicar versiones
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commit-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Formato de los commits
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pull-request-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Proceso de pull request
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-a-new-component" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Añadir un componente nuevo
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../translating/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Traducciones
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Seguridad
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code-of-conduct/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Código de conducta
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Tabla de contenidos">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Tabla de contenidos
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#development-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preparación del entorno de desarrollo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-the-codebase-works-read-this-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cómo funciona el código: lee esto primero
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ejecutar las pruebas
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-style" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Estilo de código
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentación
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#releasing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publicar versiones
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commit-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Formato de los commits
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pull-request-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Proceso de pull request
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-a-new-component" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Añadir un componente nuevo
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="contribuir-a-sci-etl-core">Contribuir a sci-etl-core<a class="headerlink" href="#contribuir-a-sci-etl-core" title="Permanent link">&para;</a></h1>
+<p>¡Gracias por tu interés en mejorar <code>sci-etl-core</code>! Los nuevos extractores,
+analizadores, exportadores, backends de embeddings y correcciones de la
+documentación son realmente bienvenidos, también de quienes contribuyen por
+primera vez. Esta guía te pone a trabajar rápidamente.</p>
+<p>Al participar, aceptas cumplir nuestro <a href="../code-of-conduct/">Código de conducta</a>.</p>
+<h2 id="development-setup">Preparación del entorno de desarrollo<a class="headerlink" href="#development-setup" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/xueromll/sci-etl-core.git
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>sci-etl-core
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nb">source</span><span class="w"> </span>.venv/bin/activate<span class="w">        </span><span class="c1"># Windows: .venv\Scripts\activate</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[full,dev]"</span>
+</code></pre></div>
+<ul>
+<li><strong>Se requiere Python 3.11+</strong>: el código usa uniones <code>X | Y</code> y dataclasses
+  con <code>slots=True</code> y <code>kw_only=True</code>.</li>
+<li><strong>Por qué <code>[full]</code>:</strong> la batería de pruebas ejercita todos los componentes
+  incluidos.</li>
+<li><strong>No se necesitan para las pruebas:</strong> <code>sentence-transformers</code> y un
+  controlador SQL real se simulan o se sustituyen por stubs.</li>
+</ul>
+<h2 id="how-the-codebase-works-read-this-first">Cómo funciona el código: lee esto primero<a class="headerlink" href="#how-the-codebase-works-read-this-first" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>La asíncrona es la única implementación.</strong> Todos los componentes son
+  <code>async</code>. No añadas gemelos síncronos de los componentes; no hay generador de
+  código. Las implementaciones bloqueantes llegan a un pipeline a través de los
+  adaptadores de <code>_adapters.py</code>.</li>
+<li><strong>Un único punto de entrada bloqueante.</strong> <code>ETLPipeline</code> (<code>pipeline.py</code>)
+  ejecuta <code>AsyncETLPipeline</code> mediante <code>_sync_bridge.run_sync</code>. Discute primero
+  en una incidencia cualquier API bloqueante nueva.</li>
+<li><strong>Mantén libre el bucle de eventos.</strong> Ejecuta el trabajo intensivo en CPU o
+  bloqueante con <code>asyncio.to_thread</code>. Los analizadores, pandas, <code>sqlite3</code> y la
+  E/S de archivos siguen este patrón.</li>
+<li><strong>Inyecta los colaboradores.</strong> Los clientes, los analizadores, <code>sleep</code> y
+  <code>logger</code> son argumentos del constructor para que las pruebas puedan
+  sustituirlos. Acepta <code>logger: Callable[[str], None] | None</code> y un <code>sleep</code>
+  inyectable dondequiera que haya temporizaciones o reintentos.</li>
+<li><strong>Nunca te tragues la cancelación.</strong> Antes de capturar excepciones amplias,
+  captura y vuelve a lanzar <code>asyncio.CancelledError</code> (consulta
+  <code>llm/relevance_async.py</code>).</li>
+<li><strong>Señala los fallos con excepciones.</strong> Usa la jerarquía de <code>exceptions.py</code>.
+  No devuelvas <code>None</code> ni un resultado vacío ante un fallo de transporte: el
+  pipeline depende de <code>UpstreamError</code> y <code>MalformedResponseError</code> para
+  distinguir los fallos del final de los datos.</li>
+<li><strong>Sé seguro ante la concurrencia.</strong> El pipeline llama de forma concurrente a
+  los filtros de relevancia, los extractores de entidades, el <code>write</code> de un
+  exportador y <code>mark_processed</code>. Serializa las escrituras compartidas con un
+  <code>asyncio.Lock</code> y escribe los archivos con <code>_atomic_io.atomic_write_text</code>.
+  <code>AsyncCsvExporter</code> y <code>AsyncFileStateManager</code> son buenos modelos.</li>
+<li><strong>Registra a través del logger del módulo.</strong> Cada módulo registra con
+  <code>_logger = logging.getLogger(__name__)</code>, en <code>WARNING</code> todo lo que cambia lo
+  que una ejecución produce o cuesta, en <code>ERROR</code> un fallo de sumidero o de
+  almacén que la ejecución notifica, y en <code>INFO</code> las notas rutinarias. Nunca
+  configures manejadores ni niveles; eso le corresponde a la aplicación.</li>
+<li><strong>Mantén perezosas las importaciones opcionales.</strong> El <code>__init__.py</code> de cada
+  paquete asigna los nombres públicos a sus módulos en <code>_EXPORTS</code> y los carga
+  en el primer acceso, de modo que importar un componente nunca requiere las
+  dependencias opcionales de otro. Registra allí los nuevos nombres públicos y
+  en las importaciones <code>TYPE_CHECKING</code> correspondientes (una prueba comprueba
+  que coincidan), y añade cualquier dependencia de terceros nueva a un extra en
+  <code>pyproject.toml</code>.</li>
+<li><strong>Nada de constantes específicas de un dominio</strong> en el núcleo; mantenlo
+  independiente del campo.</li>
+</ul>
+<h2 id="running-tests">Ejecutar las pruebas<a class="headerlink" href="#running-tests" title="Permanent link">&para;</a></h2>
+<p>La batería de pruebas funciona sin conexión: no necesita red, ni un LLM real,
+ni un servicio de embeddings.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pytest<span class="w">                                                </span><span class="c1"># todo, sin conexión</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>pytest<span class="w"> </span>tests/async<span class="w">                                    </span><span class="c1"># componentes asíncronos</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>pytest<span class="w"> </span>tests/contract<span class="w">                                 </span><span class="c1"># conformidad con las ABC</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>pytest<span class="w"> </span>--cov<span class="o">=</span>sci_etl_core<span class="w"> </span>--cov-report<span class="o">=</span>term-missing<span class="w">   </span><span class="c1"># informe de cobertura</span>
+</code></pre></div>
+<ul>
+<li><strong>La cobertura se mantiene en el 100 %.</strong> <code>pytest --cov=sci_etl_core</code> falla
+  por debajo del 100 % (configurado en <code>pyproject.toml</code>), así que el código
+  nuevo o modificado necesita pruebas que lo cubran. Usa <code># pragma: no cover</code>
+  solo para las líneas que no pueden ejecutarse en la plataforma de pruebas,
+  como las importaciones específicas de un sistema operativo. La CI mide
+  también la cobertura de ramas y la muestra en el resumen del trabajo; todavía
+  no es obligatoria.</li>
+<li><strong>Las pruebas asíncronas</strong> usan un marcador explícito
+  <code>@pytest.mark.asyncio</code> (el modo automático no está configurado), con
+  <code>AsyncMock</code> o el fixture <code>mocker</code>.</li>
+<li><strong>Sin red real ni esperas exponenciales.</strong> Simula los clientes HTTP, del LLM
+  y de embeddings, e inyecta <code>sleep=AsyncMock()</code> para saltarte las esperas.</li>
+<li><strong>Pruebas de contrato.</strong> Cada implementación de una ABC pública tiene un caso
+  en <code>tests/contract/test_abc_conformance.py</code>; añade uno por cada
+  implementación nueva.</li>
+<li><strong>Pruebas de propiedades.</strong> Pon los invariantes —sobre todo los que deben
+  compartir dos backends, como los almacenes de embeddings en memoria y en
+  SQLite— en pruebas de Hypothesis en <code>tests/test_properties.py</code>.</li>
+<li><strong>Instantánea de la superficie pública.</strong> <code>tests/api/public_surface.txt</code>
+  registra la firma de cada clase, campo, método y función estables, y
+  <code>tests/api/test_public_surface.py</code> falla cuando el código ya no coincide con
+  ella. Cuando cambies la API pública a propósito, regenera la instantánea,
+  incluye la diferencia en el commit y añade una entrada en CHANGELOG.md:</li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python<span class="w"> </span>tests/api/update_surface.py
+</code></pre></div>
+<p><code>tests/api/surface.py</code> enumera los nombres estables. Todo nombre que
+  <a href="https://github.com/xueromll/sci-etl-cli">sci-etl-cli</a> o
+  <a href="https://github.com/xueromll/udg-catalogue">udg-catalogue</a> importe o herede
+  debe estar entre ellos. <code>tests/api/consumer_surface.txt</code> enumera esos
+  nombres. Regenéralo cuando cambie la versión fijada de un consumidor, leyendo
+  el catálogo desde su rama remota descargada y no desde un clon local que
+  puede estar desactualizado:</p>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>git<span class="w"> </span>-C<span class="w"> </span>../udg-catalogue<span class="w"> </span>fetch<span class="w"> </span>origin
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>python<span class="w"> </span>tests/api/scan_consumers.py<span class="w"> </span>sci-etl-cli<span class="o">=</span>../sci-etl-cli<span class="w"> </span>udg-catalogue<span class="o">=</span>../udg-catalogue@origin/main
+</code></pre></div>
+- <strong>Pruebas reales.</strong> <code>tests/live</code> ejecuta una consulta pequeña contra cada
+  fuente incluida y comprueba los registros, los metadatos y el texto completo
+  que devuelve. Estas pruebas están deseleccionadas por defecto. El flujo Live
+  las ejecuta cada noche y nunca es una comprobación obligatoria. Ejecútalas en
+  local con <code>pytest -m live tests/live</code>. Las claves para un límite de
+  frecuencia más alto son opcionales y se leen de <code>NCBI_API_KEY</code>,
+  <code>SEMANTIC_SCHOLAR_API_KEY</code> y <code>OPENALEX_MAILTO</code>. Sin su clave, una fuente que
+  sigue respondiendo <code>429</code> se omite en lugar de fallar.
+- <strong>Benchmark de rendimiento.</strong> <code>python benchmarks/run_throughput.py</code> pasa cada
+  exportador de pipeline incluido por <code>AsyncETLPipeline</code> con 1000, 10 000 y
+  50 000 registros y escribe los tiempos en <code>benchmarks/results/&lt;version&gt;.json</code>.
+  Un exportador se considera lineal cuando su tiempo por registro con el
+  tamaño mayor es como máximo 1,5 veces su tiempo con el menor. <code>--sizes</code>,
+  <code>--repeats</code> y <code>--exporters</code> acotan una ejecución.
+- <strong>Pruebas de los consumidores.</strong> El flujo Downstream ejecuta las baterías de
+  pruebas de <a href="https://github.com/xueromll/sci-etl-cli">sci-etl-cli</a> y
+  <a href="https://github.com/xueromll/udg-catalogue">udg-catalogue</a> en cada push y
+  pull request, con este clon instalado en lugar de la versión que fija cada
+  proyecto, y falla ante cualquier <code>DeprecationWarning</code>. Cada trabajo instala
+  los extras que indica el propio requisito del proyecto. Para ejecutar en
+  local la batería de la CLI:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/xueromll/sci-etl-cli.git<span class="w"> </span>../sci-etl-cli
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[config,async,arxiv,html,llm,pdf]"</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>pip<span class="w"> </span>install<span class="w"> </span>--no-deps<span class="w"> </span>-e<span class="w"> </span>../sci-etl-cli
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>pip<span class="w"> </span>install<span class="w"> </span>click<span class="w"> </span>rich<span class="w"> </span>pytest<span class="w"> </span>pytest-asyncio<span class="w"> </span>pytest-mock<span class="w"> </span>pytest-cov
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="nb">cd</span><span class="w"> </span>../sci-etl-cli<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>-W<span class="w"> </span>error::DeprecationWarning
+</code></pre></div>
+<p>Y la batería de udg-catalogue, que además instala la versión para CPU de
+  PyTorch:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/xueromll/udg-catalogue.git<span class="w"> </span>../udg-catalogue
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">PIP_EXTRA_INDEX_URL</span><span class="o">=</span>https://download.pytorch.org/whl/cpu
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[config,async,arxiv,html,llm,pdf,processors,cluster,embeddings,embeddings-local,search]"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span>-r<span class="w"> </span>../udg-catalogue/requirements/app.txt<span class="w"> </span>-r<span class="w"> </span>../udg-catalogue/requirements/dev.txt
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="nb">cd</span><span class="w"> </span>../udg-catalogue<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>-W<span class="w"> </span>error::DeprecationWarning
+</code></pre></div>
+<h2 id="code-style">Estilo de código<a class="headerlink" href="#code-style" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Nombres según <strong>PEP 8</strong>: funciones y variables en <code>snake_case</code>, clases en
+  <code>CapWords</code>, constantes en <code>UPPER_CASE</code>.</li>
+<li><strong>Anotaciones de tipo en todas las firmas públicas.</strong> El paquete incluye
+  <code>py.typed</code>; mantenlas precisas.</li>
+<li><strong>Funciones pequeñas y con una sola responsabilidad.</strong> Prefiere la
+  composición y la inyección de dependencias a ramificar sobre lógica fija en
+  el código.</li>
+<li><strong>Docstrings para los contratos y la intención.</strong> Documenta <code>Raises:</code> y las
+  decisiones no obvias; no escribas comentarios que repitan el código.</li>
+<li><strong>Inglés estadounidense</strong> para los identificadores y las docstrings.</li>
+</ul>
+<p>ruff y mypy se ejecutan en la CI en cada push y pull request, configurados en
+<code>pyproject.toml</code>. ruff comprueba los conjuntos de reglas <code>ASYNC</code>, <code>UP</code>, <code>RUF</code> y
+<code>PT</code> además de las reglas de pycodestyle, Pyflakes, isort y bugbear. mypy
+comprueba los contratos principales (<code>models</code>, <code>exceptions</code>, <code>observability</code>,
+<code>pipeline_async</code> y cada módulo <code>async_base</code>) con opciones más estrictas: sin
+definiciones sin tipar, sin genéricos desnudos, sin devolver <code>Any</code> y sin
+reexportaciones implícitas. Ejecuta ambos antes de abrir un PR:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[full,dev,lint]"</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>ruff<span class="w"> </span>check<span class="w"> </span>.
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>mypy
+</code></pre></div>
+<p><code>ruff check --fix .</code> ordena las importaciones y aplica las demás correcciones
+seguras. El formato no se impone, así que deja fuera de tu PR los cambios de
+formato que no tengan relación. Anota los cambios visibles para los usuarios en
+la versión sin publicar de <a href="../changelog/">CHANGELOG.md</a>.</p>
+<h2 id="documentation">Documentación<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
+<p>El sitio de documentación se construye con <a href="https://www.mkdocs.org/">MkDocs</a> y
+<a href="https://squidfunk.github.io/mkdocs-material/">Material for MkDocs</a> a partir de
+<code>mkdocs.yml</code> y la carpeta <code>docs/</code>, y se publica en GitHub Pages.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[docs]"</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/xueromll/sci-etl-cli.git<span class="w"> </span>../sci-etl-cli
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>pip<span class="w"> </span>install<span class="w"> </span>--no-deps<span class="w"> </span>-e<span class="w"> </span>../sci-etl-cli
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>mkdocs<span class="w"> </span>serve<span class="w">                                          </span><span class="c1"># vista previa en http://127.0.0.1:8000</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>mkdocs<span class="w"> </span>build<span class="w"> </span>--strict<span class="w">                                 </span><span class="c1"># la comprobación que ejecuta la CI</span>
+</code></pre></div>
+<ul>
+<li><strong>Dónde están las páginas.</strong> Las guías son archivos Markdown en <code>docs/</code>,
+  incluidos en la <code>nav</code> de <code>mkdocs.yml</code>. <code>CHANGELOG.md</code>, <code>MIGRATION.md</code>,
+  <code>ROADMAP.md</code>, esta guía, <code>SECURITY.md</code> y <code>CODE_OF_CONDUCT.md</code> se quedan en la
+  raíz del repositorio; las páginas de <code>docs/project/</code> los muestran, y los
+  enlaces entre ellos se reescriben para el sitio.</li>
+<li><strong>Traducciones.</strong> Las versiones en ruso, español, chino simplificado y árabe
+  de una página están junto a ella como <code>page.ru.md</code>, <code>page.es.md</code>,
+  <code>page.zh.md</code> y <code>page.ar.md</code>, y el complemento mkdocs-static-i18n construye
+  cada idioma en su propia ruta, como <code>/ru/</code>. Un pull request que cambia una
+  página en inglés actualiza también sus cuatro traducciones.
+  <a href="../translating/">TRANSLATING.md</a> nombra al responsable de cada idioma y
+  contiene el glosario y las reglas que sigue una página traducida.</li>
+<li><strong>La sección de la CLI</strong> procede de la carpeta <code>docs/</code> y de la <code>nav</code> del
+  repositorio sci-etl-cli. La construcción busca un clon junto a este, o en la
+  ruta de <code>SCI_ETL_CLI_DIR</code>; sin él, omite la sección, lo que <code>--strict</code>
+  notifica como un fallo. Cambia las páginas de la CLI en ese repositorio.</li>
+<li><strong>Referencia de la API.</strong> Las páginas de <code>docs/reference/</code> se generan a
+  partir de las docstrings. Un módulo público nuevo necesita una entrada
+  <code>module.path</code> en una de ellas; <code>tests/test_docs.py</code> falla hasta que la
+  tenga.</li>
+<li><strong>Ejemplos de código.</strong> <code>tests/test_docs.py</code> comprueba también que cada
+  ejemplo de Python de <code>docs/</code> compila y que existe cada nombre que importa de
+  <code>sci_etl_core</code>, así que renombrar un nombre público implica actualizar
+  también los ejemplos.</li>
+<li><strong>Publicación.</strong> El flujo de documentación despliega <code>master</code> como la
+  versión <code>dev</code> y cada etiqueta <code>v*</code> como su versión menor, por ejemplo <code>0.3</code>,
+  con el alias <code>latest</code>. Una construcción por etiqueta usa las páginas de la
+  CLI de la última versión de sci-etl-cli, o de su rama por defecto cuando esa
+  versión no tiene <code>mkdocs.yml</code>. No hay que publicar nada a mano.</li>
+</ul>
+<h2 id="releasing">Publicar versiones<a class="headerlink" href="#releasing" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Versiones de desarrollo.</strong> Justo después de una versión, <code>master</code> pasa a la
+  siguiente versión de desarrollo, como <code>0.7.0.dev0</code> después de <code>0.6.0</code>, para
+  que una construcción desde <code>master</code> nunca se presente como una versión.</li>
+<li><strong>Condición de publicación.</strong> Hacer push de una etiqueta <code>v*</code> ejecuta la
+  batería de la CI y el flujo Downstream sobre el commit etiquetado. La
+  distribución solo se construye y se publica cuando ambos pasan, así que nunca
+  se publica una versión que rompa sci-etl-cli o udg-catalogue. La etiqueta
+  debe coincidir con la versión de <code>pyproject.toml</code>.</li>
+<li><strong>Obsolescencias.</strong> Desde la 0.6.0, un nombre obsoleto sigue funcionando
+  durante al menos dos versiones menores antes de eliminarse.</li>
+<li><strong>Antes de etiquetar.</strong> Pon fecha a la sección sin publicar de
+  <code>CHANGELOG.md</code>, actualiza las versiones compatibles en <code>SECURITY.md</code> y vuelve
+  a ejecutar <code>python benchmarks/run_throughput.py</code> para que
+  <code>benchmarks/results/</code> contenga la nueva versión.</li>
+<li><strong>Actions fijadas.</strong> Los flujos fijan cada action a un SHA de commit, con la
+  etiqueta en un comentario al final de la línea, como <code># v5</code>. Para pasar a una
+  versión más reciente, obtén su SHA con
+  <code>git ls-remote https://github.com/actions/checkout refs/tags/v5</code> y actualiza
+  a la vez la fijación y el comentario.</li>
+</ul>
+<h2 id="commit-format">Formato de los commits<a class="headerlink" href="#commit-format" title="Permanent link">&para;</a></h2>
+<p>Usa <a href="https://www.conventionalcommits.org/">Conventional Commits</a>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>&lt;type&gt;(&lt;scope&gt;): &lt;short summary&gt;
+</code></pre></div>
+<p>Tipos habituales: <code>feat</code>, <code>fix</code>, <code>docs</code>, <code>test</code>, <code>refactor</code>, <code>perf</code>, <code>chore</code>.
+Marca los cambios incompatibles con <code>!</code> (por ejemplo, <code>refactor(core)!: ...</code>).</p>
+<p>Ejemplos:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>feat(extractors): add PubMed async extractor
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>fix(exporters): serialize concurrent CSV upserts
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>docs(readme): document ETLPipeline event-loop behavior
+</code></pre></div>
+<p>Escribe el resumen en imperativo y con menos de unos 72 caracteres. Haz
+referencia a las incidencias en el cuerpo (<code>Closes #123</code>).</p>
+<h2 id="pull-request-process">Proceso de pull request<a class="headerlink" href="#pull-request-process" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Abre primero una incidencia</strong> para cualquier cosa que no sea trivial, para
+   que podamos acordar el enfoque.</li>
+<li><strong>Crea una rama</strong> a partir de <code>master</code>, por ejemplo <code>feat/pubmed-extractor</code>.</li>
+<li><strong>Escribe pruebas</strong> junto con tu cambio; mantén la cobertura en el 100 %.</li>
+<li><strong>Ejecuta</strong> la batería de pruebas en local (y el linter y la comprobación de
+   tipos, si los usas).</li>
+<li><strong>Actualiza la documentación</strong> de los cambios visibles para los usuarios:</li>
+<li>las páginas de <code>docs/</code> para el uso; mantén <code>README.md</code> como un resumen
+     breve</li>
+<li>las traducciones al ruso, al español, al chino y al árabe de cada página
+     en inglés que cambies, siguiendo <a href="../translating/">TRANSLATING.md</a>; si no
+     puedes escribir alguna de ellas, dilo, y el responsable de ese idioma la
+     añade antes de la fusión</li>
+<li><code>MIGRATION.md</code> para un cambio incompatible, bajo la versión que lo publica</li>
+<li><code>docs/guide/migrating-a-pipeline.md</code> cuando el cambio afecte al traslado
+     de un pipeline existente a la biblioteca</li>
+<li><code>ROADMAP.md</code> cuando publiques un elemento de la lista</li>
+<li>la descripción del pull request para cualquier cambio incompatible, con lo
+     que los usuarios tienen que actualizar</li>
+<li><strong>Rellena</strong> la <a href="https://github.com/xueromll/sci-etl-core/blob/master/.github/PULL_REQUEST_TEMPLATE.md">plantilla de pull request</a>.</li>
+<li><strong>Mantén los PR centrados</strong>: un cambio lógico por PR es lo más fácil de
+   revisar.</li>
+</ol>
+<p>Una persona responsable del mantenimiento lo revisará pronto. Espera un
+intercambio amable y constructivo; los cambios que se pidan se refieren al
+código, nunca a ti.</p>
+<h2 id="adding-a-new-component">Añadir un componente nuevo<a class="headerlink" href="#adding-a-new-component" title="Permanent link">&para;</a></h2>
+<p>La mayoría de las contribuciones se conectan a una clase base abstracta
+existente:</p>
+<table>
+<thead>
+<tr>
+<th>Componente</th>
+<th>Hereda de</th>
+<th>Implementa</th>
+<th>Contrato</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Extractor</td>
+<td><code>AsyncExtractor</code></td>
+<td><code>async fetch_page(query, cursor, page_size) -&gt; ListingPage</code>, <code>async fetch_full_text</code>; <code>cursor_for_offset</code> cuando los cursores son desplazamientos decimales</td>
+<td>Devuelve todas las entradas que pueda leer: el pipeline omite los identificadores procesados. Cuenta en <code>entries</code> las entradas sin identificador, devuelve <code>next_cursor=None</code> en la última página y <code>truncated=True</code> en la página que alcanza el propio límite de resultados de la fuente. Lanza <code>UpstreamError</code> cuando no se puede contactar con la fuente tras los reintentos, <code>ExtractionError</code> cuando rechaza una solicitud directamente, <code>MalformedResponseError</code> para un listado ilegible y <code>StaleCursorError</code> para un cursor que la fuente ya no acepta.</td>
+</tr>
+<tr>
+<td>Analizador</td>
+<td><code>Parser</code> (opcionalmente <code>TableParser</code>)</td>
+<td><code>extract_text(content: bytes) -&gt; str</code></td>
+<td>Síncrono; quien lo llama lo ejecuta en un hilo de trabajo. Lanza <code>ParsingError</code> para los bytes que no pueda leer.</td>
+</tr>
+<tr>
+<td>Cliente del LLM</td>
+<td><code>AsyncLLMClient</code></td>
+<td><code>async complete_json(system_prompt, user_content, timeout)</code>; opcionalmente <code>complete_structured(..., schema, timeout)</code> e <code>invalidate(..., schema=None)</code></td>
+<td>Devuelve el objeto JSON analizado; lanza <code>LLMError</code> ante un fallo o cuando el cuerpo no es un objeto JSON. Sobrescribe <code>complete_structured</code> cuando el proveedor admita salida por JSON Schema; la implementación por defecto llama a <code>complete_json</code>.</td>
+</tr>
+<tr>
+<td>Caché de respuestas del LLM</td>
+<td><code>AsyncLLMResponseCache</code></td>
+<td><code>async get(key)</code>, <code>async set(key, response)</code>, <code>async clear()</code></td>
+<td><code>get</code> devuelve <code>None</code> para una clave inexistente. Devuelve copias, para que quien modifique una respuesta no pueda modificar la caché. Lanza <code>LLMCacheError</code> ante un fallo de almacenamiento; <code>CachingLLMClient</code> lo registra y llama al LLM en su lugar. Añade <code>aclose()</code> si mantienes conexiones.</td>
+</tr>
+<tr>
+<td>Filtro de relevancia</td>
+<td><code>AsyncRelevanceFilter</code></td>
+<td><code>async is_relevant(record)</code></td>
+<td>Vuelve a lanzar <code>CancelledError</code>.</td>
+</tr>
+<tr>
+<td>Extractor de entidades</td>
+<td><code>AsyncEntityExtractor[E]</code></td>
+<td><code>async extract(text) -&gt; Sequence[E]</code>; <code>extract_record(record, text)</code> cuando se necesite el registro</td>
+<td>El pipeline llama a <code>extract_record</code>, cuya implementación por defecto llama a <code>extract</code>. Lanza una excepción ante un fallo en lugar de devolver <code>[]</code>, para que el registro se reintente. Un extractor que necesita el registro fija <code>requires_record = True</code>; un envoltorio delega en el <code>extract_record</code> interno.</td>
+</tr>
+<tr>
+<td>Exportador</td>
+<td><code>AsyncExporter[E]</code></td>
+<td><code>async write(record, entities)</code>; opcionalmente <code>open</code>, <code>flush</code>, <code>aclose</code> y <code>durable_writes</code></td>
+<td>Recibe el destino en el constructor. <code>write</code> se ejecuta para cada registro procesado, incluido uno sin entidades, posiblemente de forma concurrente, y debe ser idempotente. Con <code>durable_writes = False</code>, <code>flush</code> debe hacer duradera cada escritura anterior.</td>
+</tr>
+<tr>
+<td>Gestor de estado</td>
+<td><code>AsyncStateManager</code></td>
+<td><code>load_processed_ids</code>, <code>mark_processed</code>, <code>load_metadata</code>, <code>save_metadata</code></td>
+<td>Seguro ante la concurrencia. Sobrescribe <code>record_failure</code> y <code>failure_counts</code> para admitir la cuarentena; las implementaciones por defecto no registran nada. Registra una versión de esquema y rechaza un archivo de una versión más reciente. Sobrescribe <code>flush()</code> si usas búfer; añade <code>aclose()</code> si mantienes conexiones.</td>
+</tr>
+<tr>
+<td>Generador de embeddings</td>
+<td><code>AsyncEmbedder</code></td>
+<td><code>async embed(texts) -&gt; list[list[float]]</code></td>
+<td>Un vector por entrada, en el mismo orden; lanza <code>EmbeddingError</code>.</td>
+</tr>
+<tr>
+<td>Almacén vectorial</td>
+<td><code>AsyncEmbeddingStore</code></td>
+<td><code>add</code>, <code>delete_record</code>, <code>query</code>, <code>count</code></td>
+<td>Reemplaza los fragmentos con el mismo <code>(record_id, chunk_index)</code>; <code>delete_record</code> elimina todos los fragmentos de un registro. Sobrescribe <code>replace_record</code> (por defecto, borrar y luego añadir) si tu backend puede hacer ambas cosas de forma atómica. Nunca devuelvas resultados con puntuaciones no finitas. Compórtate como <code>InMemoryEmbeddingStore</code> en cuanto a <code>top_k</code>, <code>min_score</code> y <code>exclude_record_id</code>. Serializa el uso de una conexión compartida y lanza <code>EmbeddingStoreError</code>. Implementa <code>iter_records</code> (pasajes en el orden de <code>chunk_index</code>, registros en el orden de <code>record_id</code>, sin vectores) si el índice de texto debe poder rellenarse desde tu almacén.</td>
+</tr>
+<tr>
+<td>Fragmentador</td>
+<td><code>TextChunker</code></td>
+<td><code>chunk(text) -&gt; list[str]</code></td>
+<td>Pasajes ordenados que cubren el texto.</td>
+</tr>
+<tr>
+<td>Almacén de búsqueda de texto</td>
+<td><code>AsyncTextSearchStore</code></td>
+<td>propiedad <code>facet_keys</code>, <code>index</code>, <code>delete_record</code>, <code>search</code>, <code>filter_ids</code>, <code>get_documents</code>, <code>facet_counts</code>, <code>count</code></td>
+<td>Recibe consultas analizadas, nunca texto. Rechaza con <code>require_rankable</code> una consulta que <code>search</code> no pueda ordenar. Ordena las puntuaciones iguales por <code>record_id</code> y aplica los filtros antes de <code>limit</code>. Lanza <code>ValueError</code> antes de cualquier E/S para una clave de filtro o de faceta fuera de <code>facet_keys</code> o para dos filtros sobre una misma clave (<code>validate_filters</code>, <code>validate_facet_keys</code>). Acepta <code>MetadataFilter</code> y <code>RangeFilter</code>, compara los rangos con <code>tag_in_range</code> y rellena <code>TextHit.snippets</code> para cada campo con una coincidencia resaltada. Sobrescribe <code>range_counts</code> (por defecto, un <code>filter_ids</code> por rango) si puedes contar en una sola lectura. Devuelve los mismos resultados que <code>InMemoryTextSearchStore</code> y lanza <code>SearchStoreError</code>.</td>
+</tr>
+<tr>
+<td>Fuente de aristas</td>
+<td><code>AsyncEdgeSource</code></td>
+<td>propiedad <code>kind</code>, <code>async neighbours(record_ids, limit)</code></td>
+<td>Asigna a cada identificador solicitado, aunque no tenga vecinos, hasta <code>limit</code> pares <code>(record_id, weight)</code>, los mejores primero, donde un peso mayor significa más relación. Nunca cierres los almacenes que te hayan pasado.</td>
+</tr>
+<tr>
+<td>Procesador</td>
+<td><code>Processor</code></td>
+<td><code>process(frame) -&gt; DataFrame</code></td>
+<td>No modifiques el DataFrame de entrada.</td>
+</tr>
+<tr>
+<td>Validador</td>
+<td><code>RecordValidator</code></td>
+<td><code>is_valid(record) -&gt; bool</code>; opcionalmente <code>validate(record) -&gt; ValidationResult</code></td>
+<td>Opera sobre un diccionario de entidad. Sobrescribe <code>validate</code> para nombrar el campo y la regla de cada rechazo; debe rechazar exactamente lo mismo que rechaza <code>is_valid</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Registra la nueva clase en el mapa <code>_EXPORTS</code> y en las importaciones
+<code>TYPE_CHECKING</code> de su subpaquete. Un módulo nuevo necesita también una entrada
+en su página de <code>docs/reference/</code>. Si es una clase principal de cara a los
+usuarios, añádela del mismo modo a <code>sci_etl_core/__init__.py</code>. Añade un caso
+para ella en <code>tests/contract/test_abc_conformance.py</code>.</p>
+<p>¡Que disfrutes programando, y gracias por contribuir!</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Volver al principio
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Pie" >
+        
+          
+          <a href="../roadmap/" class="md-footer__link md-footer__link--prev" aria-label="Anterior: Hoja de ruta">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Anterior
+              </span>
+              <div class="md-ellipsis">
+                Hoja de ruta
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../translating/" class="md-footer__link md-footer__link--next" aria-label="Siguiente: Traducciones">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Siguiente
+              </span>
+              <div class="md-ellipsis">
+                Traducciones
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Released under the MIT License.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/xueromll/sci-etl-core" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/sci-etl-core/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 444.7a20.4 20.4 0 1 1 0-40.7 20.4 20.4 0 1 1 0 40.7M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.6-183.4a20.4 20.4 0 1 1 0 40.8 20.4 20.4 0 1 1 0-40.8"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["content.code.copy", "navigation.footer", "navigation.indexes", "navigation.sections", "navigation.tabs", "navigation.top", "search.highlight", "search.suggest", "toc.follow"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

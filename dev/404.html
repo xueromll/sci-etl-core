@@ -1,18 +1,28 @@
 
 <!doctype html>
-<html lang="en" class="no-js">
+<html lang="ar" class="no-js">
   <head>
     
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="A Python library for turning scientific papers from any field into structured, searchable data, and the sci-etl CLI that runs it from YAML.">
+        <meta name="description" content="مكتبة بايثون لتحويل الأوراق العلمية من أي مجال من مجالات العلم إلى بيانات منظمة قابلة للبحث، وأداة سطر الأوامر sci-etl التي تشغّلها من ملف YAML.">
       
       
       
       
       
       
+        
+          <link rel="alternate" href="/sci-etl-core/dev/cli/quick-start/" hreflang="en">
+        
+          <link rel="alternate" href="/sci-etl-core/dev/ru/cli/quick-start/" hreflang="ru">
+        
+          <link rel="alternate" href="/sci-etl-core/dev/es/cli/quick-start/" hreflang="es">
+        
+          <link rel="alternate" href="/sci-etl-core/dev/zh/cli/quick-start/" hreflang="zh">
+        
+          <link rel="alternate" href="/sci-etl-core/dev/ar/cli/quick-start/" hreflang="ar">
         
       
       
@@ -49,6 +59,14 @@
     
       <link rel="stylesheet" href="/sci-etl-core/dev/assets/_mkdocstrings.css">
     
+      <link rel="stylesheet" href="/sci-etl-core/dev/assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="/sci-etl-core/dev/assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="/sci-etl-core/dev/assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="/sci-etl-core/dev/assets/_mkdocstrings.css">
+    
     <script>__md_scope=new URL("/sci-etl-core/dev",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -65,7 +83,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+    <body dir="rtl" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -86,8 +104,8 @@
       
 
 <header class="md-header" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="/sci-etl-core/dev/." title="sci-etl-core" class="md-header__button md-logo" aria-label="sci-etl-core" data-md-component="logo">
+  <nav class="md-header__inner md-grid" aria-label="عنوان العارضة">
+    <a href="/sci-etl-core/dev/ar/" title="sci-etl-core" class="md-header__button md-logo" aria-label="sci-etl-core" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -154,6 +172,50 @@
       <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
     
     
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="إختر اللغة">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="/sci-etl-core/dev/cli/quick-start/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="/sci-etl-core/dev/ru/cli/quick-start/" hreflang="ru" class="md-select__link">
+              Русский
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="/sci-etl-core/dev/es/cli/quick-start/" hreflang="es" class="md-select__link">
+              Español
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="/sci-etl-core/dev/zh/cli/quick-start/" hreflang="zh" class="md-select__link">
+              简体中文
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="/sci-etl-core/dev/ar/cli/quick-start/" hreflang="ar" class="md-select__link">
+              العربية
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
     
       
       
@@ -165,16 +227,16 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="بحث" placeholder="بحث" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Search">
+      <nav class="md-search__options" aria-label="إبحث">
         
-        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="مسح كلي" aria-label="مسح كلي" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -187,7 +249,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Initializing search
+            بدء البحث
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -199,7 +261,7 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/xueromll/sci-etl-core" title="Go to repository" class="md-source" data-md-component="source">
+        <a href="https://github.com/xueromll/sci-etl-core" title="اذهب إلى المصدر" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
@@ -220,7 +282,7 @@
         
           
             
-<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+<nav class="md-tabs" aria-label="نوافذ" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
       
@@ -230,13 +292,13 @@
   
   
     <li class="md-tabs__item">
-      <a href="/sci-etl-core/dev/." class="md-tabs__link">
+      <a href="/sci-etl-core/dev/ar/" class="md-tabs__link">
         
   
   
     
   
-  Home
+  الرئيسية
 
       </a>
     </li>
@@ -251,13 +313,13 @@
     
     
       <li class="md-tabs__item">
-        <a href="/sci-etl-core/dev/getting-started/installation/" class="md-tabs__link">
+        <a href="/sci-etl-core/dev/ar/getting-started/installation/" class="md-tabs__link">
           
   
   
     
   
-  Getting started
+  البدء
 
         </a>
       </li>
@@ -273,13 +335,13 @@
     
     
       <li class="md-tabs__item">
-        <a href="/sci-etl-core/dev/guide/sources/" class="md-tabs__link">
+        <a href="/sci-etl-core/dev/ar/guide/sources/" class="md-tabs__link">
           
   
   
     
   
-  Guide
+  الدليل
 
         </a>
       </li>
@@ -295,7 +357,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/sci-etl-core/dev/cli/" class="md-tabs__link">
+        <a href="/sci-etl-core/dev/ar/cli/" class="md-tabs__link">
           
   
   
@@ -317,13 +379,13 @@
     
     
       <li class="md-tabs__item">
-        <a href="/sci-etl-core/dev/reference/" class="md-tabs__link">
+        <a href="/sci-etl-core/dev/ar/reference/" class="md-tabs__link">
           
   
   
     
   
-  API reference
+  مرجع الواجهة البرمجية
 
         </a>
       </li>
@@ -339,13 +401,13 @@
     
     
       <li class="md-tabs__item">
-        <a href="/sci-etl-core/dev/project/changelog/" class="md-tabs__link">
+        <a href="/sci-etl-core/dev/ar/project/changelog/" class="md-tabs__link">
           
   
   
     
   
-  Project
+  المشروع
 
         </a>
       </li>
@@ -373,9 +435,9 @@
   
 
 
-<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="تصفح" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="/sci-etl-core/dev/." title="sci-etl-core" class="md-nav__button md-logo" aria-label="sci-etl-core" data-md-component="logo">
+    <a href="/sci-etl-core/dev/ar/" title="sci-etl-core" class="md-nav__button md-logo" aria-label="sci-etl-core" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -385,7 +447,7 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/xueromll/sci-etl-core" title="Go to repository" class="md-source" data-md-component="source">
+      <a href="https://github.com/xueromll/sci-etl-core" title="اذهب إلى المصدر" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
@@ -405,14 +467,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/." class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Home
+    الرئيسية
   
 
     
@@ -467,7 +529,7 @@
   <span class="md-ellipsis">
     
   
-    Getting started
+    البدء
   
 
     
@@ -483,7 +545,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Getting started
+    البدء
   
 
           </label>
@@ -496,14 +558,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/getting-started/installation/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/getting-started/installation/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Installation
+    التثبيت
   
 
     
@@ -524,14 +586,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/getting-started/quick-start/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/getting-started/quick-start/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Quick start
+    البدء السريع
   
 
     
@@ -552,14 +614,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/getting-started/blocking-usage/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/getting-started/blocking-usage/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Blocking usage
+    الاستخدام المتزامن
   
 
     
@@ -580,14 +642,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/getting-started/configuration/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/getting-started/configuration/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Configuration
+    الإعداد
   
 
     
@@ -608,14 +670,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/getting-started/when-not-to-use/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/getting-started/when-not-to-use/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    When not to use it
+    متى لا تستخدمها
   
 
     
@@ -686,7 +748,7 @@
   <span class="md-ellipsis">
     
   
-    Guide
+    الدليل
   
 
     
@@ -702,7 +764,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Guide
+    الدليل
   
 
           </label>
@@ -715,14 +777,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/guide/sources/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/guide/sources/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Supported sources
+    المصادر المدعومة
   
 
     
@@ -743,14 +805,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/guide/typed-entities/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/guide/typed-entities/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Typed entities and validation
+    الكيانات المنمّطة والتحقق
   
 
     
@@ -771,14 +833,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/guide/claims/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/guide/claims/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Claims and provenance
+    الادعاءات ومصدرها
   
 
     
@@ -799,14 +861,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/guide/post-processing/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/guide/post-processing/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Post-processing and visualization
+    المعالجة اللاحقة والتصوير البياني
   
 
     
@@ -827,14 +889,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/guide/semantic-memory/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/guide/semantic-memory/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Semantic memory
+    الذاكرة الدلالية
   
 
     
@@ -896,14 +958,14 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="/sci-etl-core/dev/guide/search/" class="md-nav__link ">
+            <a href="/sci-etl-core/dev/ar/guide/search/" class="md-nav__link ">
               
   
   
   <span class="md-ellipsis">
     
   
-    Local search and discovery
+    البحث والاستكشاف المحليان
   
 
     
@@ -925,7 +987,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Local search and discovery
+    البحث والاستكشاف المحليان
   
 
           </label>
@@ -940,14 +1002,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/guide/search/query-syntax/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/guide/search/query-syntax/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Query syntax
+    صياغة الاستعلامات
   
 
     
@@ -968,14 +1030,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/guide/search/ranked-search/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/guide/search/ranked-search/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Ranked search and filtering
+    البحث المرتَّب والتصفية
   
 
     
@@ -996,14 +1058,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/guide/search/hybrid-search/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/guide/search/hybrid-search/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Hybrid search
+    البحث الهجين
   
 
     
@@ -1024,14 +1086,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/guide/search/filters-and-facets/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/guide/search/filters-and-facets/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Filters and facets
+    المرشحات والأوجه
   
 
     
@@ -1052,14 +1114,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/guide/search/text-stores/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/guide/search/text-stores/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Text stores
+    مخازن النصوص
   
 
     
@@ -1080,14 +1142,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/guide/search/backfill/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/guide/search/backfill/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Backfilling from vector memory
+    الملء من الذاكرة المتجهية
   
 
     
@@ -1108,14 +1170,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/guide/search/discovery-graphs/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/guide/search/discovery-graphs/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Discovery graphs
+    رسوم الاستكشاف البيانية
   
 
     
@@ -1136,14 +1198,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/guide/search/user-interfaces/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/guide/search/user-interfaces/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Building a user interface
+    بناء واجهة مستخدم
   
 
     
@@ -1164,14 +1226,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/guide/search/store-ownership/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/guide/search/store-ownership/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Store ownership
+    ملكية المخازن
   
 
     
@@ -1243,7 +1305,7 @@
   <span class="md-ellipsis">
     
   
-    Running pipelines
+    تشغيل خطوط المعالجة
   
 
     
@@ -1259,7 +1321,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Running pipelines
+    تشغيل خطوط المعالجة
   
 
           </label>
@@ -1272,14 +1334,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/guide/state/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/guide/state/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    State, resuming, and errors
+    الحالة والاستئناف والأخطاء
   
 
     
@@ -1300,14 +1362,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/guide/run-semantics/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/guide/run-semantics/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Run semantics
+    دلالات التشغيل
   
 
     
@@ -1328,14 +1390,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/guide/shutdown/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/guide/shutdown/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Graceful shutdown
+    الإيقاف السلس
   
 
     
@@ -1356,14 +1418,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/guide/retries/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/guide/retries/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Retries
+    إعادة المحاولة
   
 
     
@@ -1384,14 +1446,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/guide/rate-limiting/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/guide/rate-limiting/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Rate limiting
+    تحديد المعدل
   
 
     
@@ -1412,14 +1474,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/guide/logging/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/guide/logging/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Logging
+    التسجيل
   
 
     
@@ -1440,14 +1502,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/guide/observability/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/guide/observability/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Progress events and metrics
+    أحداث التقدم والمقاييس
   
 
     
@@ -1468,14 +1530,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/guide/token-usage/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/guide/token-usage/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Token usage
+    استهلاك الرموز
   
 
     
@@ -1496,14 +1558,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/guide/llm-caching/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/guide/llm-caching/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    LLM response caching
+    التخزين المؤقت لاستجابات النموذج اللغوي
   
 
     
@@ -1532,14 +1594,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/guide/migrating-a-pipeline/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/guide/migrating-a-pipeline/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Migrating a pipeline
+    ترحيل خط معالجة
   
 
     
@@ -1560,14 +1622,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/guide/architecture/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/guide/architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Architecture
+    البنية
   
 
     
@@ -1628,7 +1690,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="/sci-etl-core/dev/cli/" class="md-nav__link ">
+            <a href="/sci-etl-core/dev/ar/cli/" class="md-nav__link ">
               
   
   
@@ -1672,14 +1734,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/cli/quick-start/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/cli/quick-start/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Quick start
+    البدء السريع
   
 
     
@@ -1700,7 +1762,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/cli/commands/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/cli/commands/" class="md-nav__link">
         
   
   
@@ -1728,7 +1790,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/cli/config-file/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/cli/config-file/" class="md-nav__link">
         
   
   
@@ -1756,7 +1818,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/cli/plugins/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/cli/plugins/" class="md-nav__link">
         
   
   
@@ -1784,7 +1846,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/cli/exit-codes/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/cli/exit-codes/" class="md-nav__link">
         
   
   
@@ -1868,14 +1930,14 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="/sci-etl-core/dev/reference/" class="md-nav__link ">
+            <a href="/sci-etl-core/dev/ar/reference/" class="md-nav__link ">
               
   
   
   <span class="md-ellipsis">
     
   
-    API reference
+    مرجع الواجهة البرمجية
   
 
     
@@ -1897,7 +1959,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    API reference
+    مرجع الواجهة البرمجية
   
 
           </label>
@@ -1912,14 +1974,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/reference/pipelines/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/reference/pipelines/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Pipelines
+    خطوط المعالجة
   
 
     
@@ -1940,14 +2002,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/reference/configuration/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/reference/configuration/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Configuration
+    الإعداد
   
 
     
@@ -1968,14 +2030,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/reference/models/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/reference/models/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Models and exceptions
+    النماذج والاستثناءات
   
 
     
@@ -1996,14 +2058,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/reference/extractors/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/reference/extractors/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Extractors
+    المستخرِجات
   
 
     
@@ -2024,14 +2086,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/reference/parsers/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/reference/parsers/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Parsers
+    المحلِّلات
   
 
     
@@ -2052,14 +2114,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/reference/llm/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/reference/llm/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    LLM
+    النموذج اللغوي
   
 
     
@@ -2080,14 +2142,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/reference/embeddings/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/reference/embeddings/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Embeddings
+    التضمينات
   
 
     
@@ -2108,14 +2170,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/reference/search/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/reference/search/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Search
+    البحث
   
 
     
@@ -2136,14 +2198,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/reference/exporters/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/reference/exporters/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Exporters
+    المصدِّرات
   
 
     
@@ -2164,14 +2226,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/reference/claims/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/reference/claims/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Claims
+    الادعاءات
   
 
     
@@ -2192,14 +2254,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/reference/processors/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/reference/processors/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Processors
+    المعالِجات
   
 
     
@@ -2220,14 +2282,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/reference/state/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/reference/state/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    State
+    الحالة
   
 
     
@@ -2248,14 +2310,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/reference/utilities/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/reference/utilities/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Utilities
+    الأدوات المساعدة
   
 
     
@@ -2284,6 +2346,8 @@
   
     
     
+      
+        
       
         
       
@@ -2320,7 +2384,7 @@
   <span class="md-ellipsis">
     
   
-    Project
+    المشروع
   
 
     
@@ -2336,7 +2400,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Project
+    المشروع
   
 
           </label>
@@ -2349,14 +2413,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/project/changelog/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/project/changelog/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Changelog
+    سجل التغييرات
   
 
     
@@ -2377,14 +2441,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/project/migration/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/project/migration/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Migration guide
+    دليل الترحيل
   
 
     
@@ -2405,14 +2469,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/project/roadmap/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/project/roadmap/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Roadmap
+    خارطة الطريق
   
 
     
@@ -2433,14 +2497,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/project/contributing/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/project/contributing/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Contributing
+    المساهمة
   
 
     
@@ -2461,14 +2525,14 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/project/security/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/project/translating/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Security
+    الترجمات
   
 
     
@@ -2489,14 +2553,42 @@
   
   
     <li class="md-nav__item">
-      <a href="/sci-etl-core/dev/project/code-of-conduct/" class="md-nav__link">
+      <a href="/sci-etl-core/dev/ar/project/security/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Code of conduct
+    الأمان
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="/sci-etl-core/dev/ar/project/code-of-conduct/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    مدونة السلوك
   
 
     
@@ -2530,7 +2622,7 @@
                   <div class="md-sidebar__inner">
                     
 
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+<nav class="md-nav md-nav--secondary" aria-label="جدول المحتويات">
   
   
   
@@ -2558,7 +2650,7 @@
           <button type="button" class="md-top md-icon" data-md-component="top" hidden>
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
-  Back to top
+  عد إلى الأعلى
 </button>
         
       </main>
@@ -2623,7 +2715,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "/sci-etl-core/dev", "features": ["content.code.copy", "navigation.footer", "navigation.indexes", "navigation.sections", "navigation.tabs", "navigation.top", "search.highlight", "search.suggest", "toc.follow"], "search": "/sci-etl-core/dev/assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "/sci-etl-core/dev", "features": ["content.code.copy", "navigation.footer", "navigation.indexes", "navigation.sections", "navigation.tabs", "navigation.top", "search.highlight", "search.suggest", "toc.follow"], "search": "/sci-etl-core/dev/assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u062a\u0645 \u0627\u0644\u0646\u0633\u062e \u0627\u0644\u0649 \u0627\u0644\u062d\u0627\u0641\u0638\u0629", "clipboard.copy": "\u0646\u0633\u062e \u0625\u0644\u0649 \u0627\u0644\u062d\u0627\u0641\u0638\u0629", "search.result.more.one": "\u0623\u0643\u062b\u0631 \u0645\u0646 1 \u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0635\u0641\u062d\u0629", "search.result.more.other": "\u0623\u0643\u062b\u0631 \u0645\u0646 # \u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0635\u0641\u062d\u0629", "search.result.none": "\u0644\u0627 \u062a\u0648\u062c\u062f \u0646\u062a\u0627\u0626\u062c", "search.result.one": "\u0646\u062a\u0627\u0626\u062c \u0627\u0644\u0628\u062d\u062b \u0645\u0633\u062a\u0646\u062f \u0648\u0627\u062d\u062f", "search.result.other": "\u0646\u062a\u0627\u0626\u062c \u0627\u0644\u0628\u062d\u062b # \u0645\u0633\u062a\u0646\u062f\u0627\u062a", "search.result.placeholder": "\u0627\u0643\u062a\u0628 \u0644\u0628\u062f\u0621 \u0627\u0644\u0628\u062d\u062b", "search.result.term.missing": "\u0645\u0641\u0642\u0648\u062f", "select.version": "\u0625\u062e\u062a\u0631 \u0627\u0644\u0625\u0635\u062f\u0627\u0631"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
       <script src="/sci-etl-core/dev/assets/javascripts/bundle.d7400e89.min.js"></script>

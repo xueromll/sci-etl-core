@@ -16,9 +16,19 @@
         <link rel="prev" href="../roadmap/">
       
       
-        <link rel="next" href="../security/">
+        <link rel="next" href="../translating/">
       
       
+        
+          <link rel="alternate" href="./" hreflang="en">
+        
+          <link rel="alternate" href="../../ru/project/contributing/" hreflang="ru">
+        
+          <link rel="alternate" href="../../es/project/contributing/" hreflang="es">
+        
+          <link rel="alternate" href="../../zh/project/contributing/" hreflang="zh">
+        
+          <link rel="alternate" href="../../ar/project/contributing/" hreflang="ar">
         
       
       
@@ -164,6 +174,50 @@
     
       <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
     
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../ru/project/contributing/" hreflang="ru" class="md-select__link">
+              Русский
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../es/project/contributing/" hreflang="es" class="md-select__link">
+              Español
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../zh/project/contributing/" hreflang="zh" class="md-select__link">
+              简体中文
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../ar/project/contributing/" hreflang="ar" class="md-select__link">
+              العربية
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
     
     
       
@@ -2312,6 +2366,8 @@
       
         
       
+        
+      
     
     
     
@@ -2613,6 +2669,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../translating/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Translations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -3001,6 +3085,13 @@ Record user-facing changes under the unreleased version in
   guide, <code>SECURITY.md</code>, and <code>CODE_OF_CONDUCT.md</code> stay at the repository root;
   the pages under <code>docs/project/</code> render them, and links between them are
   rewritten for the site.</li>
+<li><strong>Translations.</strong> The Russian, Spanish, Simplified Chinese, and Arabic
+  versions of a page sit beside it as <code>page.ru.md</code>, <code>page.es.md</code>,
+  <code>page.zh.md</code>, and <code>page.ar.md</code>, and the mkdocs-static-i18n plugin builds
+  each language under its own path, such as <code>/ru/</code>. A pull request that
+  changes an English page updates its four translations too.
+  <a href="../translating/">TRANSLATING.md</a> names the owner of each language and
+  holds the glossary and the rules a translated page follows.</li>
 <li><strong>The CLI section</strong> comes from the <code>docs/</code> folder and <code>nav</code> of the
   sci-etl-cli repository. The build looks for a checkout beside this one, or at
   the path in <code>SCI_ETL_CLI_DIR</code>; without one it leaves the section out, which
@@ -3059,6 +3150,9 @@ body (<code>Closes #123</code>).</p>
 <li><strong>Run</strong> the test suite locally (plus lint and type checks if you use them).</li>
 <li><strong>Update the docs</strong> for user-facing changes:</li>
 <li>the pages under <code>docs/</code> for usage; keep <code>README.md</code> a short overview</li>
+<li>the Russian, Spanish, Chinese, and Arabic translations of every English
+     page you change, following <a href="../translating/">TRANSLATING.md</a>; if you
+     can't write one of them, say so, and its owner adds it before merge</li>
 <li><code>MIGRATION.md</code> for a breaking change, under the release that ships it</li>
 <li><code>docs/guide/migrating-a-pipeline.md</code> when the change affects moving an
      existing pipeline onto the library</li>
@@ -3231,13 +3325,13 @@ imports. A new module also needs an entry on its page under <code>docs/reference
         
         
           
-          <a href="../security/" class="md-footer__link md-footer__link--next" aria-label="Next: Security">
+          <a href="../translating/" class="md-footer__link md-footer__link--next" aria-label="Next: Translations">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Security
+                Translations
               </div>
             </div>
             <div class="md-footer__button md-icon">

@@ -1,0 +1,4257 @@
+
+<!doctype html>
+<html lang="ru" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Библиотека Python для превращения научных статей из любой области науки в структурированные данные с поиском, и CLI sci-etl, который запускает её из YAML.">
+      
+      
+      
+        <link rel="canonical" href="https://xueromll.github.io/sci-etl-core/dev/ru/project/changelog/">
+      
+      
+        <link rel="prev" href="../../reference/utilities/">
+      
+      
+        <link rel="next" href="../migration/">
+      
+      
+        
+          <link rel="alternate" href="../../../project/changelog/" hreflang="en">
+        
+          <link rel="alternate" href="./" hreflang="ru">
+        
+          <link rel="alternate" href="../../../es/project/changelog/" hreflang="es">
+        
+          <link rel="alternate" href="../../../zh/project/changelog/" hreflang="zh">
+        
+          <link rel="alternate" href="../../../ar/project/changelog/" hreflang="ar">
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Журнал изменений - sci-etl-core</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#_1" class="md-skip">
+          Перейти к содержанию
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Верхний колонтитул">
+    <a href="../../" title="sci-etl-core" class="md-header__button md-logo" aria-label="sci-etl-core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            sci-etl-core
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Журнал изменений
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Выберите язык">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../../project/changelog/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="ru" class="md-select__link">
+              Русский
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../../es/project/changelog/" hreflang="es" class="md-select__link">
+              Español
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../../zh/project/changelog/" hreflang="zh" class="md-select__link">
+              简体中文
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../../ar/project/changelog/" hreflang="ar" class="md-select__link">
+              العربية
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Поиск" placeholder="Поиск" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Поиск">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Очистить" aria-label="Очистить" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Инициализация поиска
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/xueromll/sci-etl-core" title="Перейти к репозиторию" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    xueromll/sci-etl-core
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Вкладки" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Главная
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Начало работы
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../guide/sources/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Руководство
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../cli/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  CLI
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Справочник API
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Проект
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Навигация" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../" title="sci-etl-core" class="md-nav__button md-logo" aria-label="sci-etl-core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    sci-etl-core
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/xueromll/sci-etl-core" title="Перейти к репозиторию" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    xueromll/sci-etl-core
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Главная
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Начало работы
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Начало работы
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Установка
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Быстрый старт
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/blocking-usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Блокирующий режим
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Конфигурация
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/when-not-to-use/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Когда не стоит её использовать
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Руководство
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Руководство
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/sources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Поддерживаемые источники
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/typed-entities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Типизированные сущности и валидация
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Утверждения и происхождение
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/post-processing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Постобработка и визуализация
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/semantic-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Семантическая память
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../guide/search/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Локальный поиск и обзор
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Локальный поиск и обзор
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/query-syntax/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Синтаксис запросов
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/ranked-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ранжированный поиск и фильтрация
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/hybrid-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Гибридный поиск
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/filters-and-facets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Фильтры и фасеты
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/text-stores/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Текстовые хранилища
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/backfill/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Заполнение из векторной памяти
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/discovery-graphs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Графы связанных статей
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/user-interfaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Создание пользовательского интерфейса
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/store-ownership/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Владение хранилищами
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Запуск конвейеров
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Запуск конвейеров
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Состояние, возобновление и ошибки
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/run-semantics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Семантика запуска
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/shutdown/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Корректное завершение
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/retries/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Повторные попытки
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/rate-limiting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ограничение частоты запросов
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/logging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Журналирование
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    События прогресса и метрики
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/token-usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Расход токенов
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/llm-caching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Кэширование ответов LLM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/migrating-a-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Перенос конвейера
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Архитектура
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../cli/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CLI
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Быстрый старт
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/commands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Commands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/config-file/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Config file
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plug-ins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/exit-codes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exit codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../reference/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Справочник API
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Справочник API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/pipelines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Конвейеры
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Конфигурация
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Модели и исключения
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/extractors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Экстракторы
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/parsers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Парсеры
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/llm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/embeddings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Эмбеддинги
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Поиск
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/exporters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Экспортёры
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Утверждения
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/processors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Процессоры
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Состояние
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Утилиты
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Проект
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Проект
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Журнал изменений
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Журнал изменений
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Содержание">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Содержание
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#060-2026-09-27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.6.0] - 2026-09-27
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.6.0] - 2026-09-27">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Добавлено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Изменено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Удалено
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#051-2026-09-26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.5.1 - 2026-09-26
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.5.1 - 2026-09-26">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Добавлено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Изменено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Исправлено
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#050-2026-09-25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.5.0 - 2026-09-25
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.5.0 - 2026-09-25">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Добавлено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Изменено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deprecated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Устарело
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Удалено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Исправлено
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#041-2026-09-25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.4.1 - 2026-09-25
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.4.1 - 2026-09-25">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Изменено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Исправлено
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#040-2026-09-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.4.0 - 2026-09-16
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.4.0 - 2026-09-16">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Добавлено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Изменено
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#030-2026-09-15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.3.0 - 2026-09-15
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.3.0 - 2026-09-15">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Добавлено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Изменено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Исправлено
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#020-2026-09-14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.2.0 - 2026-09-14
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.2.0 - 2026-09-14">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Безопасность
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#added_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Добавлено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Изменено
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#012-2026-09-14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.1.2 - 2026-09-14
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.1.2 - 2026-09-14">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Исправлено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#added_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Добавлено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Изменено
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#011-2026-09-14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.1.1 - 2026-09-14
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.1.1 - 2026-09-14">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Добавлено
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010-2026-09-13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.1.0 - 2026-09-13
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Руководство по миграции
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Дорожная карта
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Участие в разработке
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../translating/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Переводы
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Безопасность
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code-of-conduct/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Кодекс поведения
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Содержание">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Содержание
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#060-2026-09-27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.6.0] - 2026-09-27
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.6.0] - 2026-09-27">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Добавлено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Изменено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Удалено
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#051-2026-09-26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.5.1 - 2026-09-26
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.5.1 - 2026-09-26">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Добавлено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Изменено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Исправлено
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#050-2026-09-25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.5.0 - 2026-09-25
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.5.0 - 2026-09-25">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Добавлено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Изменено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deprecated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Устарело
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Удалено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Исправлено
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#041-2026-09-25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.4.1 - 2026-09-25
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.4.1 - 2026-09-25">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Изменено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Исправлено
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#040-2026-09-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.4.0 - 2026-09-16
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.4.0 - 2026-09-16">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Добавлено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Изменено
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#030-2026-09-15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.3.0 - 2026-09-15
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.3.0 - 2026-09-15">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Добавлено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Изменено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Исправлено
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#020-2026-09-14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.2.0 - 2026-09-14
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.2.0 - 2026-09-14">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Безопасность
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#added_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Добавлено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Изменено
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#012-2026-09-14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.1.2 - 2026-09-14
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.1.2 - 2026-09-14">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Исправлено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#added_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Добавлено
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Изменено
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#011-2026-09-14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.1.1 - 2026-09-14
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.1.1 - 2026-09-14">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Добавлено
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010-2026-09-13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.1.0 - 2026-09-13
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="_1">Журнал изменений<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<p>Здесь фиксируются все заметные изменения sci-etl-core. Формат следует
+<a href="https://keepachangelog.com/en/1.1.0/">Keep a Changelog</a>, а версии следуют
+<a href="https://semver.org/">семантическому версионированию</a>. До 1.0 минорный
+выпуск может менять поведение; каждое такое изменение перечислено в разделе
+<strong>Изменено</strong>.</p>
+<h2 id="060-2026-09-27">[0.6.0] - 2026-09-27<a class="headerlink" href="#060-2026-09-27" title="Permanent link">&para;</a></h2>
+<p>Этот выпуск меняет контракт данных: экстракторы сущностей могут возвращать
+типизированные сущности, экспортёры получают каждую запись вместе с её
+сущностями, библиотека пишет журнал через стандартный модуль <code>logging</code>, а
+базовой установке нужен только Pydantic. Он добавляет утверждения с
+доказательствами и происхождением. См. раздел «Обновление до 0.6» в
+MIGRATION.md.</p>
+<h3 id="added">Добавлено<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Жизненный цикл экспортёра.</strong> У <code>AsyncExporter</code> есть <code>open()</code>,
+  <code>write(record, entities)</code>, <code>flush()</code> и <code>aclose()</code>, а <code>durable_writes</code>
+  указывает, что делает сущности надёжно сохранёнными — <code>write</code> или <code>flush</code>.
+  Конвейер помечает запись как обработанную, только когда её сущности надёжно
+  сохранены, поэтому сбой может повторить запись, но никогда её не потеряет.</li>
+<li><code>AsyncCsvExporter</code>, который пишет по одной строке на сущность с <code>record_id</code>
+  её статьи, хранит все прочие ключи в столбце <code>extra</code> и никогда не объединяет,
+  не обрезает и не приводит значения. Он формирует файл один раз за запуск из
+  журнала, в который только дописываются данные, поэтому время экспорта растёт
+  линейно с числом записей. Ячейки, которые электронная таблица выполнила бы как
+  формулу, получают ведущий апостроф; простые числа, такие как <code>-5.361</code>,
+  записываются без изменений.</li>
+<li><code>AsyncJsonlExporter</code>, который дописывает по одной строке JSON на запись, и
+  <code>read_jsonl_export</code>, который читает обратно последнюю строку каждой записи.</li>
+<li><strong>Типизированные сущности.</strong> <code>AsyncLLMEntityExtractor(schema=Model)</code>
+  проверяет каждую сущность по модели Pydantic и возвращает экземпляры модели.
+  Он запрашивает структурированный вывод по JSON Schema через новый
+  <code>AsyncLLMClient.complete_structured</code>, который
+  <code>AsyncOpenAICompatibleClient(structured_output=True)</code> и
+  <code>LLMConfig.structured_output</code> включают для конечных точек, которые его
+  поддерживают. <code>entity_list_schema</code> строит запрашиваемую схему.</li>
+<li><strong>Причины отклонений.</strong> <code>RecordValidator.validate</code> возвращает
+  <code>ValidationResult</code> из <code>Violation</code>, называющих поле и правило каждого
+  отклонения. Встроенные валидаторы сообщают свои правила, а
+  <code>CompositeValidator.validate</code> собирает нарушения всех валидаторов.
+  Отклонения записываются в журнал вместе с причинами.</li>
+<li><code>AsyncEntityExtractor.extract_record(record, text)</code> и <code>requires_record</code> для
+  экстракторов, которым нужна запись. Конвейер вызывает <code>extract_record</code>.</li>
+<li><code>AsyncLLMEntityExtractor.prepare</code> возвращает текст, отправляемый модели, а
+  <code>stamp</code> описывает модель, промпт, схему и выпуск библиотеки, стоящие за его
+  сущностями. <code>rejections=</code> сохраняет отклонённые сущности в хранилище
+  отклонений.</li>
+<li><code>response_cache_key(schema=, variant=)</code> и <code>CachingLLMClient(variant=)</code>. Схема
+  типизированного запроса входит в ключ кэша.</li>
+<li><code>sci_etl_core.claims</code> (предварительно): <code>Claim</code>, <code>ClaimDraft</code>,
+  <code>EvidenceSpan</code>, <code>ExtractionStamp</code>, <code>locate_quote</code>, <code>AsyncLLMClaimExtractor</code>,
+  хранилища утверждений <code>InMemoryClaimStore</code> и <code>AsyncSqliteClaimStore</code>,
+  <code>AsyncClaimStoreExporter</code>, а также хранилища отклонений
+  <code>InMemoryRejectionStore</code> и <code>AsyncSqliteRejectionStore</code>.</li>
+<li><code>DeduplicationStep(source_column=)</code> добавляет столбец <code>sources</code> со списком
+  различных источников, например <code>record_id</code> каждой статьи, всех строк,
+  объединённых в каждую выходную строку.</li>
+<li><code>ExportError</code>, <code>ClaimError</code> и <code>ClaimStoreError</code>.</li>
+<li>Extras <code>config</code>, <code>arxiv</code>, <code>xml</code>, <code>html</code> и <code>processors</code>.</li>
+<li><code>load_config(load_env=True)</code> и <code>load_config_async(load_env=True)</code>.</li>
+</ul>
+<h3 id="changed">Изменено<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Ломающее изменение:</strong> экспортёры получают место назначения при создании и
+  реализуют <code>write(record, entities)</code> вместо <code>export(data, destination)</code>.
+  Конвейер больше не принимает <code>destination</code>.</li>
+<li><strong>Ломающее изменение:</strong> конвейер передаёт экспортёру каждую обработанную
+  запись, включая запись без сущностей, чтобы экспортёр мог удалить строки,
+  которые повторное извлечение больше не находит.</li>
+<li><strong>Ломающее изменение:</strong> конвейер открывает экспортёр перед первым запросом
+  выдачи, сбрасывает его после каждой страницы, а перед сбросом состояния
+  сбрасывает и закрывает его, как бы ни закончился запуск. Сбой <code>open</code>
+  прерывает запуск; сбой <code>flush</code> оставляет записи страницы незавершёнными, не
+  засчитывая им попытку.</li>
+<li><strong>Ломающее изменение:</strong> базовая установка требует только <code>pydantic</code>.
+  Установите extra <code>config</code> для <code>load_config</code>, <code>arxiv</code> для
+  <code>AsyncArxivExtractor</code>, <code>xml</code> для экстрактора PubMed и парсеров JATS и DOCX,
+  <code>html</code> для <code>HtmlTextParser</code> и <code>processors</code> для процессоров pandas и табличных
+  приёмников.</li>
+<li><strong>Ломающее изменение:</strong> <code>load_config</code> и <code>load_config_async</code> читают файл
+  <code>.env</code> только при передаче <code>env_path</code> или <code>load_env=True</code>.</li>
+<li><strong>Ломающее изменение:</strong> каждый модуль пишет журнал через
+  <code>logging.getLogger(__name__)</code> под логгером <code>sci_etl_core</code>, с уровнем
+  <code>WARNING</code> для неудавшихся и пропущенных записей, <code>ERROR</code> для сбоев
+  приёмников и состояния и <code>INFO</code> для рутинных заметок. Библиотека не
+  настраивает обработчики.</li>
+<li><strong>Ломающее изменение:</strong> <code>AsyncEntityExtractor</code> и <code>AsyncExporter</code> обобщены
+  по типу сущности, а все аргументы <code>AsyncLLMEntityExtractor</code> после
+  <code>system_prompt</code> — только именованные.</li>
+<li><code>AsyncLLMClient.invalidate</code> принимает <code>schema=</code> для типизированного запроса.</li>
+<li>Extra <code>async</code> больше не устанавливает <code>aiofiles</code>, а extra <code>sql</code> — <code>aiosqlite</code>.</li>
+<li><code>AsyncArxivExtractor</code> повторяет запрос при ответе <code>406</code>, а не проваливает
+  его, потому что arXiv время от времени возвращает этот код на корректные
+  запросы.</li>
+</ul>
+<h3 id="removed">Удалено<a class="headerlink" href="#removed" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Блокирующие интерфейсы <code>Extractor</code>, <code>StateManager</code>, <code>Exporter</code>, <code>LLMClient</code>,
+  <code>RelevanceFilter</code> и <code>EntityExtractor</code> и классы <code>Sync*Adapter</code>.</li>
+<li><code>LegacyExtractorAdapter</code>.</li>
+<li><code>AsyncExporter.export</code> и аргумент конвейера <code>destination</code>.</li>
+<li><code>AsyncCsvUpsertExporter</code>; используйте <code>AsyncCsvExporter</code>.</li>
+<li><code>AsyncSqlTableExporter</code> и <code>AsyncPlotly3DExporter</code>; используйте <code>SqlTableSink</code>
+  и <code>Plotly3DSink</code>. <code>ScatterPlotConfig</code> импортируется из
+  <code>sci_etl_core.processors</code>.</li>
+<li>Все аргументы <code>logger=</code>, <code>configure_logging</code> и <code>AsyncETLPipeline.log</code>.</li>
+</ul>
+<h2 id="051-2026-09-26"><a href="https://github.com/xueromll/sci-etl-core/compare/v0.5.0...v0.5.1">0.5.1</a> - 2026-09-26<a class="headerlink" href="#051-2026-09-26" title="Permanent link">&para;</a></h2>
+<p>Этот выпуск не даёт ответам LLM без ответа по существу завершать запись,
+не позволяет кэшу LLM воспроизводить их и добавляет ограничения на размер
+загрузки и распаковки. Первый запуск после обновления один раз промахивается
+мимо кэша LLM. См. раздел «Обновление до 0.5.1» в MIGRATION.md.</p>
+<h3 id="added_1">Добавлено<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>AsyncLLMClient.invalidate(system_prompt, user_content)</code> сообщает об
+  отвергнутом ответе, а <code>AsyncLLMResponseCache.delete(key)</code> удаляет одну
+  запись; оба встроенных кэша его реализуют.</li>
+<li><strong>Ограничения размера.</strong> <code>max_download_bytes</code> у <code>AsyncArxivExtractor</code>,
+  <code>AsyncOpenAlexExtractor</code>, <code>AsyncPubMedExtractor</code> и
+  <code>AsyncSemanticScholarExtractor</code> ограничивает каждое тело ответа после
+  декодирования, а <code>LatexTarballParser(max_tex_bytes=)</code> ограничивает объём TeX,
+  распакованного из одного e-print. Слишком большая страница выдачи вызывает
+  <code>ExtractionError</code>; слишком большая загрузка полного текста или e-print
+  записывается в журнал и пропускается. Оба по умолчанию не ограничены.</li>
+<li><code>AsyncArxivExtractor.from_config(full_text=)</code> строит ограничитель частоты
+  экстрактора из раздела конфигурации <code>full_text</code>.</li>
+<li><code>AsyncOpenAICompatibleClient</code> и <code>CachingLLMClient</code> предоставляют <code>base_url</code> и
+  <code>temperature</code>, а каждый <code>AsyncLLMClient</code> предоставляет <code>response_format</code>,
+  по умолчанию равный <code>{"type": "json_object"}</code>. <code>response_cache_key</code>
+  принимает все три как именованные аргументы.</li>
+</ul>
+<h3 id="changed_1">Изменено<a class="headerlink" href="#changed_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Пустой ответ LLM теперь приводит к неудаче записи, а не завершает её.
+  <code>AsyncOpenAICompatibleClient.complete_json</code> выбрасывает <code>LLMError</code> там, где
+  возвращал <code>{}</code>, поэтому конвейер повторяет запись при следующем запуске, а не
+  помечает её как обработанную, ничего не экспортировав.</li>
+<li><code>AsyncLLMEntityExtractor.extract</code> выбрасывает <code>LLMError</code>, когда в ответе нет
+  списка сущностей: он пуст или содержит несколько ключей и ни один из них не
+  <code>result_key</code>. Раньше он возвращал <code>[]</code>, и запись помечалась как
+  обработанная.</li>
+<li><code>AsyncLLMRelevanceFilter</code> и <code>AsyncEmbeddingRelevanceFilter</code> с
+  <code>default_on_error=False</code> при ошибке закрываются: неудачный вызов или неясный
+  вердикт выбрасывает исключение, и запись повторяется при следующем запуске.
+  Раньше это считалось нерелевантностью, и запись навсегда помечалась как
+  обработанная.</li>
+<li>Ключ кэша LLM теперь включает <code>base_url</code> конечной точки, температуру и формат
+  ответа, поэтому ответ, закэшированный для одного провайдера, температуры или
+  формата, больше не выдаётся для другого. Ответы, закэшированные прежними
+  выпусками, не находятся, и первый запуск после обновления вызывает LLM для
+  каждого запроса.</li>
+<li>Сторонний <code>AsyncLLMResponseCache</code> без <code>delete</code> продолжает выдавать ответы,
+  которые отвергает библиотека. Реализуйте <code>delete</code> или смиритесь с
+  повторением.</li>
+<li><code>PdfPlumberParser.extract_text</code> открывает PDF один раз для текста и таблиц,
+  тогда как раньше открывал дважды.</li>
+<li><code>AsyncSqliteEmbeddingStore.query</code> работает намного быстрее при повторных
+  вызовах. Хранилище держит векторы в памяти и перечитывает их только после
+  изменения файла, оценивает их одним произведением NumPy и читает текст и
+  метаданные только для возвращаемых фрагментов. Граф связанных статей по
+  памяти из 9 000 фрагментов строится примерно в четыре раза быстрее. Теперь
+  хранилище держит векторы в памяти между запросами, пока его не закроют.</li>
+<li>Выпуски больше не задерживаются, пока sci-etl-cli и udg-catalogue не начнут
+  на них работать; вместо этого готовность потребителей отражается в
+  примечаниях к выпуску.</li>
+</ul>
+<h3 id="fixed">Исправлено<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>AsyncArxivExtractor</code> повторяет запрос при тайм-ауте <code>408</code>, как и другие
+  встроенные экстракторы. Теперь он использует их общий код повторов, поэтому
+  его сообщения о повторах и сбоях начинаются с <code>arXiv</code> и называют действие,
+  например <code>arXiv LaTeX fetch for '2401.00001v1' failed after 3 attempts</code>.</li>
+<li><code>AsyncSqliteFts5Store.search</code> выбрасывает <code>SearchQueryError</code> с указанием
+  версии SQLite, когда SQLite не может подсветить группу <code>NEAR</code> с ограничением
+  по полю внутри <code>OR</code> или <code>NOT</code>, как SQLite 3.50.4 делает для некоторых
+  документов. Раньше выбрасывался <code>SearchStoreError</code> с сообщением «database disk
+  image is malformed», которое выглядит как повреждённый индекс.</li>
+<li><code>CachingLLMClient</code> больше не воспроизводит ответ, который отверг экстрактор
+  сущностей или фильтр релевантности. Отвергнутый ответ кэшировался, поэтому
+  каждая повторная попытка получала тот же ответ, пока запись не попадала в
+  карантин, а модель так и не опрашивалась заново.</li>
+</ul>
+<h2 id="050-2026-09-25"><a href="https://github.com/xueromll/sci-etl-core/compare/v0.4.1...v0.5.0">0.5.0</a> - 2026-09-25<a class="headerlink" href="#050-2026-09-25" title="Permanent link">&para;</a></h2>
+<p>Этот выпуск меняет то, как экстракторы листают выдачу, какое состояние запуска
+сохраняется и как создаётся конвейер. Состояние, сохранённое 0.4, обновляется
+автоматически. Об изменениях в коде см. раздел «Обновление до 0.5» в
+MIGRATION.md.</p>
+<h3 id="added_2">Добавлено<a class="headerlink" href="#added_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Листание по курсору.</strong> Экстракторы возвращают из <code>fetch_page</code>
+  <code>ListingPage</code> с курсором следующей страницы. Экстракторы, листающие по
+  смещению, также реализуют <code>OffsetListing</code>, который требуется запускам
+  <code>newest_first</code> и <code>run(start_index=)</code>.</li>
+<li><strong>Карантин для записей, которые продолжают проваливаться.</strong>
+  <code>run(max_attempts=3)</code> пропускает запись, не удавшуюся в 3 запусках.
+  <code>RunMetrics.quarantined</code> считает пропущенные записи. Оба встроенных
+  менеджера состояния хранят число попыток и последнюю ошибку каждой записи.</li>
+<li><strong>Сообщения о лимитах результатов.</strong> <code>RunMetrics.listing_truncated</code>,
+  <code>PageFetched.truncated</code> и <code>PipelineMetadata.truncated</code> показывают, когда
+  источник остановился на своём лимите результатов. События прогресса также
+  содержат <code>cursor</code> страницы.</li>
+<li><strong>Табличные приёмники.</strong> <code>SqlTableSink</code> и <code>Plotly3DSink</code> в
+  <code>sci_etl_core.processors.sinks</code> записывают <code>DataFrame</code> после постобработки.</li>
+<li><strong>Версии схем.</strong> База данных состояния SQLite, кэш LLM, хранилище
+  эмбеддингов и файловое состояние записывают версию схемы. Файл, записанный
+  более новым выпуском, отвергается, для файлов состояния — с
+  <code>StateStoreError</code>.</li>
+<li><code>StaleCursorError</code> для курсора, который источник больше не принимает.</li>
+<li><code>BaseAppConfig.strict_sections</code> для отключения строгой валидации
+  конфигурации.</li>
+<li><code>LegacyExtractorAdapter</code>, который запускает экстрактор, написанный для 0.4,
+  пока его не перенесут. Он уже объявлен устаревшим.</li>
+</ul>
+<h3 id="changed_2">Изменено<a class="headerlink" href="#changed_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Ломающее изменение:</strong> <code>AsyncExtractor.fetch_page(query, cursor, page_size)</code>
+  заменяет <code>search</code> и <code>parse_listing</code>. Теперь конвейер сам пропускает
+  обработанные записи.</li>
+<li><strong>Ломающее изменение:</strong> <code>PipelineMetadata.cursor</code> заменяет
+  <code>last_start_index</code>.</li>
+<li><strong>Ломающее изменение:</strong> конструкторы конвейеров принимают пять компонентов
+  позиционно или по имени, а все остальные аргументы — только по имени.
+  <code>run()</code> принимает все аргументы после <code>query</code> только по имени.</li>
+<li><strong>Ломающее изменение:</strong> <code>RawRecord</code>, <code>PipelineMetadata</code>, <code>TokenUsage</code>,
+  <code>RunMetrics</code> и события прогресса нужно создавать с именованными аргументами.</li>
+<li><strong>Ломающее изменение:</strong> неизвестные ключи в разделах конфигурации
+  библиотеки, например <code>search.bm25.titel</code>, не проходят валидацию, а не
+  игнорируются.</li>
+<li><strong>Ломающее изменение:</strong> требуется Python 3.11 или новее.</li>
+<li>Запуск, доходящий до лимита результатов источника, теперь завершается, а
+  следующий запуск снова начинает с первой страницы, а не останавливается на
+  лимите.</li>
+<li>Курсор, отвергнутый источником, один раз перезапускает выдачу с первой
+  страницы.</li>
+<li><code>AsyncOpenAlexExtractor</code> листает с помощью курсоров OpenAlex и больше не
+  ограничен первыми 10 000 результатами. Он больше не поддерживает
+  <code>newest_first</code>.</li>
+<li><code>AsyncPubMedExtractor</code> и <code>AsyncSemanticScholarExtractor</code> останавливаются на
+  последней странице результатов без лишнего пустого запроса.</li>
+</ul>
+<h3 id="deprecated">Устарело<a class="headerlink" href="#deprecated" title="Permanent link">&para;</a></h3>
+<p>Эти имена продолжают работать в 0.5 и удаляются в 0.6.0.</p>
+<p>С уже доступной заменой (<code>DeprecationWarning</code>):</p>
+<ul>
+<li>блокирующие интерфейсы <code>Extractor</code>, <code>StateManager</code>, <code>Exporter</code>,
+  <code>LLMClient</code>, <code>RelevanceFilter</code> и <code>EntityExtractor</code> и классы <code>Sync*Adapter</code>;</li>
+<li><code>LegacyExtractorAdapter</code>;</li>
+<li><code>AsyncSqlTableExporter</code> и <code>AsyncPlotly3DExporter</code>, заменённые
+  <code>SqlTableSink</code> и <code>Plotly3DSink</code>.</li>
+</ul>
+<p>С заменой, которая появится в 0.6.0 (<code>PendingDeprecationWarning</code>, так что пока
+ничего менять не нужно):</p>
+<ul>
+<li>аргументы <code>logger=</code> и <code>configure_logging</code>;</li>
+<li><code>AsyncETLPipeline(destination=)</code>;</li>
+<li><code>AsyncExporter.export</code> и <code>AsyncCsvUpsertExporter</code>.</li>
+</ul>
+<h3 id="removed_1">Удалено<a class="headerlink" href="#removed_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Ключи конфигурации <code>pipeline.max_records</code> и <code>pipeline.max_workers</code>,
+  соответствующие свойства <code>PipelineConfig</code> и <code>run(max_records=)</code>. Используйте
+  <code>total_limit</code> и <code>max_concurrency</code>.</li>
+<li><code>build_retrying_session</code>, а также <code>requests</code> из extra <code>full</code>.</li>
+</ul>
+<h3 id="fixed_1">Исправлено<a class="headerlink" href="#fixed_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>AsyncPubMedExtractor</code> больше не запрашивает результаты дальше 9 999-го,
+  которые PubMed отвергает.</li>
+</ul>
+<h2 id="041-2026-09-25"><a href="https://github.com/xueromll/sci-etl-core/compare/v0.4.0...v0.4.1">0.4.1</a> - 2026-09-25<a class="headerlink" href="#041-2026-09-25" title="Permanent link">&para;</a></h2>
+<h3 id="changed_3">Изменено<a class="headerlink" href="#changed_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>HttpConfig.user_agent</code> и <code>build_async_client</code> по умолчанию используют
+  <code>sci-etl-core/&lt;installed version&gt;</code> вместо <code>sci-etl-core/0.1</code>.</li>
+</ul>
+<h3 id="fixed_2">Исправлено<a class="headerlink" href="#fixed_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>load_config_async</code> и <code>AsyncCsvUpsertExporter</code> проверяют существование файла
+  в рабочем потоке, а не блокируют цикл событий.</li>
+<li>Extras <code>sql</code> и <code>full</code> требуют <code>sqlalchemy[asyncio]</code>, поэтому устанавливают
+  <code>greenlet</code>. SQLAlchemy 2.1 больше не устанавливает его по умолчанию, и без
+  него <code>AsyncSqlTableExporter</code> не удавалось импортировать.</li>
+</ul>
+<h2 id="040-2026-09-16"><a href="https://github.com/xueromll/sci-etl-core/compare/v0.3.0...v0.4.0">0.4.0</a> - 2026-09-16<a class="headerlink" href="#040-2026-09-16" title="Permanent link">&para;</a></h2>
+<h3 id="added_3">Добавлено<a class="headerlink" href="#added_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>AsyncPubMedExtractor</code>, <code>AsyncSemanticScholarExtractor</code> и
+  <code>AsyncOpenAlexExtractor</code>. Каждый заполняет <code>RawRecord.metadata</code> полями
+  <code>authors</code> и <code>categories</code>, а также <code>published</code> и <code>year</code>, если у источника есть
+  дата, и повторяет запросы при сбоях транспорта, <code>408</code>, <code>429</code> и ошибках
+  сервера, соблюдая <code>Retry-After</code>. <code>AsyncOpenAlexExtractor</code> также сохраняет
+  работы, которые цитирует статья, под ключом <code>references</code>.</li>
+<li><code>DocxParser</code> для файлов Word <code>.docx</code> и <code>JatsXmlParser</code> для JATS XML, чей
+  <code>parse_article</code> возвращает <code>JatsArticle</code> с разделами, авторами, ключевыми
+  словами, идентификаторами и ссылками.</li>
+<li>Кэширование ответов LLM: <code>CachingLLMClient</code> оборачивает любой
+  <code>AsyncLLMClient</code> и отвечает на повторяющиеся запросы из
+  <code>AsyncLLMResponseCache</code> — <code>InMemoryLLMResponseCache</code> или
+  <code>AsyncSqliteLLMResponseCache</code>. Сбой кэша записывается в журнал и учитывается в
+  <code>CacheStats</code>, выбрасывается хранилищами как <code>LLMCacheError</code> и никогда не
+  приводит к неудаче запроса к модели.</li>
+<li>Корректное завершение: <code>AsyncETLPipeline(shutdown=)</code> и
+  <code>ETLPipeline(shutdown=)</code> принимают <code>ShutdownSignal</code>, поэтому SIGINT, SIGTERM
+  или <code>request()</code> дают завершиться записям в обработке и выбрасывают
+  <code>PipelineInterrupted</code> — подкласс <code>PipelineAborted</code>. Теперь каждый запуск,
+  как бы он ни закончился, завершается вызовом <code>flush()</code> менеджера состояния.</li>
+<li>События прогресса и метрики запуска: <code>on_event</code> получает <code>RunStarted</code>,
+  <code>PageFetched</code>, <code>RecordFinished</code>, <code>PageFinished</code> и <code>RunFinished</code> из
+  <code>sci_etl_core.observability</code>, а <code>last_run_metrics</code> возвращает <code>RunMetrics</code> со
+  счётчиками, длительностями, исходом запуска и токенами, израсходованными
+  <code>usage_sources</code>. <code>TokenUsage</code> поддерживает <code>+</code> и <code>-</code>.</li>
+<li><code>run(newest_first=True)</code> подхватывает новые поступления в выдаче «сначала
+  новые» без повторного сканирования со смещения 0. В <code>PipelineMetadata</code>
+  появились <code>head_ids</code>, <code>head_offset</code> и <code>tail_ids</code>, которые сохраняют оба
+  бэкенда состояния.</li>
+<li><code>rate_limiter</code> у каждого встроенного экстрактора,
+  <code>AsyncOpenAICompatibleClient</code> и <code>AsyncOpenAIEmbedder</code>, а также
+  <code>HostRateLimiter</code> для ограничений по хостам.</li>
+<li>Компоненты, создаваемые из конфигурации: <code>AsyncArxivExtractor.from_config</code>,
+  <code>AsyncOpenAICompatibleClient.from_config</code>, <code>AsyncETLPipeline.from_config</code> и
+  <code>ETLPipeline.from_config</code>, а также <code>HttpConfig.build_client()</code>,
+  <code>RateLimitConfig.build_limiter()</code> и <code>PipelineConfig.run_arguments()</code>. Раздел
+  конфигурации <code>search</code> строит <code>BM25Weights</code>, <code>FusionParams</code>, <code>HybridParams</code> и
+  <code>GraphParams</code>. В <code>PipelineConfig</code> появился <code>newest_first</code>, а у
+  <code>AsyncOpenAICompatibleClient</code> — свойство <code>model</code>.</li>
+<li><code>AsyncLLMEntityExtractor(validator=, logger=, label_field=)</code> отбрасывает и
+  записывает в журнал сущности, которые отвергает <code>RecordValidator</code>.</li>
+<li><code>ScatterPlotConfig</code> принимает <code>hover_data_columns</code>, <code>hover_template</code>,
+  <code>color_continuous_scale</code>, <code>color_range</code>, <code>color_label</code>, <code>marker</code> и <code>layout</code>.</li>
+<li><code>ValueClipStep</code> зажимает числовые столбцы при постобработке, а
+  <code>TableLayoutStep</code> сортирует строки и упорядочивает столбцы.</li>
+<li>Запросы близости <code>NEAR(...)</code> в языке запросов — как узел <code>Near</code> с
+  <code>NEAR_DISTANCE</code>, поддерживаемый обоими текстовыми хранилищами, — и
+  <code>QueryChip.near</code>.</li>
+<li>Фильтры по диапазонам: <code>RangeFilter</code> оставляет записи, теги которых лежат
+  между целочисленными или текстовыми границами, например годами или датами
+  ISO 8601, в обоих текстовых хранилищах, гибридном поиске и <code>filter_graph</code>.
+  <code>AsyncTextSearchStore.range_counts</code> считает совпадения в каждом из нескольких
+  диапазонов. <code>SearchFilter</code> обозначает любой из этих типов фильтров.</li>
+<li>Более богатые сниппеты: <code>TextHit.snippets</code> и <code>FusedHit.snippets</code> содержат
+  <code>Snippet</code> для каждого поля с подсвеченным совпадением. <code>passage_snippet</code> и
+  <code>snippet_window</code> строят сниппеты для другого текста.</li>
+<li><code>backfill_text_index</code> строит текстовый индекс из фрагментов в векторной
+  памяти, удаляя слова, общие для перекрывающихся фрагментов
+  (<code>merge_passages</code>), и сообщает о проделанном в <code>BackfillReport</code>.
+  <code>AsyncEmbeddingStore.iter_records</code> выдаёт фрагменты каждой записи как
+  <code>StoredRecord</code>, не загружая векторы; реализован обоими встроенными
+  хранилищами.</li>
+<li><code>AsyncSimilarArticleFinder.find_best_chunks</code> возвращает лучший фрагмент
+  каждой статьи вместе с текстом. <code>SlidingWindowChunker</code> предоставляет
+  <code>chunk_words</code> и <code>overlap_words</code>.</li>
+</ul>
+<h3 id="changed_4">Изменено<a class="headerlink" href="#changed_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>PipelineConfig.max_records</code> теперь называется <code>total_limit</code>, а
+  <code>max_workers</code> — <code>max_concurrency</code>. Старые ключи YAML и атрибуты продолжают
+  работать с <code>DeprecationWarning</code> до 0.5.0, а загрузка конфигурации, в которой
+  старый и новый ключи заданы разными значениями, вызывает
+  <code>ConfigurationError</code>. <code>run(max_records=)</code> устарел так же.</li>
+<li><code>build_retrying_session</code> объявлен устаревшим и будет удалён в 0.5.0 вместе с
+  <code>requests</code> в extra <code>full</code>.</li>
+<li>Результат гибридного поиска, найденный только семантической ветвью, теперь
+  несёт сниппет своего лучшего фрагмента в <code>snippet</code>, <code>highlights</code> и
+  <code>snippets</code>, тогда как раньше они были пустыми. Коду, который показывал
+  аннотацию всякий раз, когда <code>snippet</code> был пуст, следует вместо этого
+  проверять <code>lexical_rank is None</code>.</li>
+<li><code>ETLPipeline.run</code> ждёт фоновый цикл короткими интервалами, поэтому
+  обработчик сигналов в вызывающем потоке срабатывает быстро, а
+  <code>KeyboardInterrupt</code> отменяет запуск в фоновом цикле.</li>
+</ul>
+<h2 id="030-2026-09-15"><a href="https://github.com/xueromll/sci-etl-core/compare/v0.2.0...v0.3.0">0.3.0</a> - 2026-09-15<a class="headerlink" href="#030-2026-09-15" title="Permanent link">&para;</a></h2>
+<h3 id="added_4">Добавлено<a class="headerlink" href="#added_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Локальный булев поиск в <code>sci_etl_core.search</code>, которому нужна только
+  стандартная библиотека:</li>
+<li>Язык запросов с терминами, <code>"фразами"</code>, префиксными терминами <code>prefix*</code>,
+    ограничениями <code>title:</code>, <code>abstract:</code> и <code>body:</code>, операторами <code>AND</code>, <code>OR</code> и
+    <code>NOT</code> (также записываемыми как <code>&amp;&amp;</code>, <code>||</code>, <code>-</code> или, для <code>AND</code>, ничем) и
+    скобками. <code>parse_query</code> возвращает нормализованное AST, а некорректный
+    запрос вызывает <code>SearchQueryError</code>, у которого <code>position</code> и <code>token</code>
+    указывают на ошибку. <code>describe</code> превращает запрос в метки-чипы для
+    отображения.</li>
+<li><code>AsyncSqliteFts5Store</code> — надёжный текстовый индекс на SQLite FTS5. Он
+    ранжирует по BM25 с весами полей <code>BM25Weights</code>, возвращает сниппеты в виде
+    простого текста со смещениями подсветки, фильтрует по метаданным
+    (<code>MetadataFilter</code>), считает фасеты по своим <code>facet_keys</code> и предлагает для
+    обслуживания <code>optimize</code>, <code>rebuild_index</code>, <code>rebuild_tags</code> и
+    <code>integrity_check</code>. <code>fts5_available()</code> сообщает, включает ли SQLite
+    интерпретатора FTS5.</li>
+<li><code>InMemoryTextSearchStore</code>, который находит те же записи, что и хранилище
+    FTS5.</li>
+<li><code>AsyncSearchIndexer</code> — аналог <code>AsyncChunkIngestor</code> для текстового индекса.</li>
+<li>Слияние ранжирований с помощью <code>reciprocal_rank_fusion</code> (по умолчанию) или
+    <code>normalized_score_fusion</code>, настраиваемое через <code>FusionParams</code>.</li>
+<li><code>AsyncHybridSearcher</code>, который выполняет лексический, семантический или
+    гибридный поиск и сообщает в <code>SearchOutcome.degraded</code> и
+    <code>SearchOutcome.skipped</code>, какие ветви поиска отказали или были пропущены.</li>
+<li>Графы связанных статей в <code>sci_etl_core.search</code>. <code>build_discovery_graph</code>
+  выращивает окрестность исходной записи в ширину из одного или нескольких
+  источников рёбер, по умолчанию оставляет только взаимных ближайших соседей и
+  группирует записи в сообщества детерминированным распространением меток.
+  <code>GraphParams</code> ограничивает глубину, ветвление, минимальный вес ребра, число
+  узлов и число проходов распространения меток, а
+  <code>DiscoveryGraph.communities_converged</code> сообщает, прервал ли лимит проходов
+  распространение меток. <code>filter_graph</code> сужает построенный граф до найденных
+  записей и фильтров по метаданным без какого-либо ввода-вывода.
+  <code>label_communities</code> и <code>select_edges</code> тоже публичны.</li>
+<li>Источники рёбер за новым интерфейсом <code>AsyncEdgeSource</code>.
+  <code>EmbeddingEdgeSource</code> связывает записи по косинусному сходству в векторной
+  памяти, а <code>MetadataEdgeSource</code> — по доле общих тегов у двух записей,
+  например категорий arXiv и авторов.</li>
+<li><code>sci_etl_core.discovery</code> — модель чтения для пользовательских интерфейсов:
+  <code>Facet</code> и <code>DiscoveryResult</code>, экспортируемые также из <code>sci_etl_core</code>. Его
+  импорт не загружает ни хранилищ, ни необязательных зависимостей.</li>
+<li><code>AsyncCompositeIngestor</code>, который отправляет каждую запись сразу в несколько
+  бэкендов памяти, например в векторную память и текстовый индекс, так что сбой
+  памяти в одном из них не останавливает остальные.</li>
+<li><code>MemoryIngestor</code> — протокол, которому удовлетворяет <code>memory_ingestor</code>, и
+  <code>MEMORY_FAULTS</code> — исключения, которые конвейер считает сбоями памяти.</li>
+<li><code>SearchError</code> с подклассами <code>SearchQueryError</code> и <code>SearchStoreError</code>.</li>
+<li>Extra <code>search</code>. Он ничего не устанавливает, потому что поиску нужна только
+  стандартная библиотека; он позволяет файлу зависимостей указать, зачем нужен
+  пакет.</li>
+</ul>
+<h3 id="changed_5">Изменено<a class="headerlink" href="#changed_5" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>AsyncETLPipeline(memory_ingestor=)</code> принимает любой <code>MemoryIngestor</code>.
+  <code>SearchStoreError</code> при загрузке в память записывается в журнал, а сущности
+  записи всё равно экспортируются, как и при сбое эмбеддингов.
+  <code>SearchQueryError</code> не является сбоем памяти и приводит к неудаче записи.</li>
+<li><code>RawRecord.metadata</code> больше не пуст для записей arXiv: <code>AsyncArxivExtractor</code>
+  заполняет его полями <code>categories</code>, <code>authors</code>, <code>published</code> и <code>year</code>. Код,
+  сравнивавший <code>metadata == {}</code>, это заметит. Метаданные фрагментов, которые
+  сохраняет <code>AsyncChunkIngestor</code>, не изменились.</li>
+<li><code>AsyncSqliteEmbeddingStore</code> работает на общем внутреннем исполнителе SQLite.
+  Поведение при этом сохраняется: типы исключений, сообщения, транзакции и
+  поведение при отмене не изменились.</li>
+</ul>
+<h3 id="fixed_3">Исправлено<a class="headerlink" href="#fixed_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>AsyncSqliteStateManager</code>: отмена задачи, ожидающей операции с состоянием,
+  больше не освобождает соединение, пока его ещё использует рабочий поток.
+  Следующая операция ждёт завершения этого потока.</li>
+</ul>
+<h2 id="020-2026-09-14"><a href="https://github.com/xueromll/sci-etl-core/compare/v0.1.2...v0.2.0">0.2.0</a> - 2026-09-14<a class="headerlink" href="#020-2026-09-14" title="Permanent link">&para;</a></h2>
+<h3 id="security">Безопасность<a class="headerlink" href="#security" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>load_config</code> и <code>load_config_async</code> больше не копируют текст ошибки pydantic
+  в <code>ConfigurationError</code>. Этот текст мог включать сырые настройки, а вместе с
+  ними и ключ API, прочитанный из окружения. Теперь сообщение перечисляет
+  каждый ошибочный ключ и причину без значения, а ошибка валидации больше не
+  связывается с ним в цепочку.</li>
+</ul>
+<h3 id="added_5">Добавлено<a class="headerlink" href="#added_5" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>validate_config(config_cls, raw, source)</code> проверяет настройки, загруженные
+  иным способом, с теми же сообщениями, не раскрывающими секретов.</li>
+<li>Поддержка <code>Retry-After</code>. <code>AsyncArxivExtractor</code>,
+  <code>AsyncOpenAICompatibleClient</code> и <code>AsyncOpenAIEmbedder</code> ждут столько, сколько
+  просит ответ с ограничением частоты или ошибкой, — через <code>Retry-After</code> или
+  заголовок <code>retry-after-ms</code>, который отправляют OpenAI-совместимые API, — если
+  это дольше их отсрочки. Новый аргумент <code>max_retry_after</code> ограничивает ожидание
+  (по умолчанию 60 секунд).</li>
+<li>Экстрактор arXiv записывает в журнал каждую повторную попытку и время
+  ожидания.</li>
+<li>Расход токенов. <code>AsyncOpenAICompatibleClient.usage</code> и
+  <code>AsyncOpenAIEmbedder.usage</code> возвращают снимок <code>TokenUsage</code> с <code>requests</code>,
+  <code>prompt_tokens</code>, <code>completion_tokens</code> и <code>total_tokens</code>. Свойство <code>usage</code> у
+  <code>AsyncLLMClient</code> и <code>AsyncEmbedder</code> возвращает <code>None</code>, если его не
+  переопределить.</li>
+<li>ruff и mypy запускаются в CI, а extra <code>lint</code> устанавливает их локально.</li>
+<li>Этот журнал изменений.</li>
+</ul>
+<h3 id="changed_6">Изменено<a class="headerlink" href="#changed_6" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Встроенные повторы OpenAI SDK отключены в клиентах чата и эмбеддингов,
+  поэтому <code>max_retries</code> теперь означает общее число попыток. Раньше SDK мог сам
+  повторять каждую из этих попыток.</li>
+<li>Сообщения о некорректных настройках начинаются с
+  <code>Invalid configuration in &lt;file&gt;:</code> и выводят каждую проблему на отдельной
+  строке.</li>
+<li><code>AsyncETLPipeline.__aexit__</code> аннотирован как возвращающий <code>None</code>, поэтому
+  средства проверки типов знают, что <code>async with pipeline</code> никогда не подавляет
+  исключение.</li>
+</ul>
+<h2 id="012-2026-09-14"><a href="https://github.com/xueromll/sci-etl-core/compare/v0.1.1...v0.1.2">0.1.2</a> - 2026-09-14<a class="headerlink" href="#012-2026-09-14" title="Permanent link">&para;</a></h2>
+<h3 id="fixed_4">Исправлено<a class="headerlink" href="#fixed_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>max_concurrency</code>, равный 0, оставлял каждую запись в вечном ожидании.
+  Значения меньше 1 теперь вызывают <code>ValueError</code>, как и <code>page_size</code> меньше 1 и
+  отрицательный <code>total_limit</code>.</li>
+<li>Одна неудавшаяся запись на странице с остальными нерелевантными записями
+  прерывала весь запуск. Теперь запуск прерывается, только когда вторая
+  страница не удаётся без единой обработанной записи до какого-либо прогресса
+  или когда выдача заканчивается сразу после такой страницы.</li>
+<li>Конвейер выжидал <code>sleep_between</code> ещё раз после достижения <code>total_limit</code>.</li>
+<li><code>max_retries</code> меньше 1 приводил к тому, что экстрактор arXiv, клиент LLM и
+  эмбеддер проваливались, не сделав ни одной попытки. Теперь это вызывает
+  <code>ValueError</code>.</li>
+<li><code>configure_logging</code> не работал, если отсутствовала папка файла журнала, и
+  игнорировал другой файл или уровень при последующих вызовах.</li>
+<li><code>AsyncFileStateManager</code> молча удалял пробелы из идентификаторов записей,
+  поэтому такие записи обрабатывались заново при каждом запуске. Теперь он их
+  отвергает, а конвейер пропускает пустые идентификаторы.</li>
+<li><code>last_run_at</code> записывается в UTC со смещением, а не в наивном местном
+  времени.</li>
+</ul>
+<h3 id="added_6">Добавлено<a class="headerlink" href="#added_6" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>PipelineConfig.page_size</code> и <code>PipelineConfig.search_delay</code>.</li>
+<li>Проверка диапазонов для каждого раздела конфигурации.</li>
+</ul>
+<h3 id="changed_7">Изменено<a class="headerlink" href="#changed_7" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Процесс выпуска загружает собранные файлы в уже существующий выпуск GitHub,
+  а не завершается ошибкой.</li>
+</ul>
+<h2 id="011-2026-09-14"><a href="https://github.com/xueromll/sci-etl-core/compare/v0.1.0...v0.1.1">0.1.1</a> - 2026-09-14<a class="headerlink" href="#011-2026-09-14" title="Permanent link">&para;</a></h2>
+<h3 id="added_7">Добавлено<a class="headerlink" href="#added_7" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Процесс выпуска, запускаемый тегом, который прогоняет набор тестов CI,
+  сверяет тег с версией проекта и публикует в PyPI с помощью доверенной
+  публикации.</li>
+<li>Метаданные пакета для PyPI: лицензия, ключевые слова, классификаторы и URL
+  проекта.</li>
+</ul>
+<h2 id="010-2026-09-13"><a href="https://github.com/xueromll/sci-etl-core/releases/tag/v0.1.0">0.1.0</a> - 2026-09-13<a class="headerlink" href="#010-2026-09-13" title="Permanent link">&para;</a></h2>
+<p>Первый выпуск с тегом: асинхронный конвейер и его блокирующий фасад, экстрактор
+arXiv, OpenAI-совместимые клиенты чата и эмбеддингов, парсеры PDF, LaTeX и
+HTML, экспортёры CSV, SQL и Plotly, процессоры датафреймов и валидаторы,
+файловое состояние и состояние в SQLite, семантическая память и руководство по
+миграции udg-catalogue.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  К началу
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Нижний колонтитул" >
+        
+          
+          <a href="../../reference/utilities/" class="md-footer__link md-footer__link--prev" aria-label="Назад: Утилиты">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Назад
+              </span>
+              <div class="md-ellipsis">
+                Утилиты
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../migration/" class="md-footer__link md-footer__link--next" aria-label="Вперед: Руководство по миграции">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Вперед
+              </span>
+              <div class="md-ellipsis">
+                Руководство по миграции
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Released under the MIT License.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/xueromll/sci-etl-core" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/sci-etl-core/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 444.7a20.4 20.4 0 1 1 0-40.7 20.4 20.4 0 1 1 0 40.7M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.6-183.4a20.4 20.4 0 1 1 0 40.8 20.4 20.4 0 1 1 0-40.8"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["content.code.copy", "navigation.footer", "navigation.indexes", "navigation.sections", "navigation.tabs", "navigation.top", "search.highlight", "search.suggest", "toc.follow"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
