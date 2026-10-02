@@ -26,7 +26,7 @@
         
           <link rel="alternate" href="./" hreflang="es">
         
-          <link rel="alternate" href="../../../zh/project/translating/" hreflang="zh">
+          <link rel="alternate" href="../../../zh-Hans/project/translating/" hreflang="zh-Hans">
         
           <link rel="alternate" href="../../../ar/project/translating/" hreflang="ar">
         
@@ -207,7 +207,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../../../zh/project/translating/" hreflang="zh" class="md-select__link">
+            <a href="../../../zh-Hans/project/translating/" hreflang="zh-Hans" class="md-select__link">
               简体中文
             </a>
           </li>
@@ -2599,10 +2599,21 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#ownership" class="md-nav__link">
+  <a href="#machine-translation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Ownership
+        Machine translation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#coordinators-and-reviewers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Coordinators and reviewers
       
     </span>
   </a>
@@ -2824,10 +2835,21 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#ownership" class="md-nav__link">
+  <a href="#machine-translation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Ownership
+        Machine translation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#coordinators-and-reviewers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Coordinators and reviewers
       
     </span>
   </a>
@@ -2970,15 +2992,36 @@
 <h1 id="translating-the-documentation">Translating the Documentation<a class="headerlink" href="#translating-the-documentation" title="Permanent link">&para;</a></h1>
 <p>The documentation site is published in English, Russian, Spanish, Simplified
 Chinese, and Modern Standard Arabic. English is the source, and every
-translated page follows its English page. This guide names the owner of each
-language, says how translations stay in sync, and lists the words to use.</p>
-<h2 id="ownership">Ownership<a class="headerlink" href="#ownership" title="Permanent link">&para;</a></h2>
+translated page follows its English page. This guide names the coordinator of
+each language, says how translations stay in sync, and lists the words to use.</p>
+<h2 id="machine-translation">Machine translation<a class="headerlink" href="#machine-translation" title="Permanent link">&para;</a></h2>
+<p><strong>Every translated page is currently machine translation.</strong> The Russian,
+Spanish, Simplified Chinese, and Arabic pages were produced in one pass by a
+language model rather than written by translators, and no native speaker has
+reviewed them yet.</p>
+<p>That pass checked structure and terminology: every page keeps its English
+page's headings, <code>{#anchor}</code> ids, code blocks, links, tables, and admonitions,
+and uses the <a href="#glossary">glossary</a> terms. What it can't promise is that the
+prose reads the way a practitioner in that language would write it.</p>
+<p>So:</p>
+<ul>
+<li><strong>English is authoritative.</strong> Where a translated page and its English page
+  disagree, the English page is right; please report the difference as an
+  issue.</li>
+<li><strong>A native-speaker review is the most valuable contribution a language can
+  get.</strong> Every reviewer slot in the table below is open, and the table records
+  who fills one.</li>
+<li><strong>Fix the glossary, not only the page.</strong> A term translated badly is usually
+  wrong on every page that uses it, so correct the <a href="#glossary">glossary</a> row
+  and the pages that follow it in the same change.</li>
+</ul>
+<h2 id="coordinators-and-reviewers">Coordinators and reviewers<a class="headerlink" href="#coordinators-and-reviewers" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
 <th>Language</th>
 <th>Pages</th>
-<th>Owner</th>
+<th>Coordinator</th>
 <th>Native-speaker reviewer</th>
 </tr>
 </thead>
@@ -2997,7 +3040,7 @@ language, says how translations stay in sync, and lists the words to use.</p>
 </tr>
 <tr>
 <td>Simplified Chinese</td>
-<td><code>docs/**/*.zh.md</code></td>
+<td><code>docs/**/*.zh-Hans.md</code></td>
 <td><a href="https://github.com/xueromll">@xueromll</a></td>
 <td>open</td>
 </tr>
@@ -3009,9 +3052,9 @@ language, says how translations stay in sync, and lists the words to use.</p>
 </tr>
 </tbody>
 </table>
-<p><a href="https://github.com/xueromll/sci-etl-core/blob/master/.github/CODEOWNERS"><code>.github/CODEOWNERS</code></a> assigns the same owners, so GitHub
-asks the owner to review every pull request that touches their language.</p>
-<p>The owner of a language:</p>
+<p><a href="https://github.com/xueromll/sci-etl-core/blob/master/.github/CODEOWNERS"><code>.github/CODEOWNERS</code></a> assigns the same people, so GitHub
+asks the coordinator to review every pull request that touches their language.</p>
+<p>The coordinator of a language:</p>
 <ul>
 <li>keeps every translated page in step with its English page, as
   <a href="#keeping-translations-in-sync">Keeping translations in sync</a> describes;</li>
@@ -3020,10 +3063,11 @@ asks the owner to review every pull request that touches their language.</p>
   <a href="#glossary">glossary</a> before a page uses it.</li>
 </ul>
 <p>A native-speaker reviewer checks that the wording reads naturally and that the
-glossary uses the terms practitioners use. To review a language, open an issue
-that names it, and the owner adds you to the table. Ownership of a language
-moves when the current owner and the new owner agree; the table and
-<code>CODEOWNERS</code> change in the same pull request.</p>
+glossary uses the terms practitioners use — the review the machine-translated
+pages have not had yet. To review a language, open an issue that names it, and
+the coordinator adds you to the table. A language's coordination moves when the
+current coordinator and the new one agree; the table and <code>CODEOWNERS</code> change in
+the same pull request.</p>
 <h2 id="keeping-translations-in-sync">Keeping translations in sync<a class="headerlink" href="#keeping-translations-in-sync" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Same pull request.</strong> A pull request that changes an English page under
@@ -3032,8 +3076,12 @@ moves when the current owner and the new owner agree; the table and
   <code>SECURITY.md</code>, or <code>CODE_OF_CONDUCT.md</code>), updates the page's four
   translations too.</li>
 <li><strong>Can't write a language?</strong> Say which in the pull request description. The
-  owner of that language adds the translation before the pull request merges,
-  so no translated page falls behind its English page on <code>master</code>.</li>
+  coordinator of that language adds the translation before the pull request
+  merges, so no translated page falls behind its English page on <code>master</code>.</li>
+<li><strong>Machine translation is accepted for now.</strong> Until a language has a
+  native-speaker reviewer, a machine-translated page that keeps the structure
+  and the glossary terms beats a page that falls behind its English one. Say in
+  the pull request description which pages were machine translated.</li>
 <li><strong>New pages</strong> ship with their four translations, and their menu title gets a
   <code>nav_translations</code> entry for each language in <code>mkdocs.yml</code>.</li>
 <li><strong>Glossary first.</strong> A term the glossary lacks is added, in all four
@@ -3046,7 +3094,9 @@ moves when the current owner and the new owner agree; the table and
 <h2 id="writing-a-translated-page">Writing a translated page<a class="headerlink" href="#writing-a-translated-page" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>File.</strong> <code>page.&lt;lang&gt;.md</code> beside <code>page.md</code>, where <code>&lt;lang&gt;</code> is <code>ru</code>, <code>es</code>,
-  <code>zh</code>, or <code>ar</code>.</li>
+  <code>zh-Hans</code>, or <code>ar</code>. Chinese carries its script subtag so that Traditional
+  Chinese can join later as <code>zh-Hant</code> without renaming anything, which is also
+  why the Chinese pages are published under <code>/zh-Hans/</code>.</li>
 <li><strong>Structure.</strong> The same headings in the same order and at the same levels,
   the same code blocks, the same links, and the same tables and admonitions.
   Only the words change.</li>
@@ -3069,6 +3119,18 @@ moves when the current owner and the new owner agree; the table and
   not in the page.</li>
 <li><strong>Check.</strong> <code>mkdocs build --strict</code> must pass. It fails on a link to an
   anchor that a translated heading lost.</li>
+</ul>
+<p>Two settings in <code>mkdocs.yml</code> exist only because the Chinese locale is
+<code>zh-Hans</code> rather than <code>zh</code>:</p>
+<ul>
+<li><code>theme.custom_dir: overrides</code> supplies
+  <code>overrides/partials/languages/zh-Hans.html</code>, since Material ships its
+  Simplified Chinese interface strings as <code>zh</code> and would otherwise fail to
+  render the Chinese pages. Material does ship <code>zh-Hant</code>, so Traditional
+  Chinese would need no such file.</li>
+<li><code>plugins.search.lang</code> lists the lunr languages explicitly, including <code>zh</code>.
+  lunr has no <code>zh-Hans</code>, so leaving the list out would drop Chinese word
+  segmentation from the search index.</li>
 </ul>
 <h2 id="style">Style<a class="headerlink" href="#style" title="Permanent link">&para;</a></h2>
 <table>
@@ -3154,7 +3216,7 @@ ideas.</p>
 </tr>
 <tr>
 <td>pipeline</td>
-<td>конвейер</td>
+<td>пайплайн</td>
 <td>pipeline</td>
 <td>流水线</td>
 <td>خط المعالجة</td>
@@ -3210,14 +3272,14 @@ ideas.</p>
 </tr>
 <tr>
 <td>listing</td>
-<td>выдача</td>
+<td>листинг</td>
 <td>listado</td>
 <td>列表</td>
 <td>القائمة</td>
 </tr>
 <tr>
 <td>listing page</td>
-<td>страница выдачи</td>
+<td>страница листинга</td>
 <td>página de listado</td>
 <td>列表页</td>
 <td>صفحة القائمة</td>
@@ -3238,7 +3300,7 @@ ideas.</p>
 </tr>
 <tr>
 <td>paging</td>
-<td>листание</td>
+<td>пагинация</td>
 <td>paginación</td>
 <td>分页</td>
 <td>التنقل بين الصفحات</td>
@@ -3308,7 +3370,7 @@ ideas.</p>
 </tr>
 <tr>
 <td>settled</td>
-<td>завершённая</td>
+<td>устоявшаяся</td>
 <td>resuelto</td>
 <td>已落定</td>
 <td>مُسوًّى</td>
@@ -3350,7 +3412,7 @@ ideas.</p>
 </tr>
 <tr>
 <td>backoff</td>
-<td>отсрочка</td>
+<td>задержка</td>
 <td>espera exponencial</td>
 <td>退避</td>
 <td>التراجع</td>
@@ -3371,14 +3433,14 @@ ideas.</p>
 </tr>
 <tr>
 <td>flush the exporter</td>
-<td>сбросить экспортёр</td>
+<td>выгрузить экспортёр</td>
 <td>volcar el exportador</td>
 <td>刷新导出器</td>
 <td>تفريغ المصدِّر</td>
 </tr>
 <tr>
 <td>flush the state</td>
-<td>сбросить состояние на диск</td>
+<td>записать состояние на диск</td>
 <td>volcar el estado</td>
 <td>写回状态</td>
 <td>حفظ الحالة</td>
@@ -3490,7 +3552,7 @@ ideas.</p>
 </tr>
 <tr>
 <td>cache hit / miss</td>
-<td>попадание / промах</td>
+<td>попадание / промах кэша</td>
 <td>acierto / fallo de caché</td>
 <td>命中 / 未命中</td>
 <td>إصابة / إخفاق</td>
@@ -3616,14 +3678,14 @@ ideas.</p>
 </tr>
 <tr>
 <td>chunk</td>
-<td>фрагмент</td>
+<td>чанк</td>
 <td>fragmento</td>
 <td>文本块</td>
 <td>المقطع</td>
 </tr>
 <tr>
 <td>chunker</td>
-<td>разбивщик</td>
+<td>чанкер</td>
 <td>fragmentador</td>
 <td>分块器</td>
 <td>المقطِّع</td>
@@ -3672,7 +3734,7 @@ ideas.</p>
 </tr>
 <tr>
 <td>memory fault</td>
-<td>сбой памяти</td>
+<td>сбой компонента памяти</td>
 <td>fallo de memoria</td>
 <td>记忆故障</td>
 <td>عطل الذاكرة</td>
@@ -3938,14 +4000,14 @@ ideas.</p>
 <tbody>
 <tr>
 <td>release</td>
-<td>выпуск</td>
+<td>релиз</td>
 <td>versión</td>
 <td>版本</td>
 <td>الإصدار</td>
 </tr>
 <tr>
 <td>minor release</td>
-<td>минорный выпуск</td>
+<td>минорный релиз</td>
 <td>versión menor</td>
 <td>次版本</td>
 <td>الإصدار الفرعي</td>
@@ -4015,7 +4077,7 @@ ideas.</p>
 </tr>
 <tr>
 <td>issue</td>
-<td>задача</td>
+<td>issue</td>
 <td>incidencia</td>
 <td>议题</td>
 <td>المشكلة</td>
@@ -4029,10 +4091,31 @@ ideas.</p>
 </tr>
 <tr>
 <td>maintainer</td>
-<td>сопровождающий</td>
+<td>мейнтейнер</td>
 <td>persona responsable del mantenimiento</td>
 <td>维护者</td>
 <td>القائم على الصيانة</td>
+</tr>
+<tr>
+<td>machine translation</td>
+<td>машинный перевод</td>
+<td>traducción automática</td>
+<td>机器翻译</td>
+<td>ترجمة آلية</td>
+</tr>
+<tr>
+<td>coordinator</td>
+<td>координатор</td>
+<td>coordinador</td>
+<td>协调人</td>
+<td>المنسّق</td>
+</tr>
+<tr>
+<td>native-speaker review</td>
+<td>проверка носителем языка</td>
+<td>revisión de hablantes nativos</td>
+<td>母语者审校</td>
+<td>مراجعة ناطق أصلي</td>
 </tr>
 </tbody>
 </table>

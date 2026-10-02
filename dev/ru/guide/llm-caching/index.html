@@ -26,7 +26,7 @@
         
           <link rel="alternate" href="../../../es/guide/llm-caching/" hreflang="es">
         
-          <link rel="alternate" href="../../../zh/guide/llm-caching/" hreflang="zh">
+          <link rel="alternate" href="../../../zh-Hans/guide/llm-caching/" hreflang="zh-Hans">
         
           <link rel="alternate" href="../../../ar/guide/llm-caching/" hreflang="ar">
         
@@ -205,7 +205,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../../../zh/guide/llm-caching/" hreflang="zh" class="md-select__link">
+            <a href="../../../zh-Hans/guide/llm-caching/" hreflang="zh-Hans" class="md-select__link">
               简体中文
             </a>
           </li>
@@ -1325,7 +1325,7 @@
   <span class="md-ellipsis">
     
   
-    Запуск конвейеров
+    Запуск пайплайнов
   
 
     
@@ -1341,7 +1341,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Запуск конвейеров
+    Запуск пайплайнов
   
 
           </label>
@@ -1712,7 +1712,7 @@
   <span class="md-ellipsis">
     
   
-    Перенос конвейера
+    Перенос пайплайна
   
 
     
@@ -2808,7 +2808,7 @@
 
 
 <h1 id="llm">Кэширование ответов LLM<a class="headerlink" href="#llm" title="Permanent link">&para;</a></h1>
-<p>Повторный запуск конвейера после сбоя, правки промпта в другом месте или
+<p>Повторный запуск пайплайна после сбоя, правки промпта в другом месте или
 изменения кода экспорта снова задаёт LLM те же вопросы. <code>CachingLLMClient</code>
 отвечает на повторяющиеся запросы из кэша, поэтому они не стоят токенов и
 возвращаются мгновенно:</p>
@@ -2826,7 +2826,7 @@
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="n">relevance_filter</span> <span class="o">=</span> <span class="n">AsyncLLMRelevanceFilter</span><span class="p">(</span><span class="n">llm</span><span class="p">,</span> <span class="n">relevance_prompt</span><span class="p">)</span>
 <a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="n">entity_extractor</span> <span class="o">=</span> <span class="n">AsyncLLMEntityExtractor</span><span class="p">(</span><span class="n">llm</span><span class="p">,</span> <span class="n">extraction_prompt</span><span class="p">)</span>
 </code></pre></div>
-<p>Укажите кэш SQLite в <code>closeables</code> конвейера, чтобы его соединение закрывалось
+<p>Укажите кэш SQLite в <code>closeables</code> пайплайна, чтобы его соединение закрывалось
 в конце запуска.</p>
 <h2 id="how-requests-are-matched">Как сопоставляются запросы<a class="headerlink" href="#how-requests-are-matched" title="Permanent link">&para;</a></h2>
 <p>Ключ запроса строится по имени модели, <code>base_url</code> конечной точки, температуре,
@@ -2930,13 +2930,13 @@
         
         
           
-          <a href="../migrating-a-pipeline/" class="md-footer__link md-footer__link--next" aria-label="Вперед: Перенос конвейера">
+          <a href="../migrating-a-pipeline/" class="md-footer__link md-footer__link--next" aria-label="Вперед: Перенос пайплайна">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Вперед
               </span>
               <div class="md-ellipsis">
-                Перенос конвейера
+                Перенос пайплайна
               </div>
             </div>
             <div class="md-footer__button md-icon">

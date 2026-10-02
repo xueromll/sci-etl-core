@@ -26,7 +26,7 @@
         
           <link rel="alternate" href="../../es/project/contributing/" hreflang="es">
         
-          <link rel="alternate" href="../../zh/project/contributing/" hreflang="zh">
+          <link rel="alternate" href="../../zh-Hans/project/contributing/" hreflang="zh-Hans">
         
           <link rel="alternate" href="../../ar/project/contributing/" hreflang="ar">
         
@@ -203,7 +203,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../../zh/project/contributing/" hreflang="zh" class="md-select__link">
+            <a href="../../zh-Hans/project/contributing/" hreflang="zh-Hans" class="md-select__link">
               简体中文
             </a>
           </li>
@@ -3087,11 +3087,12 @@ Record user-facing changes under the unreleased version in
   rewritten for the site.</li>
 <li><strong>Translations.</strong> The Russian, Spanish, Simplified Chinese, and Arabic
   versions of a page sit beside it as <code>page.ru.md</code>, <code>page.es.md</code>,
-  <code>page.zh.md</code>, and <code>page.ar.md</code>, and the mkdocs-static-i18n plugin builds
+  <code>page.zh-Hans.md</code>, and <code>page.ar.md</code>, and the mkdocs-static-i18n plugin builds
   each language under its own path, such as <code>/ru/</code>. A pull request that
-  changes an English page updates its four translations too.
-  <a href="../translating/">TRANSLATING.md</a> names the owner of each language and
-  holds the glossary and the rules a translated page follows.</li>
+  changes an English page updates its four translations too. All four are
+  machine translated and await a native-speaker review, so English is the
+  authoritative text. <a href="../translating/">TRANSLATING.md</a> names the coordinator of
+  each language and holds the glossary and the rules a translated page follows.</li>
 <li><strong>The CLI section</strong> comes from the <code>docs/</code> folder and <code>nav</code> of the
   sci-etl-cli repository. The build looks for a checkout beside this one, or at
   the path in <code>SCI_ETL_CLI_DIR</code>; without one it leaves the section out, which
@@ -3152,7 +3153,7 @@ body (<code>Closes #123</code>).</p>
 <li>the pages under <code>docs/</code> for usage; keep <code>README.md</code> a short overview</li>
 <li>the Russian, Spanish, Chinese, and Arabic translations of every English
      page you change, following <a href="../translating/">TRANSLATING.md</a>; if you
-     can't write one of them, say so, and its owner adds it before merge</li>
+     can't write one of them, say so, and its coordinator adds it before merge</li>
 <li><code>MIGRATION.md</code> for a breaking change, under the release that ships it</li>
 <li><code>docs/guide/migrating-a-pipeline.md</code> when the change affects moving an
      existing pipeline onto the library</li>

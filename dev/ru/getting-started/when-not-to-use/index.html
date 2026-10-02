@@ -26,7 +26,7 @@
         
           <link rel="alternate" href="../../../es/getting-started/when-not-to-use/" hreflang="es">
         
-          <link rel="alternate" href="../../../zh/getting-started/when-not-to-use/" hreflang="zh">
+          <link rel="alternate" href="../../../zh-Hans/getting-started/when-not-to-use/" hreflang="zh-Hans">
         
           <link rel="alternate" href="../../../ar/getting-started/when-not-to-use/" hreflang="ar">
         
@@ -205,7 +205,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../../../zh/getting-started/when-not-to-use/" hreflang="zh" class="md-select__link">
+            <a href="../../../zh-Hans/getting-started/when-not-to-use/" hreflang="zh-Hans" class="md-select__link">
               简体中文
             </a>
           </li>
@@ -1518,7 +1518,7 @@
   <span class="md-ellipsis">
     
   
-    Запуск конвейеров
+    Запуск пайплайнов
   
 
     
@@ -1534,7 +1534,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Запуск конвейеров
+    Запуск пайплайнов
   
 
           </label>
@@ -1814,7 +1814,7 @@
   <span class="md-ellipsis">
     
   
-    Перенос конвейера
+    Перенос пайплайна
   
 
     
@@ -3025,17 +3025,17 @@
 подходит или когда вам придётся самим построить больше, чем вы ожидаете, чтобы
 вы могли решить это до установки.</p>
 <h2 id="you-need-a-few-values-from-a-handful-of-papers">Вам нужно несколько значений из горстки статей<a class="headerlink" href="#you-need-a-few-values-from-a-handful-of-papers" title="Permanent link">&para;</a></h2>
-<p>Файлы состояния, курсоры выдачи, возобновляемые запуски и кэши окупаются, когда
-корпус слишком велик, чтобы его прочитать, когда вы повторяете извлечение по
-мере появления новых статей или когда нужно проследить каждое значение до его
+<p>Файлы состояния, курсоры листинга, возобновляемые запуски и кэши окупаются,
+когда корпус слишком велик, чтобы его прочитать, когда вы повторяете
+извлечение по мере появления новых статей или когда нужно проследить каждое значение до его
 источника. Для нескольких уже имеющихся у вас статей прочитать их или вставить
-в чат-ассистента быстрее, чем писать промпты, модель сущности и конвейер.</p>
+в чат-ассистента быстрее, чем писать промпты, модель сущности и пайплайн.</p>
 <h2 id="your-papers-arent-on-a-bundled-source">Ваших статей нет во встроенных источниках<a class="headerlink" href="#your-papers-arent-on-a-bundled-source" title="Permanent link">&para;</a></h2>
 <p>Встроенные экстракторы охватывают arXiv, PubMed, Semantic Scholar и OpenAlex.
 Для bioRxiv, ChemRxiv, Crossref, сайтов издателей и папки с PDF на вашем диске
 нужен собственный <code>AsyncExtractor</code>. Контракт состоит из трёх методов, как
 показывает раздел <a href="../../guide/sources/#writing-an-extractor">Написание экстрактора</a>,
-но если вы не хотите его писать, конвейеру не на чем работать. Парсеры, поиск
+но если вы не хотите его писать, пайплайну не на чем работать. Парсеры, поиск
 и компоненты LLM при этом работают и сами по себе.</p>
 <h2 id="the-values-you-need-are-behind-a-paywall">Нужные значения находятся за пейволлом<a class="headerlink" href="#the-values-you-need-are-behind-a-paywall" title="Permanent link">&para;</a></h2>
 <p>Полный текст берётся только из открытых источников: LaTeX и PDF из arXiv, JATS
@@ -3114,7 +3114,7 @@ vLLM, llama.cpp и Ollama, так что текст может оставать�
 <code>protogalaxy</code>, тоже не поддерживаются. Семантический поиск по эмбеддингам от
 токенизатора не зависит.</p>
 <h2 id="you-want-to-write-components-as-blocking-code">Вы хотите писать компоненты в виде блокирующего кода<a class="headerlink" href="#you-want-to-write-components-as-blocking-code" title="Permanent link">&para;</a></h2>
-<p><code>ETLPipeline</code> запускает конвейер из блокирующего кода, как показывает раздел
+<p><code>ETLPipeline</code> запускает пайплайн из блокирующего кода, как показывает раздел
 <a href="../blocking-usage/">Блокирующий режим</a>, но контракты экстрактора, фильтра
 релевантности, экстрактора сущностей, клиента LLM, экспортёра и менеджера
 состояния асинхронны. Компонент, который вы пишете сами, должен быть
@@ -3123,13 +3123,13 @@ vLLM, llama.cpp и Ollama, так что текст может оставать�
 <h2 id="you-need-a-10-stability-guarantee">Вам нужна гарантия стабильности версии 1.0<a class="headerlink" href="#you-need-a-10-stability-guarantee" title="Permanent link">&para;</a></h2>
 <p>Текущая версия библиотеки — 0.6. Все запланированные до 1.0 ломающие изменения
 уже выпущены, и устаревшее имя продолжает работать как минимум два минорных
-выпуска, но предварительные имена, например в <code>sci_etl_core.claims</code>, ещё могут
-измениться в минорном выпуске. Закрепите диапазон минорных версий, например
+релиза, но предварительные имена, например в <code>sci_etl_core.claims</code>, ещё могут
+измениться в минорном релизе. Закрепите диапазон минорных версий, например
 <code>&gt;=0.6,&lt;0.7</code>, и перед обновлением читайте
 <a href="../../project/migration/">руководство по миграции</a>.</p>
 <h2 id="you-want-a-graphical-tool">Вам нужен графический инструмент<a class="headerlink" href="#you-want-a-graphical-tool" title="Permanent link">&para;</a></h2>
 <p>Библиотека — это API на Python. <a href="../../cli/">sci-etl-cli</a> запускает
-конвейеры по YAML-файлу без кода для связывания компонентов, но это всё равно
+пайплайны по YAML-файлу без кода для связывания компонентов, но это всё равно
 инструмент командной строки. Ни то ни другое не поставляется с графическим
 интерфейсом; вы строите его сами, как udg-catalogue строит свою панель
 мониторинга, а раздел

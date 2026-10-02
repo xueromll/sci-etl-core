@@ -26,7 +26,7 @@
         
           <link rel="alternate" href="../../../es/guide/semantic-memory/" hreflang="es">
         
-          <link rel="alternate" href="../../../zh/guide/semantic-memory/" hreflang="zh">
+          <link rel="alternate" href="../../../zh-Hans/guide/semantic-memory/" hreflang="zh-Hans">
         
           <link rel="alternate" href="../../../ar/guide/semantic-memory/" hreflang="ar">
         
@@ -205,7 +205,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../../../zh/guide/semantic-memory/" hreflang="zh" class="md-select__link">
+            <a href="../../../zh-Hans/guide/semantic-memory/" hreflang="zh-Hans" class="md-select__link">
               简体中文
             </a>
           </li>
@@ -1392,7 +1392,7 @@
   <span class="md-ellipsis">
     
   
-    Запуск конвейеров
+    Запуск пайплайнов
   
 
     
@@ -1408,7 +1408,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Запуск конвейеров
+    Запуск пайплайнов
   
 
           </label>
@@ -1688,7 +1688,7 @@
   <span class="md-ellipsis">
     
   
-    Перенос конвейера
+    Перенос пайплайна
   
 
     
@@ -2764,7 +2764,7 @@
 <h1 id="_1">Семантическая память<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
 <p>Семантическая память необязательна, и ей нужен extra <code>embeddings</code>. Передайте
 <code>memory_ingestor</code>, чтобы разбивать полный текст каждой релевантной записи на
-фрагменты и сохранять их эмбеддинги в векторное хранилище. Затем по этому
+чанки и сохранять их эмбеддинги в векторное хранилище. Затем по этому
 хранилищу можно искать по смыслу:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
@@ -2790,7 +2790,7 @@
 <a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    <span class="k">for</span> <span class="n">record_id</span><span class="p">,</span> <span class="n">score</span><span class="p">,</span> <span class="n">metadata</span> <span class="ow">in</span> <span class="k">await</span> <span class="n">finder</span><span class="o">.</span><span class="n">find_similar_articles</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
 <a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">score</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">record_id</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">metadata</span><span class="p">[</span><span class="s1">'title'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </code></pre></div>
-<p>Добавьте загрузчик в конвейер из раздела <a href="../../getting-started/quick-start/">Быстрый старт</a>
+<p>Добавьте загрузчик в пайплайн из раздела <a href="../../getting-started/quick-start/">Быстрый старт</a>
 и перечислите эмбеддер и хранилище среди его <code>closeables</code>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">AsyncETLPipeline</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">memory_ingestor</span><span class="o">=</span><span class="n">ingestor</span><span class="p">,</span> <span class="n">closeables</span><span class="o">=</span><span class="p">[</span><span class="n">client</span><span class="p">,</span> <span class="n">embedder</span><span class="p">,</span> <span class="n">store</span><span class="p">])</span>
 </code></pre></div>
@@ -2798,12 +2798,12 @@
 <li><strong>Что сохраняется.</strong> Загрузка выполняется после проверки релевантности,
   поэтому эмбеддинги получают только релевантные записи. <code>SlidingWindowChunker</code>
   по умолчанию использует окна по 350 слов с перекрытием в 50 слов. Повторная
-  загрузка записи заменяет все её фрагменты, так что текст, который теперь даёт
-  меньше фрагментов, не оставляет устаревших.</li>
+  загрузка записи заменяет все её чанки, так что текст, который теперь даёт
+  меньше чанков, не оставляет устаревших.</li>
 <li><strong>Сбои.</strong> <code>EmbeddingError</code> или <code>EmbeddingStoreError</code> во время загрузки
   записываются в журнал, а сущности записи всё равно экспортируются. Сюда
   относятся файл памяти, который не является базой данных SQLite, и эмбеддер,
-  вернувший иное число векторов, чем было фрагментов.</li>
+  вернувший иное число векторов, чем было чанков.</li>
 <li><strong>Хранилища.</strong> <code>InMemoryEmbeddingStore()</code> подходит для тестов и
   кратковременных запусков. <code>AsyncSqliteEmbeddingStore</code> сохраняет векторы с
   помощью модуля стандартной библиотеки <code>sqlite3</code> и при каждом запросе оценивает
@@ -2820,8 +2820,8 @@
   и то и другое атомарно.</li>
 <li><strong>Чтение памяти.</strong> <code>finder.find_best_chunks(text, top_k=5)</code> ранжирует статьи
   так же, как <code>find_similar_articles</code>, но возвращает лучший <code>SearchHit</code> каждой
-  из них вместе с текстом фрагмента, чтобы показать совпавший отрывок. Метод
-  хранилища <code>iter_records()</code> выдаёт фрагменты каждой записи в виде
+  из них вместе с текстом чанка, чтобы показать совпавший отрывок. Метод
+  хранилища <code>iter_records()</code> выдаёт чанки каждой записи в виде
   <code>StoredRecord</code>, не загружая векторы.</li>
 <li><strong>Локальные эмбеддинги.</strong> <code>AsyncSentenceTransformerEmbedder("all-MiniLM-L6-v2")</code>
   вычисляет эмбеддинги без сетевых вызовов. Ему нужен extra
@@ -2845,7 +2845,7 @@
 <code>AsyncSqliteFts5Store</code>, — ещё одно хранилище, которое нужно указать в
 <code>closeables</code> рядом с хранилищем эмбеддингов, а его extra <code>search</code> ничего не
 устанавливает. Память, заполненную до появления текстового индекса, можно
-проиндексировать по сохранённым фрагментам; см.
+проиндексировать по сохранённым чанкам; см.
 <a href="../search/backfill/">Заполнение из векторной памяти</a>.</p>
 
 

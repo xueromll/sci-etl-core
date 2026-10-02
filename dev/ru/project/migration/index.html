@@ -26,7 +26,7 @@
         
           <link rel="alternate" href="../../../es/project/migration/" hreflang="es">
         
-          <link rel="alternate" href="../../../zh/project/migration/" hreflang="zh">
+          <link rel="alternate" href="../../../zh-Hans/project/migration/" hreflang="zh-Hans">
         
           <link rel="alternate" href="../../../ar/project/migration/" hreflang="ar">
         
@@ -205,7 +205,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../../../zh/project/migration/" hreflang="zh" class="md-select__link">
+            <a href="../../../zh-Hans/project/migration/" hreflang="zh-Hans" class="md-select__link">
               简体中文
             </a>
           </li>
@@ -1312,7 +1312,7 @@
   <span class="md-ellipsis">
     
   
-    Запуск конвейеров
+    Запуск пайплайнов
   
 
     
@@ -1328,7 +1328,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Запуск конвейеров
+    Запуск пайплайнов
   
 
           </label>
@@ -1608,7 +1608,7 @@
   <span class="md-ellipsis">
     
   
-    Перенос конвейера
+    Перенос пайплайна
   
 
     
@@ -3177,16 +3177,16 @@
 
 <h1 id="_1">Руководство по миграции<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
 <p>Это руководство перечисляет, что меняется для существующего кода при переходе
-на новый выпуск <code>sci-etl-core</code>, начиная с самого нового выпуска.
+на новый релиз <code>sci-etl-core</code>, начиная с самого нового релиза.
 <a href="../changelog/">CHANGELOG.md</a> перечисляет все изменения, включая дополнения, не
 требующие никаких действий.</p>
-<p>Закрепите диапазон минорных выпусков, например <code>sci-etl-core&gt;=0.6.0,&lt;0.7</code>, и
+<p>Закрепите диапазон минорных релизов, например <code>sci-etl-core&gt;=0.6.0,&lt;0.7</code>, и
 поднимайте верхнюю границу после того, как ваши тесты пройдут на следующем
-минорном выпуске. Переходя с одного минорного выпуска на более поздний,
+минорном релизе. Переходя с одного минорного релиза на более поздний,
 применяйте каждый промежуточный раздел, начиная с самого старого.</p>
-<p>Чтобы впервые перенести существующий исследовательский конвейер на
+<p>Чтобы впервые перенести существующий исследовательский пайплайн на
 библиотеку, следуйте разобранному примеру в разделе
-<a href="https://xueromll.github.io/sci-etl-core/latest/guide/migrating-a-pipeline/">Перенос конвейера</a>.</p>
+<a href="https://xueromll.github.io/sci-etl-core/latest/guide/migrating-a-pipeline/">Перенос пайплайна</a>.</p>
 <ul>
 <li><a href="#upgrading-to-06">Обновление до 0.6</a></li>
 <li><a href="#upgrading-to-051">Обновление до 0.5.1</a></li>
@@ -3198,7 +3198,7 @@
 <h2 id="upgrading-to-06">Обновление до 0.6<a class="headerlink" href="#upgrading-to-06" title="Permanent link">&para;</a></h2>
 <p>0.6 меняет контракт данных: что возвращает экстрактор сущностей, как экспортёр
 получает сущности, как библиотека ведёт журнал и что содержит базовая
-установка. Это последний выпуск до 1.0, ломающий существующий контракт.
+установка. Это последний релиз до 1.0, ломающий существующий контракт.
 Требуйте новую минорную версию с используемыми вами extras:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>sci-etl-core[config,async,arxiv,llm,pdf,processors]&gt;=0.6.0,&lt;0.7
 </code></pre></div>
@@ -3260,12 +3260,12 @@
 </code></pre></div>
 <p>Без одного из этих вариантов ключ API уже должен находиться в окружении.</p>
 <h3 id="exporters-take-the-record-and-their-destination">Экспортёры принимают запись и своё место назначения<a class="headerlink" href="#exporters-take-the-record-and-their-destination" title="Permanent link">&para;</a></h3>
-<p><code>AsyncExporter.export(data, destination)</code> заменён жизненным циклом. Конвейер
-вызывает <code>open()</code> перед первым запросом выдачи, <code>write(record, entities)</code> для
+<p><code>AsyncExporter.export(data, destination)</code> заменён жизненным циклом. Пайплайн
+вызывает <code>open()</code> перед первым запросом листинга, <code>write(record, entities)</code> для
 каждой обработанной записи, включая запись без сущностей, <code>flush()</code> после
 каждой страницы и <code>aclose()</code>, когда запуск заканчивается, как бы он ни
 закончился. Экспортёр получает место назначения при создании, поэтому
-аргумента <code>destination=</code> у конвейера больше нет:</p>
+аргумента <code>destination=</code> у пайплайна больше нет:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncCsvExporter</span><span class="p">,</span> <span class="n">AsyncETLPipeline</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">AsyncETLPipeline</span><span class="p">(</span>
@@ -3317,7 +3317,7 @@ JSON на запись.</p>
 сохранены: сразу после <code>write</code> или после <code>flush</code> страницы, когда
 <code>durable_writes</code> равен <code>False</code>. Сбой <code>write</code> приводит к неудаче записи и
 засчитывает одну попытку, сбой <code>flush</code> оставляет записанные на странице записи
-незавершёнными без учёта попытки, а сбой <code>open</code> прерывает запуск до любого
+неустоявшимися без учёта попытки, а сбой <code>open</code> прерывает запуск до любого
 запроса. <a href="https://xueromll.github.io/sci-etl-core/latest/guide/run-semantics/">Семантика запуска</a>
 нумерует это как R20–R23.</p>
 <p><code>AsyncSqlTableExporter</code> и <code>AsyncPlotly3DExporter</code> удалены; используйте
@@ -3325,7 +3325,7 @@ JSON на запись.</p>
 показано в разделе <a href="#table-sinks">Табличные приёмники</a>. <code>ScatterPlotConfig</code>
 импортируется из <code>sci_etl_core.processors</code>.</p>
 <h3 id="entity-extractors-are-typed-and-record-aware">Экстракторы сущностей типизированы и учитывают запись<a class="headerlink" href="#entity-extractors-are-typed-and-record-aware" title="Permanent link">&para;</a></h3>
-<p><code>AsyncEntityExtractor</code> обобщён по типу сущности, а конвейер вызывает
+<p><code>AsyncEntityExtractor</code> обобщён по типу сущности, а пайплайн вызывает
 <code>extract_record(record, text)</code>, реализация которого по умолчанию вызывает
 <code>extract(text)</code>. Экстрактор, переопределяющий только <code>extract</code>, не требует
 изменений. Обёртка вокруг другого экстрактора должна делегировать и
@@ -3404,13 +3404,13 @@ JSON на запись.</p>
 аргумент <code>destination</code>; <code>AsyncCsvUpsertExporter</code>, <code>AsyncSqlTableExporter</code> и
 <code>AsyncPlotly3DExporter</code>; а также <code>configure_logging</code>. Реализуйте асинхронные
 контракты, выполняя блокирующую работу внутри них через <code>asyncio.to_thread</code>.
-<code>ETLPipeline</code> остаётся и, как и раньше, запускает асинхронный конвейер из
+<code>ETLPipeline</code> остаётся и, как и раньше, запускает асинхронный пайплайн из
 блокирующего кода.</p>
 <p>Начиная с 0.6 устаревшее имя продолжает работать как минимум два минорных
-выпуска, прежде чем его удаляют.</p>
+релиза, прежде чем его удаляют.</p>
 <h2 id="upgrading-to-051">Обновление до 0.5.1<a class="headerlink" href="#upgrading-to-051" title="Permanent link">&para;</a></h2>
 <p>0.5.1 не ломает ни одного существующего вызова, но три исхода LLM, которые
-раньше завершали запись, теперь приводят к её неудаче. Запись остаётся
+раньше делали запись устоявшейся, теперь приводят к её неудаче. Запись остаётся
 непомеченной, её попытка засчитывается в <code>max_attempts</code>, и следующий запуск
 повторяет её:</p>
 <ul>
@@ -3429,14 +3429,14 @@ JSON на запись.</p>
 <code>max_attempts</code> запусков. Называйте <code>result_key</code> в промпте. Собственный
 <code>AsyncLLMClient</code> должен выбрасывать <code>LLMError</code> для ответа, который не может
 прочитать, а не возвращать <code>{}</code>.</p>
-<p>Записи, которые прежние выпуски пометили как обработанные таким образом,
+<p>Записи, которые прежние релизы пометили как обработанные таким образом,
 остаются помеченными; к ним возвращается только запуск с новым состоянием.</p>
 <p>Кэш LLM тоже меняется:</p>
 <ul>
 <li><strong>Каждый закэшированный ответ один раз даёт промах.</strong> Ключ кэша теперь
   включает <code>base_url</code> конечной точки, температуру и формат ответа, поэтому
   первый запуск после обновления вызывает LLM для каждого запроса. Записи,
-  сделанные прежними выпусками, больше никогда не читаются; удалите файл кэша
+  сделанные прежними релизами, больше никогда не читаются; удалите файл кэша
   или вызовите <code>clear()</code>, чтобы освободить место. Имя модели, в котором
   закодирована температура, например <code>"gpt-4o-mini@t0.2"</code>, больше не нужно.</li>
 <li><strong>Отвергнутые ответы удаляются.</strong> <code>AsyncLLMEntityExtractor</code> и
@@ -3448,7 +3448,7 @@ JSON на запись.</p>
 </ul>
 <h2 id="upgrading-to-05">Обновление до 0.5<a class="headerlink" href="#upgrading-to-05" title="Permanent link">&para;</a></h2>
 <p>0.5 меняет то, как листают экстракторы, что сохраняет состояние и как
-создаётся конвейер. Сущности и экспортёры меняются в 0.6. Требуйте новую
+создаётся пайплайн. Сущности и экспортёры меняются в 0.6. Требуйте новую
 минорную версию и Python 3.11:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>sci-etl-core[async,llm,pdf]&gt;=0.5.0,&lt;0.6
 </code></pre></div>
@@ -3459,7 +3459,7 @@ JSON на запись.</p>
 продолжает с того места, где остановился предыдущий.</p>
 <h3 id="extractors-return-parsed-pages">Экстракторы возвращают разобранные страницы<a class="headerlink" href="#extractors-return-parsed-pages" title="Permanent link">&para;</a></h3>
 <p><code>search</code> и <code>parse_listing</code> заменены одним <code>fetch_page</code>, который возвращает
-<code>ListingPage</code>. Теперь конвейер сам пропускает обработанные записи, поэтому
+<code>ListingPage</code>. Теперь пайплайн сам пропускает обработанные записи, поэтому
 экстрактор возвращает каждый элемент, который может прочитать. Источник,
 листающий по смещению, реализует также <code>cursor_for_offset</code>, что делает его
 <code>OffsetListing</code>.</p>
@@ -3509,7 +3509,7 @@ JSON на запись.</p>
 <code>AsyncSemanticScholarExtractor</code> являются <code>OffsetListing</code>.
 <code>AsyncOpenAlexExtractor</code> теперь листает с помощью курсоров OpenAlex, поэтому
 он заходит дальше первых 10 000 работ, но больше не поддерживает
-<code>newest_first</code>; его первый запуск на 0.5 один раз перезапускает выдачу с первой
+<code>newest_first</code>; его первый запуск на 0.5 один раз перезапускает листинг с первой
 страницы, потому что смещение, сохранённое 0.4, не является курсором OpenAlex.</p>
 <h3 id="what-the-state-saves">Что сохраняет состояние<a class="headerlink" href="#what-the-state-saves" title="Permanent link">&para;</a></h3>
 <p><code>PipelineMetadata.cursor</code> заменяет <code>last_start_index</code>. Код, читающий
@@ -3520,7 +3520,7 @@ JSON на запись.</p>
 </code></pre></div>
 <p>События прогресса получают <code>cursor</code>. <code>RunStarted.start_index</code>,
 <code>PageFetched.offset</code> и <code>PageFinished.offset</code> по-прежнему содержат смещение в
-выдаче для <code>OffsetListing</code> и равны <code>None</code> для любого другого экстрактора.</p>
+листинге для <code>OffsetListing</code> и равны <code>None</code> для любого другого экстрактора.</p>
 <h3 id="capped-listings-start-over">Выдачи с лимитом начинаются заново<a class="headerlink" href="#capped-listings-start-over" title="Permanent link">&para;</a></h3>
 <p>PubMed останавливается на 9 999 результатах, Semantic Scholar — на 1 000. В 0.4
 запуск, доходивший до лимита, сохранял лимит как своё смещение, и каждый
@@ -3529,7 +3529,7 @@ JSON на запись.</p>
 <code>RunMetrics.listing_truncated</code> сообщает об этом, а сохранённый курсор
 сбрасывается, поэтому следующий запуск снова листает доступные результаты:
 обработанные записи пропускаются по идентификатору, поэтому повторное
-сканирование стоит запросов выдачи, а не вызовов LLM. Чтобы его избежать,
+сканирование стоит запросов листинга, а не вызовов LLM. Чтобы его избежать,
 сузьте запрос, например по дате.</p>
 <h3 id="records-that-keep-failing-are-quarantined">Записи, которые продолжают проваливаться, помещаются в карантин<a class="headerlink" href="#records-that-keep-failing-are-quarantined" title="Permanent link">&para;</a></h3>
 <p>Запись, которая не удалась в 3 запусках, каждый раз на странице, где была
@@ -3577,7 +3577,7 @@ JSON на запись.</p>
 раньше.</p>
 <h3 id="table-sinks">Табличные приёмники<a class="headerlink" href="#table-sinks" title="Permanent link">&para;</a></h3>
 <p><code>AsyncSqlTableExporter</code> и <code>AsyncPlotly3DExporter</code> принимали <code>DataFrame</code> и не
-могли работать в конвейере. Их замена — блокирующие приёмники для результатов
+могли работать в пайплайне. Их замена — блокирующие приёмники для результатов
 постобработки:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.processors.sinks</span><span class="w"> </span><span class="kn">import</span> <span class="n">Plotly3DSink</span><span class="p">,</span> <span class="n">ScatterPlotConfig</span><span class="p">,</span> <span class="n">SqlTableSink</span>
 <a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
@@ -3606,12 +3606,12 @@ JSON на запись.</p>
 завершение, события прогресса, ограничители частоты и функции поиска. На
 существующий код влияют следующие изменения:</p>
 <ul>
-<li><strong>Переименованные настройки конвейера.</strong> <code>pipeline.max_records</code> теперь
+<li><strong>Переименованные настройки пайплайна.</strong> <code>pipeline.max_records</code> теперь
   называется <code>total_limit</code>, а <code>pipeline.max_workers</code> — <code>max_concurrency</code>.
   Старые ключи YAML и свойства <code>PipelineConfig.max_records</code> и <code>max_workers</code>
   продолжают работать до 0.5 с <code>DeprecationWarning</code>, а <code>run(max_records=)</code>
   устарел так же. Переименуйте оба ключа в своём файле конфигурации.</li>
-<li><strong>Больше настроек конвейера.</strong> В <code>PipelineConfig</code> теперь есть <code>page_size</code>,
+<li><strong>Больше настроек пайплайна.</strong> В <code>PipelineConfig</code> теперь есть <code>page_size</code>,
   <code>search_delay</code> и <code>newest_first</code>. Подкласс, который добавлял только эти поля,
   можно удалить.</li>
 <li><strong>Валидация без обёртки.</strong> <code>AsyncLLMEntityExtractor</code> принимает
@@ -3627,7 +3627,7 @@ JSON на запись.</p>
   копировать в конструкторы.</li>
 <li><strong>Возобновление «сначала новые».</strong> <code>run(newest_first=True)</code> подхватывает
   новые поступления arXiv без полного повторного сканирования, которого стоит
-  <code>start_index=0</code>, и сохраняет начало выдачи в файле метаданных рядом с
+  <code>start_index=0</code>, и сохраняет начало листинга в файле метаданных рядом с
   <code>last_start_index</code>. <code>start_index</code> с ним сочетать нельзя.</li>
 <li><strong>Графики.</strong> <code>ScatterPlotConfig</code> принимает <code>hover_data_columns</code>,
   <code>hover_template</code>, <code>color_continuous_scale</code> и <code>color_range</code>, которые
@@ -3636,11 +3636,11 @@ JSON на запись.</p>
 <li><strong>Зажатие и раскладка таблицы.</strong> <code>ValueClipStep</code> зажимает столбцы при
   постобработке, а <code>TableLayoutStep</code> сортирует строки и упорядочивает столбцы
   вместо процессоров конкретного проекта, делавших то или другое.</li>
-<li><strong>Поиск по уже имеющейся памяти.</strong> Проект, хранивший фрагменты в
+<li><strong>Поиск по уже имеющейся памяти.</strong> Проект, хранивший чанки в
   <code>AsyncSqliteEmbeddingStore</code>, может построить из них текстовый индекс с
   помощью <code>backfill_text_index</code>, а не загружать каждую статью заново.</li>
 <li><strong>Сниппеты для семантических результатов.</strong> <code>FusedHit</code>, найденный только
-  семантической ветвью, теперь несёт сниппет своего лучшего фрагмента, тогда
+  семантической ветвью, теперь несёт сниппет своего лучшего чанка, тогда
   как раньше у него был пустой <code>snippet</code>. Интерфейсу, который показывал
   аннотацию всякий раз, когда <code>snippet</code> был пуст, следует вместо этого
   проверять <code>lexical_rank is None</code>.</li>
@@ -3657,14 +3657,14 @@ JSON на запись.</p>
   <code>categories</code>, <code>authors</code>, <code>published</code> и <code>year</code>, а не остаётся пустым. Ваш
   собственный код, читающий записи, включая тесты, сравнивающие
   <code>metadata == {}</code>, видит новые ключи. Метаданные, сохраняемые вместе с
-  фрагментами эмбеддингов, не изменились.</li>
+  чанками эмбеддингов, не изменились.</li>
 <li><strong><code>memory_ingestor</code> принимает любой <code>MemoryIngestor</code>.</strong> <code>AsyncChunkIngestor</code>
   работает точно так же, как раньше. Аннотацию типа в вашем коде, называющую
   <code>AsyncChunkIngestor</code> для этого аргумента, можно расширить до
   <code>MemoryIngestor</code>.</li>
-<li><strong>Поиск включается по желанию.</strong> В конвейере, не передающем текстовый
+<li><strong>Поиск включается по желанию.</strong> В пайплайне, не передающем текстовый
   индекс, ничего не меняется. Чтобы добавить его, передайте
-  <code>AsyncSearchIndexer</code> или <code>AsyncCompositeIngestor</code> с загрузчиком фрагментов на
+  <code>AsyncSearchIndexer</code> или <code>AsyncCompositeIngestor</code> с загрузчиком чанков на
   первом месте, как показано в разделе
   <a href="https://xueromll.github.io/sci-etl-core/latest/guide/search/">Локальный поиск и обзор</a>.
   Его <code>AsyncSqliteFts5Store</code> помещается в <code>closeables</code>, как и любое другое

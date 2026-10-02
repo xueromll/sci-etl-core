@@ -26,7 +26,7 @@
         
           <link rel="alternate" href="../../../es/reference/llm/" hreflang="es">
         
-          <link rel="alternate" href="../../../zh/reference/llm/" hreflang="zh">
+          <link rel="alternate" href="../../../zh-Hans/reference/llm/" hreflang="zh-Hans">
         
           <link rel="alternate" href="./" hreflang="ar">
         
@@ -211,7 +211,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../../../zh/reference/llm/" hreflang="zh" class="md-select__link">
+            <a href="../../../zh-Hans/reference/llm/" hreflang="zh-Hans" class="md-select__link">
               简体中文
             </a>
           </li>
@@ -4700,12 +4700,12 @@ cache entry.</p>
         <p>Send a chat completion request and return the parsed JSON object.</p>
 
 
-<p><span class="doc-section-title">引发：</span></p>
+<p><span class="doc-section-title">Raises:</span></p>
     <table>
       <thead>
         <tr>
-          <th>类型</th>
-          <th>描述</th>
+          <th>Type</th>
+          <th>Description</th>
         </tr>
       </thead>
       <tbody>
@@ -4757,12 +4757,12 @@ JSON mode and the caller validates it against <code>schema</code> itself;
 always does.</p>
 
 
-<p><span class="doc-section-title">引发：</span></p>
+<p><span class="doc-section-title">Raises:</span></p>
     <table>
       <thead>
         <tr>
-          <th>类型</th>
-          <th>描述</th>
+          <th>Type</th>
+          <th>Description</th>
         </tr>
       </thead>
       <tbody>
@@ -4918,12 +4918,12 @@ limiter between a chat client and an embedder that call the same
 provider to keep both inside one budget.</p>
 
 
-<p><span class="doc-section-title">引发：</span></p>
+<p><span class="doc-section-title">Raises:</span></p>
     <table>
       <thead>
         <tr>
-          <th>类型</th>
-          <th>描述</th>
+          <th>Type</th>
+          <th>Description</th>
         </tr>
       </thead>
       <tbody>
@@ -5145,12 +5145,12 @@ taken from the config.</p>
 one whose body is then rejected.</p>
 
 
-<p><span class="doc-section-title">引发：</span></p>
+<p><span class="doc-section-title">Raises:</span></p>
     <table>
       <thead>
         <tr>
-          <th>类型</th>
-          <th>描述</th>
+          <th>Type</th>
+          <th>Description</th>
         </tr>
       </thead>
       <tbody>
@@ -5200,12 +5200,12 @@ fails the record instead of settling it.</p>
         <p>Request an answer matching <code>schema</code>: as structured output when enabled, in JSON mode otherwise.</p>
 
 
-<p><span class="doc-section-title">引发：</span></p>
+<p><span class="doc-section-title">Raises:</span></p>
     <table>
       <thead>
         <tr>
-          <th>类型</th>
-          <th>描述</th>
+          <th>Type</th>
+          <th>Description</th>
         </tr>
       </thead>
       <tbody>
@@ -5473,12 +5473,12 @@ reported through
 caching client does not replay it.</p>
 
 
-<p><span class="doc-section-title">引发：</span></p>
+<p><span class="doc-section-title">Raises:</span></p>
     <table>
       <thead>
         <tr>
-          <th>类型</th>
-          <th>描述</th>
+          <th>Type</th>
+          <th>Description</th>
         </tr>
       </thead>
       <tbody>
@@ -5841,12 +5841,12 @@ marks the record processed. Raising any exception instead fails the
 record, which stays unmarked and is retried on the next run.</p>
 
 
-<p><span class="doc-section-title">引发：</span></p>
+<p><span class="doc-section-title">Raises:</span></p>
     <table>
       <thead>
         <tr>
-          <th>类型</th>
-          <th>描述</th>
+          <th>Type</th>
+          <th>Description</th>
         </tr>
       </thead>
       <tbody>
@@ -6160,12 +6160,12 @@ and a lone object as a one-entity list. Preparing the text runs in a
 worker thread, since stripping and token counting are CPU-bound.</p>
 
 
-<p><span class="doc-section-title">引发：</span></p>
+<p><span class="doc-section-title">Raises:</span></p>
     <table>
       <thead>
         <tr>
-          <th>类型</th>
-          <th>描述</th>
+          <th>Type</th>
+          <th>Description</th>
         </tr>
       </thead>
       <tbody>
@@ -6440,12 +6440,12 @@ rejected, so the next request reaches the LLM again. Both bundled
 backends implement it; a custom backend should too.</p>
 
 
-<p><span class="doc-section-title">引发：</span></p>
+<p><span class="doc-section-title">Raises:</span></p>
     <table>
       <thead>
         <tr>
-          <th>类型</th>
-          <th>描述</th>
+          <th>Type</th>
+          <th>Description</th>
         </tr>
       </thead>
       <tbody>
@@ -6503,12 +6503,12 @@ returned dict cannot change what is cached.</p>
         <p>Create an empty cache.</p>
 
 
-<p><span class="doc-section-title">引发：</span></p>
+<p><span class="doc-section-title">Raises:</span></p>
     <table>
       <thead>
         <tr>
-          <th>类型</th>
-          <th>描述</th>
+          <th>Type</th>
+          <th>Description</th>
         </tr>
       </thead>
       <tbody>
@@ -7006,12 +7006,12 @@ client's, so cache hits cost no tokens.</p>
 variants over one cache never serve one another's answers.</p>
 
 
-<p><span class="doc-section-title">引发：</span></p>
+<p><span class="doc-section-title">Raises:</span></p>
     <table>
       <thead>
         <tr>
-          <th>类型</th>
-          <th>描述</th>
+          <th>Type</th>
+          <th>Description</th>
         </tr>
       </thead>
       <tbody>
@@ -7226,12 +7226,12 @@ string to key the cache by.</p>
         <p>Return the cached response, or ask the wrapped client and cache its answer.</p>
 
 
-<p><span class="doc-section-title">引发：</span></p>
+<p><span class="doc-section-title">Raises:</span></p>
     <table>
       <thead>
         <tr>
-          <th>类型</th>
-          <th>描述</th>
+          <th>Type</th>
+          <th>Description</th>
         </tr>
       </thead>
       <tbody>
@@ -7278,12 +7278,12 @@ string to key the cache by.</p>
         <p>Return the answer cached for this schema, or ask the wrapped client and cache its answer.</p>
 
 
-<p><span class="doc-section-title">引发：</span></p>
+<p><span class="doc-section-title">Raises:</span></p>
     <table>
       <thead>
         <tr>
-          <th>类型</th>
-          <th>描述</th>
+          <th>Type</th>
+          <th>Description</th>
         </tr>
       </thead>
       <tbody>

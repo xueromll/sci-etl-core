@@ -26,7 +26,7 @@
         
           <link rel="alternate" href="../../../../es/guide/search/backfill/" hreflang="es">
         
-          <link rel="alternate" href="../../../../zh/guide/search/backfill/" hreflang="zh">
+          <link rel="alternate" href="../../../../zh-Hans/guide/search/backfill/" hreflang="zh-Hans">
         
           <link rel="alternate" href="../../../../ar/guide/search/backfill/" hreflang="ar">
         
@@ -205,7 +205,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../../../../zh/guide/search/backfill/" hreflang="zh" class="md-select__link">
+            <a href="../../../../zh-Hans/guide/search/backfill/" hreflang="zh-Hans" class="md-select__link">
               简体中文
             </a>
           </li>
@@ -1222,7 +1222,7 @@
   <a href="#overlapping-chunks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Перекрывающиеся фрагменты
+        Перекрывающиеся чанки
       
     </span>
   </a>
@@ -1405,7 +1405,7 @@
   <span class="md-ellipsis">
     
   
-    Запуск конвейеров
+    Запуск пайплайнов
   
 
     
@@ -1421,7 +1421,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Запуск конвейеров
+    Запуск пайплайнов
   
 
           </label>
@@ -1701,7 +1701,7 @@
   <span class="md-ellipsis">
     
   
-    Перенос конвейера
+    Перенос пайплайна
   
 
     
@@ -2739,7 +2739,7 @@
   <a href="#overlapping-chunks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Перекрывающиеся фрагменты
+        Перекрывающиеся чанки
       
     </span>
   </a>
@@ -2788,8 +2788,8 @@
 <h1 id="_1">Заполнение из векторной памяти<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
 <p>Развёртывание, которое работало с семантической памятью, но без текстового
 индекса, уже хранит полный текст каждой релевантной записи, разбитый на
-фрагменты, в своём <code>AsyncSqliteEmbeddingStore</code>. <code>backfill_text_index</code> строит
-текстовый индекс из этих фрагментов, так что ничего не нужно заново загружать
+чанки, в своём <code>AsyncSqliteEmbeddingStore</code>. <code>backfill_text_index</code> строит
+текстовый индекс из этих чанков, так что ничего не нужно заново загружать
 или пересчитывать в эмбеддинги:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
@@ -2814,29 +2814,29 @@
 <a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>
 <a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">backfill</span><span class="p">())</span>
 </code></pre></div>
-<p>Запустите его один раз, пока ни один конвейер не пишет ни в одно из
-хранилищ, а затем добавьте в конвейер <code>AsyncSearchIndexer</code>, как показано в
+<p>Запустите его один раз, пока ни один пайплайн не пишет ни в одно из
+хранилищ, а затем добавьте в пайплайн <code>AsyncSearchIndexer</code>, как показано в
 разделе <a href="../">Локальный поиск и обзор</a>, чтобы новые записи
 индексировались по мере поступления.</p>
-<h2 id="overlapping-chunks">Перекрывающиеся фрагменты<a class="headerlink" href="#overlapping-chunks" title="Permanent link">&para;</a></h2>
-<p><code>SlidingWindowChunker</code> перекрывает соседние фрагменты, по умолчанию на 50 слов,
-чтобы ни один отрывок не обрывался на границе окна. Если соединить фрагменты как
+<h2 id="overlapping-chunks">Перекрывающиеся чанки<a class="headerlink" href="#overlapping-chunks" title="Permanent link">&para;</a></h2>
+<p><code>SlidingWindowChunker</code> перекрывает соседние чанки, по умолчанию на 50 слов,
+чтобы ни один отрывок не обрывался на границе окна. Если соединить чанки как
 есть, эти слова повторятся, и BM25 посчитает каждое слово на границе дважды.
 Заполнение убирает перекрытие с помощью <code>merge_passages</code>, которая отбрасывает
-первые <code>overlap_words</code> слов каждого фрагмента, когда они повторяют конец
+первые <code>overlap_words</code> слов каждого чанка, когда они повторяют конец
 предыдущего, так что основной текст восстанавливается с каждым словом по
 одному разу.</p>
-<p>Передайте <code>overlap_words</code> того разбивщика, который записал фрагменты. С
+<p>Передайте <code>overlap_words</code> того чанкера, который записал чанки. С
 <code>SlidingWindowChunker(chunk_words, overlap_words)</code> передайте тот же
-<code>overlap_words</code>; если вы его не указывали, прочитайте значение у разбивщика,
-созданного так же, как это делает пример. Фрагмент, первые слова которого не
+<code>overlap_words</code>; если вы его не указывали, прочитайте значение у чанкера,
+созданного так же, как это делает пример. Чанк, первые слова которого не
 повторяют последние слова предыдущего, сохраняется целиком, поэтому неверное
 значение оставит повторённые слова в тексте, а не вырежет его часть.</p>
 <p>Основной текст восстанавливается с одиночными пробелами между словами, как его
-разбил разбивщик; переносы строк и интервалы между абзацами пропадают, что не
+разбил чанкер; переносы строк и интервалы между абзацами пропадают, что не
 меняет совпадений.</p>
 <h2 id="what-a-backfilled-document-holds">Что содержит заполненный документ<a class="headerlink" href="#what-a-backfilled-document-holds" title="Permanent link">&para;</a></h2>
-<p>Векторная память хранит меньше, чем было у конвейера, поэтому по умолчанию у
+<p>Векторная память хранит меньше, чем было у пайплайна, поэтому по умолчанию у
 заполненного документа есть:</p>
 <table>
 <thead>
@@ -2848,23 +2848,23 @@
 <tbody>
 <tr>
 <td><code>title</code></td>
-<td><code>title</code>, сохранённый вместе с фрагментами записи</td>
+<td><code>title</code>, сохранённый вместе с чанками записи</td>
 </tr>
 <tr>
 <td><code>abstract</code></td>
-<td>пусто, поскольку фрагменты его не содержат</td>
+<td>пусто, поскольку чанки его не содержат</td>
 </tr>
 <tr>
 <td><code>body</code></td>
-<td>объединённые фрагменты</td>
+<td>объединённые чанки</td>
 </tr>
 <tr>
 <td><code>metadata</code></td>
-<td>остальные метаданные фрагментов, например <code>source_url</code></td>
+<td>остальные метаданные чанков, например <code>source_url</code></td>
 </tr>
 </tbody>
 </table>
-<p><code>AsyncChunkIngestor</code> не сохраняет <code>RawRecord.metadata</code> вместе с фрагментами,
+<p><code>AsyncChunkIngestor</code> не сохраняет <code>RawRecord.metadata</code> вместе с чанками,
 поэтому у заполненного документа нет <code>categories</code>, <code>year</code> и других тегов
 фасетов, и фильтры по этим ключам его не находят. Если эти метаданные есть у
 вас в другом месте, например в экспортированном CSV, передайте
@@ -2889,7 +2889,7 @@
 <a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="p">)</span>
 </code></pre></div>
 <h2 id="records-already-in-the-index">Записи, уже находящиеся в индексе<a class="headerlink" href="#records-already-in-the-index" title="Permanent link">&para;</a></h2>
-<p>У записи, которую конвейер уже проиндексировал, есть аннотация и метаданные,
+<p>У записи, которую пайплайн уже проиндексировал, есть аннотация и метаданные,
 которых нет у заполненного документа, поэтому заполнение её не трогает и
 учитывает в <code>skipped_existing</code>. Передайте <code>replace_existing=True</code>, чтобы
 перезаписать каждую запись из векторной памяти, например после того, как

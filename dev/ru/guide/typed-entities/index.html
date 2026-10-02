@@ -26,7 +26,7 @@
         
           <link rel="alternate" href="../../../es/guide/typed-entities/" hreflang="es">
         
-          <link rel="alternate" href="../../../zh/guide/typed-entities/" hreflang="zh">
+          <link rel="alternate" href="../../../zh-Hans/guide/typed-entities/" hreflang="zh-Hans">
         
           <link rel="alternate" href="../../../ar/guide/typed-entities/" hreflang="ar">
         
@@ -205,7 +205,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../../../zh/guide/typed-entities/" hreflang="zh" class="md-select__link">
+            <a href="../../../zh-Hans/guide/typed-entities/" hreflang="zh-Hans" class="md-select__link">
               简体中文
             </a>
           </li>
@@ -1414,7 +1414,7 @@
   <span class="md-ellipsis">
     
   
-    Запуск конвейеров
+    Запуск пайплайнов
   
 
     
@@ -1430,7 +1430,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Запуск конвейеров
+    Запуск пайплайнов
   
 
           </label>
@@ -1710,7 +1710,7 @@
   <span class="md-ellipsis">
     
   
-    Перенос конвейера
+    Перенос пайплайна
   
 
     
@@ -2908,10 +2908,10 @@
 <p>Повторное отклонение той же сущности в одном из следующих запусков сохраняет
 одну запись вместе с её решением. Сбой хранилища отклонений приводит к неудаче
 записи, которая повторяется при следующем запуске. <em>Отклонённая сущность</em> не
-имеет отношения к <em>записи в карантине</em> — записи, которую конвейер пропускает
+имеет отношения к <em>записи в карантине</em> — записи, которую пайплайн пропускает
 после того, как она не удалась <code>max_attempts</code> раз.</p>
 <h2 id="record-aware-extractors">Экстракторы, учитывающие запись<a class="headerlink" href="#record-aware-extractors" title="Permanent link">&para;</a></h2>
-<p>Конвейер вызывает <code>extract_record(record, text)</code>. Его реализация по умолчанию
+<p>Пайплайн вызывает <code>extract_record(record, text)</code>. Его реализация по умолчанию
 вызывает <code>extract(text)</code>, поэтому экстрактор, переопределяющий только
 <code>extract</code>, работает без изменений. Экстрактор, которому нужна запись, например
 <code>AsyncLLMClaimExtractor</code>, устанавливает <code>requires_record = True</code>, а его
@@ -2935,7 +2935,7 @@
 </code></pre></div>
 <p><code>AsyncLLMEntityExtractor.prepare(text)</code> возвращает текст, который отправляется
 модели, после удаления разметки и усечения, а <code>stamp</code> описывает модель,
-промпт, схему и выпуск библиотеки, стоящие за его сущностями.</p>
+промпт, схему и релиз библиотеки, стоящие за его сущностями.</p>
 
 
 

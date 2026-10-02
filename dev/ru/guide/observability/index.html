@@ -26,7 +26,7 @@
         
           <link rel="alternate" href="../../../es/guide/observability/" hreflang="es">
         
-          <link rel="alternate" href="../../../zh/guide/observability/" hreflang="zh">
+          <link rel="alternate" href="../../../zh-Hans/guide/observability/" hreflang="zh-Hans">
         
           <link rel="alternate" href="../../../ar/guide/observability/" hreflang="ar">
         
@@ -205,7 +205,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../../../zh/guide/observability/" hreflang="zh" class="md-select__link">
+            <a href="../../../zh-Hans/guide/observability/" hreflang="zh-Hans" class="md-select__link">
               简体中文
             </a>
           </li>
@@ -1325,7 +1325,7 @@
   <span class="md-ellipsis">
     
   
-    Запуск конвейеров
+    Запуск пайплайнов
   
 
     
@@ -1341,7 +1341,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Запуск конвейеров
+    Запуск пайплайнов
   
 
           </label>
@@ -1690,7 +1690,7 @@
   <span class="md-ellipsis">
     
   
-    Перенос конвейера
+    Перенос пайплайна
   
 
     
@@ -2764,7 +2764,7 @@
 
 
 <h1 id="_1">События прогресса и метрики<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
-<p>Каждый запуск конвейера собирает метрики и может сообщать о своём прогрессе по
+<p>Каждый запуск пайплайна собирает метрики и может сообщать о своём прогрессе по
 ходу работы.</p>
 <h2 id="run-metrics">Метрики запуска<a class="headerlink" href="#run-metrics" title="Permanent link">&para;</a></h2>
 <p><code>pipeline.last_run_metrics</code> возвращает <code>RunMetrics</code> для последнего запуска, как
@@ -2791,7 +2791,7 @@
 <tbody>
 <tr>
 <td><code>pages</code>, <code>listed</code></td>
-<td>Полученные страницы выдачи и число элементов на них</td>
+<td>Полученные страницы листинга и число элементов на них</td>
 </tr>
 <tr>
 <td><code>processed</code>, <code>irrelevant</code>, <code>deferred</code>, <code>failed</code>, <code>skipped</code></td>
@@ -2807,11 +2807,11 @@
 </tr>
 <tr>
 <td><code>quarantined</code></td>
-<td>Записи из выдачи, пропущенные потому, что в прошлых запусках они не удались <code>max_attempts</code> раз; каждая учитывается один раз за запуск</td>
+<td>Записи из листинга, пропущенные потому, что в прошлых запусках они не удались <code>max_attempts</code> раз; каждая учитывается один раз за запуск</td>
 </tr>
 <tr>
 <td><code>listing_truncated</code></td>
-<td><code>True</code>, когда источник остановил выдачу на своём лимите результатов</td>
+<td><code>True</code>, когда источник остановил листинг на своём лимите результатов</td>
 </tr>
 <tr>
 <td><code>duration_seconds</code></td>
@@ -2858,15 +2858,15 @@
 <tbody>
 <tr>
 <td><code>RunStarted(query, start_index, total_limit, newest_first, cursor)</code></td>
-<td>Перед первым запросом выдачи</td>
+<td>Перед первым запросом листинга</td>
 </tr>
 <tr>
 <td><code>PageFetched(offset, entries, new_records, cursor, truncated)</code></td>
-<td>Пришла страница выдачи; <code>new_records</code> ещё не обработаны, а <code>truncated</code> отмечает страницу, на которой источник остановился на своём лимите результатов</td>
+<td>Пришла страница листинга; <code>new_records</code> ещё не обработаны, а <code>truncated</code> отмечает страницу, на которой источник остановился на своём лимите результатов</td>
 </tr>
 <tr>
 <td><code>RecordFinished(record_id, title, outcome, duration_seconds, entities, error)</code></td>
-<td>Запись покинула конвейер в этом запуске</td>
+<td>Запись покинула пайплайн в этом запуске</td>
 </tr>
 <tr>
 <td><code>PageFinished(offset, duration_seconds, metrics, cursor)</code></td>
@@ -2878,9 +2878,9 @@
 </tr>
 </tbody>
 </table>
-<p><code>cursor</code> — это курсор выдачи, с которым запрашивалась страница, и <code>None</code> для
+<p><code>cursor</code> — это курсор листинга, с которым запрашивалась страница, и <code>None</code> для
 первой страницы. <code>start_index</code> и <code>offset</code> содержат ту же позицию в виде
-смещения в выдаче, когда экстрактор листает по смещению, и <code>None</code> в противном
+смещения в листинге, когда экстрактор листает по смещению, и <code>None</code> в противном
 случае. Каждое событие и <code>RunMetrics</code> — dataclass только с именованными
 аргументами.</p>
 <p>Обработчик выполняется в цикле событий, поэтому он должен быть быстрым:

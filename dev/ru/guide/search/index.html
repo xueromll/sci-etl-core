@@ -26,7 +26,7 @@
         
           <link rel="alternate" href="../../../es/guide/search/" hreflang="es">
         
-          <link rel="alternate" href="../../../zh/guide/search/" hreflang="zh">
+          <link rel="alternate" href="../../../zh-Hans/guide/search/" hreflang="zh-Hans">
         
           <link rel="alternate" href="../../../ar/guide/search/" hreflang="ar">
         
@@ -205,7 +205,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../../../zh/guide/search/" hreflang="zh" class="md-select__link">
+            <a href="../../../zh-Hans/guide/search/" hreflang="zh-Hans" class="md-select__link">
               简体中文
             </a>
           </li>
@@ -1325,7 +1325,7 @@
   <span class="md-ellipsis">
     
   
-    Запуск конвейеров
+    Запуск пайплайнов
   
 
     
@@ -1341,7 +1341,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Запуск конвейеров
+    Запуск пайплайнов
   
 
           </label>
@@ -1621,7 +1621,7 @@
   <span class="md-ellipsis">
     
   
-    Перенос конвейера
+    Перенос пайплайна
   
 
     
@@ -2659,7 +2659,7 @@
   <a href="#indexing-from-the-pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Индексирование из конвейера
+        Индексирование из пайплайна
       
     </span>
   </a>
@@ -2702,7 +2702,7 @@
 голой установке <code>pip install sci-etl-core</code>. Extra <code>search</code> ничего не
 устанавливает; он лишь позволяет файлу зависимостей указать, зачем нужен пакет.
 Extra <code>embeddings</code> нужен только семантической стороне.</p>
-<h2 id="indexing-from-the-pipeline">Индексирование из конвейера<a class="headerlink" href="#indexing-from-the-pipeline" title="Permanent link">&para;</a></h2>
+<h2 id="indexing-from-the-pipeline">Индексирование из пайплайна<a class="headerlink" href="#indexing-from-the-pipeline" title="Permanent link">&para;</a></h2>
 <p>Этот пример расширяет пример из раздела <a href="../semantic-memory/">Семантическая память</a>,
 чтобы каждая релевантная запись индексировалась для обоих видов поиска:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
@@ -2739,7 +2739,7 @@ Extra <code>embeddings</code> нужен только семантической
 <a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>    <span class="k">for</span> <span class="n">hit</span> <span class="ow">in</span> <span class="n">outcome</span><span class="o">.</span><span class="n">hits</span><span class="p">:</span>
 <a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">hit</span><span class="o">.</span><span class="n">score</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">hit</span><span class="o">.</span><span class="n">record_id</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">hit</span><span class="o">.</span><span class="n">title</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </code></pre></div>
-<p>Добавьте загрузчик в конвейер из раздела
+<p>Добавьте загрузчик в пайплайн из раздела
 <a href="../../getting-started/quick-start/">Быстрый старт</a>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">AsyncETLPipeline</span><span class="p">(</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="o">...</span><span class="p">,</span>
@@ -2749,18 +2749,18 @@ Extra <code>embeddings</code> нужен только семантической
 </code></pre></div>
 <ul>
 <li><strong>Закрытие хранилищ.</strong> <code>text_store</code> помещается в <code>closeables</code> по той же
-  причине, что и <code>vector_store</code>, ведь это одноразовый скрипт: конвейер владеет
+  причине, что и <code>vector_store</code>, ведь это одноразовый скрипт: пайплайн владеет
   обоими хранилищами, поэтому <code>show_matches</code> должна выполняться внутри
   <code>async with pipeline</code>. Долгоживущее приложение вместо этого следует разделу
   <a href="store-ownership/">Владение хранилищами</a>.</li>
 <li><strong>Сбои памяти.</strong> <code>SearchStoreError</code> при индексировании записывается как
   предупреждение, <code>Memory ingest failed for &lt;record_id&gt; in AsyncSearchIndexer: ...</code>,
-  в логгер <code>sci_etl_core.ingest_async</code>, а фрагменты записи всё равно получают
+  в логгер <code>sci_etl_core.ingest_async</code>, а чанки записи всё равно получают
   эмбеддинги и её сущности всё равно экспортируются. Сбой эмбеддинга точно так
   же не затрагивает текстовый индекс. <code>SearchQueryError</code> не является сбоем
   памяти и приводит к неудаче записи.</li>
 <li><strong>Порядок загрузчиков.</strong> <code>AsyncCompositeIngestor</code> возвращает счётчик своего
-  первого загрузчика, поэтому передавайте загрузчик фрагментов первым;
+  первого загрузчика, поэтому передавайте загрузчик чанков первым;
   <code>AsyncSearchIndexer</code> на первом месте вызывает <code>ValueError</code>. Без эмбеддингов
   передавайте <code>AsyncSearchIndexer</code> прямо в <code>memory_ingestor=</code>.</li>
 <li><strong>Что индексируется.</strong> Один документ на запись, содержащий её заголовок,
@@ -2775,7 +2775,7 @@ Extra <code>embeddings</code> нужен только семантической
 <li><a href="hybrid-search/">Гибридный поиск</a> — объединение BM25 со сходством эмбеддингов.</li>
 <li><a href="filters-and-facets/">Фильтры и фасеты</a> — фильтры по метаданным и диапазонам, счётчики фасетов и диапазонов.</li>
 <li><a href="text-stores/">Текстовые хранилища</a> — индексы в памяти и SQLite FTS5.</li>
-<li><a href="backfill/">Заполнение из векторной памяти</a> — построение текстового индекса из сохранённых фрагментов.</li>
+<li><a href="backfill/">Заполнение из векторной памяти</a> — построение текстового индекса из сохранённых чанков.</li>
 <li><a href="discovery-graphs/">Графы связанных статей</a> — графы связанных статей.</li>
 <li><a href="user-interfaces/">Создание пользовательского интерфейса</a> — модель чтения, которую отображает интерфейс.</li>
 <li><a href="store-ownership/">Владение хранилищами</a> — кто закрывает хранилище и когда.</li>

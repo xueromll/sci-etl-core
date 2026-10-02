@@ -26,7 +26,7 @@
         
           <link rel="alternate" href="../../../es/project/contributing/" hreflang="es">
         
-          <link rel="alternate" href="../../../zh/project/contributing/" hreflang="zh">
+          <link rel="alternate" href="../../../zh-Hans/project/contributing/" hreflang="zh-Hans">
         
           <link rel="alternate" href="../../../ar/project/contributing/" hreflang="ar">
         
@@ -205,7 +205,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../../../zh/project/contributing/" hreflang="zh" class="md-select__link">
+            <a href="../../../zh-Hans/project/contributing/" hreflang="zh-Hans" class="md-select__link">
               简体中文
             </a>
           </li>
@@ -1312,7 +1312,7 @@
   <span class="md-ellipsis">
     
   
-    Запуск конвейеров
+    Запуск пайплайнов
   
 
     
@@ -1328,7 +1328,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Запуск конвейеров
+    Запуск пайплайнов
   
 
           </label>
@@ -1608,7 +1608,7 @@
   <span class="md-ellipsis">
     
   
-    Перенос конвейера
+    Перенос пайплайна
   
 
     
@@ -2627,7 +2627,7 @@
   <a href="#releasing" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Выпуск версий
+        Релиз версий
       
     </span>
   </a>
@@ -2852,7 +2852,7 @@
   <a href="#releasing" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Выпуск версий
+        Релиз версий
       
     </span>
   </a>
@@ -2935,11 +2935,11 @@
 <ul>
 <li><strong>Асинхронная реализация — единственная.</strong> Каждый компонент асинхронный
   (<code>async</code>). Не добавляйте синхронных двойников компонентов; генератора кода
-  нет. Блокирующие реализации попадают в конвейер через адаптеры в
+  нет. Блокирующие реализации попадают в пайплайн через адаптеры в
   <code>_adapters.py</code>.</li>
 <li><strong>Одна блокирующая точка входа.</strong> <code>ETLPipeline</code> (<code>pipeline.py</code>) запускает
   <code>AsyncETLPipeline</code> через <code>_sync_bridge.run_sync</code>. Новые блокирующие API
-  сначала обсудите в задаче.</li>
+  сначала обсудите в issue.</li>
 <li><strong>Не загружайте цикл событий.</strong> Выполняйте ресурсоёмкую или блокирующую
   работу через <code>asyncio.to_thread</code>. Парсеры, pandas, <code>sqlite3</code> и файловый
   ввод-вывод следуют этому шаблону.</li>
@@ -2952,9 +2952,9 @@
   <code>llm/relevance_async.py</code>).</li>
 <li><strong>Сообщайте о сбоях исключениями.</strong> Используйте иерархию из
   <code>exceptions.py</code>. Не возвращайте <code>None</code> или пустой результат при сбое
-  транспорта — конвейер полагается на <code>UpstreamError</code> и
+  транспорта — пайплайн полагается на <code>UpstreamError</code> и
   <code>MalformedResponseError</code>, чтобы отличать сбои от конца данных.</li>
-<li><strong>Будьте безопасны при параллелизме.</strong> Конвейер вызывает фильтры
+<li><strong>Будьте безопасны при параллелизме.</strong> Пайплайн вызывает фильтры
   релевантности, экстракторы сущностей, <code>write</code> экспортёра и <code>mark_processed</code>
   параллельно. Сериализуйте общие записи с помощью <code>asyncio.Lock</code> и пишите
   файлы через <code>_atomic_io.atomic_write_text</code>. Хорошие образцы —
@@ -2992,9 +2992,9 @@
   является обязательным условием.</li>
 <li><strong>Асинхронные тесты</strong> используют явный маркер <code>@pytest.mark.asyncio</code>
   (автоматический режим не настроен), с <code>AsyncMock</code> или фикстурой <code>mocker</code>.</li>
-<li><strong>Никакой реальной сети и ожиданий отсрочки.</strong> Подменяйте HTTP-, LLM- и
+<li><strong>Никакой реальной сети и ожиданий задержки.</strong> Подменяйте HTTP-, LLM- и
   эмбеддинг-клиенты и внедряйте <code>sleep=AsyncMock()</code>, чтобы пропускать
-  задержки отсрочки.</li>
+  задержки.</li>
 <li><strong>Контрактные тесты.</strong> Для каждой реализации публичного ABC есть случай в
   <code>tests/contract/test_abc_conformance.py</code>; добавляйте его для каждой новой
   реализации.</li>
@@ -3028,7 +3028,7 @@
   <code>SEMANTIC_SCHOLAR_API_KEY</code> и <code>OPENALEX_MAILTO</code>. Без своего ключа источник,
   который продолжает отвечать <code>429</code>, пропускается, а не считается проваленным.
 - <strong>Бенчмарк пропускной способности.</strong> <code>python benchmarks/run_throughput.py</code>
-  прогоняет каждый встроенный экспортёр конвейера через <code>AsyncETLPipeline</code> на
+  прогоняет каждый встроенный экспортёр пайплайна через <code>AsyncETLPipeline</code> на
   1 000, 10 000 и 50 000 записях и записывает время в
   <code>benchmarks/results/&lt;version&gt;.json</code>. Экспортёр считается линейным, если его
   время на запись при наибольшем размере не более чем в 1,5 раза превышает
@@ -3036,7 +3036,7 @@
 - <strong>Тесты потребителей.</strong> Процесс Downstream запускает наборы тестов
   <a href="https://github.com/xueromll/sci-etl-cli">sci-etl-cli</a> и
   <a href="https://github.com/xueromll/udg-catalogue">udg-catalogue</a> на каждом push и
-  pull request, устанавливая этот клон вместо выпуска, который закрепляет
+  pull request, устанавливая этот клон вместо релиза, который закрепляет
   каждый проект, и завершается ошибкой при любом <code>DeprecationWarning</code>. Каждое
   задание устанавливает extras, указанные в собственном требовании проекта.
   Чтобы запустить набор тестов CLI локально:</p>
@@ -3098,12 +3098,14 @@
   в корне репозитория; страницы в <code>docs/project/</code> отображают их, а ссылки между
   ними переписываются для сайта.</li>
 <li><strong>Переводы.</strong> Русская, испанская, упрощённая китайская и арабская версии
-  страницы лежат рядом с ней как <code>page.ru.md</code>, <code>page.es.md</code>, <code>page.zh.md</code> и
+  страницы лежат рядом с ней как <code>page.ru.md</code>, <code>page.es.md</code>, <code>page.zh-Hans.md</code> и
   <code>page.ar.md</code>, а плагин mkdocs-static-i18n собирает каждый язык по
   собственному пути, например <code>/ru/</code>. Pull request, меняющий английскую
-  страницу, обновляет и четыре её перевода. <a href="../translating/">TRANSLATING.md</a>
-  называет владельца каждого языка и содержит глоссарий и правила, которым
-  следует переведённая страница.</li>
+  страницу, обновляет и четыре её перевода. Все четыре сделаны машинным
+  переводом и ждут проверки носителем языка, поэтому авторитетным текстом
+  остаётся английский. <a href="../translating/">TRANSLATING.md</a> называет координатора
+  каждого языка и содержит глоссарий и правила, которым следует переведённая
+  страница.</li>
 <li><strong>Раздел CLI</strong> берётся из папки <code>docs/</code> и <code>nav</code> репозитория sci-etl-cli.
   Сборка ищет клон рядом с этим или по пути из <code>SCI_ETL_CLI_DIR</code>; без него она
   пропускает раздел, о чём <code>--strict</code> сообщает как об ошибке. Меняйте страницы
@@ -3117,29 +3119,29 @@
   и обновление примеров.</li>
 <li><strong>Публикация.</strong> Процесс документации развёртывает <code>master</code> как версию <code>dev</code>,
   а каждый тег <code>v*</code> — как его минорную версию, например <code>0.3</code>, с псевдонимом
-  <code>latest</code>. Сборка по тегу использует страницы CLI из последнего выпуска
-  sci-etl-cli или из его ветки по умолчанию, если в этом выпуске нет
+  <code>latest</code>. Сборка по тегу использует страницы CLI из последнего релиза
+  sci-etl-cli или из его ветки по умолчанию, если в этом релизе нет
   <code>mkdocs.yml</code>. Вручную ничего публиковать не нужно.</li>
 </ul>
-<h2 id="releasing">Выпуск версий<a class="headerlink" href="#releasing" title="Permanent link">&para;</a></h2>
+<h2 id="releasing">Релиз версий<a class="headerlink" href="#releasing" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Версии для разработки.</strong> Сразу после выпуска <code>master</code> переходит на
+<li><strong>Версии для разработки.</strong> Сразу после релиза <code>master</code> переходит на
   следующую версию для разработки, например <code>0.7.0.dev0</code> после <code>0.6.0</code>, чтобы
-  сборка из <code>master</code> никогда не выдавала себя за выпуск.</li>
-<li><strong>Условие выпуска.</strong> Push тега <code>v*</code> запускает набор тестов CI и процесс
+  сборка из <code>master</code> никогда не выдавала себя за релиз.</li>
+<li><strong>Условие релиза.</strong> Push тега <code>v*</code> запускает набор тестов CI и процесс
   Downstream на помеченном коммите. Дистрибутив собирается и публикуется,
-  только когда оба проходят, поэтому выпуск, ломающий sci-etl-cli или
+  только когда оба проходят, поэтому релиз, ломающий sci-etl-cli или
   udg-catalogue, никогда не публикуется. Тег должен совпадать с версией в
   <code>pyproject.toml</code>.</li>
 <li><strong>Устаревания.</strong> Начиная с 0.6.0 устаревшее имя продолжает работать как
-  минимум два минорных выпуска, прежде чем его удаляют.</li>
+  минимум два минорных релиза, прежде чем его удаляют.</li>
 <li><strong>Перед установкой тега.</strong> Проставьте дату в разделе невыпущенной версии
   <code>CHANGELOG.md</code>, обновите поддерживаемые версии в <code>SECURITY.md</code> и заново
   запустите <code>python benchmarks/run_throughput.py</code>, чтобы в
   <code>benchmarks/results/</code> появилась новая версия.</li>
 <li><strong>Закреплённые actions.</strong> Процессы закрепляют каждый action на SHA коммита,
   указывая тег в комментарии в конце строки, например <code># v5</code>. Чтобы перейти на
-  более новый выпуск, определите его SHA командой
+  более новый релиз, определите его SHA командой
   <code>git ls-remote https://github.com/actions/checkout refs/tags/v5</code> и обновите
   закрепление и комментарий одновременно.</li>
 </ul>
@@ -3156,10 +3158,10 @@
 <a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>docs(readme): document ETLPipeline event-loop behavior
 </code></pre></div>
 <p>Пишите краткое описание в повелительном наклонении и короче ~72 символов.
-Ссылайтесь на задачи в теле сообщения (<code>Closes #123</code>).</p>
+Ссылайтесь на issue в теле сообщения (<code>Closes #123</code>).</p>
 <h2 id="pull-request-process">Процесс pull request<a class="headerlink" href="#pull-request-process" title="Permanent link">&para;</a></h2>
 <ol>
-<li><strong>Сначала откройте задачу</strong> для всего нетривиального, чтобы мы могли
+<li><strong>Сначала откройте issue</strong> для всего нетривиального, чтобы мы могли
    согласовать подход.</li>
 <li><strong>Создайте ветку</strong> от <code>master</code>, например <code>feat/pubmed-extractor</code>.</li>
 <li><strong>Пишите тесты</strong> вместе с изменением; сохраняйте покрытие на 100 %.</li>
@@ -3170,12 +3172,12 @@
      обзором</li>
 <li>русский, испанский, китайский и арабский переводы каждой английской
      страницы, которую вы меняете, по правилам <a href="../translating/">TRANSLATING.md</a>;
-     если вы не можете написать один из них, скажите об этом, и владелец
+     если вы не можете написать один из них, скажите об этом, и координатор
      языка добавит перевод до слияния</li>
-<li><code>MIGRATION.md</code> — для ломающего изменения, в разделе выпуска, который его
+<li><code>MIGRATION.md</code> — для ломающего изменения, в разделе релиза, который его
      содержит</li>
 <li><code>docs/guide/migrating-a-pipeline.md</code> — когда изменение влияет на перенос
-     существующего конвейера на библиотеку</li>
+     существующего пайплайна на библиотеку</li>
 <li><code>ROADMAP.md</code> — когда вы выпускаете пункт из списка</li>
 <li>описание pull request — для любого ломающего изменения, с тем, что нужно
      обновить пользователям</li>
@@ -3201,7 +3203,7 @@
 <td>Экстрактор</td>
 <td><code>AsyncExtractor</code></td>
 <td><code>async fetch_page(query, cursor, page_size) -&gt; ListingPage</code>, <code>async fetch_full_text</code>; <code>cursor_for_offset</code>, когда курсоры — десятичные смещения</td>
-<td>Возвращайте каждый элемент, который удаётся прочитать: конвейер сам пропускает обработанные идентификаторы. Учитывайте элементы без идентификатора в <code>entries</code>, возвращайте <code>next_cursor=None</code> на последней странице и <code>truncated=True</code> на странице, достигающей собственного лимита результатов источника. Выбрасывайте <code>UpstreamError</code>, когда источник недоступен после повторов, <code>ExtractionError</code>, когда он прямо отвергает запрос, <code>MalformedResponseError</code> для нечитаемой выдачи и <code>StaleCursorError</code> для курсора, который источник больше не принимает.</td>
+<td>Возвращайте каждый элемент, который удаётся прочитать: пайплайн сам пропускает обработанные идентификаторы. Учитывайте элементы без идентификатора в <code>entries</code>, возвращайте <code>next_cursor=None</code> на последней странице и <code>truncated=True</code> на странице, достигающей собственного лимита результатов источника. Выбрасывайте <code>UpstreamError</code>, когда источник недоступен после повторов, <code>ExtractionError</code>, когда он прямо отвергает запрос, <code>MalformedResponseError</code> для нечитаемого листинга и <code>StaleCursorError</code> для курсора, который источник больше не принимает.</td>
 </tr>
 <tr>
 <td>Парсер</td>
@@ -3231,7 +3233,7 @@
 <td>Экстрактор сущностей</td>
 <td><code>AsyncEntityExtractor[E]</code></td>
 <td><code>async extract(text) -&gt; Sequence[E]</code>; <code>extract_record(record, text)</code>, когда нужна запись</td>
-<td>Конвейер вызывает <code>extract_record</code>, реализация которого по умолчанию вызывает <code>extract</code>. При сбое выбрасывайте исключение, а не возвращайте <code>[]</code>, чтобы запись повторилась. Экстрактор, которому нужна запись, устанавливает <code>requires_record = True</code>; обёртка делегирует внутреннему <code>extract_record</code>.</td>
+<td>Пайплайн вызывает <code>extract_record</code>, реализация которого по умолчанию вызывает <code>extract</code>. При сбое выбрасывайте исключение, а не возвращайте <code>[]</code>, чтобы запись повторилась. Экстрактор, которому нужна запись, устанавливает <code>requires_record = True</code>; обёртка делегирует внутреннему <code>extract_record</code>.</td>
 </tr>
 <tr>
 <td>Экспортёр</td>
@@ -3243,7 +3245,7 @@
 <td>Менеджер состояния</td>
 <td><code>AsyncStateManager</code></td>
 <td><code>load_processed_ids</code>, <code>mark_processed</code>, <code>load_metadata</code>, <code>save_metadata</code></td>
-<td>Безопасен при параллелизме. Переопределяйте <code>record_failure</code> и <code>failure_counts</code> для поддержки карантина; реализации по умолчанию ничего не отслеживают. Записывайте версию схемы и отказывайтесь работать с файлом более нового выпуска. Переопределите <code>flush()</code>, если используете буферизацию; добавьте <code>aclose()</code>, если удерживаете соединения.</td>
+<td>Безопасен при параллелизме. Переопределяйте <code>record_failure</code> и <code>failure_counts</code> для поддержки карантина; реализации по умолчанию ничего не отслеживают. Записывайте версию схемы и отказывайтесь работать с файлом более нового релиза. Переопределите <code>flush()</code>, если используете буферизацию; добавьте <code>aclose()</code>, если удерживаете соединения.</td>
 </tr>
 <tr>
 <td>Эмбеддер</td>
@@ -3255,13 +3257,13 @@
 <td>Векторное хранилище</td>
 <td><code>AsyncEmbeddingStore</code></td>
 <td><code>add</code>, <code>delete_record</code>, <code>query</code>, <code>count</code></td>
-<td>Заменяйте фрагменты с тем же <code>(record_id, chunk_index)</code>; <code>delete_record</code> удаляет все фрагменты записи. Переопределите <code>replace_record</code> (по умолчанию удаление, затем добавление), если ваш бэкенд умеет делать и то и другое атомарно. Никогда не возвращайте результаты с неконечными оценками. Ведите себя как <code>InMemoryEmbeddingStore</code> в отношении <code>top_k</code>, <code>min_score</code> и <code>exclude_record_id</code>. Сериализуйте использование общего соединения и выбрасывайте <code>EmbeddingStoreError</code>. Реализуйте <code>iter_records</code> (фрагменты в порядке <code>chunk_index</code>, записи в порядке <code>record_id</code>, без векторов), если текстовый индекс должен заполняться из вашего хранилища.</td>
+<td>Заменяйте чанки с тем же <code>(record_id, chunk_index)</code>; <code>delete_record</code> удаляет все чанки записи. Переопределите <code>replace_record</code> (по умолчанию удаление, затем добавление), если ваш бэкенд умеет делать и то и другое атомарно. Никогда не возвращайте результаты с неконечными оценками. Ведите себя как <code>InMemoryEmbeddingStore</code> в отношении <code>top_k</code>, <code>min_score</code> и <code>exclude_record_id</code>. Сериализуйте использование общего соединения и выбрасывайте <code>EmbeddingStoreError</code>. Реализуйте <code>iter_records</code> (чанки в порядке <code>chunk_index</code>, записи в порядке <code>record_id</code>, без векторов), если текстовый индекс должен заполняться из вашего хранилища.</td>
 </tr>
 <tr>
-<td>Разбивщик</td>
+<td>Чанкер</td>
 <td><code>TextChunker</code></td>
 <td><code>chunk(text) -&gt; list[str]</code></td>
-<td>Упорядоченные фрагменты, покрывающие текст.</td>
+<td>Упорядоченные чанки, покрывающие текст.</td>
 </tr>
 <tr>
 <td>Хранилище текстового поиска</td>

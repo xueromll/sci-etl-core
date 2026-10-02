@@ -1,0 +1,4127 @@
+
+<!doctype html>
+<html lang="zh-Hans" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="一个 Python 库，用于把任何科学领域的论文转换为结构化、可检索的数据；sci-etl 命令行工具则通过 YAML 运行它。">
+      
+      
+      
+        <link rel="canonical" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/project/changelog/">
+      
+      
+        <link rel="prev" href="../../reference/utilities/">
+      
+      
+        <link rel="next" href="../migration/">
+      
+      
+        
+          <link rel="alternate" href="../../../project/changelog/" hreflang="en">
+        
+          <link rel="alternate" href="../../../ru/project/changelog/" hreflang="ru">
+        
+          <link rel="alternate" href="../../../es/project/changelog/" hreflang="es">
+        
+          <link rel="alternate" href="./" hreflang="zh-Hans">
+        
+          <link rel="alternate" href="../../../ar/project/changelog/" hreflang="ar">
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>更新日志 - sci-etl-core</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#_1" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../../" title="sci-etl-core" class="md-header__button md-logo" aria-label="sci-etl-core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            sci-etl-core
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              更新日志
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="选择当前语言">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../../project/changelog/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../../ru/project/changelog/" hreflang="ru" class="md-select__link">
+              Русский
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../../es/project/changelog/" hreflang="es" class="md-select__link">
+              Español
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="zh-Hans" class="md-select__link">
+              简体中文
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../../ar/project/changelog/" hreflang="ar" class="md-select__link">
+              العربية
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/xueromll/sci-etl-core" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    xueromll/sci-etl-core
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  入门
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../guide/sources/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  指南
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../cli/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  CLI
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  API 参考
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+    
+  
+  项目
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../" title="sci-etl-core" class="md-nav__button md-logo" aria-label="sci-etl-core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    sci-etl-core
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/xueromll/sci-etl-core" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    xueromll/sci-etl-core
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    入门
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    入门
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    安装
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    快速开始
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/blocking-usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    阻塞式用法
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    配置
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/when-not-to-use/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    何时不应使用
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    指南
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    指南
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/sources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    支持的来源
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/typed-entities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    类型化实体与校验
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    论断与溯源
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/post-processing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    后处理与可视化
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/semantic-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    语义记忆
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../guide/search/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    本地检索与发现
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    本地检索与发现
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/query-syntax/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    查询语法
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/ranked-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    排序检索与过滤
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/hybrid-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    混合检索
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/filters-and-facets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    过滤器与分面
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/text-stores/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    文本存储
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/backfill/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    从向量记忆回填
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/discovery-graphs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    发现图
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/user-interfaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    构建用户界面
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/search/store-ownership/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    存储的所有权
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    运行流水线
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    运行流水线
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    状态、续跑与错误
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/run-semantics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    运行语义
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/shutdown/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    优雅关闭
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/retries/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    重试
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/rate-limiting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    速率限制
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/logging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    日志
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    进度事件与指标
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/token-usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Token 用量
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/llm-caching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM 响应缓存
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/migrating-a-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    迁移流水线
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    架构
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../cli/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CLI
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    快速开始
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/commands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Commands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/config-file/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Config file
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plug-ins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/exit-codes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exit codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../reference/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API 参考
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API 参考
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/pipelines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    流水线
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    配置
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    模型与异常
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/extractors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    提取器
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/parsers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    解析器
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/llm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/embeddings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    嵌入
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    检索
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/exporters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    导出器
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/claims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    论断
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/processors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    处理器
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    状态
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    工具
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    项目
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    项目
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    更新日志
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    更新日志
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#060-2026-09-27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.6.0] - 2026-09-27
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.6.0] - 2026-09-27">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        新增
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        变更
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        移除
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#051-2026-09-26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.5.1 - 2026-09-26
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.5.1 - 2026-09-26">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        新增
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        变更
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        修复
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#050-2026-09-25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.5.0 - 2026-09-25
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.5.0 - 2026-09-25">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        新增
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        变更
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deprecated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        弃用
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        移除
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        修复
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#041-2026-09-25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.4.1 - 2026-09-25
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.4.1 - 2026-09-25">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        变更
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        修复
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#040-2026-09-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.4.0 - 2026-09-16
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.4.0 - 2026-09-16">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        新增
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        变更
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#030-2026-09-15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.3.0 - 2026-09-15
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.3.0 - 2026-09-15">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        新增
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        变更
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        修复
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#020-2026-09-14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.2.0 - 2026-09-14
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.2.0 - 2026-09-14">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        安全
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#added_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        新增
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        变更
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#012-2026-09-14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.1.2 - 2026-09-14
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.1.2 - 2026-09-14">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        修复
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#added_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        新增
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        变更
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#011-2026-09-14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.1.1 - 2026-09-14
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.1.1 - 2026-09-14">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        新增
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010-2026-09-13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.1.0 - 2026-09-13
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    迁移指南
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    路线图
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    参与贡献
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../translating/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    翻译
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    安全
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code-of-conduct/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    行为准则
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#060-2026-09-27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.6.0] - 2026-09-27
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.6.0] - 2026-09-27">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        新增
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        变更
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        移除
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#051-2026-09-26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.5.1 - 2026-09-26
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.5.1 - 2026-09-26">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        新增
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        变更
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        修复
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#050-2026-09-25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.5.0 - 2026-09-25
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.5.0 - 2026-09-25">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        新增
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        变更
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deprecated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        弃用
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        移除
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        修复
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#041-2026-09-25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.4.1 - 2026-09-25
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.4.1 - 2026-09-25">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        变更
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        修复
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#040-2026-09-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.4.0 - 2026-09-16
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.4.0 - 2026-09-16">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        新增
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        变更
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#030-2026-09-15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.3.0 - 2026-09-15
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.3.0 - 2026-09-15">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        新增
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        变更
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        修复
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#020-2026-09-14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.2.0 - 2026-09-14
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.2.0 - 2026-09-14">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        安全
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#added_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        新增
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        变更
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#012-2026-09-14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.1.2 - 2026-09-14
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.1.2 - 2026-09-14">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        修复
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#added_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        新增
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        变更
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#011-2026-09-14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.1.1 - 2026-09-14
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.1.1 - 2026-09-14">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        新增
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010-2026-09-13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.1.0 - 2026-09-13
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="_1">更新日志<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<p>sci-etl-core 的所有重要变更都记录在这里。格式遵循
+<a href="https://keepachangelog.com/en/1.1.0/">Keep a Changelog</a>，版本号遵循
+<a href="https://semver.org/">语义化版本</a>。在 1.0 之前，次版本可能会改变行为；每项此类
+变更都列在<strong>变更</strong>之下。</p>
+<h2 id="060-2026-09-27">[0.6.0] - 2026-09-27<a class="headerlink" href="#060-2026-09-27" title="Permanent link">&para;</a></h2>
+<p>本版本改变了数据契约：实体提取器可以返回类型化实体，导出器接收每条记录及其实体，本库通过
+标准 <code>logging</code> 模块输出日志，基础安装只需要 Pydantic。它还新增了带有证据和溯源信息的论断。
+请参阅 MIGRATION.md 中的“升级到 0.6”。</p>
+<h3 id="added">新增<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>导出器生命周期。</strong> <code>AsyncExporter</code> 具有 <code>open()</code>、<code>write(record, entities)</code>、<code>flush()</code>
+  和 <code>aclose()</code>，<code>durable_writes</code> 说明是由 <code>write</code> 还是 <code>flush</code> 使实体持久化。流水线只有在
+  记录的实体已持久化时才会将其标记为已处理，因此崩溃可能导致记录被重复处理，但绝不会丢失。</li>
+<li><code>AsyncCsvExporter</code>：每个实体写一行，带有其论文的 <code>record_id</code>，把其他所有键保存在 <code>extra</code>
+  列中，从不合并、截断或转换任何值。它每次运行根据一个只追加的日志生成一次文件，因此导出时间
+  随记录数线性增长。电子表格会当作公式执行的单元格会被加上前导撇号；<code>-5.361</code> 这样的普通数字
+  原样写入。</li>
+<li><code>AsyncJsonlExporter</code>：每条记录追加一行 JSON；以及 <code>read_jsonl_export</code>：读回每条记录的最后
+  一行。</li>
+<li><strong>类型化实体。</strong> <code>AsyncLLMEntityExtractor(schema=Model)</code> 按 Pydantic 模型校验每个实体并
+  返回模型实例。它通过新增的 <code>AsyncLLMClient.complete_structured</code> 请求 JSON Schema 结构化
+  输出，对于支持该功能的端点，可由 <code>AsyncOpenAICompatibleClient(structured_output=True)</code> 和
+  <code>LLMConfig.structured_output</code> 开启。<code>entity_list_schema</code> 用于构建所请求的模式。</li>
+<li><strong>拒绝原因。</strong> <code>RecordValidator.validate</code> 返回一个由 <code>Violation</code> 组成的
+  <code>ValidationResult</code>，指出每次拒绝的字段和规则。内置校验器会报告各自的规则，
+  <code>CompositeValidator.validate</code> 会汇集每个校验器的违规项。拒绝会连同原因记录到日志。</li>
+<li><code>AsyncEntityExtractor.extract_record(record, text)</code> 和 <code>requires_record</code>，用于需要记录本身
+  的提取器。流水线调用的是 <code>extract_record</code>。</li>
+<li><code>AsyncLLMEntityExtractor.prepare</code> 返回发送给模型的文本，<code>stamp</code> 描述其实体背后的模型、
+  提示词、模式和库版本。<code>rejections=</code> 会把被拒绝的实体保存在拒绝记录存储中。</li>
+<li><code>response_cache_key(schema=, variant=)</code> 和 <code>CachingLLMClient(variant=)</code>。类型化请求的模式
+  会加入缓存键。</li>
+<li><code>sci_etl_core.claims</code>（临时性）：<code>Claim</code>、<code>ClaimDraft</code>、<code>EvidenceSpan</code>、
+  <code>ExtractionStamp</code>、<code>locate_quote</code>、<code>AsyncLLMClaimExtractor</code>，论断存储
+  <code>InMemoryClaimStore</code> 和 <code>AsyncSqliteClaimStore</code>，<code>AsyncClaimStoreExporter</code>，以及拒绝记录
+  存储 <code>InMemoryRejectionStore</code> 和 <code>AsyncSqliteRejectionStore</code>。</li>
+<li><code>DeduplicationStep(source_column=)</code> 会添加一个 <code>sources</code> 列，列出合并进每个输出行的所有行
+  的不同来源，例如每篇论文的 <code>record_id</code>。</li>
+<li><code>ExportError</code>、<code>ClaimError</code> 和 <code>ClaimStoreError</code>。</li>
+<li><code>config</code>、<code>arxiv</code>、<code>xml</code>、<code>html</code> 和 <code>processors</code> extra。</li>
+<li><code>load_config(load_env=True)</code> 和 <code>load_config_async(load_env=True)</code>。</li>
+</ul>
+<h3 id="changed">变更<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>破坏性变更：</strong> 导出器在构造时接收目标位置，并实现 <code>write(record, entities)</code> 而不是
+  <code>export(data, destination)</code>。流水线不再接受 <code>destination</code>。</li>
+<li><strong>破坏性变更：</strong> 流水线会把每条已处理的记录（包括没有实体的记录）写入导出器，以便导出器
+  清除重新提取后不再出现的行。</li>
+<li><strong>破坏性变更：</strong> 流水线在第一次列表请求之前打开导出器，在每页之后刷新它，并且无论运行如何
+  结束，都会在写回状态之前刷新并关闭它。<code>open</code> 故障会中止运行；<code>flush</code> 故障会使该页的记录
+  保持未落定，且不对它们计入尝试。</li>
+<li><strong>破坏性变更：</strong> 基础安装只依赖 <code>pydantic</code>。使用 <code>load_config</code> 需安装 <code>config</code> extra，
+  使用 <code>AsyncArxivExtractor</code> 需安装 <code>arxiv</code>，使用 PubMed 提取器以及 JATS 和 DOCX 解析器需
+  安装 <code>xml</code>，使用 <code>HtmlTextParser</code> 需安装 <code>html</code>，使用 pandas 处理器和表格输出端需安装
+  <code>processors</code>。</li>
+<li><strong>破坏性变更：</strong> 只有在传入 <code>env_path</code> 或 <code>load_env=True</code> 时，<code>load_config</code> 和
+  <code>load_config_async</code> 才会读取 <code>.env</code> 文件。</li>
+<li><strong>破坏性变更：</strong> 每个模块都通过 <code>logging.getLogger(__name__)</code> 在 <code>sci_etl_core</code> 记录器之下
+  输出日志：失败和跳过的记录用 <code>WARNING</code>，输出端和状态故障用 <code>ERROR</code>，例行说明用 <code>INFO</code>。
+  本库不配置任何处理器。</li>
+<li><strong>破坏性变更：</strong> <code>AsyncEntityExtractor</code> 和 <code>AsyncExporter</code> 在实体类型上是泛型的，
+  <code>AsyncLLMEntityExtractor</code> 中 <code>system_prompt</code> 之后的所有参数都只能以关键字形式传入。</li>
+<li><code>AsyncLLMClient.invalidate</code> 为类型化请求接受 <code>schema=</code>。</li>
+<li><code>async</code> extra 不再安装 <code>aiofiles</code>，<code>sql</code> extra 不再安装 <code>aiosqlite</code>。</li>
+<li><code>AsyncArxivExtractor</code> 遇到 <code>406</code> 响应时会重试，而不是让请求失败，因为 arXiv 会对有效请求
+  间歇性地返回该状态码。</li>
+</ul>
+<h3 id="removed">移除<a class="headerlink" href="#removed" title="Permanent link">&para;</a></h3>
+<ul>
+<li>阻塞式接口 <code>Extractor</code>、<code>StateManager</code>、<code>Exporter</code>、<code>LLMClient</code>、<code>RelevanceFilter</code> 和
+  <code>EntityExtractor</code>，以及 <code>Sync*Adapter</code> 类。</li>
+<li><code>LegacyExtractorAdapter</code>。</li>
+<li><code>AsyncExporter.export</code> 和流水线的 <code>destination</code> 参数。</li>
+<li><code>AsyncCsvUpsertExporter</code>；请使用 <code>AsyncCsvExporter</code>。</li>
+<li><code>AsyncSqlTableExporter</code> 和 <code>AsyncPlotly3DExporter</code>；请使用 <code>SqlTableSink</code> 和
+  <code>Plotly3DSink</code>。<code>ScatterPlotConfig</code> 从 <code>sci_etl_core.processors</code> 导入。</li>
+<li>所有 <code>logger=</code> 参数、<code>configure_logging</code> 以及 <code>AsyncETLPipeline.log</code>。</li>
+</ul>
+<h2 id="051-2026-09-26"><a href="https://github.com/xueromll/sci-etl-core/compare/v0.5.0...v0.5.1">0.5.1</a> - 2026-09-26<a class="headerlink" href="#051-2026-09-26" title="Permanent link">&para;</a></h2>
+<p>本版本不再让没有实际回答的 LLM 响应使记录落定，防止 LLM 缓存重放这些响应，并增加了下载和
+解压大小限制。升级后的第一次运行会让 LLM 缓存未命中一次。请参阅 MIGRATION.md 中的“升级到
+0.5.1”。</p>
+<h3 id="added_1">新增<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>AsyncLLMClient.invalidate(system_prompt, user_content)</code> 报告被拒绝的响应，
+  <code>AsyncLLMResponseCache.delete(key)</code> 删除一个条目；两种内置缓存都实现了它。</li>
+<li><strong>大小限制。</strong> <code>AsyncArxivExtractor</code>、<code>AsyncOpenAlexExtractor</code>、<code>AsyncPubMedExtractor</code> 和
+  <code>AsyncSemanticScholarExtractor</code> 上的 <code>max_download_bytes</code> 会在解码后限制每个响应体的大小，
+  <code>LatexTarballParser(max_tex_bytes=)</code> 会限制从一个 e-print 中解压出的 TeX。过大的列表页会
+  抛出 <code>ExtractionError</code>；过大的全文下载或 e-print 会被记录并跳过。两者默认都不限制。</li>
+<li><code>AsyncArxivExtractor.from_config(full_text=)</code> 根据 <code>full_text</code> 配置部分构建提取器的速率
+  限制器。</li>
+<li><code>AsyncOpenAICompatibleClient</code> 和 <code>CachingLLMClient</code> 提供 <code>base_url</code> 和 <code>temperature</code>，每个
+  <code>AsyncLLMClient</code> 都提供 <code>response_format</code>，默认为 <code>{"type": "json_object"}</code>。
+  <code>response_cache_key</code> 以关键字形式接受这三者。</li>
+</ul>
+<h3 id="changed_1">变更<a class="headerlink" href="#changed_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>空的 LLM 回复现在会使记录失败，而不是使其落定。<code>AsyncOpenAICompatibleClient.complete_json</code>
+  在过去返回 <code>{}</code> 的地方抛出 <code>LLMError</code>，因此流水线会在下一次运行时重试该记录，而不是在什么
+  都没导出的情况下把它标记为已处理。</li>
+<li>当响应中没有实体列表（为空，或有多个键但都不是 <code>result_key</code>）时，
+  <code>AsyncLLMEntityExtractor.extract</code> 会抛出 <code>LLMError</code>。过去它返回 <code>[]</code>，记录会被标记为已
+  处理。</li>
+<li>设置了 <code>default_on_error=False</code> 的 <code>AsyncLLMRelevanceFilter</code> 和
+  <code>AsyncEmbeddingRelevanceFilter</code> 在出错时会关闭：调用失败或结论不明确都会抛出异常，该记录会
+  在下一次运行时重试。过去这会被解读为不相关，记录会被永久标记为已处理。</li>
+<li>LLM 缓存键现在包含端点的 <code>base_url</code>、温度和响应格式，因此为某个服务商、温度或格式缓存的
+  回答不再会提供给另一个。早期版本缓存的响应不会被找到，升级后的第一次运行会为每个请求调用
+  LLM。</li>
+<li>没有 <code>delete</code> 的第三方 <code>AsyncLLMResponseCache</code> 会继续提供本库拒绝的响应。请实现
+  <code>delete</code>，或者接受重放。</li>
+<li><code>PdfPlumberParser.extract_text</code> 只打开一次 PDF 即可读取文本和表格，过去会打开两次。</li>
+<li>重复调用时，<code>AsyncSqliteEmbeddingStore.query</code> 快得多。该存储把向量保存在内存中，只有在文件
+  发生变化后才重新读取，用一次 NumPy 乘积为它们打分，并且只为返回的文本块读取文本和元数据。
+  在含 9,000 个文本块的记忆上构建发现图的速度提高了约四倍。现在该存储在两次查询之间会把向量
+  保存在内存中，直到被关闭。</li>
+<li>发布不再等待 sci-etl-cli 和 udg-catalogue 在新版本上运行；使用方的就绪情况改为在发布说明中
+  报告。</li>
+</ul>
+<h3 id="fixed">修复<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>AsyncArxivExtractor</code> 会像其他内置提取器一样重试 <code>408</code> 请求超时。它现在与它们共用重试代码，
+  因此其重试和失败消息以 <code>arXiv</code> 开头并指明操作，例如
+  <code>arXiv LaTeX fetch for '2401.00001v1' failed after 3 attempts</code>。</li>
+<li>当 SQLite 无法高亮位于 <code>OR</code> 或 <code>NOT</code> 内部、带字段限定的 <code>NEAR</code> 分组时（SQLite 3.50.4 对
+  部分文档就是如此），<code>AsyncSqliteFts5Store.search</code> 会抛出注明 SQLite 版本的
+  <code>SearchQueryError</code>。过去它抛出带有 “database disk image is malformed” 的
+  <code>SearchStoreError</code>，看起来像是索引已损坏。</li>
+<li><code>CachingLLMClient</code> 不再重放被实体提取器或相关性过滤器拒绝的响应。过去被拒绝的响应会被缓存，
+  因此每次重试都会得到同样的回答，直到该记录被隔离，而模型从未被再次询问。</li>
+</ul>
+<h2 id="050-2026-09-25"><a href="https://github.com/xueromll/sci-etl-core/compare/v0.4.1...v0.5.0">0.5.0</a> - 2026-09-25<a class="headerlink" href="#050-2026-09-25" title="Permanent link">&para;</a></h2>
+<p>本版本改变了提取器翻阅列表的方式、保存的运行状态以及流水线的构造方式。0.4 保存的状态会被
+自动升级。代码层面的改动请参阅 MIGRATION.md 中的“升级到 0.5”。</p>
+<h3 id="added_2">新增<a class="headerlink" href="#added_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>游标分页。</strong> 提取器从 <code>fetch_page</code> 返回一个 <code>ListingPage</code>，其中带有下一页的游标。按偏移量
+  分页的提取器还实现了 <code>OffsetListing</code>，这是 <code>newest_first</code> 运行和 <code>run(start_index=)</code> 所
+  需要的。</li>
+<li><strong>对持续失败的记录进行隔离。</strong> <code>run(max_attempts=3)</code> 会跳过在 3 次运行中都失败的记录。
+  <code>RunMetrics.quarantined</code> 统计被跳过的记录。两种内置状态管理器都会存储每条记录的尝试次数和
+  最后一次错误。</li>
+<li><strong>报告结果上限。</strong> <code>RunMetrics.listing_truncated</code>、<code>PageFetched.truncated</code> 和
+  <code>PipelineMetadata.truncated</code> 会显示来源何时在其结果上限处停止。进度事件还包含页面的
+  <code>cursor</code>。</li>
+<li><strong>表格输出端。</strong> <code>sci_etl_core.processors.sinks</code> 中的 <code>SqlTableSink</code> 和 <code>Plotly3DSink</code> 用于
+  写出后处理后的 <code>DataFrame</code>。</li>
+<li><strong>模式版本。</strong> SQLite 状态数据库、LLM 缓存、嵌入存储以及文件状态都会记录模式版本。由更新
+  版本写入的文件会被拒绝，对于状态文件会抛出 <code>StateStoreError</code>。</li>
+<li><code>StaleCursorError</code>，用于来源不再接受的游标。</li>
+<li><code>BaseAppConfig.strict_sections</code>，用于退出严格的配置校验。</li>
+<li><code>LegacyExtractorAdapter</code>，可在为 0.4 编写的提取器完成移植之前运行它。它一推出即为弃用
+  状态。</li>
+</ul>
+<h3 id="changed_2">变更<a class="headerlink" href="#changed_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>破坏性变更：</strong> <code>AsyncExtractor.fetch_page(query, cursor, page_size)</code> 取代了 <code>search</code> 和
+  <code>parse_listing</code>。流水线现在会自行跳过已处理的记录。</li>
+<li><strong>破坏性变更：</strong> <code>PipelineMetadata.cursor</code> 取代了 <code>last_start_index</code>。</li>
+<li><strong>破坏性变更：</strong> 流水线构造函数以位置或名称接收五个协作组件，其他所有参数都只能以关键字
+  形式传入。<code>run()</code> 中 <code>query</code> 之后的所有参数都只能以关键字形式传入。</li>
+<li><strong>破坏性变更：</strong> <code>RawRecord</code>、<code>PipelineMetadata</code>、<code>TokenUsage</code>、<code>RunMetrics</code> 以及进度事件
+  必须用关键字参数构造。</li>
+<li><strong>破坏性变更：</strong> 本库配置部分中的未知键（例如 <code>search.bm25.titel</code>）会导致校验失败，而不再
+  被忽略。</li>
+<li><strong>破坏性变更：</strong> 需要 Python 3.11 或更高版本。</li>
+<li>到达来源结果上限的运行现在会正常完成，下一次运行会重新从第一页开始，而不会停在上限处。</li>
+<li>被来源拒绝的游标会让列表从第一页重新开始一次。</li>
+<li><code>AsyncOpenAlexExtractor</code> 使用 OpenAlex 游标分页，不再局限于前 10,000 条结果。它不再支持
+  <code>newest_first</code>。</li>
+<li><code>AsyncPubMedExtractor</code> 和 <code>AsyncSemanticScholarExtractor</code> 会在结果的最后一页停止，而不会
+  多发一次空请求。</li>
+</ul>
+<h3 id="deprecated">弃用<a class="headerlink" href="#deprecated" title="Permanent link">&para;</a></h3>
+<p>以下内容在 0.5 中仍可使用，并将在 0.6.0 中移除。</p>
+<p>已有替代品（<code>DeprecationWarning</code>）：</p>
+<ul>
+<li>阻塞式接口 <code>Extractor</code>、<code>StateManager</code>、<code>Exporter</code>、<code>LLMClient</code>、<code>RelevanceFilter</code> 和
+  <code>EntityExtractor</code>，以及 <code>Sync*Adapter</code> 类；</li>
+<li><code>LegacyExtractorAdapter</code>；</li>
+<li><code>AsyncSqlTableExporter</code> 和 <code>AsyncPlotly3DExporter</code>，由 <code>SqlTableSink</code> 和 <code>Plotly3DSink</code>
+  取代。</li>
+</ul>
+<p>替代品将在 0.6.0 中提供（<code>PendingDeprecationWarning</code>，因此目前无需任何修改）：</p>
+<ul>
+<li><code>logger=</code> 参数和 <code>configure_logging</code>；</li>
+<li><code>AsyncETLPipeline(destination=)</code>；</li>
+<li><code>AsyncExporter.export</code> 和 <code>AsyncCsvUpsertExporter</code>。</li>
+</ul>
+<h3 id="removed_1">移除<a class="headerlink" href="#removed_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>配置键 <code>pipeline.max_records</code> 和 <code>pipeline.max_workers</code>、对应的 <code>PipelineConfig</code> 属性以及
+  <code>run(max_records=)</code>。请使用 <code>total_limit</code> 和 <code>max_concurrency</code>。</li>
+<li><code>build_retrying_session</code>，以及 <code>full</code> extra 中的 <code>requests</code>。</li>
+</ul>
+<h3 id="fixed_1">修复<a class="headerlink" href="#fixed_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>AsyncPubMedExtractor</code> 不再请求第 9,999 条之后的结果，PubMed 会拒绝这类请求。</li>
+</ul>
+<h2 id="041-2026-09-25"><a href="https://github.com/xueromll/sci-etl-core/compare/v0.4.0...v0.4.1">0.4.1</a> - 2026-09-25<a class="headerlink" href="#041-2026-09-25" title="Permanent link">&para;</a></h2>
+<h3 id="changed_3">变更<a class="headerlink" href="#changed_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>HttpConfig.user_agent</code> 和 <code>build_async_client</code> 默认使用
+  <code>sci-etl-core/&lt;installed version&gt;</code>，而不是 <code>sci-etl-core/0.1</code>。</li>
+</ul>
+<h3 id="fixed_2">修复<a class="headerlink" href="#fixed_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>load_config_async</code> 和 <code>AsyncCsvUpsertExporter</code> 改为在工作线程中检查文件是否存在，而不再
+  阻塞事件循环。</li>
+<li><code>sql</code> 和 <code>full</code> extra 要求 <code>sqlalchemy[asyncio]</code>，因此会安装 <code>greenlet</code>。SQLAlchemy 2.1
+  默认不再安装它，而没有它就无法导入 <code>AsyncSqlTableExporter</code>。</li>
+</ul>
+<h2 id="040-2026-09-16"><a href="https://github.com/xueromll/sci-etl-core/compare/v0.3.0...v0.4.0">0.4.0</a> - 2026-09-16<a class="headerlink" href="#040-2026-09-16" title="Permanent link">&para;</a></h2>
+<h3 id="added_3">新增<a class="headerlink" href="#added_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>AsyncPubMedExtractor</code>、<code>AsyncSemanticScholarExtractor</code> 和 <code>AsyncOpenAlexExtractor</code>。每个
+  提取器都会在 <code>RawRecord.metadata</code> 中填写 <code>authors</code> 和 <code>categories</code>，在来源提供日期时还会
+  填写 <code>published</code> 和 <code>year</code>，并在遇到传输故障、<code>408</code>、<code>429</code> 和服务器错误时重试，同时遵循
+  <code>Retry-After</code>。<code>AsyncOpenAlexExtractor</code> 还会把论文引用的作品保存在 <code>references</code> 下。</li>
+<li>用于 Word <code>.docx</code> 文件的 <code>DocxParser</code>，以及用于 JATS XML 的 <code>JatsXmlParser</code>，后者的
+  <code>parse_article</code> 会返回一个包含章节、作者、关键词、标识符和参考文献的 <code>JatsArticle</code>。</li>
+<li>LLM 响应缓存：<code>CachingLLMClient</code> 可以包装任何 <code>AsyncLLMClient</code>，并从
+  <code>AsyncLLMResponseCache</code>（<code>InMemoryLLMResponseCache</code> 或 <code>AsyncSqliteLLMResponseCache</code>）中
+  回答重复的请求。缓存故障会被记录并计入 <code>CacheStats</code>，存储会将其作为 <code>LLMCacheError</code> 抛出，
+  并且永远不会导致模型请求失败。</li>
+<li>优雅关闭：<code>AsyncETLPipeline(shutdown=)</code> 和 <code>ETLPipeline(shutdown=)</code> 接受一个
+  <code>ShutdownSignal</code>，因此 SIGINT、SIGTERM 或 <code>request()</code> 会让正在处理的记录完成，并抛出
+  <code>PipelineAborted</code> 的子类 <code>PipelineInterrupted</code>。现在无论运行如何结束，最后都会调用状态
+  管理器的 <code>flush()</code>。</li>
+<li>进度事件和运行指标：<code>on_event</code> 接收来自 <code>sci_etl_core.observability</code> 的 <code>RunStarted</code>、
+  <code>PageFetched</code>、<code>RecordFinished</code>、<code>PageFinished</code> 和 <code>RunFinished</code>，<code>last_run_metrics</code> 返回
+  包含计数、耗时、运行结果以及 <code>usage_sources</code> 所用 token 的 <code>RunMetrics</code>。<code>TokenUsage</code> 支持
+  <code>+</code> 和 <code>-</code>。</li>
+<li><code>run(newest_first=True)</code> 无需从偏移量 0 重新扫描，即可获取最新优先列表中的新投稿。
+  <code>PipelineMetadata</code> 新增了 <code>head_ids</code>、<code>head_offset</code> 和 <code>tail_ids</code>，两种状态后端都会保存
+  它们。</li>
+<li>每个内置提取器、<code>AsyncOpenAICompatibleClient</code> 和 <code>AsyncOpenAIEmbedder</code> 上的
+  <code>rate_limiter</code>，以及用于按主机限制的 <code>HostRateLimiter</code>。</li>
+<li>根据配置构建组件：<code>AsyncArxivExtractor.from_config</code>、
+  <code>AsyncOpenAICompatibleClient.from_config</code>、<code>AsyncETLPipeline.from_config</code> 和
+  <code>ETLPipeline.from_config</code>，以及 <code>HttpConfig.build_client()</code>、
+  <code>RateLimitConfig.build_limiter()</code> 和 <code>PipelineConfig.run_arguments()</code>。<code>search</code> 配置部分
+  用于构建 <code>BM25Weights</code>、<code>FusionParams</code>、<code>HybridParams</code> 和 <code>GraphParams</code>。<code>PipelineConfig</code>
+  新增了 <code>newest_first</code>，<code>AsyncOpenAICompatibleClient</code> 新增了 <code>model</code> 属性。</li>
+<li><code>AsyncLLMEntityExtractor(validator=, logger=, label_field=)</code> 会丢弃并记录被
+  <code>RecordValidator</code> 拒绝的实体。</li>
+<li><code>ScatterPlotConfig</code> 接受 <code>hover_data_columns</code>、<code>hover_template</code>、
+  <code>color_continuous_scale</code>、<code>color_range</code>、<code>color_label</code>、<code>marker</code> 和 <code>layout</code>。</li>
+<li><code>ValueClipStep</code> 在后处理期间截断数值列，<code>TableLayoutStep</code> 对行排序并调整列顺序。</li>
+<li>查询语言中的 <code>NEAR(...)</code> 邻近查询，表现为带 <code>NEAR_DISTANCE</code> 的 <code>Near</code> 节点，两种文本存储
+  都支持；以及 <code>QueryChip.near</code>。</li>
+<li>范围过滤器：<code>RangeFilter</code> 在两种文本存储、混合检索和 <code>filter_graph</code> 中，保留标签位于整数或
+  文本边界（例如年份或 ISO 8601 日期）之间的记录。<code>AsyncTextSearchStore.range_counts</code> 统计
+  多个范围中各自的匹配数。<code>SearchFilter</code> 表示这两种过滤器类型中的任一种。</li>
+<li>更丰富的摘要片段：<code>TextHit.snippets</code> 和 <code>FusedHit.snippets</code> 为每个有高亮匹配的字段保存一个
+  <code>Snippet</code>。<code>passage_snippet</code> 和 <code>snippet_window</code> 可为其他文本构建摘要片段。</li>
+<li><code>backfill_text_index</code> 根据向量记忆中的文本块构建文本索引，去除相互重叠的文本块所共有的词
+  （<code>merge_passages</code>），并在 <code>BackfillReport</code> 中报告所做的工作。
+  <code>AsyncEmbeddingStore.iter_records</code> 以 <code>StoredRecord</code> 的形式逐条产出每条记录的段落，不加载
+  向量，两种内置存储都实现了它。</li>
+<li><code>AsyncSimilarArticleFinder.find_best_chunks</code> 返回每篇文章最好的文本块（包含文本）。
+  <code>SlidingWindowChunker</code> 提供 <code>chunk_words</code> 和 <code>overlap_words</code>。</li>
+</ul>
+<h3 id="changed_4">变更<a class="headerlink" href="#changed_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>PipelineConfig.max_records</code> 现在是 <code>total_limit</code>，<code>max_workers</code> 现在是
+  <code>max_concurrency</code>。旧的 YAML 键和属性在 0.5.0 之前仍可使用并发出 <code>DeprecationWarning</code>；
+  如果加载的配置把旧键和新键设为不同的值，会抛出 <code>ConfigurationError</code>。<code>run(max_records=)</code> 也
+  以同样方式弃用。</li>
+<li><code>build_retrying_session</code> 已弃用，将在 0.5.0 中与 <code>full</code> extra 中的 <code>requests</code> 一起移除。</li>
+<li>仅由语义分支找到的混合检索命中结果，现在会在 <code>snippet</code>、<code>highlights</code> 和 <code>snippets</code> 中带有其
+  最佳文本块的摘要片段，过去这些字段是空的。过去在 <code>snippet</code> 为空时显示摘要的代码，应改为检查
+  <code>lexical_rank is None</code>。</li>
+<li><code>ETLPipeline.run</code> 以较短的时间片等待后台循环，因此调用线程上的信号处理器能及时运行，
+  <code>KeyboardInterrupt</code> 会取消后台循环上的运行。</li>
+</ul>
+<h2 id="030-2026-09-15"><a href="https://github.com/xueromll/sci-etl-core/compare/v0.2.0...v0.3.0">0.3.0</a> - 2026-09-15<a class="headerlink" href="#030-2026-09-15" title="Permanent link">&para;</a></h2>
+<h3 id="added_4">新增<a class="headerlink" href="#added_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>sci_etl_core.search</code> 中的本地布尔检索，只需要标准库：</li>
+<li>一种查询语言，支持词项、<code>"短语"</code>、<code>prefix*</code> 前缀词项、<code>title:</code>、<code>abstract:</code> 和 <code>body:</code>
+    字段限定、<code>AND</code>、<code>OR</code> 和 <code>NOT</code>（也可写作 <code>&amp;&amp;</code>、<code>||</code>、<code>-</code>，<code>AND</code> 还可以什么都不写）以及
+    括号。<code>parse_query</code> 返回规范化的 AST，格式错误的查询会抛出 <code>SearchQueryError</code>，其
+    <code>position</code> 和 <code>token</code> 指出错误位置。<code>describe</code> 把查询转换为用于显示的标签。</li>
+<li><code>AsyncSqliteFts5Store</code>，基于 SQLite FTS5 的持久化文本索引。它按带有逐字段
+    <code>BM25Weights</code> 的 BM25 排序，返回带高亮偏移量的纯文本摘要片段，按元数据过滤
+    （<code>MetadataFilter</code>），在其 <code>facet_keys</code> 上统计分面，并提供 <code>optimize</code>、<code>rebuild_index</code>、
+    <code>rebuild_tags</code> 和 <code>integrity_check</code> 用于维护。<code>fts5_available()</code> 报告解释器的 SQLite 是否
+    包含 FTS5。</li>
+<li><code>InMemoryTextSearchStore</code>，匹配的记录与 FTS5 存储相同。</li>
+<li><code>AsyncSearchIndexer</code>，即 <code>AsyncChunkIngestor</code> 在文本索引方面的对应物。</li>
+<li>排名融合：使用默认的 <code>reciprocal_rank_fusion</code> 或 <code>normalized_score_fusion</code>，通过
+    <code>FusionParams</code> 配置。</li>
+<li><code>AsyncHybridSearcher</code>，运行词法、语义或混合检索，并在 <code>SearchOutcome.degraded</code> 和
+    <code>SearchOutcome.skipped</code> 中报告哪些检索分支失败或没有可运行的内容。</li>
+<li><code>sci_etl_core.search</code> 中的发现图。<code>build_discovery_graph</code> 从一个或多个边来源出发，以广度
+  优先方式生长种子记录的邻域，默认只保留互为最近邻的记录，并通过确定性的标签传播把记录分组为
+  社区。<code>GraphParams</code> 限制深度、扇出、最小边权重、节点数和标签传播轮数，
+  <code>DiscoveryGraph.communities_converged</code> 报告轮数上限是否提前截断了标签传播。<code>filter_graph</code>
+  无需任何 I/O，即可把已构建的图缩小到匹配的记录和元数据过滤条件。<code>label_communities</code> 和
+  <code>select_edges</code> 也是公开的。</li>
+<li>位于新接口 <code>AsyncEdgeSource</code> 之后的边来源。<code>EmbeddingEdgeSource</code> 按向量记忆中的余弦相似度
+  关联记录，<code>MetadataEdgeSource</code> 按两条记录共有标签（例如 arXiv 分类和作者）的比例关联记录。</li>
+<li><code>sci_etl_core.discovery</code>，供用户界面使用的读模型：<code>Facet</code> 和 <code>DiscoveryResult</code>，也从
+  <code>sci_etl_core</code> 导出。导入它不会加载任何存储或可选依赖。</li>
+<li><code>AsyncCompositeIngestor</code>，把每条记录同时发送到多个记忆后端（例如向量记忆和文本索引），这样
+  其中一个出现记忆故障时不会让其他后端停止。</li>
+<li><code>MemoryIngestor</code>，即 <code>memory_ingestor</code> 需满足的协议；以及 <code>MEMORY_FAULTS</code>，即流水线视为记忆
+  故障的异常。</li>
+<li><code>SearchError</code> 及其子类 <code>SearchQueryError</code> 和 <code>SearchStoreError</code>。</li>
+<li><code>search</code> extra。它不安装任何东西，因为检索只需要标准库；它让依赖文件可以说明为什么需要这个
+  包。</li>
+</ul>
+<h3 id="changed_5">变更<a class="headerlink" href="#changed_5" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>AsyncETLPipeline(memory_ingestor=)</code> 接受任何 <code>MemoryIngestor</code>。记忆摄取期间的
+  <code>SearchStoreError</code> 会被记录，该记录的实体仍会被导出，与嵌入故障的处理方式相同。
+  <code>SearchQueryError</code> 不属于记忆故障，会导致该记录失败。</li>
+<li>arXiv 记录的 <code>RawRecord.metadata</code> 不再为空：<code>AsyncArxivExtractor</code> 会在其中填写
+  <code>categories</code>、<code>authors</code>、<code>published</code> 和 <code>year</code>。比较 <code>metadata == {}</code> 的代码会注意到这一
+  变化。<code>AsyncChunkIngestor</code> 存储的文本块元数据保持不变。</li>
+<li><code>AsyncSqliteEmbeddingStore</code> 运行在一个共享的内部 SQLite 执行器上。这不改变行为：异常类型、
+  消息、事务以及取消时的行为都保持不变。</li>
+</ul>
+<h3 id="fixed_3">修复<a class="headerlink" href="#fixed_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>AsyncSqliteStateManager</code>：取消正在等待状态操作的任务时，不再在其工作线程仍在使用连接时
+  释放该连接。下一个操作会等待该线程结束。</li>
+</ul>
+<h2 id="020-2026-09-14"><a href="https://github.com/xueromll/sci-etl-core/compare/v0.1.2...v0.2.0">0.2.0</a> - 2026-09-14<a class="headerlink" href="#020-2026-09-14" title="Permanent link">&para;</a></h2>
+<h3 id="security">安全<a class="headerlink" href="#security" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>load_config</code> 和 <code>load_config_async</code> 不再把 pydantic 的错误文本复制到
+  <code>ConfigurationError</code> 中。该文本可能包含原始设置，进而包含从环境中读取的 API 密钥。消息现在
+  会列出每个出错的键及原因，但不包含其值，校验错误也不再与之链接。</li>
+</ul>
+<h3 id="added_5">新增<a class="headerlink" href="#added_5" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>validate_config(config_cls, raw, source)</code> 使用同样不泄露机密的消息，校验以其他方式加载的
+  设置。</li>
+<li><code>Retry-After</code> 支持。当被限流或失败的响应通过 <code>Retry-After</code> 或 OpenAI 兼容 API 发送的
+  <code>retry-after-ms</code> 头要求的等待时间比退避时间更长时，<code>AsyncArxivExtractor</code>、
+  <code>AsyncOpenAICompatibleClient</code> 和 <code>AsyncOpenAIEmbedder</code> 会按其要求等待。新增的
+  <code>max_retry_after</code> 参数用于限制等待时间（默认 60 秒）。</li>
+<li>arXiv 提取器会记录每次重试及其等待时间。</li>
+<li>Token 用量。<code>AsyncOpenAICompatibleClient.usage</code> 和 <code>AsyncOpenAIEmbedder.usage</code> 返回一个
+  <code>TokenUsage</code> 快照，包含 <code>requests</code>、<code>prompt_tokens</code>、<code>completion_tokens</code> 和
+  <code>total_tokens</code>。<code>AsyncLLMClient</code> 和 <code>AsyncEmbedder</code> 上的 <code>usage</code> 属性除非被重写，否则返回
+  <code>None</code>。</li>
+<li>ruff 和 mypy 在 CI 中运行，<code>lint</code> extra 用于在本地安装它们。</li>
+<li>本更新日志。</li>
+</ul>
+<h3 id="changed_6">变更<a class="headerlink" href="#changed_6" title="Permanent link">&para;</a></h3>
+<ul>
+<li>聊天和嵌入客户端中关闭了 OpenAI SDK 内置的重试，因此 <code>max_retries</code> 现在就是总尝试次数。过去
+  SDK 可能会自行把每次尝试再重试一遍。</li>
+<li>无效设置的消息以 <code>Invalid configuration in &lt;file&gt;:</code> 开头，每个问题单独占一行。</li>
+<li><code>AsyncETLPipeline.__aexit__</code> 被标注为返回 <code>None</code>，因此类型检查器知道 <code>async with pipeline</code>
+  永远不会抑制异常。</li>
+</ul>
+<h2 id="012-2026-09-14"><a href="https://github.com/xueromll/sci-etl-core/compare/v0.1.1...v0.1.2">0.1.2</a> - 2026-09-14<a class="headerlink" href="#012-2026-09-14" title="Permanent link">&para;</a></h2>
+<h3 id="fixed_4">修复<a class="headerlink" href="#fixed_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>max_concurrency</code> 为 0 时，每条记录都会永远等待。现在小于 1 的值会抛出 <code>ValueError</code>，小于 1
+  的 <code>page_size</code> 和负数 <code>total_limit</code> 也是如此。</li>
+<li>在其余记录都不相关的页面上，只要有一条记录失败，就会中止整个运行。现在，只有当第二个页面在
+  取得任何进展之前就失败且没有处理任何记录，或者列表在这样的页面之后立即结束时，运行才会中止。</li>
+<li>流水线在达到 <code>total_limit</code> 之后还会多等待一次 <code>sleep_between</code>。</li>
+<li><code>max_retries</code> 小于 1 时，arXiv 提取器、LLM 客户端和嵌入器会在一次都不尝试的情况下失败。现在
+  会抛出 <code>ValueError</code>。</li>
+<li>日志文件所在文件夹不存在时，<code>configure_logging</code> 会失败，并且在之后的调用中会忽略不同的文件
+  或级别。</li>
+<li><code>AsyncFileStateManager</code> 会悄悄去掉记录 id 中的空白，导致这类记录在每次运行中都被重新处理。
+  现在它会拒绝这类 id，流水线会跳过空 id。</li>
+<li><code>last_run_at</code> 以带偏移量的 UTC 时间记录，而不再使用不带时区的本地时间。</li>
+</ul>
+<h3 id="added_6">新增<a class="headerlink" href="#added_6" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>PipelineConfig.page_size</code> 和 <code>PipelineConfig.search_delay</code>。</li>
+<li>对每个配置部分进行范围校验。</li>
+</ul>
+<h3 id="changed_7">变更<a class="headerlink" href="#changed_7" title="Permanent link">&para;</a></h3>
+<ul>
+<li>发布工作流会把构建产物上传到已存在的 GitHub 发布，而不是失败。</li>
+</ul>
+<h2 id="011-2026-09-14"><a href="https://github.com/xueromll/sci-etl-core/compare/v0.1.0...v0.1.1">0.1.1</a> - 2026-09-14<a class="headerlink" href="#011-2026-09-14" title="Permanent link">&para;</a></h2>
+<h3 id="added_7">新增<a class="headerlink" href="#added_7" title="Permanent link">&para;</a></h3>
+<ul>
+<li>由标签触发的发布工作流：运行 CI 测试套件，核对标签与项目版本是否一致，并通过可信发布发布到
+  PyPI。</li>
+<li>用于 PyPI 的包元数据：许可证、关键词、分类器和项目 URL。</li>
+</ul>
+<h2 id="010-2026-09-13"><a href="https://github.com/xueromll/sci-etl-core/releases/tag/v0.1.0">0.1.0</a> - 2026-09-13<a class="headerlink" href="#010-2026-09-13" title="Permanent link">&para;</a></h2>
+<p>第一个打了标签的版本：异步流水线及其阻塞式外观、arXiv 提取器、OpenAI 兼容的聊天和嵌入客户端、
+PDF、LaTeX 和 HTML 解析器、CSV、SQL 和 Plotly 导出器、数据框处理器和校验器、文件和 SQLite
+状态、语义记忆，以及 udg-catalogue 迁移指南。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="页脚" >
+        
+          
+          <a href="../../reference/utilities/" class="md-footer__link md-footer__link--prev" aria-label="上一页: 工具">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                上一页
+              </span>
+              <div class="md-ellipsis">
+                工具
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../migration/" class="md-footer__link md-footer__link--next" aria-label="下一页: 迁移指南">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                下一页
+              </span>
+              <div class="md-ellipsis">
+                迁移指南
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Released under the MIT License.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/xueromll/sci-etl-core" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/sci-etl-core/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 444.7a20.4 20.4 0 1 1 0-40.7 20.4 20.4 0 1 1 0 40.7M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.6-183.4a20.4 20.4 0 1 1 0 40.8 20.4 20.4 0 1 1 0-40.8"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["content.code.copy", "navigation.footer", "navigation.indexes", "navigation.sections", "navigation.tabs", "navigation.top", "search.highlight", "search.suggest", "toc.follow"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -26,7 +26,7 @@
         
           <link rel="alternate" href="../../../es/guide/shutdown/" hreflang="es">
         
-          <link rel="alternate" href="../../../zh/guide/shutdown/" hreflang="zh">
+          <link rel="alternate" href="../../../zh-Hans/guide/shutdown/" hreflang="zh-Hans">
         
           <link rel="alternate" href="../../../ar/guide/shutdown/" hreflang="ar">
         
@@ -205,7 +205,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../../../zh/guide/shutdown/" hreflang="zh" class="md-select__link">
+            <a href="../../../zh-Hans/guide/shutdown/" hreflang="zh-Hans" class="md-select__link">
               简体中文
             </a>
           </li>
@@ -1325,7 +1325,7 @@
   <span class="md-ellipsis">
     
   
-    Запуск конвейеров
+    Запуск пайплайнов
   
 
     
@@ -1341,7 +1341,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Запуск конвейеров
+    Запуск пайплайнов
   
 
           </label>
@@ -1473,7 +1473,7 @@
   <a href="#the-synchronous-pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Синхронный конвейер
+        Синхронный пайплайн
       
     </span>
   </a>
@@ -1701,7 +1701,7 @@
   <span class="md-ellipsis">
     
   
-    Перенос конвейера
+    Перенос пайплайна
   
 
     
@@ -2739,7 +2739,7 @@
   <a href="#the-synchronous-pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Синхронный конвейер
+        Синхронный пайплайн
       
     </span>
   </a>
@@ -2786,7 +2786,7 @@
 
 
 <h1 id="_1">Корректное завершение<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
-<p>Передайте конвейеру <code>ShutdownSignal</code>, и SIGINT (Ctrl+C) или SIGTERM аккуратно
+<p>Передайте пайплайну <code>ShutdownSignal</code>, и SIGINT (Ctrl+C) или SIGTERM аккуратно
 остановят запуск:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncETLPipeline</span><span class="p">,</span> <span class="n">PipelineInterrupted</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.signals</span><span class="w"> </span><span class="kn">import</span> <span class="n">ShutdownSignal</span>
@@ -2805,16 +2805,16 @@
 <a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="k">except</span> <span class="n">PipelineInterrupted</span> <span class="k">as</span> <span class="n">stopped</span><span class="p">:</span>
 <a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Stopped after </span><span class="si">{</span><span class="n">stopped</span><span class="o">.</span><span class="n">partial_count</span><span class="si">}</span><span class="s2"> records; the next run picks up the rest"</span><span class="p">)</span>
 </code></pre></div>
-<p>Конвейер устанавливает обработчики сигналов на время каждого <code>run()</code> и затем
+<p>Пайплайн устанавливает обработчики сигналов на время каждого <code>run()</code> и затем
 возвращает прежние обработчики.</p>
 <ul>
 <li><strong>Первый сигнал:</strong> новые записи не начинаются. Записи, уже находящиеся в
-  обработке, завершаются, экспортёр сбрасывается на диск, и записи, которые этот
-  сброс сделал надёжно сохранёнными, помечаются как обработанные; записи,
+  обработке, завершаются, экспортёр выгружается, и записи, которые эта
+  выгрузка сделала надёжно сохранёнными, помечаются как обработанные; записи,
   которые ещё не начались, остаются непомеченными до следующего запуска.
-  Ожидающий запрос выдачи или пауза между страницами отменяются немедленно.
+  Ожидающий запрос листинга или пауза между страницами отменяются немедленно.
   Сохранённый курсор не сдвигается дальше прерванной страницы. Экспортёр
-  закрывается, состояние сбрасывается на диск, и <code>run()</code> выбрасывает
+  закрывается, состояние записывается на диск, и <code>run()</code> выбрасывает
   <code>PipelineInterrupted</code> с числом обработанных записей.</li>
 <li><strong>Второй сигнал:</strong> восстанавливает прежний обработчик и немедленно завершает
   процесс.</li>
@@ -2825,7 +2825,7 @@
 <code>except PipelineAborted</code> по-прежнему его перехватывает. Перехватывайте
 <code>PipelineInterrupted</code> первым, если прерванный запуск должен завершаться иначе,
 чем неудавшийся.</p>
-<h2 id="the-synchronous-pipeline">Синхронный конвейер<a class="headerlink" href="#the-synchronous-pipeline" title="Permanent link">&para;</a></h2>
+<h2 id="the-synchronous-pipeline">Синхронный пайплайн<a class="headerlink" href="#the-synchronous-pipeline" title="Permanent link">&para;</a></h2>
 <p><code>ETLPipeline</code> принимает тот же аргумент <code>shutdown</code>. Его работа выполняется в
 фоновом цикле событий, поэтому обработчики устанавливаются в потоке, который
 вызывает <code>run()</code>, и передают запрос этому циклу. Вызывайте <code>run()</code> из главного
@@ -2837,16 +2837,16 @@
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="s2">"all:galaxy"</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="flushing-the-exporter-and-state">Сброс экспортёра и состояния<a class="headerlink" href="#flushing-the-exporter-and-state" title="Permanent link">&para;</a></h2>
-<p>Каждый запуск заканчивается сбросом и закрытием экспортёра, а затем вызовом
+<p>Каждый запуск заканчивается выгрузкой и закрытием экспортёра, а затем вызовом
 <code>flush()</code> менеджера состояния, как бы он ни завершился: успешно, аварийно,
 прерыванием или отменой. <code>AsyncCsvExporter</code> формирует свой CSV-файл при
 закрытии, а <code>AsyncSqliteStateManager</code> фиксирует контрольную точку журнала
 упреждающей записи в <code>flush()</code>. Если сам запуск завершился неудачей, сбой
-сброса или закрытия записывается в журнал, а не выбрасывается, чтобы не
+выгрузки или закрытия записывается в журнал, а не выбрасывается, чтобы не
 скрыть исходную ошибку.</p>
 <h2 id="handlers-of-your-own">Собственные обработчики<a class="headerlink" href="#handlers-of-your-own" title="Permanent link">&para;</a></h2>
 <p><code>shutdown.guard()</code> устанавливает обработчики на время блока вашего собственного
-кода. Защитные блоки вкладываются друг в друга, поэтому конвейер, получивший
+кода. Защитные блоки вкладываются друг в друга, поэтому пайплайн, получивший
 тот же сигнал внутри такого блока, оставляет ваши обработчики на месте, когда
 его запуск заканчивается. Обработчики устанавливаются только из главного потока;
 в других потоках <code>guard()</code> записывает сообщение в журнал и ничего не

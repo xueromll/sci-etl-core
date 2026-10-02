@@ -26,7 +26,7 @@
         
           <link rel="alternate" href="./" hreflang="es">
         
-          <link rel="alternate" href="../../../zh/project/contributing/" hreflang="zh">
+          <link rel="alternate" href="../../../zh-Hans/project/contributing/" hreflang="zh-Hans">
         
           <link rel="alternate" href="../../../ar/project/contributing/" hreflang="ar">
         
@@ -207,7 +207,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../../../zh/project/contributing/" hreflang="zh" class="md-select__link">
+            <a href="../../../zh-Hans/project/contributing/" hreflang="zh-Hans" class="md-select__link">
               简体中文
             </a>
           </li>
@@ -3103,11 +3103,13 @@ la versión sin publicar de <a href="../changelog/">CHANGELOG.md</a>.</p>
   enlaces entre ellos se reescriben para el sitio.</li>
 <li><strong>Traducciones.</strong> Las versiones en ruso, español, chino simplificado y árabe
   de una página están junto a ella como <code>page.ru.md</code>, <code>page.es.md</code>,
-  <code>page.zh.md</code> y <code>page.ar.md</code>, y el complemento mkdocs-static-i18n construye
-  cada idioma en su propia ruta, como <code>/ru/</code>. Un pull request que cambia una
-  página en inglés actualiza también sus cuatro traducciones.
-  <a href="../translating/">TRANSLATING.md</a> nombra al responsable de cada idioma y
-  contiene el glosario y las reglas que sigue una página traducida.</li>
+  <code>page.zh-Hans.md</code> y <code>page.ar.md</code>, y el complemento mkdocs-static-i18n
+  construye cada idioma en su propia ruta, como <code>/ru/</code>. Un pull request que cambia una
+  página en inglés actualiza también sus cuatro traducciones. Las cuatro son
+  traducción automática y esperan una revisión de hablantes nativos, así que el
+  inglés es el texto autorizado. <a href="../translating/">TRANSLATING.md</a> nombra al
+  coordinador de cada idioma y contiene el glosario y las reglas que sigue una
+  página traducida.</li>
 <li><strong>La sección de la CLI</strong> procede de la carpeta <code>docs/</code> y de la <code>nav</code> del
   repositorio sci-etl-cli. La construcción busca un clon junto a este, o en la
   ruta de <code>SCI_ETL_CLI_DIR</code>; sin él, omite la sección, lo que <code>--strict</code>
@@ -3174,7 +3176,7 @@ referencia a las incidencias en el cuerpo (<code>Closes #123</code>).</p>
      breve</li>
 <li>las traducciones al ruso, al español, al chino y al árabe de cada página
      en inglés que cambies, siguiendo <a href="../translating/">TRANSLATING.md</a>; si no
-     puedes escribir alguna de ellas, dilo, y el responsable de ese idioma la
+     puedes escribir alguna de ellas, dilo, y el coordinador de ese idioma la
      añade antes de la fusión</li>
 <li><code>MIGRATION.md</code> para un cambio incompatible, bajo la versión que lo publica</li>
 <li><code>docs/guide/migrating-a-pipeline.md</code> cuando el cambio afecte al traslado

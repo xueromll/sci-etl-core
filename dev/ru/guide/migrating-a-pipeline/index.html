@@ -26,7 +26,7 @@
         
           <link rel="alternate" href="../../../es/guide/migrating-a-pipeline/" hreflang="es">
         
-          <link rel="alternate" href="../../../zh/guide/migrating-a-pipeline/" hreflang="zh">
+          <link rel="alternate" href="../../../zh-Hans/guide/migrating-a-pipeline/" hreflang="zh-Hans">
         
           <link rel="alternate" href="../../../ar/guide/migrating-a-pipeline/" hreflang="ar">
         
@@ -37,7 +37,7 @@
     
     
       
-        <title>Перенос конвейера - sci-etl-core</title>
+        <title>Перенос пайплайна - sci-etl-core</title>
       
     
     
@@ -130,7 +130,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Перенос конвейера
+              Перенос пайплайна
             
           </span>
         </div>
@@ -205,7 +205,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../../../zh/guide/migrating-a-pipeline/" hreflang="zh" class="md-select__link">
+            <a href="../../../zh-Hans/guide/migrating-a-pipeline/" hreflang="zh-Hans" class="md-select__link">
               简体中文
             </a>
           </li>
@@ -1323,7 +1323,7 @@
   <span class="md-ellipsis">
     
   
-    Запуск конвейеров
+    Запуск пайплайнов
   
 
     
@@ -1339,7 +1339,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Запуск конвейеров
+    Запуск пайплайнов
   
 
           </label>
@@ -1628,7 +1628,7 @@
   <span class="md-ellipsis">
     
   
-    Перенос конвейера
+    Перенос пайплайна
   
 
     
@@ -1646,7 +1646,7 @@
   <span class="md-ellipsis">
     
   
-    Перенос конвейера
+    Перенос пайплайна
   
 
     
@@ -1697,7 +1697,7 @@
   <a href="#map-your-pipeline-onto-the-library" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Сопоставьте свой конвейер с библиотекой
+        Сопоставьте свой пайплайн с библиотекой
       
     </span>
   </a>
@@ -2958,7 +2958,7 @@
   <a href="#map-your-pipeline-onto-the-library" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Сопоставьте свой конвейер с библиотекой
+        Сопоставьте свой пайплайн с библиотекой
       
     </span>
   </a>
@@ -3181,8 +3181,8 @@
 
 
 
-<h1 id="_1">Перенос конвейера<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
-<p>Это руководство переносит существующий исследовательский конвейер на
+<h1 id="_1">Перенос пайплайна<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<p>Это руководство переносит существующий исследовательский пайплайн на
 <code>sci-etl-core</code>, используя в качестве разобранного примера одну реальную
 миграцию: <a href="https://github.com/xueromll/udg-catalogue">udg-catalogue</a>, который
 с помощью LLM строит каталог ультрадиффузных галактик (UDG) по статьям из
@@ -3197,12 +3197,12 @@ sci-etl-core 0.2, на
 в <a href="https://github.com/xueromll/udg-catalogue/tree/main">ветке <code>main</code></a> проекта
 при переходе на 0.4, 0.5 и 0.6.
 <a href="../../project/migration/">Руководство по миграции</a> перечисляет все изменения по
-выпускам. Предметная область здесь — астрономия, но ничто в шагах от неё не
+релизам. Предметная область здесь — астрономия, но ничто в шагах от неё не
 зависит: замените промпты, поля и правила предметной области своими.</p>
 <ul>
 <li><a href="#the-project-before">Проект до миграции</a></li>
 <li><a href="#where-youll-end-up">К чему вы придёте</a></li>
-<li><a href="#map-your-pipeline-onto-the-library">Сопоставьте свой конвейер с библиотекой</a></li>
+<li><a href="#map-your-pipeline-onto-the-library">Сопоставьте свой пайплайн с библиотекой</a></li>
 <li><a href="#step-1-install-and-link-the-library">Шаг 1: установите и подключите библиотеку</a></li>
 <li><a href="#step-2-configuration-and-secrets">Шаг 2: конфигурация и секреты</a></li>
 <li><a href="#step-3-source-and-full-text">Шаг 3: источник и полный текст</a></li>
@@ -3248,7 +3248,7 @@ sci-etl-core 0.2, на
 <tr>
 <td><code>main.py</code></td>
 <td>94</td>
-<td>цикл листания поверх <code>ThreadPoolExecutor</code></td>
+<td>цикл пагинации поверх <code>ThreadPoolExecutor</code></td>
 </tr>
 <tr>
 <td><code>config.py</code>, <code>logger.py</code>, <code>incremental.py</code></td>
@@ -3285,7 +3285,7 @@ sci-etl-core 0.2, на
 <h2 id="where-youll-end-up">К чему вы придёте<a class="headerlink" href="#where-youll-end-up" title="Permanent link">&para;</a></h2>
 <p>После миграции вся сторона загрузки данных — это несколько функций, которые
 связывают между собой компоненты библиотеки. Вот <code>udg_catalogue/pipeline.py</code>
-на sci-etl-core 0.6, сокращённый до конвейера загрузки и без обёрток,
+на sci-etl-core 0.6, сокращённый до пайплайна загрузки и без обёрток,
 журналирующих прогресс:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">build_catalogue_exporter</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="n">CatalogueConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AsyncCsvExporter</span><span class="p">:</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="k">return</span> <span class="n">AsyncCsvExporter</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">paths</span><span class="o">.</span><span class="n">raw_catalogue</span><span class="p">,</span> <span class="p">[</span><span class="n">KEY_COLUMN</span><span class="p">,</span> <span class="o">*</span><span class="n">MEASUREMENT_FIELDS</span><span class="p">])</span>
@@ -3343,7 +3343,7 @@ sci-etl-core 0.2, на
 </code></pre></div>
 <p><code>build_pipeline</code> принимает HTTP- и LLM-клиенты аргументами, поэтому тесты
 проекта передают <code>httpx.MockTransport</code>, отдающий фиктивную ленту Atom и
-e-print, плюс заскриптованный <code>AsyncLLMClient</code>, и запускают настоящий конвейер
+e-print, плюс заскриптованный <code>AsyncLLMClient</code>, и запускают настоящий пайплайн
 офлайн.</p>
 <p><code>main.py</code> сжимается до загрузки конфигурации, запуска загрузки и построения
 результатов:</p>
@@ -3356,8 +3356,8 @@ e-print, плюс заскриптованный <code>AsyncLLMClient</code>, и
 <p>В проекте остаётся то, что может написать только астроном: промпты, правила
 именования и валидации галактик, сопоставление по положению на небе, признаки
 для кластеризации и панель мониторинга.</p>
-<h2 id="map-your-pipeline-onto-the-library">Сопоставьте свой конвейер с библиотекой<a class="headerlink" href="#map-your-pipeline-onto-the-library" title="Permanent link">&para;</a></h2>
-<p>Начните с того, что распределите каждую функцию старого конвейера по одной из
+<h2 id="map-your-pipeline-onto-the-library">Сопоставьте свой пайплайн с библиотекой<a class="headerlink" href="#map-your-pipeline-onto-the-library" title="Permanent link">&para;</a></h2>
+<p>Начните с того, что распределите каждую функцию старого пайплайна по одной из
 трёх групп: заменяется компонентом библиотеки, заменяется компонентом
 библиотеки плюс небольшим плагином или остаётся.</p>
 <table>
@@ -3486,13 +3486,13 @@ udg-catalogue переехало в синхронизируемую папку 
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>-e ../../sci-etl-core[async,llm,pdf,cluster]
 </code></pre></div>
 <p>Для Docker, CI и новых пользователей <code>requirements.txt</code> устанавливает
-опубликованный выпуск из PyPI:</p>
+опубликованный релиз из PyPI:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>-r requirements-app.txt
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>sci-etl-core[async,llm,pdf,cluster]&gt;=0.2.0,&lt;0.3
 </code></pre></div>
 <p>Закрепляйте диапазон версий, а не одну точную версию, чтобы исправляющие
-выпуски приходили без изменения проекта, и поднимайте верхнюю границу
-осознанно, проверив новый минорный выпуск на своих тестах. До того как
+релизы приходили без изменения проекта, и поднимайте верхнюю границу
+осознанно, проверив новый минорный релиз на своих тестах. До того как
 библиотека появилась в PyPI, udg-catalogue коммитил wheel, собранный командой
 <code>pip wheel --no-deps -w vendor path/to/sci-etl-core</code>, и устанавливал его из
 <code>vendor/</code>; это по-прежнему работает для сборки, у которой нет доступа к PyPI.</p>
@@ -3579,7 +3579,7 @@ udg-catalogue переехало в синхронизируемую папку 
   <code>page_size</code> и <code>search_delay</code>, сохраняя все поля, которые читает библиотека.</li>
 <li><strong>Разрешайте пути относительно файла конфигурации.</strong> Явная передача <code>.env</code>,
   лежащего рядом с конфигурацией, и привязка относительных путей к папке
-  конфигурации означают, что конвейер ведёт себя одинаково, из какого бы
+  конфигурации означают, что пайплайн ведёт себя одинаково, из какого бы
   каталога вы его ни запускали. Старый код разрешал большинство путей
   относительно папки скрипта, а <code>pipeline_meta.json</code> и <code>analysis/</code> —
   относительно рабочего каталога.</li>
@@ -3708,7 +3708,7 @@ udg-catalogue переехало в синхронизируемую папку 
   DeepSeek давал сбой, поэтому статья помечалась как обработанная, хотя ничего
   не было извлечено; старый журнал показывает 8 таких статей, к которым никто
   никогда не вернётся. <code>AsyncLLMEntityExtractor</code> выбрасывает <code>LLMError</code>,
-  конвейер оставляет статью непомеченной, и следующий запуск пробует её снова.</li>
+  пайплайн оставляет статью непомеченной, и следующий запуск пробует её снова.</li>
 </ul>
 <h2 id="step-5-domain-rules-as-plug-ins">Шаг 5: правила предметной области как плагины<a class="headerlink" href="#step-5-domain-rules-as-plug-ins" title="Permanent link">&para;</a></h2>
 <p>Правила, решающие, что считать одной и той же галактикой и что считать
@@ -3889,10 +3889,10 @@ udg-catalogue переехало в синхронизируемую папку 
   поэтому сохранённое смещение «уплывает» по мере появления новых статей.
   Теперь <code>main.py</code> по умолчанию передаёт <code>start_index=0</code>, заново сканируя с
   самого нового поступления и пропуская обработанные статьи по
-  идентификатору; повторное сканирование стоит запросов выдачи, а не вызовов
+  идентификатору; повторное сканирование стоит запросов листинга, а не вызовов
   LLM. <code>python main.py --resume</code> вместо этого использует сохранённое
   смещение.</li>
-<li><strong>Смещения сдвигаются только за завершённые страницы.</strong> Старый цикл прибавлял
+<li><strong>Смещения сдвигаются только за устоявшиеся страницы.</strong> Старый цикл прибавлял
   к смещению 500 после каждой страницы, даже если статьи на ней не удались.
   Библиотека сдвигается за страницу, только когда каждая статья на ней
   обработана или признана нерелевантной.</li>
@@ -3990,7 +3990,7 @@ DataFrame, не изменяя входной.</p>
 в котором их встречает.</p>
 <p><strong>Полный текст.</strong> Старая и новая загрузка получили одни и те же три недавние
 статьи.</p>
-<p><strong>Живой запуск.</strong> Собранный конвейер запускался против arXiv и DeepSeek с
+<p><strong>Живой запуск.</strong> Собранный пайплайн запускался против arXiv и DeepSeek с
 небольшими <code>page_size</code> и <code>total_limit</code> в новую папку состояния.</p>
 <table>
 <thead>
@@ -4018,7 +4018,7 @@ DataFrame, не изменяя входной.</p>
 </tr>
 <tr>
 <td>Живой запуск</td>
-<td>arXiv отвечал <code>429</code> на каждую попытку запроса выдачи, и <code>run()</code> выбросил <code>PipelineAborted</code>, ничего не записав, вместо того чтобы сообщить об успехе; именно это побудило увеличить отсрочку на шаге 3</td>
+<td>arXiv отвечал <code>429</code> на каждую попытку запроса листинга, и <code>run()</code> выбросил <code>PipelineAborted</code>, ничего не записав, вместо того чтобы сообщить об успехе; именно это побудило увеличить задержку на шаге 3</td>
 </tr>
 <tr>
 <td>Набор тестов проекта</td>
@@ -4031,13 +4031,13 @@ DataFrame, не изменяя входной.</p>
 единственными различиями оказались три строки с некорректным RA,
 перенумерованные кластеры с неизменным составом и удалённый столбец
 <code>filled_fields</code>.</p>
-<p>Когда вы запускаете перенесённый конвейер:</p>
+<p>Когда вы запускаете перенесённый пайплайн:</p>
 <ul>
 <li>Ищите в журнале <code>Record processing failed</code>. Эти записи не были помечены как
   обработанные, и следующий запуск повторит их.</li>
 <li>Если <code>run()</code> выбрасывает <code>PipelineAborted</code>, прочитайте <code>__cause__</code>
-  исключения: там видны отвергнутый ключ API, нечитаемый CSV или запрос выдачи,
-  упёршийся в ограничение частоты.</li>
+  исключения: там видны отвергнутый ключ API, нечитаемый CSV или запрос
+  листинга, упёршийся в ограничение частоты.</li>
 <li>Если вы писали собственные компоненты, сверьте их с контрактами в разделе
   <a href="../../project/contributing/#adding-a-new-component">Добавление нового компонента</a>.</li>
 </ul>
@@ -4048,7 +4048,7 @@ DataFrame, не изменяя входной.</p>
 неиспользуемый промпт фильтра, вместе с тестами, которые подменяли <code>requests</code> и
 пул потоков. Остались пакет <code>udg_catalogue</code> из модулей предметной области
 (конфигурация, промпты, именование, валидация, астрометрия, постобработка,
-карты, аналитика) и набор тестов, который прогоняет настоящий конвейер офлайн.</p>
+карты, аналитика) и набор тестов, который прогоняет настоящий пайплайн офлайн.</p>
 <p><code>visualization.py</code> и панель мониторинга раньше строили одну и ту же фигуру
 Plotly дважды; миграция стала удобным моментом, чтобы дать им один общий
 построитель фигуры. <code>AsyncPlotly3DExporter</code> не использовался, потому что
@@ -4056,9 +4056,9 @@ Plotly дважды; миграция стала удобным моментом
 диапазон цветов.</p>
 <h2 id="upgrading-the-project">Обновление проекта<a class="headerlink" href="#upgrading-the-project" title="Permanent link">&para;</a></h2>
 <p>На шаге 1 закрепляется диапазон версий, а его верхняя граница поднимается только
-после проверки нового минорного выпуска на тестах проекта.
+после проверки нового минорного релиза на тестах проекта.
 <a href="../../project/migration/">Руководство по миграции</a> перечисляет, что меняет
-каждый выпуск; в этом разделе записано, что эти изменения означали для
+каждый релиз; в этом разделе записано, что эти изменения означали для
 udg-catalogue.</p>
 <h3 id="moving-to-04">Переход на 0.4<a class="headerlink" href="#moving-to-04" title="Permanent link">&para;</a></h3>
 <p>udg-catalogue пропустил 0.3: его <code>build_pipeline</code> не передавал
@@ -4070,11 +4070,11 @@ extras <code>embeddings</code>, <code>embeddings-local</code> и <code>search</c
 <p>Обновление до 0.4 избавило от нескольких фрагментов кода, которые шаги выше
 заставили проект написать:</p>
 <ul>
-<li><strong>Переименованные настройки конвейера.</strong> <code>build_pipeline</code> и <code>run_ingestion</code>
+<li><strong>Переименованные настройки пайплайна.</strong> <code>build_pipeline</code> и <code>run_ingestion</code>
   из 0.2 выдают предупреждения на 0.4, потому что <code>max_records</code> и
   <code>max_workers</code> стали <code>total_limit</code> и <code>max_concurrency</code>. udg-catalogue
   переименовал оба ключа в <code>config.yaml</code>.</li>
-<li><strong>Никакого подкласса конвейера.</strong> В <code>PipelineConfig</code> появились <code>page_size</code>,
+<li><strong>Никакого подкласса пайплайна.</strong> В <code>PipelineConfig</code> появились <code>page_size</code>,
   <code>search_delay</code> и <code>newest_first</code>, поэтому <code>CataloguePipelineConfig</code> из шага 2
   был удалён, и <code>CatalogueConfig</code> использует раздел <code>pipeline</code> библиотеки как
   есть.</li>
@@ -4084,7 +4084,8 @@ extras <code>embeddings</code>, <code>embeddings-local</code> и <code>search</c
 <li><strong>Возобновление «сначала новые».</strong> udg-catalogue устанавливает
   <code>pipeline.newest_first: true</code>, поэтому <code>python main.py</code> теперь по умолчанию
   возобновляет работу; флага <code>--resume</code> из шага 6 больше нет, а <code>--rescan</code>
-  передаёт <code>start_index=0</code> с <code>newest_first=False</code>, чтобы пролистать всю выдачу.</li>
+  передаёт <code>start_index=0</code> с <code>newest_first=False</code>, чтобы пролистать весь
+  листинг.</li>
 <li><strong>Кэширование, завершение и сводки запусков.</strong> udg-catalogue оборачивает свой
   LLM-клиент в <code>CachingLLMClient</code> поверх <code>AsyncSqliteLLMResponseCache</code>, поэтому
   повторный запуск после сбоя не платит дважды за те же вызовы релевантности и
@@ -4101,9 +4102,9 @@ extras <code>embeddings</code>, <code>embeddings-local</code> и <code>search</c
   <code>TableLayoutStep(sort_by=SORT_ORDER, leading_columns=LEADING_COLUMNS,
   hidden_prefixes=("_",))</code>.</li>
 </ul>
-<p>После обновления связывание конвейера udg-catalogue читает настройки из
+<p>После обновления связывание пайплайна udg-catalogue читает настройки из
 конфигурации и индексирует каждую релевантную статью для поиска. В сокращении
-до ветви загрузки <code>udg_catalogue/pipeline.py</code> строит конвейер так:</p>
+до ветви загрузки <code>udg_catalogue/pipeline.py</code> строит пайплайн так:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">build_pipeline</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">http_client</span><span class="p">,</span> <span class="n">llm_client</span><span class="p">,</span> <span class="n">library</span><span class="p">,</span> <span class="n">shutdown</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>    <span class="n">cache</span> <span class="o">=</span> <span class="n">AsyncSqliteLLMResponseCache</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">paths</span><span class="o">.</span><span class="n">llm_cache</span><span class="p">)</span>
 <a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a>    <span class="n">cached_llm</span> <span class="o">=</span> <span class="n">CachingLLMClient</span><span class="p">(</span><span class="n">llm_client</span><span class="p">,</span> <span class="n">cache</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">)</span>
@@ -4132,7 +4133,7 @@ extras <code>embeddings</code>, <code>embeddings-local</code> и <code>search</c
 <a id="__codelineno-25-26" name="__codelineno-25-26" href="#__codelineno-25-26"></a>    <span class="p">)</span>
 </code></pre></div>
 <p><code>library.memory_ingestor</code> возвращает <code>AsyncCompositeIngestor</code>, который сохраняет
-фрагменты с эмбеддингами в <code>AsyncSqliteEmbeddingStore</code> и индексирует статью в
+чанки с эмбеддингами в <code>AsyncSqliteEmbeddingStore</code> и индексирует статью в
 <code>AsyncSqliteFts5Store</code>, или только <code>AsyncSearchIndexer</code>, когда
 <code>embeddings.enabled</code> равно false. Сам запуск сжимается до одного блока
 <code>async with</code>:</p>
@@ -4145,7 +4146,7 @@ extras <code>embeddings</code>, <code>embeddings-local</code> и <code>search</c
 </code></pre></div>
 <p>Статьи, отобранные до обновления, никогда не индексировались, а векторной памяти
 для заполнения у udg-catalogue не было. <code>python main.py --index-papers</code> заново
-получает их через тот же конвейер с экстрактором сущностей, который ничего не
+получает их через тот же пайплайн с экстрактором сущностей, который ничего не
 возвращает, фильтром релевантности, пропускающим статьи, уже имеющиеся в
 текстовом индексе, и отдельным менеджером состояния (<code>indexed_arxiv_ids.txt</code>,
 <code>indexing_meta.json</code>), так что каталог галактик и его обработанные
@@ -4158,10 +4159,10 @@ extras <code>embeddings</code>, <code>embeddings-local</code> и <code>search</c
   <code>embeddings</code>, <code>clustering</code>, <code>deduplication</code>), так что опечатка в
   <code>config.yaml</code> приводит к ошибке при запуске с названием ключа. Имена 0.2
   <code>max_records</code> и <code>max_workers</code> больше не загружаются.</li>
-<li><strong>Разобранные страницы выдачи.</strong> Экстракторы возвращают <code>ListingPage</code> из
+<li><strong>Разобранные страницы листинга.</strong> Экстракторы возвращают <code>ListingPage</code> из
   <code>fetch_page(query, cursor, page_size)</code> вместо сырых байтов из <code>search</code> и
   <code>parse_listing</code>, поэтому обёртка проекта, журналирующая каждый запрос
-  выдачи, теперь пробрасывает <code>cursor_for_offset</code> и <code>fetch_page</code>.</li>
+  листинга, теперь пробрасывает <code>cursor_for_offset</code> и <code>fetch_page</code>.</li>
 </ul>
 <h3 id="moving-to-06">Переход на 0.6<a class="headerlink" href="#moving-to-06" title="Permanent link">&para;</a></h3>
 <p>udg-catalogue перешёл на <code>&gt;=0.6.0,&lt;0.7</code>. Начиная с 0.6 базовой установке нужен
@@ -4200,9 +4201,9 @@ extras <code>embeddings</code>, <code>embeddings-local</code> и <code>search</c
 <li>
 <p><strong>Индексирование никогда не трогает каталог.</strong> Запуск <code>--index-papers</code>
   передавал экспортёр каталога вместе с экстрактором, который ничего не
-  возвращает. Начиная с 0.6 конвейер записывает каждую обработанную запись,
+  возвращает. Начиная с 0.6 пайплайн записывает каждую обработанную запись,
   включая запись без сущностей, и такая запись очищает строки этой статьи.
-  Поэтому конвейер индексирования получает экспортёр, который ничего не
+  Поэтому пайплайн индексирования получает экспортёр, который ничего не
   сохраняет:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">DiscardingExporter</span><span class="p">(</span><span class="n">AsyncExporter</span><span class="p">[</span><span class="n">Any</span><span class="p">]):</span>
 <a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">:</span> <span class="n">RawRecord</span><span class="p">,</span> <span class="n">entities</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -4231,7 +4232,7 @@ extras <code>embeddings</code>, <code>embeddings-local</code> и <code>search</c
    объединённые прежними запусками, можно разделить только повторным
    извлечением каталога.</li>
 <li><strong>Сбои выглядели как успех.</strong> Девять сбоев поиска arXiv завершили запуски
-   так, будто выдача исчерпана, а 8 ошибок DeepSeek пометили статьи как
+   так, будто листинг исчерпан, а 8 ошибок DeepSeek пометили статьи как
    обработанные, хотя ничего не было извлечено.</li>
 <li><strong>Параллельная запись CSV шла без блокировки.</strong> Шесть потоков переписывали
    один и тот же CSV, и журнал фиксирует 8 исключений рабочих потоков в этом
@@ -4249,8 +4250,8 @@ extras <code>embeddings</code>, <code>embeddings-local</code> и <code>search</c
 </ol>
 <h2 id="adapting-this-to-your-field">Адаптация к вашей области<a class="headerlink" href="#adapting-this-to-your-field" title="Permanent link">&para;</a></h2>
 <ul>
-<li>[ ] Перечислите все функции своего конвейера и распределите их по трём
-      группам из раздела <a href="#map-your-pipeline-onto-the-library">Сопоставьте свой конвейер с библиотекой</a>.</li>
+<li>[ ] Перечислите все функции своего пайплайна и распределите их по трём
+      группам из раздела <a href="#map-your-pipeline-onto-the-library">Сопоставьте свой пайплайн с библиотекой</a>.</li>
 <li>[ ] Установите библиотеку в редактируемом режиме и решите, как её будут
       получать развёртывания (диапазон версий из PyPI или встроенный в
       репозиторий wheel там, где PyPI недоступен).</li>

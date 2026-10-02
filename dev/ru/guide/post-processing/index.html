@@ -26,7 +26,7 @@
         
           <link rel="alternate" href="../../../es/guide/post-processing/" hreflang="es">
         
-          <link rel="alternate" href="../../../zh/guide/post-processing/" hreflang="zh">
+          <link rel="alternate" href="../../../zh-Hans/guide/post-processing/" hreflang="zh-Hans">
         
           <link rel="alternate" href="../../../ar/guide/post-processing/" hreflang="ar">
         
@@ -205,7 +205,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../../../zh/guide/post-processing/" hreflang="zh" class="md-select__link">
+            <a href="../../../zh-Hans/guide/post-processing/" hreflang="zh-Hans" class="md-select__link">
               简体中文
             </a>
           </li>
@@ -1420,7 +1420,7 @@
   <span class="md-ellipsis">
     
   
-    Запуск конвейеров
+    Запуск пайплайнов
   
 
     
@@ -1436,7 +1436,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Запуск конвейеров
+    Запуск пайплайнов
   
 
           </label>
@@ -1716,7 +1716,7 @@
   <span class="md-ellipsis">
     
   
-    Перенос конвейера
+    Перенос пайплайна
   
 
     
@@ -2819,7 +2819,7 @@
 
 <h1 id="_1">Постобработка и визуализация<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
 <h2 id="the-exporters">Экспортёры<a class="headerlink" href="#the-exporters" title="Permanent link">&para;</a></h2>
-<p>Конвейер записывает сущности каждой обработанной записи в свой экспортёр
+<p>Пайплайн записывает сущности каждой обработанной записи в свой экспортёр
 вместе с записью, из которой они получены, а также запись без сущностей. В
 комплект входят два экспортёра, и ни один из них не объединяет, не приводит и
 не обрезает значения, поэтому противоречие между статьями остаётся видимым,
@@ -3028,7 +3028,7 @@ HTML. При создании ему нужен extra <code>viz</code>; импо
   <code>SqlTableSink("sqlite:///results.db", "entities").write(clean)</code>. При
   создании ему нужен extra <code>sql</code>. Как и <code>Plotly3DSink</code>, он принимает
   DataFrame, поэтому используйте его после постобработки, а не как экспортёр
-  конвейера.</p>
+  пайплайна.</p>
 
 
 

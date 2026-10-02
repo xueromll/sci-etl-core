@@ -26,7 +26,7 @@
         
           <link rel="alternate" href="../../../es/guide/rate-limiting/" hreflang="es">
         
-          <link rel="alternate" href="../../../zh/guide/rate-limiting/" hreflang="zh">
+          <link rel="alternate" href="../../../zh-Hans/guide/rate-limiting/" hreflang="zh-Hans">
         
           <link rel="alternate" href="../../../ar/guide/rate-limiting/" hreflang="ar">
         
@@ -205,7 +205,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../../../zh/guide/rate-limiting/" hreflang="zh" class="md-select__link">
+            <a href="../../../zh-Hans/guide/rate-limiting/" hreflang="zh-Hans" class="md-select__link">
               简体中文
             </a>
           </li>
@@ -1325,7 +1325,7 @@
   <span class="md-ellipsis">
     
   
-    Запуск конвейеров
+    Запуск пайплайнов
   
 
     
@@ -1341,7 +1341,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Запуск конвейеров
+    Запуск пайплайнов
   
 
           </label>
@@ -1701,7 +1701,7 @@
   <span class="md-ellipsis">
     
   
-    Перенос конвейера
+    Перенос пайплайна
   
 
     
@@ -2821,7 +2821,7 @@
 охватывает и свои поддомены, если у поддомена нет собственного ограничителя, а
 хосты без совпадения используют <code>default</code>, что означает отсутствие ограничения,
 если его не указать. Экстрактор arXiv обращается к двум хостам —
-<code>export.arxiv.org</code> для выдачи и <code>arxiv.org</code> для полного текста, — поэтому
+<code>export.arxiv.org</code> для листинга и <code>arxiv.org</code> для полного текста, — поэтому
 каждый может получить собственный бюджет:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.rate_limiter</span><span class="w"> </span><span class="kn">import</span> <span class="n">HostRateLimiter</span><span class="p">,</span> <span class="n">SemaphoreRateLimiter</span><span class="p">,</span> <span class="n">build_rate_limiter</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
