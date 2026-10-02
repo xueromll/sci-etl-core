@@ -60,7 +60,7 @@ Backfill:  AsyncEmbeddingStore.iter_records --> merge_passages --> AsyncTextSear
 | Слияние | `FusionStrategy` | `reciprocal_rank_fusion`, `normalized_score_fusion`; `AsyncHybridSearcher` | `sci_etl_core.search` |
 | Граф связанных статей | `AsyncEdgeSource` | `EmbeddingEdgeSource`, `MetadataEdgeSource`; `build_discovery_graph`, `filter_graph` | `sci_etl_core.search` |
 | Постобработка | `Processor`, `RecordValidator` | `ProcessorChain`, `NormalizationStep`, `DeduplicationStep`, `ClusteringStep`, `CompletenessStep`, `QualityFlagStep`, `ValueClipStep`, `TableLayoutStep`; `NumericRangeValidator`, `KeywordExclusionValidator`, `CompositeValidator` | `sci_etl_core.processors` |
-| Табличные приёмники | `TableSink` | `SqlTableSink`, `Plotly3DSink` | `sci_etl_core.processors.sinks` |
+| Стоки таблиц | `TableSink` | `SqlTableSink`, `Plotly3DSink` | `sci_etl_core.processors.sinks` |
 | Оркестрация | — | `AsyncETLPipeline`, `ETLPipeline` | `sci_etl_core` |
 
 Пайплайны, интерфейсы этапов и большинство реализаций также реэкспортируются

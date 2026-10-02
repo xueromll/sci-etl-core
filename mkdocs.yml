@@ -108,14 +108,14 @@ plugins:
             Hybrid search: Гибридный поиск
             Filters and facets: Фильтры и фасеты
             Text stores: Текстовые хранилища
-            Backfilling from vector memory: Заполнение из векторной памяти
+            Backfilling from vector memory: Дозаполнение из векторной памяти
             Discovery graphs: Графы связанных статей
             Building a user interface: Создание пользовательского интерфейса
             Store ownership: Владение хранилищами
             Running pipelines: Запуск пайплайнов
             State, resuming, and errors: Состояние, возобновление и ошибки
             Run semantics: Семантика запуска
-            Graceful shutdown: Корректное завершение
+            Graceful shutdown: Плавное завершение
             Retries: Повторные попытки
             Rate limiting: Ограничение частоты запросов
             Logging: Журналирование

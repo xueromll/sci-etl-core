@@ -80,15 +80,15 @@ MIGRATION.md.
 - **Ломающее изменение:** базовая установка требует только `pydantic`.
   Установите extra `config` для `load_config`, `arxiv` для
   `AsyncArxivExtractor`, `xml` для экстрактора PubMed и парсеров JATS и DOCX,
-  `html` для `HtmlTextParser` и `processors` для процессоров pandas и табличных
-  приёмников.
+  `html` для `HtmlTextParser` и `processors` для процессоров pandas и стоков
+  таблиц.
 - **Ломающее изменение:** `load_config` и `load_config_async` читают файл
   `.env` только при передаче `env_path` или `load_env=True`.
 - **Ломающее изменение:** каждый модуль пишет журнал через
   `logging.getLogger(__name__)` под логгером `sci_etl_core`, с уровнем
-  `WARNING` для неудавшихся и пропущенных записей, `ERROR` для сбоев
-  приёмников и состояния и `INFO` для рутинных заметок. Библиотека не
-  настраивает обработчики.
+  `WARNING` для неудавшихся и пропущенных записей, `ERROR` для сбоев стоков и
+  состояния и `INFO` для рутинных заметок. Библиотека не настраивает
+  обработчики.
 - **Ломающее изменение:** `AsyncEntityExtractor` и `AsyncExporter` обобщены
   по типу сущности, а все аргументы `AsyncLLMEntityExtractor` после
   `system_prompt` — только именованные.
@@ -208,7 +208,7 @@ MIGRATION.md.
   `PageFetched.truncated` и `PipelineMetadata.truncated` показывают, когда
   источник остановился на своём лимите результатов. События прогресса также
   содержат `cursor` страницы.
-- **Табличные приёмники.** `SqlTableSink` и `Plotly3DSink` в
+- **Стоки таблиц.** `SqlTableSink` и `Plotly3DSink` в
   `sci_etl_core.processors.sinks` записывают `DataFrame` после постобработки.
 - **Версии схем.** База данных состояния SQLite, кэш LLM, хранилище
   эмбеддингов и файловое состояние записывают версию схемы. Файл, записанный
@@ -312,7 +312,7 @@ MIGRATION.md.
   `AsyncSqliteLLMResponseCache`. Сбой кэша записывается в журнал и учитывается в
   `CacheStats`, выбрасывается хранилищами как `LLMCacheError` и никогда не
   приводит к неудаче запроса к модели.
-- Корректное завершение: `AsyncETLPipeline(shutdown=)` и
+- Плавное завершение: `AsyncETLPipeline(shutdown=)` и
   `ETLPipeline(shutdown=)` принимают `ShutdownSignal`, поэтому SIGINT, SIGTERM
   или `request()` дают завершиться записям в обработке и выбрасывают
   `PipelineInterrupted` — подкласс `PipelineAborted`. Теперь каждый запуск,
@@ -340,7 +340,7 @@ MIGRATION.md.
   записывает в журнал сущности, которые отвергает `RecordValidator`.
 - `ScatterPlotConfig` принимает `hover_data_columns`, `hover_template`,
   `color_continuous_scale`, `color_range`, `color_label`, `marker` и `layout`.
-- `ValueClipStep` зажимает числовые столбцы при постобработке, а
+- `ValueClipStep` ограничивает числовые столбцы при постобработке, а
   `TableLayoutStep` сортирует строки и упорядочивает столбцы.
 - Запросы близости `NEAR(...)` в языке запросов — как узел `Near` с
   `NEAR_DISTANCE`, поддерживаемый обоими текстовыми хранилищами, — и
@@ -410,7 +410,7 @@ MIGRATION.md.
     гибридный поиск и сообщает в `SearchOutcome.degraded` и
     `SearchOutcome.skipped`, какие ветви поиска отказали или были пропущены.
 - Графы связанных статей в `sci_etl_core.search`. `build_discovery_graph`
-  выращивает окрестность исходной записи в ширину из одного или нескольких
+  выращивает окрестность seed-записи в ширину из одного или нескольких
   источников рёбер, по умолчанию оставляет только взаимных ближайших соседей и
   группирует записи в сообщества детерминированным распространением меток.
   `GraphParams` ограничивает глубину, ветвление, минимальный вес ребра, число

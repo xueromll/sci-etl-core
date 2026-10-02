@@ -16,7 +16,7 @@
 
 ::: sci_etl_core.processors.shaping
 
-Табличным приёмникам нужен extra `processors`, а `SqlTableSink` и `Plotly3DSink`
+Стокам таблиц нужен extra `processors`, а `SqlTableSink` и `Plotly3DSink`
 при создании требуют также `sql` и `viz`. `ScatterPlotConfig` и
 `render_scatter_3d` импортируются из `sci_etl_core.processors.sinks`.
 

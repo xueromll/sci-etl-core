@@ -14,7 +14,7 @@ pip install -e ".[full]"
 ```
 
 Базовая установка требует только Pydantic. Она включает оба пайплайна,
-корректное завершение, события прогресса и метрики запуска, контракты
+плавное завершение, события прогресса и метрики запуска, контракты
 компонентов, модели конфигурации, бэкенды состояния, кэширование ответов LLM,
 экспортёры CSV и JSON Lines, утверждения и происхождение, валидаторы записей,
 разбор LaTeX, разбиение текста на чанки, булев текстовый поиск, слияние
@@ -29,7 +29,7 @@ pip install -e ".[full]"
 | `arxiv` | `beautifulsoup4`, `lxml` | `AsyncArxivExtractor`, которому нужен также `async` |
 | `xml` | `lxml` | `JatsXmlParser`, `DocxParser` и `AsyncPubMedExtractor`, которому нужен также `async` |
 | `html` | `beautifulsoup4` | `HtmlTextParser`, который `AsyncLLMEntityExtractor` по умолчанию использует для полного текста, начинающегося с разметки |
-| `processors` | `pandas`, `numpy` | все шаги в `sci_etl_core.processors`, кроме валидаторов, и табличные приёмники |
+| `processors` | `pandas`, `numpy` | все шаги в `sci_etl_core.processors`, кроме валидаторов, и стоки таблиц |
 | `llm` | `openai`, `tiktoken` | `AsyncOpenAICompatibleClient`, усечение по токенам |
 | `pdf` | `pdfplumber` | `PdfPlumberParser` |
 | `sql` | `sqlalchemy` | `SqlTableSink`, которому нужен также `processors` |

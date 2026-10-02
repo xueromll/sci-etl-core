@@ -184,7 +184,7 @@ ideas.
 | flush the exporter | выгрузить экспортёр | volcar el exportador | 刷新导出器 | تفريغ المصدِّر |
 | flush the state | записать состояние на диск | volcar el estado | 写回状态 | حفظ الحالة |
 | abort / aborted | прервать / прерванный | abortar / abortado | 中止 / 已中止 | إجهاض / مُجهَض |
-| graceful shutdown | корректное завершение | apagado ordenado | 优雅关闭 | الإيقاف السلس |
+| graceful shutdown | плавное завершение | apagado ordenado | 优雅关闭 | الإيقاف السلس |
 | event loop | цикл событий | bucle de eventos | 事件循环 | حلقة الأحداث |
 | blocking | блокирующий | bloqueante | 阻塞式 | متزامن |
 | progress event | событие прогресса | evento de progreso | 进度事件 | حدث التقدم |
@@ -254,9 +254,9 @@ ideas.
 | node / edge | узел / ребро | nodo / arista | 节点 / 边 | العقدة / الحافة |
 | edge source | источник рёбер | fuente de aristas | 边来源 | مصدر الحواف |
 | community | сообщество | comunidad | 社区 | المجتمع |
-| seed record | исходная запись | registro semilla | 种子记录 | سجل البذرة |
+| seed record | seed-запись | registro semilla | 种子记录 | سجل البذرة |
 | read-model | модель чтения | modelo de lectura | 读模型 | نموذج القراءة |
-| backfill | заполнение | relleno | 回填 | الملء |
+| backfill | дозаполнение | relleno | 回填 | الملء |
 
 ### Post-processing
 
@@ -264,11 +264,11 @@ ideas.
 |---------|---------|---------|--------------------|--------|
 | post-processing | постобработка | posprocesamiento | 后处理 | المعالجة اللاحقة |
 | processor | процессор | procesador | 处理器 | المعالِج |
-| table sink | табличный приёмник | sumidero de tablas | 表格输出端 | مَصرِف الجداول |
+| table sink | сток таблиц | sumidero de tablas | 表格输出端 | مَصرِف الجداول |
 | deduplication | дедупликация | deduplicación | 去重 | إزالة التكرار |
 | normalizer | нормализатор | normalizador | 规范化器 | المُطبِّع |
 | completeness | полнота | completitud | 完整性 | الاكتمال |
-| clamp | зажимать | restringir | 截断 | الحصر |
+| clamp | ограничивать | restringir | 截断 | الحصر |
 
 ### Releases and contributing
 
