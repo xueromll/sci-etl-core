@@ -115,6 +115,7 @@ nav:
       - Quick start: getting-started/quick-start.md
       - Blocking usage: getting-started/blocking-usage.md
       - Configuration: getting-started/configuration.md
+      - When not to use it: getting-started/when-not-to-use.md
   - Guide:
       - Supported sources: guide/sources.md
       - Typed entities and validation: guide/typed-entities.md

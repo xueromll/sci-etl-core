@@ -226,6 +226,7 @@ describes each layer.
 | Topic | Where |
 |-------|-------|
 | Installation, quick start, blocking usage, configuration | [Getting started](https://xueromll.github.io/sci-etl-core/latest/getting-started/installation/) |
+| Cases the library doesn't fit | [When not to use it](https://xueromll.github.io/sci-etl-core/latest/getting-started/when-not-to-use/) |
 | Sources, post-processing, semantic memory, state, shutdown, retries, rate limiting, events, caching | [Guide](https://xueromll.github.io/sci-etl-core/latest/guide/sources/) |
 | Boolean and hybrid search, facets, discovery graphs | [Local search and discovery](https://xueromll.github.io/sci-etl-core/latest/guide/search/) |
 | Components and how they connect | [Architecture](https://xueromll.github.io/sci-etl-core/latest/guide/architecture/) |
