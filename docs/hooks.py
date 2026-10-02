@@ -5,7 +5,9 @@ Two jobs happen here:
 - The CLI documentation lives in the sci-etl-cli repository. Its ``docs/``
   pages are mounted under ``cli/`` and its ``nav`` replaces the ``CLI`` entry of
   this site's navigation. The checkout is read from ``SCI_ETL_CLI_DIR`` or, by
-  default, a ``sci-etl-cli`` folder beside this repository.
+  default, a ``sci-etl-cli`` folder beside this repository. The pages are
+  mounted after the i18n plugin has picked each language's files, so every
+  language build gets them, in English, under its own ``cli/`` folder.
 - Project files such as ``CHANGELOG.md`` stay at the repository root, where
   GitHub shows them. A page whose whole body is ``--8<-- "NAME.md"`` renders
   that file, with its relative links pointing at the matching site pages or,
@@ -24,6 +26,7 @@ from typing import Any
 import yaml
 from mkdocs.config.defaults import MkDocsConfig
 from mkdocs.livereload import LiveReloadServer
+from mkdocs.plugins import event_priority
 from mkdocs.structure.files import File, Files
 from mkdocs.structure.pages import Page
 
@@ -52,19 +55,22 @@ def on_config(config: MkDocsConfig) -> MkDocsConfig:
     return config
 
 
+@event_priority(-110)
 def on_files(files: Files, config: MkDocsConfig) -> Files:
+    _root_pages.clear()
+    for file in files.documentation_pages():
+        src_uri = getattr(file, "norm_src_uri", file.src_uri)
+        source = Path(config.docs_dir) / src_uri
+        if not source.is_file():
+            continue
+        match = ROOT_INCLUDE.match(source.read_text(encoding="utf-8"))
+        if match is not None:
+            _root_pages[match["name"]] = src_uri
     cli_docs = _cli_dir(config) / "docs"
     if cli_docs.is_dir():
         for source in sorted(path for path in cli_docs.rglob("*") if path.is_file()):
             uri = posixpath.join(CLI_PREFIX, source.relative_to(cli_docs).as_posix())
-            files.append(File.generated(config, uri, abs_src_path=str(source)))
-    _root_pages.clear()
-    for file in files.documentation_pages():
-        if file.abs_src_path is None:
-            continue
-        match = ROOT_INCLUDE.match(Path(file.abs_src_path).read_text(encoding="utf-8"))
-        if match is not None:
-            _root_pages[match["name"]] = file.src_uri
+            files.append(_cli_file(config, uri, source))
     return files
 
 
@@ -94,6 +100,27 @@ def on_serve(server: LiveReloadServer, config: MkDocsConfig, builder: Any) -> Li
     for name in _root_pages:
         server.watch(str(_repository_root(config) / name))
     return server
+
+
+def _cli_file(config: MkDocsConfig, uri: str, source: Path) -> File:
+    i18n = config.plugins.get("i18n")
+    if i18n is None:
+        return File.generated(config, uri, abs_src_path=str(source))
+    variants: dict[str, File] = {}
+    for locale in i18n.build_languages:
+        variant = File.generated(config, uri, abs_src_path=str(source))
+        if locale != i18n.default_language:
+            variant.dest_uri = posixpath.join(locale, variant.dest_uri)
+        variant.locale = i18n.default_language
+        variant.locale_alternate_of = locale
+        variant.localization = None
+        variant.norm_src_uri = uri
+        variant.alternates = variants
+        variants[locale] = variant
+    file = variants[i18n.current_language]
+    if file.is_documentation_page():
+        i18n.i18n_files_per_language.setdefault(i18n.current_language, []).append(file)
+    return file
 
 
 def _repository_root(config: MkDocsConfig) -> Path:

@@ -201,6 +201,13 @@ mkdocs build --strict                                 # the check CI runs
   guide, `SECURITY.md`, and `CODE_OF_CONDUCT.md` stay at the repository root;
   the pages under `docs/project/` render them, and links between them are
   rewritten for the site.
+- **Translations.** The Russian, Spanish, Simplified Chinese, and Arabic
+  versions of a page sit beside it as `page.ru.md`, `page.es.md`,
+  `page.zh.md`, and `page.ar.md`, and the mkdocs-static-i18n plugin builds
+  each language under its own path, such as `/ru/`. A pull request that
+  changes an English page updates its four translations too.
+  [TRANSLATING.md](TRANSLATING.md) names the owner of each language and
+  holds the glossary and the rules a translated page follows.
 - **The CLI section** comes from the `docs/` folder and `nav` of the
   sci-etl-cli repository. The build looks for a checkout beside this one, or at
   the path in `SCI_ETL_CLI_DIR`; without one it leaves the section out, which
@@ -268,6 +275,9 @@ body (`Closes #123`).
 4. **Run** the test suite locally (plus lint and type checks if you use them).
 5. **Update the docs** for user-facing changes:
    - the pages under `docs/` for usage; keep `README.md` a short overview
+   - the Russian, Spanish, Chinese, and Arabic translations of every English
+     page you change, following [TRANSLATING.md](TRANSLATING.md); if you
+     can't write one of them, say so, and its owner adds it before merge
    - `MIGRATION.md` for a breaking change, under the release that ships it
    - `docs/guide/migrating-a-pipeline.md` when the change affects moving an
      existing pipeline onto the library

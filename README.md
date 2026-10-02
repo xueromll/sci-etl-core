@@ -250,7 +250,9 @@ The suite runs offline, and `pytest --cov` fails if line coverage drops below
 Contributions are welcome — new extractors, parsers, exporters, and embedding
 backends especially. See [CONTRIBUTING.md](CONTRIBUTING.md) to get set up, and
 browse [good first issues](.github/ISSUE_TEMPLATE/good_first_issue.md) if
-you're new. Moving an existing pipeline onto the library? Follow
+you're new. Native speakers can help review the Russian, Spanish, Chinese, and
+Arabic documentation; [TRANSLATING.md](TRANSLATING.md) names the owner of each
+language and holds the glossary. Moving an existing pipeline onto the library? Follow
 [Migrating a pipeline](https://xueromll.github.io/sci-etl-core/latest/guide/migrating-a-pipeline/).
 Upgrading to a new release? See [MIGRATION.md](MIGRATION.md).
 What's planned is in [ROADMAP.md](ROADMAP.md), and releases are recorded in

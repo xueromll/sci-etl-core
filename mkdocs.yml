@@ -67,6 +67,259 @@ extra:
 
 plugins:
   - search
+  - i18n:
+      docs_structure: suffix
+      fallback_to_default: true
+      reconfigure_material: true
+      reconfigure_search: true
+      languages:
+        - locale: en
+          name: English
+          default: true
+          build: true
+        - locale: ru
+          name: Русский
+          build: true
+          site_description: Библиотека Python для превращения научных статей из любой области науки в структурированные данные с поиском, и CLI sci-etl, который запускает её из YAML.
+          nav_translations:
+            Home: Главная
+            Getting started: Начало работы
+            Installation: Установка
+            Quick start: Быстрый старт
+            Blocking usage: Блокирующий режим
+            Configuration: Конфигурация
+            When not to use it: Когда не стоит её использовать
+            Guide: Руководство
+            Supported sources: Поддерживаемые источники
+            Typed entities and validation: Типизированные сущности и валидация
+            Claims and provenance: Утверждения и происхождение
+            Post-processing and visualization: Постобработка и визуализация
+            Semantic memory: Семантическая память
+            Local search and discovery: Локальный поиск и обзор
+            Query syntax: Синтаксис запросов
+            Ranked search and filtering: Ранжированный поиск и фильтрация
+            Hybrid search: Гибридный поиск
+            Filters and facets: Фильтры и фасеты
+            Text stores: Текстовые хранилища
+            Backfilling from vector memory: Заполнение из векторной памяти
+            Discovery graphs: Графы связанных статей
+            Building a user interface: Создание пользовательского интерфейса
+            Store ownership: Владение хранилищами
+            Running pipelines: Запуск конвейеров
+            State, resuming, and errors: Состояние, возобновление и ошибки
+            Run semantics: Семантика запуска
+            Graceful shutdown: Корректное завершение
+            Retries: Повторные попытки
+            Rate limiting: Ограничение частоты запросов
+            Logging: Журналирование
+            Progress events and metrics: События прогресса и метрики
+            Token usage: Расход токенов
+            LLM response caching: Кэширование ответов LLM
+            Migrating a pipeline: Перенос конвейера
+            Architecture: Архитектура
+            API reference: Справочник API
+            Pipelines: Конвейеры
+            Models and exceptions: Модели и исключения
+            Extractors: Экстракторы
+            Parsers: Парсеры
+            Embeddings: Эмбеддинги
+            Search: Поиск
+            Exporters: Экспортёры
+            Claims: Утверждения
+            Processors: Процессоры
+            State: Состояние
+            Utilities: Утилиты
+            Project: Проект
+            Changelog: Журнал изменений
+            Migration guide: Руководство по миграции
+            Roadmap: Дорожная карта
+            Contributing: Участие в разработке
+            Translations: Переводы
+            Security: Безопасность
+            Code of conduct: Кодекс поведения
+        - locale: es
+          name: Español
+          build: true
+          site_description: Una biblioteca de Python para convertir artículos científicos de cualquier campo de la ciencia en datos estructurados y consultables, y la CLI sci-etl que la ejecuta desde YAML.
+          nav_translations:
+            Home: Inicio
+            Getting started: Primeros pasos
+            Installation: Instalación
+            Quick start: Inicio rápido
+            Blocking usage: Uso bloqueante
+            Configuration: Configuración
+            When not to use it: Cuándo no usarla
+            Guide: Guía
+            Supported sources: Fuentes compatibles
+            Typed entities and validation: Entidades tipadas y validación
+            Claims and provenance: Afirmaciones y procedencia
+            Post-processing and visualization: Posprocesamiento y visualización
+            Semantic memory: Memoria semántica
+            Local search and discovery: Búsqueda y descubrimiento locales
+            Query syntax: Sintaxis de consultas
+            Ranked search and filtering: Búsqueda por relevancia y filtrado
+            Hybrid search: Búsqueda híbrida
+            Filters and facets: Filtros y facetas
+            Text stores: Almacenes de texto
+            Backfilling from vector memory: Relleno desde la memoria vectorial
+            Discovery graphs: Grafos de descubrimiento
+            Building a user interface: Crear una interfaz de usuario
+            Store ownership: Propiedad de los almacenes
+            Running pipelines: Ejecutar pipelines
+            State, resuming, and errors: Estado, reanudación y errores
+            Run semantics: Semántica de ejecución
+            Graceful shutdown: Apagado ordenado
+            Retries: Reintentos
+            Rate limiting: Limitación de frecuencia
+            Logging: Registro
+            Progress events and metrics: Eventos de progreso y métricas
+            Token usage: Consumo de tokens
+            LLM response caching: Caché de respuestas del LLM
+            Migrating a pipeline: Migrar un pipeline
+            Architecture: Arquitectura
+            API reference: Referencia de la API
+            Pipelines: Pipelines
+            Models and exceptions: Modelos y excepciones
+            Extractors: Extractores
+            Parsers: Analizadores
+            Embeddings: Embeddings
+            Search: Búsqueda
+            Exporters: Exportadores
+            Claims: Afirmaciones
+            Processors: Procesadores
+            State: Estado
+            Utilities: Utilidades
+            Project: Proyecto
+            Changelog: Registro de cambios
+            Migration guide: Guía de migración
+            Roadmap: Hoja de ruta
+            Contributing: Contribuir
+            Translations: Traducciones
+            Security: Seguridad
+            Code of conduct: Código de conducta
+        - locale: zh
+          name: 简体中文
+          build: true
+          site_description: 一个 Python 库，用于把任何科学领域的论文转换为结构化、可检索的数据；sci-etl 命令行工具则通过 YAML 运行它。
+          nav_translations:
+            Home: 首页
+            Getting started: 入门
+            Installation: 安装
+            Quick start: 快速开始
+            Blocking usage: 阻塞式用法
+            Configuration: 配置
+            When not to use it: 何时不应使用
+            Guide: 指南
+            Supported sources: 支持的来源
+            Typed entities and validation: 类型化实体与校验
+            Claims and provenance: 论断与溯源
+            Post-processing and visualization: 后处理与可视化
+            Semantic memory: 语义记忆
+            Local search and discovery: 本地检索与发现
+            Query syntax: 查询语法
+            Ranked search and filtering: 排序检索与过滤
+            Hybrid search: 混合检索
+            Filters and facets: 过滤器与分面
+            Text stores: 文本存储
+            Backfilling from vector memory: 从向量记忆回填
+            Discovery graphs: 发现图
+            Building a user interface: 构建用户界面
+            Store ownership: 存储的所有权
+            Running pipelines: 运行流水线
+            State, resuming, and errors: 状态、续跑与错误
+            Run semantics: 运行语义
+            Graceful shutdown: 优雅关闭
+            Retries: 重试
+            Rate limiting: 速率限制
+            Logging: 日志
+            Progress events and metrics: 进度事件与指标
+            Token usage: Token 用量
+            LLM response caching: LLM 响应缓存
+            Migrating a pipeline: 迁移流水线
+            Architecture: 架构
+            API reference: API 参考
+            Pipelines: 流水线
+            Models and exceptions: 模型与异常
+            Extractors: 提取器
+            Parsers: 解析器
+            Embeddings: 嵌入
+            Search: 检索
+            Exporters: 导出器
+            Claims: 论断
+            Processors: 处理器
+            State: 状态
+            Utilities: 工具
+            Project: 项目
+            Changelog: 更新日志
+            Migration guide: 迁移指南
+            Roadmap: 路线图
+            Contributing: 参与贡献
+            Translations: 翻译
+            Security: 安全
+            Code of conduct: 行为准则
+        - locale: ar
+          name: العربية
+          build: true
+          site_description: مكتبة بايثون لتحويل الأوراق العلمية من أي مجال من مجالات العلم إلى بيانات منظمة قابلة للبحث، وأداة سطر الأوامر sci-etl التي تشغّلها من ملف YAML.
+          nav_translations:
+            Home: الرئيسية
+            Getting started: البدء
+            Installation: التثبيت
+            Quick start: البدء السريع
+            Blocking usage: الاستخدام المتزامن
+            Configuration: الإعداد
+            When not to use it: متى لا تستخدمها
+            Guide: الدليل
+            Supported sources: المصادر المدعومة
+            Typed entities and validation: الكيانات المنمّطة والتحقق
+            Claims and provenance: الادعاءات ومصدرها
+            Post-processing and visualization: المعالجة اللاحقة والتصوير البياني
+            Semantic memory: الذاكرة الدلالية
+            Local search and discovery: البحث والاستكشاف المحليان
+            Query syntax: صياغة الاستعلامات
+            Ranked search and filtering: البحث المرتَّب والتصفية
+            Hybrid search: البحث الهجين
+            Filters and facets: المرشحات والأوجه
+            Text stores: مخازن النصوص
+            Backfilling from vector memory: الملء من الذاكرة المتجهية
+            Discovery graphs: رسوم الاستكشاف البيانية
+            Building a user interface: بناء واجهة مستخدم
+            Store ownership: ملكية المخازن
+            Running pipelines: تشغيل خطوط المعالجة
+            State, resuming, and errors: الحالة والاستئناف والأخطاء
+            Run semantics: دلالات التشغيل
+            Graceful shutdown: الإيقاف السلس
+            Retries: إعادة المحاولة
+            Rate limiting: تحديد المعدل
+            Logging: التسجيل
+            Progress events and metrics: أحداث التقدم والمقاييس
+            Token usage: استهلاك الرموز
+            LLM response caching: التخزين المؤقت لاستجابات النموذج اللغوي
+            Migrating a pipeline: ترحيل خط معالجة
+            Architecture: البنية
+            API reference: مرجع الواجهة البرمجية
+            Pipelines: خطوط المعالجة
+            Models and exceptions: النماذج والاستثناءات
+            Extractors: المستخرِجات
+            Parsers: المحلِّلات
+            LLM: النموذج اللغوي
+            Embeddings: التضمينات
+            Search: البحث
+            Exporters: المصدِّرات
+            Claims: الادعاءات
+            Processors: المعالِجات
+            State: الحالة
+            Utilities: الأدوات المساعدة
+            Project: المشروع
+            Changelog: سجل التغييرات
+            Migration guide: دليل الترحيل
+            Roadmap: خارطة الطريق
+            Contributing: المساهمة
+            Translations: الترجمات
+            Security: الأمان
+            Code of conduct: مدونة السلوك
+  - autorefs:
+      resolve_closest: true
   - mkdocstrings:
       handlers:
         python:
@@ -166,5 +419,6 @@ nav:
       - Migration guide: project/migration.md
       - Roadmap: project/roadmap.md
       - Contributing: project/contributing.md
+      - Translations: project/translating.md
       - Security: project/security.md
       - Code of conduct: project/code-of-conduct.md

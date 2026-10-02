@@ -40,7 +40,7 @@ component, so add the extras for the components you use:
 | `full` | every package above except `sentence-transformers` | every bundled component except local embeddings |
 | `dev` | pytest and plugins, `hypothesis` | running the test suite |
 | `lint` | `ruff`, `mypy`, type stubs | linting and type-checking the source |
-| `docs` | MkDocs, Material for MkDocs, mkdocstrings, mkdocs-click, mike, `ruff` | building this documentation site |
+| `docs` | MkDocs, Material for MkDocs, mkdocstrings, mkdocs-click, mike, mkdocs-static-i18n, `ruff` | building this documentation site |
 
 Importing a component whose extra is missing raises `ModuleNotFoundError`
 naming the package to install.

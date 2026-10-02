@@ -25,6 +25,7 @@ Closes #
 - [ ] No domain-specific constants added to the core
 - [ ] Public API changes reflected in the relevant `__init__.py` and `__all__`
 - [ ] Docs updated (`docs/` pages / MIGRATION / ROADMAP) if user-facing, and `mkdocs build --strict` passes
+- [ ] Russian, Spanish, Chinese, and Arabic translations of every changed English page updated, following `TRANSLATING.md`, or the languages still missing named above
 
 ## How Was This Tested?
 
