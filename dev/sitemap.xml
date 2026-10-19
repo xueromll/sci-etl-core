@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/"/>
@@ -12,7 +12,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/getting-started/blocking-usage/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/getting-started/blocking-usage/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/getting-started/blocking-usage/"/>
@@ -22,7 +22,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/getting-started/configuration/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/getting-started/configuration/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/getting-started/configuration/"/>
@@ -32,7 +32,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/getting-started/installation/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/getting-started/installation/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/getting-started/installation/"/>
@@ -42,7 +42,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/getting-started/quick-start/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/getting-started/quick-start/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/getting-started/quick-start/"/>
@@ -52,7 +52,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/getting-started/when-not-to-use/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/getting-started/when-not-to-use/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/getting-started/when-not-to-use/"/>
@@ -62,7 +62,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/architecture/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/architecture/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/architecture/"/>
@@ -72,7 +72,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/claims/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/claims/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/claims/"/>
@@ -82,7 +82,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/llm-caching/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/llm-caching/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/llm-caching/"/>
@@ -92,7 +92,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/logging/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/logging/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/logging/"/>
@@ -102,7 +102,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/migrating-a-pipeline/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/migrating-a-pipeline/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/migrating-a-pipeline/"/>
@@ -112,7 +112,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/observability/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/observability/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/observability/"/>
@@ -122,7 +122,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/post-processing/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/post-processing/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/post-processing/"/>
@@ -132,7 +132,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/rate-limiting/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/rate-limiting/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/rate-limiting/"/>
@@ -142,7 +142,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/retries/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/retries/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/retries/"/>
@@ -152,7 +152,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/run-semantics/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/run-semantics/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/run-semantics/"/>
@@ -162,7 +162,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/semantic-memory/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/semantic-memory/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/semantic-memory/"/>
@@ -172,7 +172,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/shutdown/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/shutdown/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/shutdown/"/>
@@ -182,7 +182,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/sources/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/sources/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/sources/"/>
@@ -192,7 +192,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/state/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/state/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/state/"/>
@@ -202,7 +202,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/token-usage/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/token-usage/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/token-usage/"/>
@@ -212,7 +212,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/typed-entities/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/typed-entities/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/typed-entities/"/>
@@ -222,7 +222,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/search/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/search/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/"/>
@@ -232,7 +232,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/search/backfill/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/search/backfill/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/backfill/"/>
@@ -242,7 +242,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/search/discovery-graphs/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/search/discovery-graphs/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/discovery-graphs/"/>
@@ -252,7 +252,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/search/filters-and-facets/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/search/filters-and-facets/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/filters-and-facets/"/>
@@ -262,7 +262,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/search/hybrid-search/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/search/hybrid-search/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/hybrid-search/"/>
@@ -272,7 +272,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/search/query-syntax/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/search/query-syntax/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/query-syntax/"/>
@@ -282,7 +282,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/search/ranked-search/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/search/ranked-search/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/ranked-search/"/>
@@ -292,7 +292,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/search/store-ownership/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/search/store-ownership/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/store-ownership/"/>
@@ -302,7 +302,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/search/text-stores/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/search/text-stores/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/text-stores/"/>
@@ -312,7 +312,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/search/user-interfaces/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/search/user-interfaces/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/user-interfaces/"/>
@@ -322,7 +322,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/project/changelog/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/project/changelog/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/changelog/"/>
@@ -332,7 +332,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/project/code-of-conduct/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/project/code-of-conduct/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/code-of-conduct/"/>
@@ -342,7 +342,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/project/contributing/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/project/contributing/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/contributing/"/>
@@ -352,7 +352,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/project/migration/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/project/migration/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/migration/"/>
@@ -362,7 +362,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/project/roadmap/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/project/roadmap/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/roadmap/"/>
@@ -372,7 +372,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/project/security/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/project/security/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/security/"/>
@@ -382,7 +382,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/project/translating/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/project/translating/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/translating/"/>
@@ -392,7 +392,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/reference/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/reference/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/"/>
@@ -402,7 +402,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/reference/claims/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/reference/claims/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/claims/"/>
@@ -412,7 +412,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/reference/configuration/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/reference/configuration/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/configuration/"/>
@@ -422,7 +422,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/reference/embeddings/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/reference/embeddings/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/embeddings/"/>
@@ -432,7 +432,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/reference/exporters/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/reference/exporters/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/exporters/"/>
@@ -442,7 +442,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/reference/extractors/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/reference/extractors/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/extractors/"/>
@@ -452,7 +452,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/reference/llm/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/reference/llm/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/llm/"/>
@@ -462,7 +462,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/reference/models/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/reference/models/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/models/"/>
@@ -472,7 +472,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/reference/parsers/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/reference/parsers/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/parsers/"/>
@@ -482,7 +482,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/reference/pipelines/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/reference/pipelines/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/pipelines/"/>
@@ -492,7 +492,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/reference/processors/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/reference/processors/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/processors/"/>
@@ -502,7 +502,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/reference/search/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/reference/search/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/search/"/>
@@ -512,7 +512,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/reference/state/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/reference/state/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/state/"/>
@@ -522,7 +522,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/reference/utilities/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/reference/utilities/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/utilities/"/>
@@ -532,7 +532,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/cli/commands/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/cli/commands/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/cli/commands/"/>
@@ -542,7 +542,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/cli/config-file/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/cli/config-file/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/cli/config-file/"/>
@@ -552,7 +552,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/cli/exit-codes/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/cli/exit-codes/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/cli/exit-codes/"/>
@@ -562,7 +562,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/cli/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/cli/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/cli/"/>
@@ -572,7 +572,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/cli/plugins/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/cli/plugins/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/cli/plugins/"/>
@@ -582,7 +582,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/cli/quick-start/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/cli/quick-start/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/cli/quick-start/"/>
@@ -592,7 +592,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/"/>
@@ -602,7 +602,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/getting-started/blocking-usage/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/getting-started/blocking-usage/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/getting-started/blocking-usage/"/>
@@ -612,7 +612,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/getting-started/configuration/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/getting-started/configuration/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/getting-started/configuration/"/>
@@ -622,7 +622,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/getting-started/installation/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/getting-started/installation/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/getting-started/installation/"/>
@@ -632,7 +632,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/getting-started/quick-start/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/getting-started/quick-start/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/getting-started/quick-start/"/>
@@ -642,7 +642,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/getting-started/when-not-to-use/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/getting-started/when-not-to-use/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/getting-started/when-not-to-use/"/>
@@ -652,7 +652,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/architecture/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/architecture/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/architecture/"/>
@@ -662,7 +662,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/claims/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/claims/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/claims/"/>
@@ -672,7 +672,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/llm-caching/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/llm-caching/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/llm-caching/"/>
@@ -682,7 +682,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/logging/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/logging/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/logging/"/>
@@ -692,7 +692,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/migrating-a-pipeline/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/migrating-a-pipeline/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/migrating-a-pipeline/"/>
@@ -702,7 +702,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/observability/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/observability/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/observability/"/>
@@ -712,7 +712,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/post-processing/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/post-processing/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/post-processing/"/>
@@ -722,7 +722,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/rate-limiting/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/rate-limiting/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/rate-limiting/"/>
@@ -732,7 +732,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/retries/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/retries/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/retries/"/>
@@ -742,7 +742,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/run-semantics/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/run-semantics/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/run-semantics/"/>
@@ -752,7 +752,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/semantic-memory/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/semantic-memory/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/semantic-memory/"/>
@@ -762,7 +762,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/shutdown/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/shutdown/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/shutdown/"/>
@@ -772,7 +772,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/sources/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/sources/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/sources/"/>
@@ -782,7 +782,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/state/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/state/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/state/"/>
@@ -792,7 +792,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/token-usage/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/token-usage/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/token-usage/"/>
@@ -802,7 +802,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/typed-entities/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/typed-entities/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/typed-entities/"/>
@@ -812,7 +812,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/search/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/search/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/"/>
@@ -822,7 +822,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/search/backfill/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/search/backfill/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/backfill/"/>
@@ -832,7 +832,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/search/discovery-graphs/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/search/discovery-graphs/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/discovery-graphs/"/>
@@ -842,7 +842,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/search/filters-and-facets/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/search/filters-and-facets/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/filters-and-facets/"/>
@@ -852,7 +852,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/search/hybrid-search/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/search/hybrid-search/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/hybrid-search/"/>
@@ -862,7 +862,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/search/query-syntax/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/search/query-syntax/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/query-syntax/"/>
@@ -872,7 +872,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/search/ranked-search/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/search/ranked-search/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/ranked-search/"/>
@@ -882,7 +882,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/search/store-ownership/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/search/store-ownership/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/store-ownership/"/>
@@ -892,7 +892,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/search/text-stores/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/search/text-stores/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/text-stores/"/>
@@ -902,7 +902,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/search/user-interfaces/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/search/user-interfaces/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/user-interfaces/"/>
@@ -912,7 +912,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/project/changelog/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/project/changelog/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/changelog/"/>
@@ -922,7 +922,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/project/code-of-conduct/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/project/code-of-conduct/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/code-of-conduct/"/>
@@ -932,7 +932,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/project/contributing/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/project/contributing/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/contributing/"/>
@@ -942,7 +942,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/project/migration/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/project/migration/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/migration/"/>
@@ -952,7 +952,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/project/roadmap/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/project/roadmap/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/roadmap/"/>
@@ -962,7 +962,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/project/security/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/project/security/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/security/"/>
@@ -972,7 +972,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/project/translating/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/project/translating/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/translating/"/>
@@ -982,7 +982,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/reference/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/reference/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/"/>
@@ -992,7 +992,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/reference/claims/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/reference/claims/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/claims/"/>
@@ -1002,7 +1002,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/reference/configuration/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/reference/configuration/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/configuration/"/>
@@ -1012,7 +1012,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/reference/embeddings/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/reference/embeddings/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/embeddings/"/>
@@ -1022,7 +1022,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/reference/exporters/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/reference/exporters/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/exporters/"/>
@@ -1032,7 +1032,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/reference/extractors/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/reference/extractors/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/extractors/"/>
@@ -1042,7 +1042,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/reference/llm/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/reference/llm/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/llm/"/>
@@ -1052,7 +1052,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/reference/models/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/reference/models/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/models/"/>
@@ -1062,7 +1062,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/reference/parsers/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/reference/parsers/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/parsers/"/>
@@ -1072,7 +1072,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/reference/pipelines/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/reference/pipelines/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/pipelines/"/>
@@ -1082,7 +1082,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/reference/processors/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/reference/processors/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/processors/"/>
@@ -1092,7 +1092,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/reference/search/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/reference/search/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/search/"/>
@@ -1102,7 +1102,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/reference/state/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/reference/state/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/state/"/>
@@ -1112,7 +1112,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/reference/utilities/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/reference/utilities/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/utilities/"/>
@@ -1122,7 +1122,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/cli/commands/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devcli/commands/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/cli/commands/"/>
@@ -1132,7 +1132,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/cli/config-file/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devcli/config-file/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/cli/config-file/"/>
@@ -1142,7 +1142,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/cli/exit-codes/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devcli/exit-codes/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/cli/exit-codes/"/>
@@ -1152,7 +1152,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/cli/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devcli/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/cli/"/>
@@ -1162,7 +1162,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/cli/plugins/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devcli/plugins/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/cli/plugins/"/>
@@ -1172,7 +1172,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/cli/quick-start/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devcli/quick-start/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/cli/quick-start/"/>
@@ -1182,7 +1182,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/"/>
@@ -1192,7 +1192,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/getting-started/blocking-usage/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/getting-started/blocking-usage/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/getting-started/blocking-usage/"/>
@@ -1202,7 +1202,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/getting-started/configuration/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/getting-started/configuration/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/getting-started/configuration/"/>
@@ -1212,7 +1212,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/getting-started/installation/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/getting-started/installation/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/getting-started/installation/"/>
@@ -1222,7 +1222,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/getting-started/quick-start/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/getting-started/quick-start/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/getting-started/quick-start/"/>
@@ -1232,7 +1232,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/getting-started/when-not-to-use/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/getting-started/when-not-to-use/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/getting-started/when-not-to-use/"/>
@@ -1242,7 +1242,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/architecture/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/architecture/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/architecture/"/>
@@ -1252,7 +1252,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/claims/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/claims/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/claims/"/>
@@ -1262,7 +1262,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/llm-caching/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/llm-caching/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/llm-caching/"/>
@@ -1272,7 +1272,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/logging/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/logging/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/logging/"/>
@@ -1282,7 +1282,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/migrating-a-pipeline/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/migrating-a-pipeline/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/migrating-a-pipeline/"/>
@@ -1292,7 +1292,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/observability/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/observability/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/observability/"/>
@@ -1302,7 +1302,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/post-processing/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/post-processing/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/post-processing/"/>
@@ -1312,7 +1312,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/rate-limiting/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/rate-limiting/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/rate-limiting/"/>
@@ -1322,7 +1322,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/retries/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/retries/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/retries/"/>
@@ -1332,7 +1332,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/run-semantics/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/run-semantics/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/run-semantics/"/>
@@ -1342,7 +1342,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/semantic-memory/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/semantic-memory/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/semantic-memory/"/>
@@ -1352,7 +1352,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/shutdown/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/shutdown/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/shutdown/"/>
@@ -1362,7 +1362,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/sources/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/sources/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/sources/"/>
@@ -1372,7 +1372,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/state/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/state/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/state/"/>
@@ -1382,7 +1382,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/token-usage/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/token-usage/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/token-usage/"/>
@@ -1392,7 +1392,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/typed-entities/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/typed-entities/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/typed-entities/"/>
@@ -1402,7 +1402,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/search/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/search/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/"/>
@@ -1412,7 +1412,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/search/backfill/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/search/backfill/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/backfill/"/>
@@ -1422,7 +1422,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/search/discovery-graphs/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/search/discovery-graphs/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/discovery-graphs/"/>
@@ -1432,7 +1432,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/search/filters-and-facets/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/search/filters-and-facets/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/filters-and-facets/"/>
@@ -1442,7 +1442,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/search/hybrid-search/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/search/hybrid-search/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/hybrid-search/"/>
@@ -1452,7 +1452,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/search/query-syntax/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/search/query-syntax/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/query-syntax/"/>
@@ -1462,7 +1462,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/search/ranked-search/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/search/ranked-search/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/ranked-search/"/>
@@ -1472,7 +1472,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/search/store-ownership/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/search/store-ownership/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/store-ownership/"/>
@@ -1482,7 +1482,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/search/text-stores/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/search/text-stores/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/text-stores/"/>
@@ -1492,7 +1492,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/search/user-interfaces/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/search/user-interfaces/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/user-interfaces/"/>
@@ -1502,7 +1502,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/project/changelog/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/project/changelog/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/changelog/"/>
@@ -1512,7 +1512,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/project/code-of-conduct/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/project/code-of-conduct/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/code-of-conduct/"/>
@@ -1522,7 +1522,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/project/contributing/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/project/contributing/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/contributing/"/>
@@ -1532,7 +1532,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/project/migration/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/project/migration/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/migration/"/>
@@ -1542,7 +1542,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/project/roadmap/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/project/roadmap/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/roadmap/"/>
@@ -1552,7 +1552,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/project/security/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/project/security/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/security/"/>
@@ -1562,7 +1562,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/project/translating/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/project/translating/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/translating/"/>
@@ -1572,7 +1572,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/reference/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/reference/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/"/>
@@ -1582,7 +1582,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/reference/claims/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/reference/claims/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/claims/"/>
@@ -1592,7 +1592,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/reference/configuration/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/reference/configuration/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/configuration/"/>
@@ -1602,7 +1602,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/reference/embeddings/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/reference/embeddings/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/embeddings/"/>
@@ -1612,7 +1612,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/reference/exporters/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/reference/exporters/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/exporters/"/>
@@ -1622,7 +1622,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/reference/extractors/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/reference/extractors/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/extractors/"/>
@@ -1632,7 +1632,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/reference/llm/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/reference/llm/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/llm/"/>
@@ -1642,7 +1642,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/reference/models/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/reference/models/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/models/"/>
@@ -1652,7 +1652,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/reference/parsers/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/reference/parsers/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/parsers/"/>
@@ -1662,7 +1662,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/reference/pipelines/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/reference/pipelines/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/pipelines/"/>
@@ -1672,7 +1672,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/reference/processors/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/reference/processors/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/processors/"/>
@@ -1682,7 +1682,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/reference/search/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/reference/search/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/search/"/>
@@ -1692,7 +1692,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/reference/state/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/reference/state/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/state/"/>
@@ -1702,7 +1702,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/reference/utilities/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/reference/utilities/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/utilities/"/>
@@ -1712,7 +1712,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/cli/commands/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devcli/commands/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/cli/commands/"/>
@@ -1722,7 +1722,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/cli/config-file/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devcli/config-file/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/cli/config-file/"/>
@@ -1732,7 +1732,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/cli/exit-codes/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devcli/exit-codes/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/cli/exit-codes/"/>
@@ -1742,7 +1742,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/cli/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devcli/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/cli/"/>
@@ -1752,7 +1752,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/cli/plugins/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devcli/plugins/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/cli/plugins/"/>
@@ -1762,7 +1762,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/cli/quick-start/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devcli/quick-start/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/cli/quick-start/"/>
@@ -1772,7 +1772,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/"/>
@@ -1782,7 +1782,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/getting-started/blocking-usage/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/getting-started/blocking-usage/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/getting-started/blocking-usage/"/>
@@ -1792,7 +1792,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/getting-started/configuration/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/getting-started/configuration/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/getting-started/configuration/"/>
@@ -1802,7 +1802,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/getting-started/installation/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/getting-started/installation/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/getting-started/installation/"/>
@@ -1812,7 +1812,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/getting-started/quick-start/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/getting-started/quick-start/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/getting-started/quick-start/"/>
@@ -1822,7 +1822,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/getting-started/when-not-to-use/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/getting-started/when-not-to-use/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/getting-started/when-not-to-use/"/>
@@ -1832,7 +1832,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/architecture/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/architecture/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/architecture/"/>
@@ -1842,7 +1842,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/claims/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/claims/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/claims/"/>
@@ -1852,7 +1852,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/llm-caching/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/llm-caching/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/llm-caching/"/>
@@ -1862,7 +1862,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/logging/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/logging/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/logging/"/>
@@ -1872,7 +1872,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/migrating-a-pipeline/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/migrating-a-pipeline/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/migrating-a-pipeline/"/>
@@ -1882,7 +1882,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/observability/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/observability/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/observability/"/>
@@ -1892,7 +1892,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/post-processing/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/post-processing/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/post-processing/"/>
@@ -1902,7 +1902,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/rate-limiting/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/rate-limiting/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/rate-limiting/"/>
@@ -1912,7 +1912,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/retries/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/retries/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/retries/"/>
@@ -1922,7 +1922,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/run-semantics/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/run-semantics/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/run-semantics/"/>
@@ -1932,7 +1932,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/semantic-memory/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/semantic-memory/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/semantic-memory/"/>
@@ -1942,7 +1942,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/shutdown/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/shutdown/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/shutdown/"/>
@@ -1952,7 +1952,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/sources/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/sources/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/sources/"/>
@@ -1962,7 +1962,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/state/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/state/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/state/"/>
@@ -1972,7 +1972,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/token-usage/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/token-usage/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/token-usage/"/>
@@ -1982,7 +1982,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/typed-entities/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/typed-entities/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/typed-entities/"/>
@@ -1992,7 +1992,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/search/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/search/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/"/>
@@ -2002,7 +2002,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/search/backfill/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/search/backfill/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/backfill/"/>
@@ -2012,7 +2012,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/search/discovery-graphs/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/search/discovery-graphs/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/discovery-graphs/"/>
@@ -2022,7 +2022,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/search/filters-and-facets/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/search/filters-and-facets/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/filters-and-facets/"/>
@@ -2032,7 +2032,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/search/hybrid-search/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/search/hybrid-search/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/hybrid-search/"/>
@@ -2042,7 +2042,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/search/query-syntax/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/search/query-syntax/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/query-syntax/"/>
@@ -2052,7 +2052,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/search/ranked-search/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/search/ranked-search/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/ranked-search/"/>
@@ -2062,7 +2062,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/search/store-ownership/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/search/store-ownership/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/store-ownership/"/>
@@ -2072,7 +2072,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/search/text-stores/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/search/text-stores/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/text-stores/"/>
@@ -2082,7 +2082,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/search/user-interfaces/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/search/user-interfaces/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/search/user-interfaces/"/>
@@ -2092,7 +2092,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/project/changelog/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/project/changelog/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/changelog/"/>
@@ -2102,7 +2102,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/project/code-of-conduct/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/project/code-of-conduct/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/code-of-conduct/"/>
@@ -2112,7 +2112,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/project/contributing/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/project/contributing/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/contributing/"/>
@@ -2122,7 +2122,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/project/migration/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/project/migration/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/migration/"/>
@@ -2132,7 +2132,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/project/roadmap/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/project/roadmap/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/roadmap/"/>
@@ -2142,7 +2142,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/project/security/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/project/security/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/security/"/>
@@ -2152,7 +2152,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/project/translating/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/project/translating/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/project/translating/"/>
@@ -2162,7 +2162,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/"/>
@@ -2172,7 +2172,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/claims/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/claims/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/claims/"/>
@@ -2182,7 +2182,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/configuration/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/configuration/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/configuration/"/>
@@ -2192,7 +2192,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/embeddings/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/embeddings/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/embeddings/"/>
@@ -2202,7 +2202,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/exporters/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/exporters/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/exporters/"/>
@@ -2212,7 +2212,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/extractors/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/extractors/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/extractors/"/>
@@ -2222,7 +2222,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/llm/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/llm/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/llm/"/>
@@ -2232,7 +2232,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/models/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/models/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/models/"/>
@@ -2242,7 +2242,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/parsers/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/parsers/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/parsers/"/>
@@ -2252,7 +2252,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/pipelines/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/pipelines/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/pipelines/"/>
@@ -2262,7 +2262,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/processors/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/processors/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/processors/"/>
@@ -2272,7 +2272,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/search/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/search/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/search/"/>
@@ -2282,7 +2282,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/state/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/state/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/state/"/>
@@ -2292,7 +2292,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/utilities/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/utilities/"/>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/utilities/"/>
@@ -2302,7 +2302,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/cli/commands/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devcli/commands/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/cli/commands/"/>
@@ -2312,7 +2312,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/cli/config-file/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devcli/config-file/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/cli/config-file/"/>
@@ -2322,7 +2322,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/cli/exit-codes/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devcli/exit-codes/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/cli/exit-codes/"/>
@@ -2332,7 +2332,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/cli/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devcli/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/cli/"/>
@@ -2342,7 +2342,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/cli/plugins/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devcli/plugins/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/cli/plugins/"/>
@@ -2352,7 +2352,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/cli/quick-start/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devcli/quick-start/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/cli/quick-start/"/>
@@ -2362,7 +2362,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev"/>
@@ -2372,7 +2372,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/getting-started/blocking-usage/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/getting-started/blocking-usage/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devgetting-started/blocking-usage/"/>
@@ -2382,7 +2382,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/getting-started/configuration/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/getting-started/configuration/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devgetting-started/configuration/"/>
@@ -2392,7 +2392,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/getting-started/installation/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/getting-started/installation/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devgetting-started/installation/"/>
@@ -2402,7 +2402,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/getting-started/quick-start/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/getting-started/quick-start/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devgetting-started/quick-start/"/>
@@ -2412,7 +2412,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/getting-started/when-not-to-use/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/getting-started/when-not-to-use/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devgetting-started/when-not-to-use/"/>
@@ -2422,7 +2422,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/architecture/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/architecture/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/architecture/"/>
@@ -2432,7 +2432,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/claims/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/claims/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/claims/"/>
@@ -2442,7 +2442,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/llm-caching/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/llm-caching/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/llm-caching/"/>
@@ -2452,7 +2452,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/logging/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/logging/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/logging/"/>
@@ -2462,7 +2462,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/migrating-a-pipeline/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/migrating-a-pipeline/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/migrating-a-pipeline/"/>
@@ -2472,7 +2472,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/observability/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/observability/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/observability/"/>
@@ -2482,7 +2482,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/post-processing/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/post-processing/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/post-processing/"/>
@@ -2492,7 +2492,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/rate-limiting/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/rate-limiting/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/rate-limiting/"/>
@@ -2502,7 +2502,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/retries/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/retries/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/retries/"/>
@@ -2512,7 +2512,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/run-semantics/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/run-semantics/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/run-semantics/"/>
@@ -2522,7 +2522,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/semantic-memory/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/semantic-memory/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/semantic-memory/"/>
@@ -2532,7 +2532,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/shutdown/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/shutdown/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/shutdown/"/>
@@ -2542,7 +2542,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/sources/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/sources/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/sources/"/>
@@ -2552,7 +2552,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/state/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/state/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/state/"/>
@@ -2562,7 +2562,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/token-usage/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/token-usage/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/token-usage/"/>
@@ -2572,7 +2572,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/typed-entities/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/typed-entities/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/typed-entities/"/>
@@ -2582,7 +2582,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/search/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/search/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/search/"/>
@@ -2592,7 +2592,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/search/backfill/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/search/backfill/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/search/backfill/"/>
@@ -2602,7 +2602,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/search/discovery-graphs/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/search/discovery-graphs/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/search/discovery-graphs/"/>
@@ -2612,7 +2612,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/search/filters-and-facets/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/search/filters-and-facets/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/search/filters-and-facets/"/>
@@ -2622,7 +2622,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/search/hybrid-search/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/search/hybrid-search/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/search/hybrid-search/"/>
@@ -2632,7 +2632,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/search/query-syntax/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/search/query-syntax/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/search/query-syntax/"/>
@@ -2642,7 +2642,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/search/ranked-search/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/search/ranked-search/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/search/ranked-search/"/>
@@ -2652,7 +2652,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/search/store-ownership/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/search/store-ownership/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/search/store-ownership/"/>
@@ -2662,7 +2662,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/search/text-stores/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/search/text-stores/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/search/text-stores/"/>
@@ -2672,7 +2672,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/search/user-interfaces/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/search/user-interfaces/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/search/user-interfaces/"/>
@@ -2682,7 +2682,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/project/changelog/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/project/changelog/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devproject/changelog/"/>
@@ -2692,7 +2692,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/project/code-of-conduct/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/project/code-of-conduct/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devproject/code-of-conduct/"/>
@@ -2702,7 +2702,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/project/contributing/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/project/contributing/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devproject/contributing/"/>
@@ -2712,7 +2712,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/project/migration/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/project/migration/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devproject/migration/"/>
@@ -2722,7 +2722,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/project/roadmap/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/project/roadmap/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devproject/roadmap/"/>
@@ -2732,7 +2732,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/project/security/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/project/security/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devproject/security/"/>
@@ -2742,7 +2742,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/project/translating/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/project/translating/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devproject/translating/"/>
@@ -2752,7 +2752,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/reference/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/reference/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devreference/"/>
@@ -2762,7 +2762,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/reference/claims/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/reference/claims/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devreference/claims/"/>
@@ -2772,7 +2772,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/reference/configuration/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/reference/configuration/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devreference/configuration/"/>
@@ -2782,7 +2782,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/reference/embeddings/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/reference/embeddings/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devreference/embeddings/"/>
@@ -2792,7 +2792,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/reference/exporters/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/reference/exporters/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devreference/exporters/"/>
@@ -2802,7 +2802,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/reference/extractors/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/reference/extractors/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devreference/extractors/"/>
@@ -2812,7 +2812,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/reference/llm/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/reference/llm/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devreference/llm/"/>
@@ -2822,7 +2822,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/reference/models/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/reference/models/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devreference/models/"/>
@@ -2832,7 +2832,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/reference/parsers/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/reference/parsers/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devreference/parsers/"/>
@@ -2842,7 +2842,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/reference/pipelines/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/reference/pipelines/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devreference/pipelines/"/>
@@ -2852,7 +2852,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/reference/processors/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/reference/processors/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devreference/processors/"/>
@@ -2862,7 +2862,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/reference/search/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/reference/search/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devreference/search/"/>
@@ -2872,7 +2872,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/reference/state/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/reference/state/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devreference/state/"/>
@@ -2882,7 +2882,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/reference/utilities/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/reference/utilities/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devreference/utilities/"/>
@@ -2892,7 +2892,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/cli/commands/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devcli/commands/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/cli/commands/"/>
@@ -2902,7 +2902,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/cli/config-file/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devcli/config-file/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/cli/config-file/"/>
@@ -2912,7 +2912,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/cli/exit-codes/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devcli/exit-codes/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/cli/exit-codes/"/>
@@ -2922,7 +2922,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/cli/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devcli/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/cli/"/>
@@ -2932,7 +2932,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/cli/plugins/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devcli/plugins/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/cli/plugins/"/>
@@ -2942,7 +2942,7 @@
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/cli/quick-start/</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-19</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devcli/quick-start/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/cli/quick-start/"/>

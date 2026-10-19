@@ -3096,8 +3096,8 @@ local.</p>
 <li><code>AsyncSqliteEmbeddingStore</code> puntúa cada vector almacenado en cada consulta y
   mantiene los vectores en memoria, así que el tiempo de consulta y el uso de
   memoria crecen con el corpus. Todavía no hay un índice de vecinos más
-  cercanos aproximados; la <a href="../../project/roadmap/#later">hoja de ruta</a> lo
-  recoge a la espera de un corpus que lo necesite.</li>
+  cercanos aproximados; la <a href="../../project/roadmap/#v080-scalable-vector-memory">hoja de ruta</a>
+  lo prevé para la v0.8.0.</li>
 <li>Los gestores de estado dependen de cerrojos de archivos locales y de un único
   escritor de SQLite, y la ejecución distribuida no está prevista. Los corpus
   grandes se cubren repartiéndolos entre ejecuciones independientes, cada una

@@ -2572,6 +2572,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#v080-scalable-vector-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.8.0 — Scalable vector memory
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v100-stabilization" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2803,6 +2814,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#v080-scalable-vector-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.8.0 — Scalable vector memory
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v100-stabilization" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2977,13 +2999,15 @@ papers, which cannot honor <code>page_size</code>.</p>
 <p>Every public contract has now had its last planned break before 1.0. The run
 contract (extractor, state, constructor) broke in 0.5.0 and the data contract
 (entities, exporter, logging, dependencies) in 0.6.0; every later release is
-additive. Each breaking change has a <a href="../migration/">MIGRATION.md</a> entry.</p>
+additive, apart from the hybrid-search default that v0.7.0 raises. Each
+breaking change has a <a href="../migration/">MIGRATION.md</a> entry.</p>
 <p>From 0.6.0 on, a deprecated name keeps working for at least two minor
 releases before it is removed. A release is tagged only when the test suites
 of sci-etl-cli and udg-catalogue pass against the release commit; the release
 workflow runs both and refuses to publish otherwise.</p>
 <h2 id="v070-additive-features-and-the-testing-kit">v0.7.0 — Additive features and the testing kit<a class="headerlink" href="#v070-additive-features-and-the-testing-kit" title="Permanent link">&para;</a></h2>
-<p>No breaking change and no new deprecation.</p>
+<p>No breaking change and no new deprecation. One default changes: hybrid
+search draws 500 candidates per leg instead of 100.</p>
 <ul>
 <li><strong>Targeted reprocessing.</strong> An optional <code>forget(record_ids)</code> contract, which
   both bundled state managers implement, lets records be re-extracted without
@@ -2993,14 +3017,32 @@ workflow runs both and refuses to publish otherwise.</p>
 <li><strong>Testing kit.</strong> <code>sci_etl_core.testing</code> provides contract suites that
   third-party extractors, state managers, exporters, and embedding stores can
   run.</li>
+<li><strong>Search at scale.</strong> Lexical search ranks before it builds snippets,
+  filters and facet counts look only at matching records, match counts can
+  stop at a cap, and each SQLite store takes cache and memory-map settings.</li>
+<li><strong>Larger candidate pools.</strong> <code>candidate_pool</code> defaults to 500, which keeps
+  fused results stable on large corpora, and the semantic leg asks for at
+  most 2,500 chunks.</li>
 </ul>
+<h2 id="v080-scalable-vector-memory">v0.8.0 — Scalable vector memory<a class="headerlink" href="#v080-scalable-vector-memory" title="Permanent link">&para;</a></h2>
+<p>No breaking change and no new deprecation; the new names are provisional.</p>
+<ul>
+<li><strong>Vector index.</strong> The SQLite vector store answers queries from an index it
+  can rebuild from the database at any time: an exact scan by default, binary
+  codes with exact re-ranking, or HNSW through an optional <code>ann</code> extra that
+  installs faiss-cpu.</li>
+<li><strong>Concurrent searches.</strong> Several searches on one store run in parallel
+  instead of waiting for one connection.</li>
+</ul>
+<p>The target is a hybrid query over a million records in under 300 ms at the
+95th percentile on a laptop.</p>
 <h2 id="v100-stabilization">v1.0.0 — Stabilization<a class="headerlink" href="#v100-stabilization" title="Permanent link">&para;</a></h2>
 <p>1.0.0 guarantees three tiers: stable names follow Semantic Versioning,
 provisional names may change in a minor release with a changelog entry, and
 private names may change at any time. Every name a known consumer imports is
 stable. The release candidate is tagged once one full minor has shipped with
 no breaking change, the public-surface snapshot and run-semantics tests gate
-every change, and files written by 0.6.0 and 0.7.0 open in it.</p>
+every change, and files written by 0.6.0, 0.7.0, and 0.8.0 open in it.</p>
 <h2 id="later">Later<a class="headerlink" href="#later" title="Permanent link">&para;</a></h2>
 <p>These items wait on a consumer that needs them, or on a measurement.</p>
 <ul>
@@ -3023,12 +3065,9 @@ every change, and files written by 0.6.0 and 0.7.0 open in it.</p>
   the limit.</li>
 </ul>
 </li>
-<li><strong>Scalable vector memory.</strong> An approximate-nearest-neighbor
-  <code>AsyncEmbeddingStore</code> for corpora the exact-scan SQLite store cannot serve
-  interactively. Starts once a corpus defines the target size and latency.</li>
-<li><strong>Candidate pool tuning.</strong> Measure how many distinct records the top chunks
-  span on a real memory database, such as udg-catalogue's, and set the
-  <code>chunk_pool_factor</code> default from the measurement.</li>
+<li><strong>Vector memory beyond RAM.</strong> Compressed vector codes, re-ranked from a
+  memory-mapped file, for corpora whose vectors do not fit in memory. Starts
+  once such a corpus exists.</li>
 <li><strong>Columnar export.</strong> A Parquet sink for post-processed tables, behind an
   optional extra.</li>
 <li><strong>Single-pass PDF parsing.</strong> <code>PdfPlumberParser.extract_text</code> opens every PDF

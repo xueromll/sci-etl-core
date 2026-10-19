@@ -3074,7 +3074,7 @@ LLM 读到摘要。</p>
 <ul>
 <li><code>AsyncSqliteEmbeddingStore</code> 每次查询都会为所有已存储的向量打分，并把向量保存在内存中，
   因此查询时间和内存占用都随语料库增长。目前还没有近似最近邻索引；
-  <a href="../../project/roadmap/#later">路线图</a>把它列为等待有实际需求的语料库再启动的事项。</li>
+  <a href="../../project/roadmap/#v080-scalable-vector-memory">路线图</a>计划在 v0.8.0 中提供。</li>
 <li>状态管理器依赖本地文件锁和单一的 SQLite 写入者，并且不计划支持分布式执行。大型语料库可以
   拆分到多次相互独立、各自拥有状态的运行中处理。</li>
 <li>没有服务器、认证或多用户访问功能。</li>

@@ -3088,8 +3088,8 @@ embeds locally.</p>
 <li><code>AsyncSqliteEmbeddingStore</code> scores every stored vector on each query and
   keeps the vectors in memory, so query time and memory use grow with the
   corpus. There is no approximate-nearest-neighbor index yet; the
-  <a href="../../project/roadmap/#later">roadmap</a> lists it as waiting on a corpus that
-  needs it.</li>
+  <a href="../../project/roadmap/#v080-scalable-vector-memory">roadmap</a> plans one for
+  v0.8.0.</li>
 <li>State managers rely on local file locks and a single SQLite writer, and
   distributed execution is not planned. Large corpora are covered by sharding
   them across independent runs, each with its own state.</li>

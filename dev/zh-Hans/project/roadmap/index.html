@@ -2578,6 +2578,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#v080-scalable-vector-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.8.0：可扩展的向量记忆
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v100-stabilization" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2809,6 +2820,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#v080-scalable-vector-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.8.0：可扩展的向量记忆
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v100-stabilization" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2978,13 +3000,14 @@ E-utilities 最多也只提供 9,999 条结果；Semantic Scholar 的批量检�
 <h2 id="path-to-10">通往 1.0 之路<a class="headerlink" href="#path-to-10" title="Permanent link">&para;</a></h2>
 <p>每个公开契约在 1.0 之前计划内的最后一次破坏性变更都已完成。运行契约（提取器、状态、构造
 函数）在 0.5.0 中发生了破坏性变更，数据契约（实体、导出器、日志、依赖）在 0.6.0 中发生了
-破坏性变更；此后的每个版本都只做增量修改。每项破坏性变更都在 <a href="../migration/">MIGRATION.md</a>
+破坏性变更；此后的每个版本都只做增量修改，v0.7.0 提高的混合检索默认值除外。每项破坏性变更都在 <a href="../migration/">MIGRATION.md</a>
 中有对应条目。</p>
 <p>自 0.6.0 起，已弃用的名称在被移除之前至少还能在两个次版本中使用。只有当 sci-etl-cli 和
 udg-catalogue 的测试套件在发布提交上通过时，才会打发布标签；发布工作流会运行两者，否则拒绝
 发布。</p>
 <h2 id="v070-additive-features-and-the-testing-kit">v0.7.0：增量功能与测试工具包<a class="headerlink" href="#v070-additive-features-and-the-testing-kit" title="Permanent link">&para;</a></h2>
-<p>不包含破坏性变更，也不引入新的弃用。</p>
+<p>不包含破坏性变更，也不引入新的弃用。只有一个默认值改变：混合检索的每个分支取 500 个候选，
+而不是 100 个。</p>
 <ul>
 <li><strong>定向重新处理。</strong> 一个可选的 <code>forget(record_ids)</code> 契约（两种内置状态管理器都会实现）可以
   在不丢弃全部状态的情况下重新提取记录。</li>
@@ -2992,11 +3015,23 @@ udg-catalogue 的测试套件在发布提交上通过时，才会打发布标签
   <code>AsyncEmbeddingRelevanceFilter</code>），再运行 LLM 过滤器。</li>
 <li><strong>测试工具包。</strong> <code>sci_etl_core.testing</code> 提供契约测试套件，第三方提取器、状态管理器、导出器
   和嵌入存储都可以运行。</li>
+<li><strong>大规模检索。</strong> 词法检索先排序再生成摘要片段，过滤器和分面计数只查看匹配的记录，匹配计数
+  可以在达到上限时停止，每个 SQLite 存储都可以设置缓存和内存映射参数。</li>
+<li><strong>更大的候选池。</strong> <code>candidate_pool</code> 默认为 500，使融合结果在大型语料库上保持稳定；语义分支
+  最多请求 2,500 个文本块。</li>
 </ul>
+<h2 id="v080-scalable-vector-memory">v0.8.0：可扩展的向量记忆<a class="headerlink" href="#v080-scalable-vector-memory" title="Permanent link">&para;</a></h2>
+<p>不包含破坏性变更，也不引入新的弃用；新名称是临时性的。</p>
+<ul>
+<li><strong>向量索引。</strong> SQLite 向量存储从一个随时可以由数据库重建的索引回答查询：默认使用精确扫描，
+  也可以使用带精确重排的二进制编码，或通过可选的 <code>ann</code> extra（安装 faiss-cpu）使用 HNSW。</li>
+<li><strong>并发检索。</strong> 同一存储上的多个检索并行运行，而不是等待同一个连接。</li>
+</ul>
+<p>目标是在笔记本电脑上，对一百万条记录的混合查询在第 95 百分位低于 300 毫秒。</p>
 <h2 id="v100-stabilization">v1.0.0：稳定化<a class="headerlink" href="#v100-stabilization" title="Permanent link">&para;</a></h2>
 <p>1.0.0 保证三个层级：稳定名称遵循语义化版本，临时性名称可以在次版本中变更并在更新日志中记录，
 私有名称可以随时变更。已知使用方导入的每个名称都是稳定的。当一个完整的次版本在没有破坏性
-变更的情况下发布、公开接口快照和运行语义测试为每次变更把关，并且 0.6.0 和 0.7.0 写入的文件
+变更的情况下发布、公开接口快照和运行语义测试为每次变更把关，并且 0.6.0、0.7.0 和 0.8.0 写入的文件
 都能在其中打开时，才会打候选发布标签。</p>
 <h2 id="later">以后<a class="headerlink" href="#later" title="Permanent link">&para;</a></h2>
 <p>这些事项要等到有使用方需要，或者有了测量结果之后才会进行。</p>
@@ -3015,10 +3050,8 @@ udg-catalogue 的测试套件在发布提交上通过时，才会打发布标签
   中。</li>
 </ul>
 </li>
-<li><strong>可扩展的向量记忆。</strong> 一个近似最近邻的 <code>AsyncEmbeddingStore</code>，用于精确扫描的 SQLite 存储
-  无法交互式服务的语料库。待有语料库确定目标规模和延迟后启动。</li>
-<li><strong>候选池调优。</strong> 在真实的记忆数据库（例如 udg-catalogue 的数据库）上测量排名靠前的文本块
-  覆盖了多少条不同的记录，并根据测量结果设定 <code>chunk_pool_factor</code> 的默认值。</li>
+<li><strong>超出内存的向量记忆。</strong> 压缩的向量编码，从内存映射文件中重排，用于向量无法全部放入内存的
+  语料库。待有这样的语料库时启动。</li>
 <li><strong>列式导出。</strong> 用于后处理表格的 Parquet 输出端，放在一个可选 extra 之后。</li>
 <li><strong>单遍 PDF 解析。</strong> <code>PdfPlumberParser.extract_text</code> 会把每个 PDF 打开两次，一次读取文本，
   一次读取表格。改为一遍读取两者。</li>

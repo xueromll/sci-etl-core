@@ -2576,6 +2576,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#v080-scalable-vector-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.8.0 — Memoria vectorial escalable
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v100-stabilization" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2807,6 +2818,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#v080-scalable-vector-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.8.0 — Memoria vectorial escalable
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v100-stabilization" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2986,14 +3008,16 @@ Scholar devuelve páginas fijas de 1000 artículos, lo que no permite respetar
 <p>Todos los contratos públicos han tenido ya su última ruptura prevista antes de
 la 1.0. El contrato de ejecución (extractor, estado, constructor) se rompió en
 la 0.5.0 y el contrato de datos (entidades, exportador, registro, dependencias)
-en la 0.6.0; todas las versiones posteriores son aditivas. Cada cambio
+en la 0.6.0; todas las versiones posteriores son aditivas,
+salvo el valor por defecto de la búsqueda híbrida que sube la v0.7.0. Cada cambio
 incompatible tiene una entrada en <a href="../migration/">MIGRATION.md</a>.</p>
 <p>Desde la 0.6.0, un nombre obsoleto sigue funcionando durante al menos dos
 versiones menores antes de eliminarse. Una versión solo se etiqueta cuando las
 baterías de pruebas de sci-etl-cli y udg-catalogue pasan contra el commit de la
 versión; el flujo de publicación ejecuta ambas y, si no, se niega a publicar.</p>
 <h2 id="v070-additive-features-and-the-testing-kit">v0.7.0 — Funciones aditivas y el kit de pruebas<a class="headerlink" href="#v070-additive-features-and-the-testing-kit" title="Permanent link">&para;</a></h2>
-<p>Sin cambios incompatibles y sin nuevas obsolescencias.</p>
+<p>Sin cambios incompatibles y sin nuevas obsolescencias. Cambia un valor por
+defecto: la búsqueda híbrida toma 500 candidatos por rama en lugar de 100.</p>
 <ul>
 <li><strong>Reprocesamiento selectivo.</strong> Un contrato opcional <code>forget(record_ids)</code>, que
   implementan los dos gestores de estado incluidos, permite volver a extraer
@@ -3003,7 +3027,28 @@ versión; el flujo de publicación ejecuta ambas y, si no, se niega a publicar.<
 <li><strong>Kit de pruebas.</strong> <code>sci_etl_core.testing</code> ofrece baterías de pruebas de
   contrato que pueden ejecutar los extractores, gestores de estado,
   exportadores y almacenes de embeddings de terceros.</li>
+<li><strong>Búsqueda a escala.</strong> La búsqueda léxica ordena antes de construir los
+  extractos, los filtros y los recuentos de facetas solo miran los registros
+  que coinciden, los recuentos de coincidencias pueden detenerse en un tope y
+  cada almacén SQLite acepta ajustes de caché y de mapeo en memoria.</li>
+<li><strong>Grupos de candidatos más grandes.</strong> <code>candidate_pool</code> vale 500 por defecto,
+  lo que mantiene estables los resultados fusionados en corpus grandes, y la
+  rama semántica pide como máximo 2500 fragmentos.</li>
 </ul>
+<h2 id="v080-scalable-vector-memory">v0.8.0 — Memoria vectorial escalable<a class="headerlink" href="#v080-scalable-vector-memory" title="Permanent link">&para;</a></h2>
+<p>Sin cambios incompatibles y sin nuevas obsolescencias; los nombres nuevos son
+provisionales.</p>
+<ul>
+<li><strong>Índice vectorial.</strong> El almacén vectorial SQLite responde a las consultas
+  desde un índice que puede reconstruir a partir de la base de datos en
+  cualquier momento: un recorrido exacto por defecto, códigos binarios con
+  reordenación exacta, o HNSW mediante un extra opcional <code>ann</code> que instala
+  faiss-cpu.</li>
+<li><strong>Búsquedas concurrentes.</strong> Varias búsquedas sobre un mismo almacén se
+  ejecutan en paralelo en lugar de esperar a una sola conexión.</li>
+</ul>
+<p>El objetivo es una consulta híbrida sobre un millón de registros en menos de
+300 ms en el percentil 95 en un portátil.</p>
 <h2 id="v100-stabilization">v1.0.0 — Estabilización<a class="headerlink" href="#v100-stabilization" title="Permanent link">&para;</a></h2>
 <p>La 1.0.0 garantiza tres niveles: los nombres estables siguen el versionado
 semántico, los nombres provisionales pueden cambiar en una versión menor con
@@ -3012,7 +3057,7 @@ cualquier momento. Todo nombre que importa un consumidor conocido es estable.
 La versión candidata se etiqueta cuando se haya publicado una versión menor
 completa sin cambios incompatibles, la instantánea de la superficie pública y
 las pruebas de semántica de ejecución bloqueen cada cambio, y los archivos
-escritos por la 0.6.0 y la 0.7.0 se abran en ella.</p>
+escritos por la 0.6.0, la 0.7.0 y la 0.8.0 se abran en ella.</p>
 <h2 id="later">Más adelante<a class="headerlink" href="#later" title="Permanent link">&para;</a></h2>
 <p>Estos elementos esperan a un consumidor que los necesite, o a una medición.</p>
 <ul>
@@ -3038,14 +3083,9 @@ escritos por la 0.6.0 y la 0.7.0 se abran en ella.</p>
   las ramas de investigación son el límite.</li>
 </ul>
 </li>
-<li><strong>Memoria vectorial escalable.</strong> Un <code>AsyncEmbeddingStore</code> de vecinos más
-  cercanos aproximados para corpus que el almacén SQLite de recorrido exacto no
-  puede atender de forma interactiva. Empezará cuando un corpus defina el
-  tamaño y la latencia objetivo.</li>
-<li><strong>Ajuste del grupo de candidatos.</strong> Medir cuántos registros distintos abarcan
-  los primeros fragmentos en una base de datos de memoria real, como la de
-  udg-catalogue, y fijar el valor por defecto de <code>chunk_pool_factor</code> a partir
-  de la medición.</li>
+<li><strong>Memoria vectorial mayor que la RAM.</strong> Códigos vectoriales comprimidos,
+  reordenados desde un archivo mapeado en memoria, para corpus cuyos vectores
+  no caben en memoria. Empezará cuando exista un corpus así.</li>
 <li><strong>Exportación en columnas.</strong> Un sumidero Parquet para las tablas
   posprocesadas, detrás de un extra opcional.</li>
 <li><strong>Análisis de PDF en una sola pasada.</strong> <code>PdfPlumberParser.extract_text</code> abre
