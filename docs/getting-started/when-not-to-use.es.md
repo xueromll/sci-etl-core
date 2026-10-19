@@ -90,8 +90,8 @@ La búsqueda se ejecuta en tu equipo sobre archivos SQLite:
 - `AsyncSqliteEmbeddingStore` puntúa cada vector almacenado en cada consulta y
   mantiene los vectores en memoria, así que el tiempo de consulta y el uso de
   memoria crecen con el corpus. Todavía no hay un índice de vecinos más
-  cercanos aproximados; la [hoja de ruta](../project/roadmap.md#later) lo
-  recoge a la espera de un corpus que lo necesite.
+  cercanos aproximados; la [hoja de ruta](../project/roadmap.md#v080-scalable-vector-memory)
+  lo prevé para la v0.8.0.
 - Los gestores de estado dependen de cerrojos de archivos locales y de un único
   escritor de SQLite, y la ejecución distribuida no está prevista. Los corpus
   grandes se cubren repartiéndolos entre ejecuciones independientes, cada una

@@ -59,7 +59,8 @@ Scholar devuelve páginas fijas de 1000 artículos, lo que no permite respetar
 Todos los contratos públicos han tenido ya su última ruptura prevista antes de
 la 1.0. El contrato de ejecución (extractor, estado, constructor) se rompió en
 la 0.5.0 y el contrato de datos (entidades, exportador, registro, dependencias)
-en la 0.6.0; todas las versiones posteriores son aditivas. Cada cambio
+en la 0.6.0; todas las versiones posteriores son aditivas,
+salvo el valor por defecto de la búsqueda híbrida que sube la v0.7.0. Cada cambio
 incompatible tiene una entrada en [MIGRATION.md](migration.md).
 
 Desde la 0.6.0, un nombre obsoleto sigue funcionando durante al menos dos
@@ -69,7 +70,8 @@ versión; el flujo de publicación ejecuta ambas y, si no, se niega a publicar.
 
 ## v0.7.0 — Funciones aditivas y el kit de pruebas {#v070-additive-features-and-the-testing-kit}
 
-Sin cambios incompatibles y sin nuevas obsolescencias.
+Sin cambios incompatibles y sin nuevas obsolescencias. Cambia un valor por
+defecto: la búsqueda híbrida toma 500 candidatos por rama en lugar de 100.
 
 - **Reprocesamiento selectivo.** Un contrato opcional `forget(record_ids)`, que
   implementan los dos gestores de estado incluidos, permite volver a extraer
@@ -79,6 +81,29 @@ Sin cambios incompatibles y sin nuevas obsolescencias.
 - **Kit de pruebas.** `sci_etl_core.testing` ofrece baterías de pruebas de
   contrato que pueden ejecutar los extractores, gestores de estado,
   exportadores y almacenes de embeddings de terceros.
+- **Búsqueda a escala.** La búsqueda léxica ordena antes de construir los
+  extractos, los filtros y los recuentos de facetas solo miran los registros
+  que coinciden, los recuentos de coincidencias pueden detenerse en un tope y
+  cada almacén SQLite acepta ajustes de caché y de mapeo en memoria.
+- **Grupos de candidatos más grandes.** `candidate_pool` vale 500 por defecto,
+  lo que mantiene estables los resultados fusionados en corpus grandes, y la
+  rama semántica pide como máximo 2500 fragmentos.
+
+## v0.8.0 — Memoria vectorial escalable {#v080-scalable-vector-memory}
+
+Sin cambios incompatibles y sin nuevas obsolescencias; los nombres nuevos son
+provisionales.
+
+- **Índice vectorial.** El almacén vectorial SQLite responde a las consultas
+  desde un índice que puede reconstruir a partir de la base de datos en
+  cualquier momento: un recorrido exacto por defecto, códigos binarios con
+  reordenación exacta, o HNSW mediante un extra opcional `ann` que instala
+  faiss-cpu.
+- **Búsquedas concurrentes.** Varias búsquedas sobre un mismo almacén se
+  ejecutan en paralelo en lugar de esperar a una sola conexión.
+
+El objetivo es una consulta híbrida sobre un millón de registros en menos de
+300 ms en el percentil 95 en un portátil.
 
 ## v1.0.0 — Estabilización {#v100-stabilization}
 
@@ -89,7 +114,7 @@ cualquier momento. Todo nombre que importa un consumidor conocido es estable.
 La versión candidata se etiqueta cuando se haya publicado una versión menor
 completa sin cambios incompatibles, la instantánea de la superficie pública y
 las pruebas de semántica de ejecución bloqueen cada cambio, y los archivos
-escritos por la 0.6.0 y la 0.7.0 se abran en ella.
+escritos por la 0.6.0, la 0.7.0 y la 0.8.0 se abran en ella.
 
 ## Más adelante {#later}
 
@@ -115,14 +140,9 @@ Estos elementos esperan a un consumidor que los necesite, o a una medición.
     - **Detección de contradicciones.** La detección de contradicciones y los
       grafos causales quedan fuera de todo plan de versiones; los notebooks y
       las ramas de investigación son el límite.
-- **Memoria vectorial escalable.** Un `AsyncEmbeddingStore` de vecinos más
-  cercanos aproximados para corpus que el almacén SQLite de recorrido exacto no
-  puede atender de forma interactiva. Empezará cuando un corpus defina el
-  tamaño y la latencia objetivo.
-- **Ajuste del grupo de candidatos.** Medir cuántos registros distintos abarcan
-  los primeros fragmentos en una base de datos de memoria real, como la de
-  udg-catalogue, y fijar el valor por defecto de `chunk_pool_factor` a partir
-  de la medición.
+- **Memoria vectorial mayor que la RAM.** Códigos vectoriales comprimidos,
+  reordenados desde un archivo mapeado en memoria, para corpus cuyos vectores
+  no caben en memoria. Empezará cuando exista un corpus así.
 - **Exportación en columnas.** Un sumidero Parquet para las tablas
   posprocesadas, detrás de un extra opcional.
 - **Análisis de PDF en una sola pasada.** `PdfPlumberParser.extract_text` abre

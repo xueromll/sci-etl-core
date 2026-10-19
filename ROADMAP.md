@@ -54,7 +54,8 @@ papers, which cannot honor `page_size`.
 Every public contract has now had its last planned break before 1.0. The run
 contract (extractor, state, constructor) broke in 0.5.0 and the data contract
 (entities, exporter, logging, dependencies) in 0.6.0; every later release is
-additive. Each breaking change has a [MIGRATION.md](MIGRATION.md) entry.
+additive, apart from the hybrid-search default that v0.7.0 raises. Each
+breaking change has a [MIGRATION.md](MIGRATION.md) entry.
 
 From 0.6.0 on, a deprecated name keeps working for at least two minor
 releases before it is removed. A release is tagged only when the test suites
@@ -63,7 +64,8 @@ workflow runs both and refuses to publish otherwise.
 
 ## v0.7.0 — Additive features and the testing kit
 
-No breaking change and no new deprecation.
+No breaking change and no new deprecation. One default changes: hybrid
+search draws 500 candidates per leg instead of 100.
 
 - **Targeted reprocessing.** An optional `forget(record_ids)` contract, which
   both bundled state managers implement, lets records be re-extracted without
@@ -73,6 +75,26 @@ No breaking change and no new deprecation.
 - **Testing kit.** `sci_etl_core.testing` provides contract suites that
   third-party extractors, state managers, exporters, and embedding stores can
   run.
+- **Search at scale.** Lexical search ranks before it builds snippets,
+  filters and facet counts look only at matching records, match counts can
+  stop at a cap, and each SQLite store takes cache and memory-map settings.
+- **Larger candidate pools.** `candidate_pool` defaults to 500, which keeps
+  fused results stable on large corpora, and the semantic leg asks for at
+  most 2,500 chunks.
+
+## v0.8.0 — Scalable vector memory
+
+No breaking change and no new deprecation; the new names are provisional.
+
+- **Vector index.** The SQLite vector store answers queries from an index it
+  can rebuild from the database at any time: an exact scan by default, binary
+  codes with exact re-ranking, or HNSW through an optional `ann` extra that
+  installs faiss-cpu.
+- **Concurrent searches.** Several searches on one store run in parallel
+  instead of waiting for one connection.
+
+The target is a hybrid query over a million records in under 300 ms at the
+95th percentile on a laptop.
 
 ## v1.0.0 — Stabilization
 
@@ -81,7 +103,7 @@ provisional names may change in a minor release with a changelog entry, and
 private names may change at any time. Every name a known consumer imports is
 stable. The release candidate is tagged once one full minor has shipped with
 no breaking change, the public-surface snapshot and run-semantics tests gate
-every change, and files written by 0.6.0 and 0.7.0 open in it.
+every change, and files written by 0.6.0, 0.7.0, and 0.8.0 open in it.
 
 ## Later
 
@@ -104,12 +126,9 @@ These items wait on a consumer that needs them, or on a measurement.
     - **Contradiction detection.** Contradiction detection and causal graphs
       stay out of every release plan; notebooks and research branches are
       the limit.
-- **Scalable vector memory.** An approximate-nearest-neighbor
-  `AsyncEmbeddingStore` for corpora the exact-scan SQLite store cannot serve
-  interactively. Starts once a corpus defines the target size and latency.
-- **Candidate pool tuning.** Measure how many distinct records the top chunks
-  span on a real memory database, such as udg-catalogue's, and set the
-  `chunk_pool_factor` default from the measurement.
+- **Vector memory beyond RAM.** Compressed vector codes, re-ranked from a
+  memory-mapped file, for corpora whose vectors do not fit in memory. Starts
+  once such a corpus exists.
 - **Columnar export.** A Parquet sink for post-processed tables, behind an
   optional extra.
 - **Single-pass PDF parsing.** `PdfPlumberParser.extract_text` opens every PDF

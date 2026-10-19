@@ -86,8 +86,8 @@ Search runs on your machine over SQLite files:
 - `AsyncSqliteEmbeddingStore` scores every stored vector on each query and
   keeps the vectors in memory, so query time and memory use grow with the
   corpus. There is no approximate-nearest-neighbor index yet; the
-  [roadmap](../project/roadmap.md#later) lists it as waiting on a corpus that
-  needs it.
+  [roadmap](../project/roadmap.md#v080-scalable-vector-memory) plans one for
+  v0.8.0.
 - State managers rely on local file locks and a single SQLite writer, and
   distributed execution is not planned. Large corpora are covered by sharding
   them across independent runs, each with its own state.
