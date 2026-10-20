@@ -5,6 +5,9 @@ def sci_etl_core.AsyncArxivExtractor.cursor_for_offset(self, offset: int) -> str
 async def sci_etl_core.AsyncArxivExtractor.fetch_full_text(self, record: RawRecord) -> str
 async def sci_etl_core.AsyncArxivExtractor.fetch_page(self, query: str, cursor: str | None, page_size: int) -> ListingPage
 classmethod sci_etl_core.AsyncArxivExtractor.from_config(cls, http: HttpConfig, pipeline: PipelineConfig | None = None, *, client: httpx.AsyncClient, pdf_parser: Parser, latex_parser: Parser, full_text: RateLimitConfig | None = None, **options: Any) -> AsyncArxivExtractor
+class sci_etl_core.AsyncCascadingRelevanceFilter(sci_etl_core.llm.relevance_async.AsyncRelevanceFilter)
+def sci_etl_core.AsyncCascadingRelevanceFilter.__init__(self, *filters: AsyncRelevanceFilter) -> None
+async def sci_etl_core.AsyncCascadingRelevanceFilter.is_relevant(self, record: RawRecord) -> bool
 class sci_etl_core.AsyncCompositeIngestor()
 def sci_etl_core.AsyncCompositeIngestor.__init__(self, *ingestors: MemoryIngestor) -> None
 async def sci_etl_core.AsyncCompositeIngestor.ingest(self, record: RawRecord, text: str) -> int
@@ -377,18 +380,23 @@ class sci_etl_core.search.AsyncSearchIndexer()
 def sci_etl_core.search.AsyncSearchIndexer.__init__(self, store: AsyncTextSearchStore) -> None
 async def sci_etl_core.search.AsyncSearchIndexer.ingest(self, record: RawRecord, text: str) -> int
 class sci_etl_core.search.AsyncSqliteFts5Store(sci_etl_core.search.store_base.AsyncTextSearchStore)
-def sci_etl_core.search.AsyncSqliteFts5Store.__init__(self, path: str | Path, *, facet_keys: Iterable[str] = (), weights: BM25Weights | None = None, now: Callable[[], datetime] | None = None) -> None
+def sci_etl_core.search.AsyncSqliteFts5Store.__init__(self, path: str | Path, *, facet_keys: Iterable[str] = (), weights: BM25Weights | None = None, now: Callable[[], datetime] | None = None, tuning: SqliteTuning | None = None) -> None
 async def sci_etl_core.search.AsyncSqliteFts5Store.aclose(self) -> None
 async def sci_etl_core.search.AsyncSqliteFts5Store.count(self) -> int
+async def sci_etl_core.search.AsyncSqliteFts5Store.count_matches(self, query: Node | None = None, filters: Sequence[SearchFilter] = (), *, cap: int | None = None) -> int
 async def sci_etl_core.search.AsyncSqliteFts5Store.delete_record(self, record_id: str) -> None
 async def sci_etl_core.search.AsyncSqliteFts5Store.facet_counts(self, keys: Sequence[str], *, query: Node | None = None, filters: Sequence[SearchFilter] = ()) -> dict[str, tuple[tuple[str, int], ...]]
 property sci_etl_core.search.AsyncSqliteFts5Store.facet_keys -> frozenset[str]
+async def sci_etl_core.search.AsyncSqliteFts5Store.filter_candidates(self, record_ids: Collection[str], filters: Sequence[SearchFilter] = ()) -> frozenset[str]
 async def sci_etl_core.search.AsyncSqliteFts5Store.filter_ids(self, query: Node | None = None, filters: Sequence[SearchFilter] = ()) -> frozenset[str]
 async def sci_etl_core.search.AsyncSqliteFts5Store.get_documents(self, record_ids: Collection[str]) -> dict[str, SearchDocument]
+async def sci_etl_core.search.AsyncSqliteFts5Store.get_headers(self, record_ids: Collection[str]) -> dict[str, SearchDocument]
+async def sci_etl_core.search.AsyncSqliteFts5Store.hydrate(self, query: Node, hits: Sequence[TextHit]) -> list[TextHit]
 async def sci_etl_core.search.AsyncSqliteFts5Store.index(self, documents: Sequence[SearchDocument]) -> None
 async def sci_etl_core.search.AsyncSqliteFts5Store.integrity_check(self) -> bool
 async def sci_etl_core.search.AsyncSqliteFts5Store.optimize(self) -> None
 async def sci_etl_core.search.AsyncSqliteFts5Store.range_counts(self, ranges: Sequence[RangeFilter], *, query: Node | None = None, filters: Sequence[SearchFilter] = ()) -> tuple[int, ...]
+async def sci_etl_core.search.AsyncSqliteFts5Store.rank(self, query: Node, limit: int = 20, exclude_record_id: str | None = None, filters: Sequence[SearchFilter] = ()) -> list[TextHit]
 async def sci_etl_core.search.AsyncSqliteFts5Store.rebuild_index(self) -> None
 async def sci_etl_core.search.AsyncSqliteFts5Store.rebuild_tags(self) -> None
 async def sci_etl_core.search.AsyncSqliteFts5Store.replace_record(self, document: SearchDocument) -> None
@@ -396,13 +404,18 @@ async def sci_etl_core.search.AsyncSqliteFts5Store.search(self, query: Node, lim
 abstract class sci_etl_core.search.AsyncTextSearchStore(abc.ABC)
 async def sci_etl_core.search.AsyncTextSearchStore.aclose(self) -> None
 abstract async def sci_etl_core.search.AsyncTextSearchStore.count(self) -> int
+async def sci_etl_core.search.AsyncTextSearchStore.count_matches(self, query: Node | None = None, filters: Sequence[SearchFilter] = (), *, cap: int | None = None) -> int
 abstract async def sci_etl_core.search.AsyncTextSearchStore.delete_record(self, record_id: str) -> None
 abstract async def sci_etl_core.search.AsyncTextSearchStore.facet_counts(self, keys: Sequence[str], *, query: Node | None = None, filters: Sequence[SearchFilter] = ()) -> dict[str, tuple[tuple[str, int], ...]]
 abstract property sci_etl_core.search.AsyncTextSearchStore.facet_keys -> frozenset[str]
+async def sci_etl_core.search.AsyncTextSearchStore.filter_candidates(self, record_ids: Collection[str], filters: Sequence[SearchFilter] = ()) -> frozenset[str]
 abstract async def sci_etl_core.search.AsyncTextSearchStore.filter_ids(self, query: Node | None = None, filters: Sequence[SearchFilter] = ()) -> frozenset[str]
 abstract async def sci_etl_core.search.AsyncTextSearchStore.get_documents(self, record_ids: Collection[str]) -> dict[str, SearchDocument]
+async def sci_etl_core.search.AsyncTextSearchStore.get_headers(self, record_ids: Collection[str]) -> dict[str, SearchDocument]
+async def sci_etl_core.search.AsyncTextSearchStore.hydrate(self, query: Node, hits: Sequence[TextHit]) -> list[TextHit]
 abstract async def sci_etl_core.search.AsyncTextSearchStore.index(self, documents: Sequence[SearchDocument]) -> None
 async def sci_etl_core.search.AsyncTextSearchStore.range_counts(self, ranges: Sequence[RangeFilter], *, query: Node | None = None, filters: Sequence[SearchFilter] = ()) -> tuple[int, ...]
+async def sci_etl_core.search.AsyncTextSearchStore.rank(self, query: Node, limit: int = 20, exclude_record_id: str | None = None, filters: Sequence[SearchFilter] = ()) -> list[TextHit]
 async def sci_etl_core.search.AsyncTextSearchStore.replace_record(self, document: SearchDocument) -> None
 abstract async def sci_etl_core.search.AsyncTextSearchStore.search(self, query: Node, limit: int = 20, exclude_record_id: str | None = None, filters: Sequence[SearchFilter] = ()) -> list[TextHit]
 class sci_etl_core.search.DiscoveryGraph()
@@ -438,3 +451,43 @@ async def sci_etl_core.search.build_discovery_graph(seed_record_id: str, sources
 def sci_etl_core.search.describe(node: Node) -> list[QueryChip]
 def sci_etl_core.search.filter_graph(graph: DiscoveryGraph, *, matched_ids: Collection[str] | None = None, filters: Sequence[SearchFilter] = ()) -> DiscoveryGraph
 def sci_etl_core.search.parse_query(text: str, *, default_fields: Sequence[str] = ()) -> Node
+class sci_etl_core.testing.EmbeddingStoreContract()
+def sci_etl_core.testing.EmbeddingStoreContract.test_a_newer_schema_version_is_refused(self, make_store: Callable[[], AsyncEmbeddingStore], write_newer_schema: Callable[[], None] | None) -> None
+def sci_etl_core.testing.EmbeddingStoreContract.test_a_non_finite_vector_never_matches(self, make_store: Callable[[], AsyncEmbeddingStore]) -> None
+def sci_etl_core.testing.EmbeddingStoreContract.test_aclose_then_reuse(self, make_store: Callable[[], AsyncEmbeddingStore]) -> None
+def sci_etl_core.testing.EmbeddingStoreContract.test_add_replaces_a_chunk_with_the_same_id_and_index(self, make_store: Callable[[], AsyncEmbeddingStore]) -> None
+def sci_etl_core.testing.EmbeddingStoreContract.test_chunks_persist_across_instances(self, make_store: Callable[[], AsyncEmbeddingStore]) -> None
+def sci_etl_core.testing.EmbeddingStoreContract.test_delete_record_removes_every_chunk_of_the_record(self, make_store: Callable[[], AsyncEmbeddingStore]) -> None
+def sci_etl_core.testing.EmbeddingStoreContract.test_iter_records_yields_passages_in_record_id_order(self, make_store: Callable[[], AsyncEmbeddingStore]) -> None
+def sci_etl_core.testing.EmbeddingStoreContract.test_new_store_is_empty(self, make_store: Callable[[], AsyncEmbeddingStore]) -> None
+def sci_etl_core.testing.EmbeddingStoreContract.test_query_honors_min_score_and_exclude_record_id(self, make_store: Callable[[], AsyncEmbeddingStore]) -> None
+def sci_etl_core.testing.EmbeddingStoreContract.test_query_ranks_by_cosine_similarity(self, make_store: Callable[[], AsyncEmbeddingStore]) -> None
+def sci_etl_core.testing.EmbeddingStoreContract.test_replace_record_leaves_only_the_new_chunks(self, make_store: Callable[[], AsyncEmbeddingStore]) -> None
+class sci_etl_core.testing.ExporterContract()
+def sci_etl_core.testing.ExporterContract.test_a_durable_write_is_exported_before_flush(self, make_exporter: Callable[[], AsyncExporter[Any]], read_exported: Callable[[str], Awaitable[Sequence[Any]]], make_entities: Callable[[RawRecord, int], Sequence[Any]]) -> None
+def sci_etl_core.testing.ExporterContract.test_a_newer_schema_version_is_refused(self, make_exporter: Callable[[], AsyncExporter[Any]], make_entities: Callable[[RawRecord, int], Sequence[Any]], write_newer_schema: Callable[[], None] | None) -> None
+def sci_etl_core.testing.ExporterContract.test_a_repeated_write_is_idempotent(self, make_exporter: Callable[[], AsyncExporter[Any]], read_exported: Callable[[str], Awaitable[Sequence[Any]]], make_entities: Callable[[RawRecord, int], Sequence[Any]]) -> None
+def sci_etl_core.testing.ExporterContract.test_a_run_without_writes_succeeds(self, make_exporter: Callable[[], AsyncExporter[Any]], read_exported: Callable[[str], Awaitable[Sequence[Any]]]) -> None
+def sci_etl_core.testing.ExporterContract.test_a_write_with_no_entities_exports_none(self, make_exporter: Callable[[], AsyncExporter[Any]], read_exported: Callable[[str], Awaitable[Sequence[Any]]], make_entities: Callable[[RawRecord, int], Sequence[Any]]) -> None
+def sci_etl_core.testing.ExporterContract.test_aclose_then_reuse(self, make_exporter: Callable[[], AsyncExporter[Any]], read_exported: Callable[[str], Awaitable[Sequence[Any]]], make_entities: Callable[[RawRecord, int], Sequence[Any]]) -> None
+def sci_etl_core.testing.ExporterContract.test_written_entities_are_exported(self, make_exporter: Callable[[], AsyncExporter[Any]], read_exported: Callable[[str], Awaitable[Sequence[Any]]], make_entities: Callable[[RawRecord, int], Sequence[Any]]) -> None
+class sci_etl_core.testing.ExtractorContract()
+sci_etl_core.testing.ExtractorContract.max_pages = 50
+sci_etl_core.testing.ExtractorContract.page_size = 2
+sci_etl_core.testing.ExtractorContract.query = 'contract'
+def sci_etl_core.testing.ExtractorContract.test_a_cursor_resumes_in_a_new_extractor(self, make_extractor: Callable[[], AsyncExtractor]) -> None
+def sci_etl_core.testing.ExtractorContract.test_an_unavailable_source_raises_upstream_error(self, make_unavailable_extractor: Callable[[], AsyncExtractor] | None) -> None
+def sci_etl_core.testing.ExtractorContract.test_full_text_is_text(self, make_extractor: Callable[[], AsyncExtractor]) -> None
+def sci_etl_core.testing.ExtractorContract.test_offset_cursors_match_the_listing(self, make_extractor: Callable[[], AsyncExtractor]) -> None
+def sci_etl_core.testing.ExtractorContract.test_the_first_page_is_a_listing_page(self, make_extractor: Callable[[], AsyncExtractor]) -> None
+def sci_etl_core.testing.ExtractorContract.test_the_listing_ends(self, make_extractor: Callable[[], AsyncExtractor]) -> None
+class sci_etl_core.testing.StateManagerContract()
+def sci_etl_core.testing.StateManagerContract.test_a_newer_schema_version_is_refused(self, make_state_manager: Callable[[], AsyncStateManager], write_newer_schema: Callable[[], None] | None) -> None
+def sci_etl_core.testing.StateManagerContract.test_aclose_then_reuse(self, make_state_manager: Callable[[], AsyncStateManager]) -> None
+def sci_etl_core.testing.StateManagerContract.test_concurrent_marks_are_all_kept(self, make_state_manager: Callable[[], AsyncStateManager]) -> None
+def sci_etl_core.testing.StateManagerContract.test_failed_attempts_are_counted_across_instances(self, make_state_manager: Callable[[], AsyncStateManager]) -> None
+def sci_etl_core.testing.StateManagerContract.test_forget_clears_processed_marks_and_failed_attempts(self, make_state_manager: Callable[[], AsyncStateManager]) -> None
+def sci_etl_core.testing.StateManagerContract.test_mark_processed_clears_failed_attempts(self, make_state_manager: Callable[[], AsyncStateManager]) -> None
+def sci_etl_core.testing.StateManagerContract.test_new_storage_is_empty(self, make_state_manager: Callable[[], AsyncStateManager]) -> None
+def sci_etl_core.testing.StateManagerContract.test_processed_ids_persist_across_instances(self, make_state_manager: Callable[[], AsyncStateManager]) -> None
+def sci_etl_core.testing.StateManagerContract.test_saved_metadata_resumes_in_a_new_instance(self, make_state_manager: Callable[[], AsyncStateManager]) -> None

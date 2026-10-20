@@ -13,12 +13,29 @@ sci-etl-core 的所有重要变更都记录在这里。格式遵循
 - 两种内置状态管理器新增 `forget(record_ids)`，并新增描述它的可选 `Forgetting` 协议。它会清除
   记录的已处理标记和失败尝试，因此用 `start_index=0` 重新扫描列表的运行会再次处理这些记录，
   例如在更换提示词或模型之后。
+- `AsyncCascadingRelevanceFilter(*filters)` 按顺序运行相关性过滤器，并在第一次拒绝时停止，这样像
+  `AsyncEmbeddingRelevanceFilter` 这样的廉价过滤器会在昂贵的 LLM
+  过滤器之前筛选记录。过滤器抛出的异常会继续传播，而不会拒绝该记录。
+- 新的 `testing` extra 提供
+  `sci_etl_core.testing`，其中包含面向提取器、状态管理器、导出器和向量存储的契约测试套件：`ExtractorContract`、`StateManagerContract`、`ExporterContract`
+  和 `EmbeddingStoreContract`。继承其中一个套件并添加构建你的组件的 fixture，pytest
+  就会按照内置实现同样通过的契约检查它的行为，无需 pytest-asyncio。
+- `AsyncTextSearchStore.rank` 和 `hydrate`
+  先在不生成摘要片段的情况下对大量命中结果排名，再只为展示的命中结果补上摘要片段、标题和元数据。`count_matches(query, filters,
+  *, cap=None)` 统计匹配数而不加载它们的 id；`cap`
+  会提前停止计数，让界面可以显示“10,000+”。`filter_candidates` 在已知记录上检查过滤器，`get_headers`
+  只读取标题和元数据而不读取文本。自定义存储会继承这五个方法的可用实现。
+- `SqliteTuning(cache_size=..., mmap_size=...)` 通过 `AsyncSqliteFts5Store(...,
+  tuning=...)` 传入，用于设置连接的页缓存和内存映射。默认关闭。
 
 ### 变更 {#changed}
 
 - `AsyncSqliteEmbeddingStore.query` 以 float32 为分数排名，并且只对最好的 `top_k` 排序，
   此前它会把分数转换为 float64 并对所有文本块排序。对一百万个 384 维文本块的查询，打分和排名
   所需时间约为原来的一半，返回的命中结果及其顺序不变。
+- `AsyncSqliteFts5Store.search` 先排名，只为返回的命中结果计算摘要片段，`facet_counts`
+  根据匹配结果计数。`AsyncHybridSearcher`
+  只为展示的命中结果计算摘要片段，在语义候选上检查过滤器，而不是在所有满足过滤器的记录上检查，并且对仅按语义找到的命中结果只读取标题和元数据。结果完全相同，大型索引响应更快。
 
 ## [0.6.0] - 2026-09-27 {#060-2026-09-27}
 

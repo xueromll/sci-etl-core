@@ -14,6 +14,27 @@ change behavior; each such change is listed under **Changed**.
   `Forgetting` protocol that describes it. It clears records' processed marks
   and failed attempts, so a run that rescans the listing with `start_index=0`
   processes them again, for example after a prompt or model change.
+- `AsyncCascadingRelevanceFilter(*filters)` runs relevance filters in order and
+  stops at the first rejection, so a cheap filter such as
+  `AsyncEmbeddingRelevanceFilter` screens records before an expensive LLM filter
+  sees them. An exception from a filter propagates instead of rejecting the
+  record.
+- `sci_etl_core.testing`, behind the new `testing` extra, holds contract suites
+  for extractors, state managers, exporters, and vector stores:
+  `ExtractorContract`, `StateManagerContract`, `ExporterContract`, and
+  `EmbeddingStoreContract`. Subclass one and add a fixture that builds your
+  component, and pytest checks its behavior against the contract the bundled
+  implementations also pass, without pytest-asyncio.
+- `AsyncTextSearchStore.rank` and `hydrate` rank a large pool of hits without
+  snippets, then fill in snippets, title, and metadata for the hits you show.
+  `count_matches(query, filters, *, cap=None)` counts matches without loading
+  their ids; a `cap` stops early, so a UI can show "10,000+".
+  `filter_candidates` checks filters on known records, and `get_headers` reads
+  titles and metadata without the text. Custom stores inherit working versions
+  of all five.
+- `SqliteTuning(cache_size=..., mmap_size=...)`, passed as
+  `AsyncSqliteFts5Store(..., tuning=...)`, sets the connection's page cache and
+  memory map. It is off by default.
 
 ### Changed
 
@@ -21,6 +42,12 @@ change behavior; each such change is listed under **Changed**.
   only the best `top_k`, where it cast them to float64 and sorted every
   chunk. A query over a million 384-dimensional chunks scores and ranks them
   in about half the time, and returns the same hits in the same order.
+- `AsyncSqliteFts5Store.search` ranks first and computes snippets only for the
+  hits it returns, and `facet_counts` counts from the matches.
+  `AsyncHybridSearcher` computes snippets only for the hits it shows, checks
+  filters on the semantic candidates instead of every record that passes them,
+  and reads only titles and metadata for hits found by meaning alone. Results
+  are identical, and large indexes answer faster.
 
 ## [0.6.0] - 2026-09-27
 

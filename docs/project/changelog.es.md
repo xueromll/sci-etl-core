@@ -16,6 +16,28 @@ aparece en **Cambiado**.
   intentos fallidos de los registros, así que una ejecución que vuelve a pasar
   por el listado con `start_index=0` los procesa de nuevo, por ejemplo después
   de cambiar el prompt o el modelo.
+- `AsyncCascadingRelevanceFilter(*filters)` ejecuta filtros de relevancia en
+  orden y se detiene en el primer rechazo, de modo que un filtro barato como
+  `AsyncEmbeddingRelevanceFilter` criba los registros antes de que los vea un
+  filtro de LLM caro. Una excepción de un filtro se propaga en lugar de rechazar
+  el registro.
+- `sci_etl_core.testing`, tras el nuevo extra `testing`, contiene baterías de
+  pruebas de contrato para extractores, gestores de estado, exportadores y
+  almacenes vectoriales: `ExtractorContract`, `StateManagerContract`,
+  `ExporterContract` y `EmbeddingStoreContract`. Hereda una y añade una fixture
+  que construya tu componente, y pytest comprueba su comportamiento con el mismo
+  contrato que pasan las implementaciones incluidas, sin pytest-asyncio.
+- `AsyncTextSearchStore.rank` y `hydrate` clasifican un grupo grande de
+  resultados sin extractos y después completan extractos, título y metadatos
+  solo para los resultados que muestras. `count_matches(query, filters, *,
+  cap=None)` cuenta coincidencias sin cargar sus ids; un `cap` detiene el
+  recuento antes, para que una interfaz pueda mostrar "10.000+".
+  `filter_candidates` comprueba filtros sobre registros conocidos y
+  `get_headers` lee títulos y metadatos sin el texto. Los almacenes propios
+  heredan versiones funcionales de los cinco.
+- `SqliteTuning(cache_size=..., mmap_size=...)`, pasado como
+  `AsyncSqliteFts5Store(..., tuning=...)`, fija la caché de páginas y el mapeo
+  en memoria de la conexión. Está desactivado por defecto.
 
 ### Cambiado {#changed}
 
@@ -24,6 +46,13 @@ aparece en **Cambiado**.
   ordenaba todos los fragmentos. Una consulta sobre un millón de fragmentos de
   384 dimensiones los puntúa y clasifica en aproximadamente la mitad de
   tiempo, y devuelve los mismos resultados en el mismo orden.
+- `AsyncSqliteFts5Store.search` clasifica primero y calcula extractos solo para
+  los resultados que devuelve, y `facet_counts` cuenta a partir de las
+  coincidencias. `AsyncHybridSearcher` calcula extractos solo para los
+  resultados que muestra, comprueba los filtros sobre los candidatos semánticos
+  en lugar de sobre todos los registros que los cumplen, y lee solo títulos y
+  metadatos de los resultados encontrados únicamente por significado. Los
+  resultados son idénticos y los índices grandes responden más rápido.
 
 ## [0.6.0] - 2026-09-27 {#060-2026-09-27}
 

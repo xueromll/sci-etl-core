@@ -28,6 +28,7 @@ PACKAGE = "sci_etl_core"
 STABLE: dict[str, tuple[str, ...]] = {
     "sci_etl_core": (
         "AsyncArxivExtractor",
+        "AsyncCascadingRelevanceFilter",
         "AsyncCompositeIngestor",
         "AsyncCsvExporter",
         "AsyncETLPipeline",
@@ -145,6 +146,12 @@ STABLE: dict[str, tuple[str, ...]] = {
         "ValidationResult",
         "ValueClipStep",
         "Violation",
+    ),
+    "sci_etl_core.testing": (
+        "EmbeddingStoreContract",
+        "ExporterContract",
+        "ExtractorContract",
+        "StateManagerContract",
     ),
     "sci_etl_core.search": (
         "AsyncEdgeSource",
