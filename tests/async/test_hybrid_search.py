@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 
 import pytest
+import pytest_asyncio
 
 from log_capture import capture_logs
 from sci_etl_core.embeddings.finder_async import AsyncSimilarArticleFinder
@@ -14,6 +15,7 @@ from sci_etl_core.search.fusion import FusionParams, normalized_score_fusion
 from sci_etl_core.search.hybrid_async import AsyncHybridSearcher, HybridParams, SearchOutcome
 from sci_etl_core.search.store_base import SearchDocument, Snippet
 from sci_etl_core.search.store_memory import InMemoryTextSearchStore
+from sci_etl_core.search.store_sqlite_fts5 import AsyncSqliteFts5Store
 
 NOT_RANKABLE = "A ranked search needs at least one term that is not negated"
 DOCUMENTS = [
@@ -318,6 +320,57 @@ class TestFusionConfiguration:
             ("streams", pytest.approx(0.8)),
             ("quasar", 0.0),
         ]
+
+
+@pytest_asyncio.fixture
+async def fts5_store(tmp_path):
+    store = AsyncSqliteFts5Store(tmp_path / "search.db", facet_keys=("year",))
+    try:
+        yield store
+    finally:
+        await store.aclose()
+
+
+class TestPoolSizedReads:
+    @pytest.mark.parametrize(
+        ("query", "options"),
+        [
+            ("dwarf galaxies", {}),
+            ("dwarf", {"mode": "lexical"}),
+            ("dwarf OR streams", {"top_k": 2}),
+            ("dwarf", {"filters": [MetadataFilter("year", {"2025"})]}),
+            ("dwarf galaxies", {"mode": "semantic", "filters": [RangeFilter("year", low="2025")]}),
+        ],
+    )
+    @pytest.mark.asyncio
+    async def test_the_fts5_store_gives_the_hits_the_in_memory_store_gives(self, fts5_store, query, options):
+        memory_searcher, _, _ = await build()
+        fts5_searcher, _, _ = await build(text_store=fts5_store)
+        assert await fts5_searcher.search(query, **options) == await memory_searcher.search(query, **options)
+
+    @pytest.mark.asyncio
+    async def test_only_the_shown_lexical_hits_are_hydrated(self, fts5_store, mocker):
+        searcher, _, _ = await build(text_store=fts5_store)
+        hydrate = mocker.spy(fts5_store, "hydrate")
+        outcome = await searcher.search("dwarf", top_k=1, mode="lexical")
+        assert ranks(outcome) == [("dwarf", 1, None)]
+        assert outcome.hits[0].snippets == (
+            Snippet("title", "Dwarf galaxies", ((0, 5),)),
+            Snippet("abstract", "Photometry of dwarf galaxies", ((14, 19),)),
+        )
+        (shown,) = hydrate.call_args.args[1]
+        assert (shown.record_id, shown.title, shown.snippets) == ("dwarf", "", ())
+
+    @pytest.mark.asyncio
+    async def test_semantic_hits_read_headers_and_filters_test_the_candidates_alone(self, fts5_store, mocker):
+        searcher, _, _ = await build(text_store=fts5_store)
+        spies = {name: mocker.spy(fts5_store, name) for name in ("get_documents", "filter_ids", "filter_candidates")}
+        outcome = await searcher.search("dwarf galaxies", mode="semantic", filters=[MetadataFilter("year", {"2025"})])
+        assert ranks(outcome) == [("streams", None, 1), ("quasar", None, 2)]
+        assert (outcome.hits[0].title, outcome.hits[0].metadata) == ("Stellar streams", {"year": "2025"})
+        spies["get_documents"].assert_not_called()
+        spies["filter_ids"].assert_not_called()
+        assert sorted(spies["filter_candidates"].call_args.args[0]) == ["dwarf", "quasar", "streams"]
 
 
 def _article_chunks(record_ids, chunks_per_record, vector):

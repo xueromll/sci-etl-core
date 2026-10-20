@@ -87,6 +87,17 @@ class AsyncHybridSearcher:
     index, and the semantic leg's candidates are narrowed to the records passing
     the filters before fusion, so a filtered-out record never takes a slot.
 
+    The work follows the candidate pool, not the corpus. The lexical leg ranks
+    with :meth:`~sci_etl_core.search.store_base.AsyncTextSearchStore.rank`, and
+    only the fused hits shown are completed with
+    :meth:`~sci_etl_core.search.store_base.AsyncTextSearchStore.hydrate`; the
+    filters are checked on the semantic candidates alone
+    (:meth:`~sci_etl_core.search.store_base.AsyncTextSearchStore.filter_candidates`);
+    and a hit only the semantic leg found reads its title and metadata, never
+    its text (:meth:`~sci_etl_core.search.store_base.AsyncTextSearchStore.get_headers`).
+    The hits are the ones a single :meth:`~sci_etl_core.search.store_base.AsyncTextSearchStore.search`
+    of the pool would give.
+
     A hybrid search whose semantic leg raises
     :class:`~sci_etl_core.exceptions.EmbeddingError` falls back to the lexical
     results, logs the failure, and reports it in :attr:`SearchOutcome.degraded`.
@@ -169,20 +180,17 @@ class AsyncHybridSearcher:
 
         legs: dict[str, Awaitable[Any]] = {}
         if mode != "semantic":
-            legs["lexical"] = self._text_store.search(node, pool, filters=filters)
+            legs["lexical"] = self._text_store.rank(node, pool, filters=filters)
         if meaning and self._finder is not None:
             legs["semantic"] = self._finder.find_best_chunks(
                 meaning, top_k=pool, chunk_pool=pool * self._params.chunk_pool_factor
             )
-            if filters:
-                legs["allowed"] = self._text_store.filter_ids(None, filters)
         results: dict[str, Any] = dict(
             zip(legs, await asyncio.gather(*legs.values(), return_exceptions=True), strict=True)
         )
 
-        for name in ("lexical", "allowed"):
-            if isinstance(results.get(name), BaseException):
-                raise results[name]
+        if isinstance(results.get("lexical"), BaseException):
+            raise results["lexical"]
         degraded: tuple[str, ...] = ()
         articles = results.get("semantic")
         if isinstance(articles, EmbeddingError) and mode == "hybrid":
@@ -193,10 +201,11 @@ class AsyncHybridSearcher:
             raise articles
 
         lexical_hits: list[TextHit] | None = results.get("lexical")
-        allowed: frozenset[str] | None = results.get("allowed")
-        semantic: list[SearchHit] | None = None
-        if articles is not None:
-            semantic = [article for article in articles if allowed is None or article.record_id in allowed]
+        semantic: list[SearchHit] | None = articles
+        if articles is not None and filters:
+            candidates = [article.record_id for article in articles]
+            allowed = await self._text_store.filter_candidates(candidates, filters)
+            semantic = [article for article in articles if article.record_id in allowed]
         hits = await self._fuse(node, lexical_hits, semantic, top_k)
         return SearchOutcome(hits, degraded, skipped)
 
@@ -229,8 +238,12 @@ class AsyncHybridSearcher:
 
         lexical = {hit.record_id: (rank, hit) for rank, hit in enumerate(lexical_hits or [], start=1)}
         semantic_ranks = {article.record_id: (rank, article) for rank, article in enumerate(semantic or [], start=1)}
+        shown = [lexical[record_id][1] for record_id, _score in fused if record_id in lexical]
+        hydrated = await self._text_store.hydrate(node, shown) if shown else []
+        for ranked, hit in zip(shown, hydrated, strict=True):
+            lexical[ranked.record_id] = (lexical[ranked.record_id][0], hit)
         missing = [record_id for record_id, _score in fused if record_id not in lexical]
-        documents = await self._text_store.get_documents(missing) if missing else {}
+        documents = await self._text_store.get_headers(missing) if missing else {}
         return [_fused_hit(node, record_id, score, lexical, semantic_ranks, documents) for record_id, score in fused]
 
 
