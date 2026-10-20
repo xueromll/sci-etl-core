@@ -242,7 +242,7 @@ class sci_etl_core.config.GraphConfig(pydantic.main.BaseModel)
 sci_etl_core.config.GraphConfig: depth: int = 2, fanout: int = 8, min_weight: float = 0.35, max_nodes: int = 200, mutual_only: bool = True, max_iterations: int = 20 [extra=forbid]
 def sci_etl_core.config.GraphConfig.to_params(self) -> GraphParams
 class sci_etl_core.config.HybridConfig(pydantic.main.BaseModel)
-sci_etl_core.config.HybridConfig: candidate_pool: int = 100, chunk_pool_factor: int = 5 [extra=forbid]
+sci_etl_core.config.HybridConfig: candidate_pool: int = 500, chunk_pool_factor: int = 5, max_chunks: int = 2500 [extra=forbid]
 def sci_etl_core.config.HybridConfig.to_params(self) -> HybridParams
 def sci_etl_core.config.apply_api_key(raw: dict[str, Any], api_key_env_var: str) -> dict[str, Any]
 def sci_etl_core.config.load_yaml(path: Path) -> dict[str, Any]

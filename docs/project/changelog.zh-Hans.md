@@ -27,6 +27,8 @@ sci-etl-core 的所有重要变更都记录在这里。格式遵循
   只读取标题和元数据而不读取文本。自定义存储会继承这五个方法的可用实现。
 - `SqliteTuning(cache_size=..., mmap_size=...)` 通过 `AsyncSqliteFts5Store(...,
   tuning=...)` 传入，用于设置连接的页缓存和内存映射。默认关闭。
+- `HybridParams.max_chunks` 和 `search.hybrid.max_chunks` 设置会限制语义分支请求的文本块数量，默认
+  2,500，但不少于候选池。
 
 ### 变更 {#changed}
 
@@ -36,6 +38,9 @@ sci-etl-core 的所有重要变更都记录在这里。格式遵循
 - `AsyncSqliteFts5Store.search` 先排名，只为返回的命中结果计算摘要片段，`facet_counts`
   根据匹配结果计数。`AsyncHybridSearcher`
   只为展示的命中结果计算摘要片段，在语义候选上检查过滤器，而不是在所有满足过滤器的记录上检查，并且对仅按语义找到的命中结果只读取标题和元数据。结果完全相同，大型索引响应更快。
+- 混合检索默认每条分支获取 500 个候选，而不是 100 个（`HybridParams.candidate_pool` 和
+  `search.hybrid.candidate_pool`），因此融合后的前 20 几乎总是与不设上限的候选池返回的结果一致。将
+  `candidate_pool` 设为 100 可保留原来的候选池。
 
 ## [0.6.0] - 2026-09-27 {#060-2026-09-27}
 

@@ -35,7 +35,10 @@ class HybridParams:
     can still reach the top 20.
 
     The semantic leg asks the vector memory for ``candidate_pool ×
-    chunk_pool_factor`` chunks and keeps each record's best chunk. It yields
+    chunk_pool_factor`` chunks, at most ``max_chunks`` but never fewer than the
+    pool, and keeps each record's best chunk. The cap bounds the cost of a large
+    pool, since an approximate index slows down sharply for large requests. It
+    yields
     ``candidate_pool`` distinct records whenever those chunks span at least that
     many records, that is, when records contribute on average no more than
     ``chunk_pool_factor`` chunks to that prefix of the chunk ranking. When a few
@@ -44,17 +47,21 @@ class HybridParams:
     the same text. Raise the factor for corpora of long documents.
 
     Raises:
-        ValueError: ``candidate_pool`` or ``chunk_pool_factor`` is less than 1.
+        ValueError: ``candidate_pool``, ``chunk_pool_factor``, or ``max_chunks``
+            is less than 1.
     """
 
-    candidate_pool: int = 100
+    candidate_pool: int = 500
     chunk_pool_factor: int = 5
+    max_chunks: int = 2500
 
     def __post_init__(self) -> None:
         if self.candidate_pool < 1:
             raise ValueError(f"candidate_pool must be at least 1, not {self.candidate_pool!r}")
         if self.chunk_pool_factor < 1:
             raise ValueError(f"chunk_pool_factor must be at least 1, not {self.chunk_pool_factor!r}")
+        if self.max_chunks < 1:
+            raise ValueError(f"max_chunks must be at least 1, not {self.max_chunks!r}")
 
 
 @dataclass(frozen=True, slots=True)
@@ -183,7 +190,9 @@ class AsyncHybridSearcher:
             legs["lexical"] = self._text_store.rank(node, pool, filters=filters)
         if meaning and self._finder is not None:
             legs["semantic"] = self._finder.find_best_chunks(
-                meaning, top_k=pool, chunk_pool=pool * self._params.chunk_pool_factor
+                meaning,
+                top_k=pool,
+                chunk_pool=max(pool, min(pool * self._params.chunk_pool_factor, self._params.max_chunks)),
             )
         results: dict[str, Any] = dict(
             zip(legs, await asyncio.gather(*legs.values(), return_exceptions=True), strict=True)

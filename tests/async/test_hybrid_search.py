@@ -409,7 +409,22 @@ class TestCandidatePool:
         searcher, _, _ = await build(params=HybridParams(candidate_pool=1, chunk_pool_factor=1))
         assert len((await searcher.search("dwarf galaxies", top_k=3, mode="semantic")).hits) == 3
 
-    @pytest.mark.parametrize("options", [{"candidate_pool": 0}, {"chunk_pool_factor": 0}])
+    @pytest.mark.parametrize(
+        ("params", "chunk_pool"),
+        [
+            (HybridParams(), 2500),
+            (HybridParams(candidate_pool=10, chunk_pool_factor=3, max_chunks=12), 12),
+            (HybridParams(candidate_pool=10, chunk_pool_factor=3, max_chunks=4), 10),
+        ],
+    )
+    @pytest.mark.asyncio
+    async def test_the_chunk_request_is_capped_but_never_below_the_pool(self, mocker, params, chunk_pool):
+        searcher, _, _ = await build(params=params)
+        find = mocker.spy(AsyncSimilarArticleFinder, "find_best_chunks")
+        await searcher.search("galaxies", top_k=10, mode="semantic")
+        assert find.call_args.kwargs == {"top_k": params.candidate_pool, "chunk_pool": chunk_pool}
+
+    @pytest.mark.parametrize("options", [{"candidate_pool": 0}, {"chunk_pool_factor": 0}, {"max_chunks": 0}])
     def test_pool_parameters_below_one_are_rejected(self, options):
         with pytest.raises(ValueError, match="must be at least 1"):
             HybridParams(**options)

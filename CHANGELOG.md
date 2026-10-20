@@ -35,6 +35,9 @@ change behavior; each such change is listed under **Changed**.
 - `SqliteTuning(cache_size=..., mmap_size=...)`, passed as
   `AsyncSqliteFts5Store(..., tuning=...)`, sets the connection's page cache and
   memory map. It is off by default.
+- `HybridParams.max_chunks` and the `search.hybrid.max_chunks` setting cap the
+  semantic leg's chunk request, 2,500 by default, never below the candidate
+  pool.
 
 ### Changed
 
@@ -48,6 +51,10 @@ change behavior; each such change is listed under **Changed**.
   filters on the semantic candidates instead of every record that passes them,
   and reads only titles and metadata for hits found by meaning alone. Results
   are identical, and large indexes answer faster.
+- Hybrid search draws 500 candidates per leg by default instead of 100
+  (`HybridParams.candidate_pool` and `search.hybrid.candidate_pool`), so the
+  fused top 20 almost always matches what an unbounded pool would return. Set
+  `candidate_pool` to 100 to keep the old pool.
 
 ## [0.6.0] - 2026-09-27
 

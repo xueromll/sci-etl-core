@@ -29,9 +29,10 @@
   `"body"` 的 `Snippet`。该段落是按语义匹配的，因此可能没有任何高亮；可检查
   `lexical_rank is None` 为其加上标签（例如“相关段落”），或者改用
   `text_store.get_documents` 读取摘要。
-- **候选池。** 每条分支在融合前获取 `HybridParams.candidate_pool` 条记录（默认 100，且不少
+- **候选池。** 每条分支在融合前获取 `HybridParams.candidate_pool` 条记录（默认 500，且不少
   于 `top_k`），因此在词法分支中排第 40、在语义分支中排第 3 的记录仍可能进入前 20。语义
-  分支向向量记忆请求 `candidate_pool × chunk_pool_factor` 个文本块（默认因子为 5）。当长
+  分支向向量记忆请求 `candidate_pool × chunk_pool_factor` 个文本块（默认因子为 5），最多 `max_chunks` 个（默认 2,500），
+  但不少于候选池的大小。当长
   文章占满靠前的文本块、导致候选池不足时，请调高该因子。
 - **每次检索的工作量。** 工作量取决于候选池，而不是语料库。词法分支用 `text_store.rank`
   对候选池排序，并只为展示的融合命中结果用 `text_store.hydrate` 计算摘要片段。过滤器只在

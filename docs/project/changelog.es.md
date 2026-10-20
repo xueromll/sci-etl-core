@@ -38,6 +38,9 @@ aparece en **Cambiado**.
 - `SqliteTuning(cache_size=..., mmap_size=...)`, pasado como
   `AsyncSqliteFts5Store(..., tuning=...)`, fija la caché de páginas y el mapeo
   en memoria de la conexión. Está desactivado por defecto.
+- `HybridParams.max_chunks` y el ajuste `search.hybrid.max_chunks` limitan la
+  petición de fragmentos de la rama semántica: 2500 por defecto, nunca menos que
+  el grupo de candidatos.
 
 ### Cambiado {#changed}
 
@@ -53,6 +56,10 @@ aparece en **Cambiado**.
   en lugar de sobre todos los registros que los cumplen, y lee solo títulos y
   metadatos de los resultados encontrados únicamente por significado. Los
   resultados son idénticos y los índices grandes responden más rápido.
+- La búsqueda híbrida toma por defecto 500 candidatos por rama en lugar de 100
+  (`HybridParams.candidate_pool` y `search.hybrid.candidate_pool`), así que los
+  20 primeros fusionados casi siempre coinciden con lo que devolvería un grupo
+  sin límite. Pon `candidate_pool` en 100 para conservar el grupo anterior.
 
 ## [0.6.0] - 2026-09-27 {#060-2026-09-27}
 

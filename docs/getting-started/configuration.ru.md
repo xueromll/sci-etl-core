@@ -34,7 +34,7 @@ pipeline:
 search:
   bm25: {title: 10, abstract: 4, body: 1}
   fusion: {k: 60}
-  hybrid: {candidate_pool: 100, chunk_pool_factor: 5}
+  hybrid: {candidate_pool: 500, chunk_pool_factor: 5, max_chunks: 2500}
   graph: {depth: 2, fanout: 8, min_weight: 0.35}
 ```
 

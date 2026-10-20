@@ -36,10 +36,11 @@ runs one or both retrieval legs:
   `lexical_rank is None` to label it, for example "related passage", or read
   the abstract with `text_store.get_documents` instead.
 - **Candidate pool.** Each leg fetches `HybridParams.candidate_pool` records
-  (default 100, and never fewer than `top_k`) before fusion, so a record
+  (default 500, and never fewer than `top_k`) before fusion, so a record
   ranked 40th lexically and 3rd semantically can still reach the top 20. The
   semantic leg asks the vector memory for `candidate_pool × chunk_pool_factor`
-  chunks (default factor 5). Raise the factor when long articles fill the top
+  chunks (default factor 5), capped at `max_chunks` (default 2,500) but never
+  fewer than the pool. Raise the factor when long articles fill the top
   chunks and the pool comes back short.
 - **Work per search.** The work follows the candidate pool, not the corpus.
   The lexical leg ranks the pool with `text_store.rank` and computes snippets

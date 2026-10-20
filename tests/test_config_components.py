@@ -250,7 +250,7 @@ class TestSearchConfig:
             "search": {
                 "bm25": {"title": 2, "abstract": 1, "body": 0.5},
                 "fusion": {"k": 10, "weights": [1, 2]},
-                "hybrid": {"candidate_pool": 30, "chunk_pool_factor": 8},
+                "hybrid": {"candidate_pool": 30, "chunk_pool_factor": 8, "max_chunks": 100},
                 "graph": {
                     "depth": 1,
                     "fanout": 4,
@@ -264,7 +264,7 @@ class TestSearchConfig:
         search = validate_config(BaseAppConfig, raw, tmp_path / "c.yaml").search
         assert search.bm25.to_weights() == BM25Weights(title=2, abstract=1, body=0.5)
         assert search.fusion.to_params() == FusionParams(k=10, weights=(1.0, 2.0))
-        assert search.hybrid.to_params() == HybridParams(candidate_pool=30, chunk_pool_factor=8)
+        assert search.hybrid.to_params() == HybridParams(candidate_pool=30, chunk_pool_factor=8, max_chunks=100)
         assert search.graph.to_params() == GraphParams(
             depth=1, fanout=4, min_weight=0.5, max_nodes=50, mutual_only=False, max_iterations=5
         )
@@ -276,6 +276,7 @@ class TestSearchConfig:
             {"bm25": {"body": "inf"}},
             {"fusion": {"k": 0}},
             {"hybrid": {"candidate_pool": 0}},
+            {"hybrid": {"max_chunks": 0}},
             {"graph": {"depth": -1}},
             {"graph": {"min_weight": "nan"}},
         ],

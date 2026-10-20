@@ -41,11 +41,12 @@ ejecuta una o las dos ramas de recuperación:
   etiquetarlo, por ejemplo como "pasaje relacionado", o lee el resumen con
   `text_store.get_documents`.
 - **Grupo de candidatos.** Cada rama obtiene `HybridParams.candidate_pool`
-  registros (100 por defecto, y nunca menos que `top_k`) antes de la fusión,
+  registros (500 por defecto, y nunca menos que `top_k`) antes de la fusión,
   de modo que un registro en el puesto 40 léxicamente y en el 3 semánticamente
   aún puede llegar a los 20 primeros. La rama semántica pide a la memoria
   vectorial `candidate_pool × chunk_pool_factor` fragmentos (factor 5 por
-  defecto). Aumenta el factor cuando los artículos largos llenan los primeros
+  defecto), como máximo `max_chunks` (2500 por defecto) y nunca menos que el
+  grupo. Aumenta el factor cuando los artículos largos llenan los primeros
   fragmentos y el grupo vuelve incompleto.
 - **Trabajo por búsqueda.** El trabajo depende del grupo de candidatos, no del
   corpus. La rama léxica ordena el grupo con `text_store.rank` y calcula

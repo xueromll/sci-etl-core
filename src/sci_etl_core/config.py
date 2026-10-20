@@ -159,14 +159,17 @@ class HybridConfig(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    candidate_pool: int = Field(default=100, ge=1)
+    candidate_pool: int = Field(default=500, ge=1)
     chunk_pool_factor: int = Field(default=5, ge=1)
+    max_chunks: int = Field(default=2500, ge=1)
 
     def to_params(self) -> HybridParams:
         """Build the hybrid search parameters."""
         from sci_etl_core.search.hybrid_async import HybridParams
 
-        return HybridParams(candidate_pool=self.candidate_pool, chunk_pool_factor=self.chunk_pool_factor)
+        return HybridParams(
+            candidate_pool=self.candidate_pool, chunk_pool_factor=self.chunk_pool_factor, max_chunks=self.max_chunks
+        )
 
 
 class GraphConfig(BaseModel):
