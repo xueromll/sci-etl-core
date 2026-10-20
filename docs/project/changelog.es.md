@@ -7,6 +7,16 @@ una versión menor puede cambiar el comportamiento; cada uno de esos cambios
 aparece en **Cambiado**.
 
 
+## [Unreleased] {#unreleased}
+
+### Cambiado {#changed}
+
+- `AsyncSqliteEmbeddingStore.query` clasifica las puntuaciones en float32 y
+  solo ordena los mejores `top_k`, donde antes las convertía a float64 y
+  ordenaba todos los fragmentos. Una consulta sobre un millón de fragmentos de
+  384 dimensiones los puntúa y clasifica en aproximadamente la mitad de
+  tiempo, y devuelve los mismos resultados en el mismo orden.
+
 ## [0.6.0] - 2026-09-27 {#060-2026-09-27}
 
 Esta versión cambia el contrato de datos: los extractores de entidades pueden
@@ -64,7 +74,7 @@ evidencia y procedencia. Consulta "Actualizar a la 0.6" en MIGRATION.md.
 - Los extras `config`, `arxiv`, `xml`, `html` y `processors`.
 - `load_config(load_env=True)` y `load_config_async(load_env=True)`.
 
-### Cambiado {#changed}
+### Cambiado {#changed_1}
 
 - **Incompatible:** los exportadores reciben su destino al construirse e
   implementan `write(record, entities)` en lugar de
@@ -138,7 +148,7 @@ actualización falla una vez en la caché del LLM. Consulta "Actualizar a la
   defecto es `{"type": "json_object"}`. `response_cache_key` acepta los tres
   como argumentos con nombre.
 
-### Cambiado {#changed_1}
+### Cambiado {#changed_2}
 
 - Una respuesta vacía del LLM ahora hace fallar el registro en lugar de
   resolverlo. `AsyncOpenAICompatibleClient.complete_json` lanza `LLMError`
@@ -223,7 +233,7 @@ MIGRATION.md para ver los cambios de código.
 - `LegacyExtractorAdapter`, que ejecuta un extractor escrito para la 0.4 hasta
   que se traslade. Ya está obsoleto.
 
-### Cambiado {#changed_2}
+### Cambiado {#changed_3}
 
 - **Incompatible:** `AsyncExtractor.fetch_page(query, cursor, page_size)`
   sustituye a `search` y `parse_listing`. Ahora el propio pipeline omite los
@@ -283,7 +293,7 @@ todavía no hay que cambiar nada):
 
 ## [0.4.1] - 2026-09-25 {#041-2026-09-25}
 
-### Cambiado {#changed_3}
+### Cambiado {#changed_4}
 
 - `HttpConfig.user_agent` y `build_async_client` usan por defecto
   `sci-etl-core/<installed version>` en lugar de `sci-etl-core/0.1`.
@@ -367,7 +377,7 @@ todavía no hay que cambiar nada):
   cada artículo, con su texto. `SlidingWindowChunker` expone `chunk_words` y
   `overlap_words`.
 
-### Cambiado {#changed_4}
+### Cambiado {#changed_5}
 
 - `PipelineConfig.max_records` es ahora `total_limit`, y `max_workers` es
   `max_concurrency`. Las antiguas claves YAML y los antiguos atributos siguen
@@ -442,7 +452,7 @@ todavía no hay que cambiar nada):
   biblioteca estándar; permite que un archivo de requisitos diga por qué está
   el paquete.
 
-### Cambiado {#changed_5}
+### Cambiado {#changed_6}
 
 - `AsyncETLPipeline(memory_ingestor=)` acepta cualquier `MemoryIngestor`. Un
   `SearchStoreError` durante la ingesta en memoria se registra, y las entidades
@@ -492,7 +502,7 @@ todavía no hay que cambiar nada):
 - ruff y mypy se ejecutan en la CI, y un extra `lint` los instala en local.
 - Este registro de cambios.
 
-### Cambiado {#changed_6}
+### Cambiado {#changed_7}
 
 - Los reintentos integrados del SDK de OpenAI se desactivan en los clientes de
   chat y de embeddings, así que `max_retries` es ahora el número total de
@@ -534,7 +544,7 @@ todavía no hay que cambiar nada):
 - `PipelineConfig.page_size` y `PipelineConfig.search_delay`.
 - Validación de rangos para todas las secciones de configuración.
 
-### Cambiado {#changed_7}
+### Cambiado {#changed_8}
 
 - El flujo de publicación sube los archivos construidos a una versión de GitHub
   que ya existe en lugar de fallar.
@@ -557,7 +567,8 @@ analizadores de PDF, LaTeX y HTML, exportadores CSV, SQL y Plotly,
 procesadores y validadores de dataframes, estado en archivos y en SQLite,
 memoria semántica y la guía de migración de udg-catalogue.
 
-[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/xueromll/sci-etl-core/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/xueromll/sci-etl-core/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/xueromll/sci-etl-core/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/xueromll/sci-etl-core/compare/v0.4.0...v0.4.1

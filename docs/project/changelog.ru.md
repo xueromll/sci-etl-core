@@ -7,6 +7,15 @@
 **Изменено**.
 
 
+## [Unreleased] {#unreleased}
+
+### Изменено {#changed}
+
+- `AsyncSqliteEmbeddingStore.query` ранжирует оценки в float32 и сортирует
+  только лучшие `top_k`, тогда как раньше приводил их к float64 и сортировал
+  все чанки. Запрос по миллиону 384-мерных чанков оценивает и ранжирует их
+  примерно вдвое быстрее и возвращает те же результаты в том же порядке.
+
 ## [0.6.0] - 2026-09-27 {#060-2026-09-27}
 
 Этот релиз меняет контракт данных: экстракторы сущностей могут возвращать
@@ -64,7 +73,7 @@ MIGRATION.md.
 - Extras `config`, `arxiv`, `xml`, `html` и `processors`.
 - `load_config(load_env=True)` и `load_config_async(load_env=True)`.
 
-### Изменено {#changed}
+### Изменено {#changed_1}
 
 - **Ломающее изменение:** экспортёры получают место назначения при создании и
   реализуют `write(record, entities)` вместо `export(data, destination)`.
@@ -136,7 +145,7 @@ MIGRATION.md.
   по умолчанию равный `{"type": "json_object"}`. `response_cache_key`
   принимает все три как именованные аргументы.
 
-### Изменено {#changed_1}
+### Изменено {#changed_2}
 
 - Пустой ответ LLM теперь приводит к неудаче записи, а не завершает её.
   `AsyncOpenAICompatibleClient.complete_json` выбрасывает `LLMError` там, где
@@ -220,7 +229,7 @@ MIGRATION.md.
 - `LegacyExtractorAdapter`, который запускает экстрактор, написанный для 0.4,
   пока его не перенесут. Он уже объявлен устаревшим.
 
-### Изменено {#changed_2}
+### Изменено {#changed_3}
 
 - **Ломающее изменение:** `AsyncExtractor.fetch_page(query, cursor, page_size)`
   заменяет `search` и `parse_listing`. Теперь пайплайн сам пропускает
@@ -280,7 +289,7 @@ MIGRATION.md.
 
 ## [0.4.1] - 2026-09-25 {#041-2026-09-25}
 
-### Изменено {#changed_3}
+### Изменено {#changed_4}
 
 - `HttpConfig.user_agent` и `build_async_client` по умолчанию используют
   `sci-etl-core/<installed version>` вместо `sci-etl-core/0.1`.
@@ -363,7 +372,7 @@ MIGRATION.md.
   каждой статьи вместе с текстом. `SlidingWindowChunker` предоставляет
   `chunk_words` и `overlap_words`.
 
-### Изменено {#changed_4}
+### Изменено {#changed_5}
 
 - `PipelineConfig.max_records` теперь называется `total_limit`, а
   `max_workers` — `max_concurrency`. Старые ключи YAML и атрибуты продолжают
@@ -437,7 +446,7 @@ MIGRATION.md.
   стандартная библиотека; он позволяет файлу зависимостей указать, зачем нужен
   пакет.
 
-### Изменено {#changed_5}
+### Изменено {#changed_6}
 
 - `AsyncETLPipeline(memory_ingestor=)` принимает любой `MemoryIngestor`.
   `SearchStoreError` при загрузке в память записывается в журнал, а сущности
@@ -488,7 +497,7 @@ MIGRATION.md.
 - ruff и mypy запускаются в CI, а extra `lint` устанавливает их локально.
 - Этот журнал изменений.
 
-### Изменено {#changed_6}
+### Изменено {#changed_7}
 
 - Встроенные повторы OpenAI SDK отключены в клиентах чата и эмбеддингов,
   поэтому `max_retries` теперь означает общее число попыток. Раньше SDK мог сам
@@ -528,7 +537,7 @@ MIGRATION.md.
 - `PipelineConfig.page_size` и `PipelineConfig.search_delay`.
 - Проверка диапазонов для каждого раздела конфигурации.
 
-### Изменено {#changed_7}
+### Изменено {#changed_8}
 
 - Процесс релиза загружает собранные файлы в уже существующий релиз GitHub,
   а не завершается ошибкой.
@@ -551,7 +560,8 @@ HTML, экспортёры CSV, SQL и Plotly, процессоры датафр
 файловое состояние и состояние в SQLite, семантическая память и руководство по
 миграции udg-catalogue.
 
-[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/xueromll/sci-etl-core/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/xueromll/sci-etl-core/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/xueromll/sci-etl-core/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/xueromll/sci-etl-core/compare/v0.4.0...v0.4.1

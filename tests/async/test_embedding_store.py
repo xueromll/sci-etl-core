@@ -158,6 +158,40 @@ class TestAsyncSqliteEmbeddingStore:
             await store.aclose()
 
     @pytest.mark.asyncio
+    async def test_ties_at_the_top_k_cutoff_keep_insertion_order(self, path):
+        store = AsyncSqliteEmbeddingStore(path)
+        try:
+            await store.add(
+                _chunks(
+                    ("a", 0, "far", [0.0, 1.0]),
+                    ("b", 0, "first", [1.0, 0.0]),
+                    ("c", 0, "second", [1.0, 0.0]),
+                    ("d", 0, "third", [1.0, 0.0]),
+                )
+            )
+            hits = await store.query([1.0, 0.0], top_k=2)
+            assert [hit.record_id for hit in hits] == ["b", "c"]
+        finally:
+            await store.aclose()
+
+    @pytest.mark.asyncio
+    async def test_top_k_below_the_candidates_still_excludes_and_filters(self, path):
+        store = AsyncSqliteEmbeddingStore(path)
+        try:
+            await store.add(
+                _chunks(
+                    ("self", 0, "self", [1.0, 0.0]),
+                    ("a", 0, "near", [0.8, 0.6]),
+                    ("b", 0, "middle", [0.6, 0.8]),
+                    ("c", 0, "far", [0.0, 1.0]),
+                )
+            )
+            hits = await store.query([1.0, 0.0], top_k=2, min_score=0.7, exclude_record_id="self")
+            assert [hit.record_id for hit in hits] == ["a"]
+        finally:
+            await store.aclose()
+
+    @pytest.mark.asyncio
     async def test_add_empty_is_noop(self, path):
         store = AsyncSqliteEmbeddingStore(path)
         try:

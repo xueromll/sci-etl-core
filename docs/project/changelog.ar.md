@@ -6,6 +6,14 @@
 ويُسرد كل تغيير من هذا النوع تحت **التغييرات**.
 
 
+## [Unreleased] {#unreleased}
+
+### التغييرات {#changed}
+
+- صارت `AsyncSqliteEmbeddingStore.query` ترتّب الدرجات بصيغة float32 ولا تفرز إلا أفضل
+  `top_k`، بعد أن كانت تحوّلها إلى float64 وتفرز كل المقاطع. ويستغرق حساب درجات استعلام على
+  مليون مقطع من 384 بُعدًا وترتيبها نحو نصف الوقت، ويعيد النتائج نفسها بالترتيب نفسه.
+
 ## [0.6.0] - 2026-09-27 {#060-2026-09-27}
 
 يغيّر هذا الإصدار عقد البيانات: يمكن لمستخرِجات الكيانات أن تُعيد كيانات منمّطة، وتتلقى
@@ -51,7 +59,7 @@ MIGRATION.md.
 - الإضافات `config` و`arxiv` و`xml` و`html` و`processors`.
 - `load_config(load_env=True)` و`load_config_async(load_env=True)`.
 
-### التغييرات {#changed}
+### التغييرات {#changed_1}
 
 - **تغيير كاسر:** تأخذ المصدِّرات وجهتها عند إنشائها، وتنفّذ `write(record, entities)` بدلًا
   من `export(data, destination)`. ولم يعد خط المعالجة يأخذ `destination`.
@@ -108,7 +116,7 @@ MIGRATION.md.
   ويوفّر كل `AsyncLLMClient` القيمة `response_format`، وافتراضيها `{"type": "json_object"}`.
   وتقبل `response_cache_key` الثلاث جميعها بوصفها وسائط مسمّاة.
 
-### التغييرات {#changed_1}
+### التغييرات {#changed_2}
 
 - صار الإكمال الفارغ من النموذج اللغوي يُفشل السجل بدلًا من تسويته. فترفع
   `AsyncOpenAICompatibleClient.complete_json` الاستثناء `LLMError` حيث كانت تُعيد `{}`، فيعيد خط
@@ -171,7 +179,7 @@ MIGRATION.md.
 - `BaseAppConfig.strict_sections`، لإلغاء التحقق الصارم من الإعداد.
 - `LegacyExtractorAdapter`، الذي يشغّل مستخرِجًا كُتب لـ 0.4 إلى أن يُنقل. وهو مهمل أصلًا.
 
-### التغييرات {#changed_2}
+### التغييرات {#changed_3}
 
 - **تغيير كاسر:** تحل `AsyncExtractor.fetch_page(query, cursor, page_size)` محل `search`
   و`parse_listing`. وصار خط المعالجة يتخطى السجلات المعالَجة بنفسه.
@@ -221,7 +229,7 @@ MIGRATION.md.
 
 ## [0.4.1] - 2026-09-25 {#041-2026-09-25}
 
-### التغييرات {#changed_3}
+### التغييرات {#changed_4}
 
 - يستخدم `HttpConfig.user_agent` و`build_async_client` افتراضيًا
   `sci-etl-core/<installed version>` بدلًا من `sci-etl-core/0.1`.
@@ -289,7 +297,7 @@ MIGRATION.md.
 - تُعيد `AsyncSimilarArticleFinder.find_best_chunks` أفضل مقطع لكل مقالة، مع نصه. ويوفّر
   `SlidingWindowChunker` القيمتين `chunk_words` و`overlap_words`.
 
-### التغييرات {#changed_4}
+### التغييرات {#changed_5}
 
 - صار `PipelineConfig.max_records` هو `total_limit`، و`max_workers` هو `max_concurrency`. وتظل
   مفاتيح YAML والسمات القديمة تعمل مع `DeprecationWarning` حتى 0.5.0، وتحميل إعداد يضبط مفتاحًا
@@ -344,7 +352,7 @@ MIGRATION.md.
 - الإضافة `search`. لا تثبّت شيئًا، لأن البحث لا يحتاج إلا إلى المكتبة القياسية؛ وإنما تتيح لملف
   المتطلبات أن يذكر سبب وجود الحزمة.
 
-### التغييرات {#changed_5}
+### التغييرات {#changed_6}
 
 - يقبل `AsyncETLPipeline(memory_ingestor=)` أي `MemoryIngestor`. ويُسجَّل `SearchStoreError`
   أثناء الاستيعاب في الذاكرة، وتظل كيانات السجل تُصدَّر، كما في عطل التضمين. أما
@@ -383,7 +391,7 @@ MIGRATION.md.
 - يعمل ruff وmypy في التكامل المستمر، وتثبّتهما الإضافة `lint` محليًا.
 - سجل التغييرات هذا.
 
-### التغييرات {#changed_6}
+### التغييرات {#changed_7}
 
 - عُطّلت إعادة المحاولة المدمجة في حزمة OpenAI SDK في عميلَي المحادثة والتضمينات، فصار
   `max_retries` هو العدد الإجمالي للمحاولات. وكانت الحزمة من قبل قد تعيد كل محاولة من تلك المحاولات
@@ -415,7 +423,7 @@ MIGRATION.md.
 - `PipelineConfig.page_size` و`PipelineConfig.search_delay`.
 - التحقق من النطاقات لكل قسم من أقسام الإعداد.
 
-### التغييرات {#changed_7}
+### التغييرات {#changed_8}
 
 - يرفع سير عمل الإصدار الملفات المبنية إلى إصدار GitHub موجود أصلًا بدلًا من الفشل.
 
@@ -434,7 +442,8 @@ MIGRATION.md.
 أُطُر البيانات ومدقّقاتها، والحالة في الملفات وفي SQLite، والذاكرة الدلالية، ودليل ترحيل
 udg-catalogue.
 
-[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/xueromll/sci-etl-core/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/xueromll/sci-etl-core/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/xueromll/sci-etl-core/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/xueromll/sci-etl-core/compare/v0.4.0...v0.4.1

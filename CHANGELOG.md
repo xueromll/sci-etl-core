@@ -6,6 +6,15 @@ All notable changes to sci-etl-core are recorded here. The format follows
 change behavior; each such change is listed under **Changed**.
 
 
+## [Unreleased]
+
+### Changed
+
+- `AsyncSqliteEmbeddingStore.query` ranks the scores in float32 and sorts
+  only the best `top_k`, where it cast them to float64 and sorted every
+  chunk. A query over a million 384-dimensional chunks scores and ranks them
+  in about half the time, and returns the same hits in the same order.
+
 ## [0.6.0] - 2026-09-27
 
 This release changes the data contract: entity extractors can return typed
@@ -510,7 +519,8 @@ extractor, OpenAI-compatible chat and embedding clients, PDF, LaTeX, and HTML
 parsers, CSV, SQL, and Plotly exporters, dataframe processors and validators,
 file and SQLite state, semantic memory, and the udg-catalogue migration guide.
 
-[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/xueromll/sci-etl-core/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/xueromll/sci-etl-core/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/xueromll/sci-etl-core/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/xueromll/sci-etl-core/compare/v0.4.0...v0.4.1

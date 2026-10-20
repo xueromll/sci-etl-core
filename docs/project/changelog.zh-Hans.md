@@ -6,6 +6,14 @@ sci-etl-core 的所有重要变更都记录在这里。格式遵循
 变更都列在**变更**之下。
 
 
+## [Unreleased] {#unreleased}
+
+### 变更 {#changed}
+
+- `AsyncSqliteEmbeddingStore.query` 以 float32 为分数排名，并且只对最好的 `top_k` 排序，
+  此前它会把分数转换为 float64 并对所有文本块排序。对一百万个 384 维文本块的查询，打分和排名
+  所需时间约为原来的一半，返回的命中结果及其顺序不变。
+
 ## [0.6.0] - 2026-09-27 {#060-2026-09-27}
 
 本版本改变了数据契约：实体提取器可以返回类型化实体，导出器接收每条记录及其实体，本库通过
@@ -46,7 +54,7 @@ sci-etl-core 的所有重要变更都记录在这里。格式遵循
 - `config`、`arxiv`、`xml`、`html` 和 `processors` extra。
 - `load_config(load_env=True)` 和 `load_config_async(load_env=True)`。
 
-### 变更 {#changed}
+### 变更 {#changed_1}
 
 - **破坏性变更：** 导出器在构造时接收目标位置，并实现 `write(record, entities)` 而不是
   `export(data, destination)`。流水线不再接受 `destination`。
@@ -102,7 +110,7 @@ sci-etl-core 的所有重要变更都记录在这里。格式遵循
   `AsyncLLMClient` 都提供 `response_format`，默认为 `{"type": "json_object"}`。
   `response_cache_key` 以关键字形式接受这三者。
 
-### 变更 {#changed_1}
+### 变更 {#changed_2}
 
 - 空的 LLM 回复现在会使记录失败，而不是使其落定。`AsyncOpenAICompatibleClient.complete_json`
   在过去返回 `{}` 的地方抛出 `LLMError`，因此流水线会在下一次运行时重试该记录，而不是在什么
@@ -163,7 +171,7 @@ sci-etl-core 的所有重要变更都记录在这里。格式遵循
 - `LegacyExtractorAdapter`，可在为 0.4 编写的提取器完成移植之前运行它。它一推出即为弃用
   状态。
 
-### 变更 {#changed_2}
+### 变更 {#changed_3}
 
 - **破坏性变更：** `AsyncExtractor.fetch_page(query, cursor, page_size)` 取代了 `search` 和
   `parse_listing`。流水线现在会自行跳过已处理的记录。
@@ -212,7 +220,7 @@ sci-etl-core 的所有重要变更都记录在这里。格式遵循
 
 ## [0.4.1] - 2026-09-25 {#041-2026-09-25}
 
-### 变更 {#changed_3}
+### 变更 {#changed_4}
 
 - `HttpConfig.user_agent` 和 `build_async_client` 默认使用
   `sci-etl-core/<installed version>`，而不是 `sci-etl-core/0.1`。
@@ -276,7 +284,7 @@ sci-etl-core 的所有重要变更都记录在这里。格式遵循
 - `AsyncSimilarArticleFinder.find_best_chunks` 返回每篇文章最好的文本块（包含文本）。
   `SlidingWindowChunker` 提供 `chunk_words` 和 `overlap_words`。
 
-### 变更 {#changed_4}
+### 变更 {#changed_5}
 
 - `PipelineConfig.max_records` 现在是 `total_limit`，`max_workers` 现在是
   `max_concurrency`。旧的 YAML 键和属性在 0.5.0 之前仍可使用并发出 `DeprecationWarning`；
@@ -327,7 +335,7 @@ sci-etl-core 的所有重要变更都记录在这里。格式遵循
 - `search` extra。它不安装任何东西，因为检索只需要标准库；它让依赖文件可以说明为什么需要这个
   包。
 
-### 变更 {#changed_5}
+### 变更 {#changed_6}
 
 - `AsyncETLPipeline(memory_ingestor=)` 接受任何 `MemoryIngestor`。记忆摄取期间的
   `SearchStoreError` 会被记录，该记录的实体仍会被导出，与嵌入故障的处理方式相同。
@@ -367,7 +375,7 @@ sci-etl-core 的所有重要变更都记录在这里。格式遵循
 - ruff 和 mypy 在 CI 中运行，`lint` extra 用于在本地安装它们。
 - 本更新日志。
 
-### 变更 {#changed_6}
+### 变更 {#changed_7}
 
 - 聊天和嵌入客户端中关闭了 OpenAI SDK 内置的重试，因此 `max_retries` 现在就是总尝试次数。过去
   SDK 可能会自行把每次尝试再重试一遍。
@@ -397,7 +405,7 @@ sci-etl-core 的所有重要变更都记录在这里。格式遵循
 - `PipelineConfig.page_size` 和 `PipelineConfig.search_delay`。
 - 对每个配置部分进行范围校验。
 
-### 变更 {#changed_7}
+### 变更 {#changed_8}
 
 - 发布工作流会把构建产物上传到已存在的 GitHub 发布，而不是失败。
 
@@ -415,7 +423,8 @@ sci-etl-core 的所有重要变更都记录在这里。格式遵循
 PDF、LaTeX 和 HTML 解析器、CSV、SQL 和 Plotly 导出器、数据框处理器和校验器、文件和 SQLite
 状态、语义记忆，以及 udg-catalogue 迁移指南。
 
-[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/xueromll/sci-etl-core/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/xueromll/sci-etl-core/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/xueromll/sci-etl-core/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/xueromll/sci-etl-core/compare/v0.4.0...v0.4.1

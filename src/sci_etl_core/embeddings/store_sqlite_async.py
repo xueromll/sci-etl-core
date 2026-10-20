@@ -201,12 +201,17 @@ class AsyncSqliteEmbeddingStore(AsyncEmbeddingStore):
             vectors = self._snapshot(connection, query_vector.size)
             if not vectors.rowids.size:
                 return []
-            scores = (vectors.matrix @ query_vector).astype(np.float64)
-            usable = np.isfinite(scores) & (scores >= min_score)
+            scores = vectors.matrix @ query_vector
+            usable = np.isfinite(scores)
             if exclude_record_id is not None:
                 usable &= vectors.record_ids != exclude_record_id
             kept = np.flatnonzero(usable)
+            if top_k < kept.size:
+                kept_scores = scores[kept]
+                cutoff = np.partition(kept_scores, kept.size - top_k)[kept.size - top_k]
+                kept = kept[kept_scores >= cutoff]
             ranked = kept[np.argsort(-scores[kept], kind="stable")][:top_k]
+            ranked = ranked[scores[ranked].astype(np.float64) >= min_score]
             passages = _read_passages(connection, [int(vectors.rowids[index]) for index in ranked])
         hits: list[SearchHit] = []
         for index in ranked:
