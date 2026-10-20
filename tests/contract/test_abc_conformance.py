@@ -23,6 +23,7 @@ from sci_etl_core.llm.async_base import AsyncLLMClient
 from sci_etl_core.llm.extraction_async import AsyncEntityExtractor, AsyncLLMEntityExtractor
 from sci_etl_core.llm.openai_compatible_async import AsyncOpenAICompatibleClient
 from sci_etl_core.llm.relevance_async import AsyncLLMRelevanceFilter, AsyncRelevanceFilter
+from sci_etl_core.llm.relevance_cascade import AsyncCascadingRelevanceFilter
 from sci_etl_core.llm.relevance_embedding_async import AsyncEmbeddingRelevanceFilter
 from sci_etl_core.parsers.base import Parser, TableParser
 from sci_etl_core.parsers.html import HtmlTextParser
@@ -72,6 +73,7 @@ CASES: list[tuple[type, type]] = [
     (AsyncStateManager, AsyncFileStateManager),
     (AsyncRelevanceFilter, AsyncLLMRelevanceFilter),
     (AsyncRelevanceFilter, AsyncEmbeddingRelevanceFilter),
+    (AsyncRelevanceFilter, AsyncCascadingRelevanceFilter),
     (AsyncEntityExtractor, AsyncLLMEntityExtractor),
     (AsyncStateManager, AsyncSqliteStateManager),
     (AsyncEmbedder, AsyncOpenAIEmbedder),

@@ -8,6 +8,8 @@
 
 ::: sci_etl_core.llm.relevance_async
 
+::: sci_etl_core.llm.relevance_cascade
+
 ::: sci_etl_core.llm.relevance_embedding_async
 
 ::: sci_etl_core.llm.extraction_async

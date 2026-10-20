@@ -167,6 +167,7 @@ ideas.
 | truncated | усечённая | truncada | 截断 | مقتطعة |
 | newest-first | «сначала новые» | de más recientes primero | 最新优先 | من الأحدث |
 | relevance filter | фильтр релевантности | filtro de relevancia | 相关性过滤器 | مرشح الصلة |
+| cascading relevance filters | каскад фильтров релевантности | filtros de relevancia en cascada | 级联相关性过滤器 | مرشحات الصلة المتسلسلة |
 | entity | сущность | entidad | 实体 | الكيان |
 | entity extractor | экстрактор сущностей | extractor de entidades | 实体提取器 | مستخرِج الكيانات |
 | exporter | экспортёр | exportador | 导出器 | المصدِّر |

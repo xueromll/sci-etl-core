@@ -47,7 +47,7 @@ Backfill:  AsyncEmbeddingStore.iter_records --> merge_passages --> AsyncTextSear
 | Parse | `Parser`, `TableParser` | `PdfPlumberParser`, `LatexTarballParser`, `HtmlTextParser`, `DocxParser`, `JatsXmlParser` | `sci_etl_core.parsers` |
 | LLM | `AsyncLLMClient` | `AsyncOpenAICompatibleClient`, `CachingLLMClient` | `sci_etl_core.llm` |
 | LLM cache | `AsyncLLMResponseCache` | `InMemoryLLMResponseCache`, `AsyncSqliteLLMResponseCache` | `sci_etl_core.llm` |
-| Relevance | `AsyncRelevanceFilter` | `AsyncLLMRelevanceFilter`, `AsyncEmbeddingRelevanceFilter` | `sci_etl_core.llm` |
+| Relevance | `AsyncRelevanceFilter` | `AsyncLLMRelevanceFilter`, `AsyncEmbeddingRelevanceFilter`, `AsyncCascadingRelevanceFilter` | `sci_etl_core.llm` |
 | Entities | `AsyncEntityExtractor` | `AsyncLLMEntityExtractor` (dicts, or Pydantic models with `schema=`) | `sci_etl_core.llm` |
 | Export | `AsyncExporter` | `AsyncCsvExporter`, `AsyncJsonlExporter`, `AsyncClaimStoreExporter` | `sci_etl_core.exporters`, `sci_etl_core.claims` |
 | Claims (provisional) | `AsyncClaimStore`, `AsyncRejectionStore` | `AsyncLLMClaimExtractor`; `InMemoryClaimStore`, `AsyncSqliteClaimStore`; `InMemoryRejectionStore`, `AsyncSqliteRejectionStore`; `locate_quote` | `sci_etl_core.claims` |

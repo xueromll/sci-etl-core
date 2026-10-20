@@ -59,7 +59,7 @@ Backfill:  AsyncEmbeddingStore.iter_records --> merge_passages --> AsyncTextSear
 | التحليل | `Parser`، `TableParser` | `PdfPlumberParser`، `LatexTarballParser`، `HtmlTextParser`، `DocxParser`، `JatsXmlParser` | `sci_etl_core.parsers` |
 | النموذج اللغوي | `AsyncLLMClient` | `AsyncOpenAICompatibleClient`، `CachingLLMClient` | `sci_etl_core.llm` |
 | ذاكرة التخزين المؤقت للنموذج اللغوي | `AsyncLLMResponseCache` | `InMemoryLLMResponseCache`، `AsyncSqliteLLMResponseCache` | `sci_etl_core.llm` |
-| الصلة | `AsyncRelevanceFilter` | `AsyncLLMRelevanceFilter`، `AsyncEmbeddingRelevanceFilter` | `sci_etl_core.llm` |
+| الصلة | `AsyncRelevanceFilter` | `AsyncLLMRelevanceFilter`، `AsyncEmbeddingRelevanceFilter`، `AsyncCascadingRelevanceFilter` | `sci_etl_core.llm` |
 | الكيانات | `AsyncEntityExtractor` | `AsyncLLMEntityExtractor` (قواميس، أو نماذج Pydantic مع `schema=`) | `sci_etl_core.llm` |
 | التصدير | `AsyncExporter` | `AsyncCsvExporter`، `AsyncJsonlExporter`، `AsyncClaimStoreExporter` | `sci_etl_core.exporters`، `sci_etl_core.claims` |
 | الادعاءات (مؤقتة) | `AsyncClaimStore`، `AsyncRejectionStore` | `AsyncLLMClaimExtractor`؛ `InMemoryClaimStore`، `AsyncSqliteClaimStore`؛ `InMemoryRejectionStore`، `AsyncSqliteRejectionStore`؛ `locate_quote` | `sci_etl_core.claims` |

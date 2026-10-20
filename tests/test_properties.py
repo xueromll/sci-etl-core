@@ -29,6 +29,8 @@ from sci_etl_core.embeddings.store_sqlite_async import AsyncSqliteEmbeddingStore
 from sci_etl_core.exceptions import SearchQueryError
 from sci_etl_core.exporters.csv_async import AsyncCsvExporter
 from sci_etl_core.extractors.arxiv_async import AsyncArxivExtractor
+from sci_etl_core.llm.relevance_async import AsyncRelevanceFilter
+from sci_etl_core.llm.relevance_cascade import AsyncCascadingRelevanceFilter
 from sci_etl_core.models import RawRecord
 from sci_etl_core.parsers.reference_trimmer import trim_after_references
 from sci_etl_core.processors.dedup import DeduplicationStep, NeighborMatcher
@@ -1165,3 +1167,27 @@ class TestSplitMarkersProperties:
         for start, end in spans:
             assert previous_end <= start < end <= len(plain)
             previous_end = end
+
+
+class _ScriptedVerdict(AsyncRelevanceFilter):
+    def __init__(self, index: int, verdict: bool, calls: list[int]) -> None:
+        self._index = index
+        self._verdict = verdict
+        self._calls = calls
+
+    async def is_relevant(self, record):
+        self._calls.append(self._index)
+        return self._verdict
+
+
+class TestCascadingRelevanceFilterProperties:
+    @given(verdicts=st.lists(st.booleans(), min_size=1, max_size=8))
+    def test_verdict_is_all_accept_and_calls_stop_at_the_first_rejection(self, verdicts):
+        calls: list[int] = []
+        cascade = AsyncCascadingRelevanceFilter(
+            *(_ScriptedVerdict(index, verdict, calls) for index, verdict in enumerate(verdicts))
+        )
+        result = asyncio.run(cascade.is_relevant(RawRecord(record_id="r", title="T", abstract="A")))
+        assert result is all(verdicts)
+        stop = verdicts.index(False) + 1 if False in verdicts else len(verdicts)
+        assert calls == list(range(stop))

@@ -77,6 +77,7 @@ _EXPORTS: dict[str, str] = {
     "AsyncOpenAICompatibleClient": "sci_etl_core.llm.openai_compatible_async",
     "AsyncLLMRelevanceFilter": "sci_etl_core.llm.relevance_async",
     "AsyncRelevanceFilter": "sci_etl_core.llm.relevance_async",
+    "AsyncCascadingRelevanceFilter": "sci_etl_core.llm.relevance_cascade",
     "AsyncEmbeddingRelevanceFilter": "sci_etl_core.llm.relevance_embedding_async",
     "RunMetrics": "sci_etl_core.observability",
     "ListingPage": "sci_etl_core.models",
@@ -166,6 +167,7 @@ if TYPE_CHECKING:
     from sci_etl_core.llm.extraction_async import AsyncEntityExtractor, AsyncLLMEntityExtractor
     from sci_etl_core.llm.openai_compatible_async import AsyncOpenAICompatibleClient
     from sci_etl_core.llm.relevance_async import AsyncLLMRelevanceFilter, AsyncRelevanceFilter
+    from sci_etl_core.llm.relevance_cascade import AsyncCascadingRelevanceFilter
     from sci_etl_core.llm.relevance_embedding_async import AsyncEmbeddingRelevanceFilter
     from sci_etl_core.models import ListingPage, PipelineMetadata, RawRecord, TokenUsage
     from sci_etl_core.observability import RunMetrics

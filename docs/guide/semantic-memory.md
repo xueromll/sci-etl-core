@@ -80,6 +80,51 @@ relevance_filter = AsyncEmbeddingRelevanceFilter(
 )
 ```
 
+## Cascading relevance filters
+
+`AsyncCascadingRelevanceFilter` runs relevance filters in order and stops at
+the first rejection, so a cheap filter screens records before an expensive one
+sees them. Here only the records the embedding filter keeps reach the LLM:
+
+```python
+import os
+
+from sci_etl_core import (
+    AsyncCascadingRelevanceFilter,
+    AsyncEmbeddingRelevanceFilter,
+    AsyncLLMRelevanceFilter,
+    AsyncOpenAICompatibleClient,
+)
+
+llm = AsyncOpenAICompatibleClient(
+    api_key=os.environ["LLM_API_KEY"],
+    base_url="https://api.openai.com/v1",
+    model="gpt-4o-mini",
+)
+relevance_filter = AsyncCascadingRelevanceFilter(
+    AsyncEmbeddingRelevanceFilter(
+        embedder=embedder,
+        reference_texts=["ultra-diffuse galaxies", "low surface brightness galaxies"],
+    ),
+    AsyncLLMRelevanceFilter(
+        llm_client=llm,
+        system_prompt=(
+            "Decide whether the paper reports measurements of galaxies. "
+            'Reply with JSON: {"relevant": true} or {"relevant": false}.'
+        ),
+    ),
+)
+```
+
+- **Verdict.** A record is relevant only when every filter accepts it. The
+  filters after the first rejection are not called.
+- **Failures.** An exception from a filter propagates unchanged, and the
+  filters after it are not called; it never counts as a rejection. Each
+  filter's own `default_on_error` decides whether its faults let the record
+  through or raise.
+- **Resources.** The cascade closes nothing and reports no tokens itself: list
+  `llm` and `embedder` in `closeables` and `usage_sources` as usual.
+
 ## Searching by keyword too
 
 To index the same records for Boolean search as well, see

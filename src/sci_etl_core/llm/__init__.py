@@ -12,6 +12,7 @@ _EXPORTS: dict[str, str] = {
     "entity_list_schema": "sci_etl_core.llm.extraction_async",
     "AsyncRelevanceFilter": "sci_etl_core.llm.relevance_async",
     "AsyncLLMRelevanceFilter": "sci_etl_core.llm.relevance_async",
+    "AsyncCascadingRelevanceFilter": "sci_etl_core.llm.relevance_cascade",
     "AsyncEmbeddingRelevanceFilter": "sci_etl_core.llm.relevance_embedding_async",
     "AsyncLLMResponseCache": "sci_etl_core.llm.cache_async",
     "AsyncSqliteLLMResponseCache": "sci_etl_core.llm.cache_async",
@@ -37,4 +38,5 @@ if TYPE_CHECKING:
     from sci_etl_core.llm.extraction_async import AsyncEntityExtractor, AsyncLLMEntityExtractor, entity_list_schema
     from sci_etl_core.llm.openai_compatible_async import AsyncOpenAICompatibleClient
     from sci_etl_core.llm.relevance_async import AsyncLLMRelevanceFilter, AsyncRelevanceFilter
+    from sci_etl_core.llm.relevance_cascade import AsyncCascadingRelevanceFilter
     from sci_etl_core.llm.relevance_embedding_async import AsyncEmbeddingRelevanceFilter

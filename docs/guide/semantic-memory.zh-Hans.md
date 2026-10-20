@@ -70,6 +70,44 @@ relevance_filter = AsyncEmbeddingRelevanceFilter(
 )
 ```
 
+## 级联相关性过滤器 {#cascading-relevance-filters}
+
+`AsyncCascadingRelevanceFilter` 按顺序运行相关性过滤器，并在第一次拒绝时停止，这样廉价的过滤器先筛选记录，昂贵的过滤器只看到留下的记录。在下面的例子中，只有嵌入过滤器保留的记录才会交给 LLM：
+
+```python
+import os
+
+from sci_etl_core import (
+    AsyncCascadingRelevanceFilter,
+    AsyncEmbeddingRelevanceFilter,
+    AsyncLLMRelevanceFilter,
+    AsyncOpenAICompatibleClient,
+)
+
+llm = AsyncOpenAICompatibleClient(
+    api_key=os.environ["LLM_API_KEY"],
+    base_url="https://api.openai.com/v1",
+    model="gpt-4o-mini",
+)
+relevance_filter = AsyncCascadingRelevanceFilter(
+    AsyncEmbeddingRelevanceFilter(
+        embedder=embedder,
+        reference_texts=["ultra-diffuse galaxies", "low surface brightness galaxies"],
+    ),
+    AsyncLLMRelevanceFilter(
+        llm_client=llm,
+        system_prompt=(
+            "Decide whether the paper reports measurements of galaxies. "
+            'Reply with JSON: {"relevant": true} or {"relevant": false}.'
+        ),
+    ),
+)
+```
+
+- **判定。** 只有所有过滤器都接受时，记录才算相关。第一次拒绝之后的过滤器不会被调用。
+- **故障。** 过滤器抛出的异常会原样传播，其后的过滤器不会被调用；异常从不算作拒绝。每个过滤器自己的 `default_on_error` 决定它的故障是放行记录还是抛出异常。
+- **资源。** 级联相关性过滤器不关闭任何东西，自身也不报告 token 用量：像平常一样把 `llm` 和 `embedder` 列入 `closeables` 和 `usage_sources`。
+
 ## 同时按关键词检索 {#searching-by-keyword-too}
 
 若要让相同的记录也支持布尔检索，请参阅[本地检索与发现](search/index.md)。其 SQLite 文本

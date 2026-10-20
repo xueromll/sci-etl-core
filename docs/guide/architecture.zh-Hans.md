@@ -47,7 +47,7 @@ Backfill:  AsyncEmbeddingStore.iter_records --> merge_passages --> AsyncTextSear
 | 解析 | `Parser`、`TableParser` | `PdfPlumberParser`、`LatexTarballParser`、`HtmlTextParser`、`DocxParser`、`JatsXmlParser` | `sci_etl_core.parsers` |
 | LLM | `AsyncLLMClient` | `AsyncOpenAICompatibleClient`、`CachingLLMClient` | `sci_etl_core.llm` |
 | LLM 缓存 | `AsyncLLMResponseCache` | `InMemoryLLMResponseCache`、`AsyncSqliteLLMResponseCache` | `sci_etl_core.llm` |
-| 相关性 | `AsyncRelevanceFilter` | `AsyncLLMRelevanceFilter`、`AsyncEmbeddingRelevanceFilter` | `sci_etl_core.llm` |
+| 相关性 | `AsyncRelevanceFilter` | `AsyncLLMRelevanceFilter`、`AsyncEmbeddingRelevanceFilter`、`AsyncCascadingRelevanceFilter` | `sci_etl_core.llm` |
 | 实体 | `AsyncEntityExtractor` | `AsyncLLMEntityExtractor`（字典，或通过 `schema=` 使用 Pydantic 模型） | `sci_etl_core.llm` |
 | 导出 | `AsyncExporter` | `AsyncCsvExporter`、`AsyncJsonlExporter`、`AsyncClaimStoreExporter` | `sci_etl_core.exporters`、`sci_etl_core.claims` |
 | 论断（临时性 API） | `AsyncClaimStore`、`AsyncRejectionStore` | `AsyncLLMClaimExtractor`；`InMemoryClaimStore`、`AsyncSqliteClaimStore`；`InMemoryRejectionStore`、`AsyncSqliteRejectionStore`；`locate_quote` | `sci_etl_core.claims` |

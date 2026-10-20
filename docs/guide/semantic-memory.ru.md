@@ -86,6 +86,52 @@ relevance_filter = AsyncEmbeddingRelevanceFilter(
 )
 ```
 
+## Каскад фильтров релевантности {#cascading-relevance-filters}
+
+`AsyncCascadingRelevanceFilter` запускает фильтры релевантности по порядку и
+останавливается на первом отклонении, так что дешёвый фильтр отсеивает записи
+до того, как их увидит дорогой. Здесь до LLM доходят только записи, которые
+оставил фильтр на эмбеддингах:
+
+```python
+import os
+
+from sci_etl_core import (
+    AsyncCascadingRelevanceFilter,
+    AsyncEmbeddingRelevanceFilter,
+    AsyncLLMRelevanceFilter,
+    AsyncOpenAICompatibleClient,
+)
+
+llm = AsyncOpenAICompatibleClient(
+    api_key=os.environ["LLM_API_KEY"],
+    base_url="https://api.openai.com/v1",
+    model="gpt-4o-mini",
+)
+relevance_filter = AsyncCascadingRelevanceFilter(
+    AsyncEmbeddingRelevanceFilter(
+        embedder=embedder,
+        reference_texts=["ultra-diffuse galaxies", "low surface brightness galaxies"],
+    ),
+    AsyncLLMRelevanceFilter(
+        llm_client=llm,
+        system_prompt=(
+            "Decide whether the paper reports measurements of galaxies. "
+            'Reply with JSON: {"relevant": true} or {"relevant": false}.'
+        ),
+    ),
+)
+```
+
+- **Вердикт.** Запись релевантна, только если её принимают все фильтры.
+  Фильтры после первого отклонения не вызываются.
+- **Сбои.** Исключение фильтра пробрасывается без изменений, и фильтры после
+  него не вызываются; оно никогда не считается отклонением. Собственный
+  `default_on_error` каждого фильтра решает, пропускают ли его сбои запись
+  или поднимают исключение.
+- **Ресурсы.** Каскад ничего не закрывает и сам не сообщает о расходе токенов:
+  перечислите `llm` и `embedder` в `closeables` и `usage_sources`, как обычно.
+
 ## Поиск ещё и по ключевым словам {#searching-by-keyword-too}
 
 Чтобы индексировать те же записи и для булева поиска, см. раздел

@@ -86,6 +86,53 @@ relevance_filter = AsyncEmbeddingRelevanceFilter(
 )
 ```
 
+## Filtros de relevancia en cascada {#cascading-relevance-filters}
+
+`AsyncCascadingRelevanceFilter` ejecuta filtros de relevancia en orden y se
+detiene en el primer rechazo, de modo que un filtro barato criba los registros
+antes de que los vea uno caro. Aquí solo llegan al LLM los registros que
+conserva el filtro de embeddings:
+
+```python
+import os
+
+from sci_etl_core import (
+    AsyncCascadingRelevanceFilter,
+    AsyncEmbeddingRelevanceFilter,
+    AsyncLLMRelevanceFilter,
+    AsyncOpenAICompatibleClient,
+)
+
+llm = AsyncOpenAICompatibleClient(
+    api_key=os.environ["LLM_API_KEY"],
+    base_url="https://api.openai.com/v1",
+    model="gpt-4o-mini",
+)
+relevance_filter = AsyncCascadingRelevanceFilter(
+    AsyncEmbeddingRelevanceFilter(
+        embedder=embedder,
+        reference_texts=["ultra-diffuse galaxies", "low surface brightness galaxies"],
+    ),
+    AsyncLLMRelevanceFilter(
+        llm_client=llm,
+        system_prompt=(
+            "Decide whether the paper reports measurements of galaxies. "
+            'Reply with JSON: {"relevant": true} or {"relevant": false}.'
+        ),
+    ),
+)
+```
+
+- **Veredicto.** Un registro es relevante solo cuando todos los filtros lo
+  aceptan. Los filtros posteriores al primer rechazo no se llaman.
+- **Fallos.** Una excepción de un filtro se propaga sin cambios, y los
+  filtros posteriores no se llaman; nunca cuenta como un rechazo. El propio
+  `default_on_error` de cada filtro decide si sus fallos dejan pasar el
+  registro o lanzan la excepción.
+- **Recursos.** La cascada no cierra nada ni informa por sí misma del consumo
+  de tokens: incluye `llm` y `embedder` en `closeables` y `usage_sources`,
+  como de costumbre.
+
 ## Buscar también por palabras clave {#searching-by-keyword-too}
 
 Para indexar los mismos registros también para la búsqueda booleana, consulta

@@ -78,6 +78,50 @@ relevance_filter = AsyncEmbeddingRelevanceFilter(
 )
 ```
 
+## مرشحات الصلة المتسلسلة {#cascading-relevance-filters}
+
+يشغّل `AsyncCascadingRelevanceFilter` مرشحات الصلة بالترتيب ويتوقف عند أول
+رفض، فيغربل مرشح رخيص السجلات قبل أن يراها مرشح مكلف. هنا لا يصل إلى
+النموذج اللغوي إلا السجلات التي يُبقيها مرشح التضمينات:
+
+```python
+import os
+
+from sci_etl_core import (
+    AsyncCascadingRelevanceFilter,
+    AsyncEmbeddingRelevanceFilter,
+    AsyncLLMRelevanceFilter,
+    AsyncOpenAICompatibleClient,
+)
+
+llm = AsyncOpenAICompatibleClient(
+    api_key=os.environ["LLM_API_KEY"],
+    base_url="https://api.openai.com/v1",
+    model="gpt-4o-mini",
+)
+relevance_filter = AsyncCascadingRelevanceFilter(
+    AsyncEmbeddingRelevanceFilter(
+        embedder=embedder,
+        reference_texts=["ultra-diffuse galaxies", "low surface brightness galaxies"],
+    ),
+    AsyncLLMRelevanceFilter(
+        llm_client=llm,
+        system_prompt=(
+            "Decide whether the paper reports measurements of galaxies. "
+            'Reply with JSON: {"relevant": true} or {"relevant": false}.'
+        ),
+    ),
+)
+```
+
+- **الحكم.** يكون السجل ذا صلة فقط عندما تقبله كل المرشحات. ولا تُستدعى
+  المرشحات التي تلي أول رفض.
+- **الأعطال.** ينتشر الاستثناء الصادر عن مرشح دون تغيير، ولا تُستدعى
+  المرشحات التي تليه؛ ولا يُحسب رفضًا أبدًا. ويقرر `default_on_error` الخاص
+  بكل مرشح ما إذا كانت أعطاله تُمرّر السجل أم تطلق استثناءً.
+- **الموارد.** لا تغلق مرشحات الصلة المتسلسلة شيئًا ولا تبلّغ بنفسها عن استهلاك
+  الرموز: أدرج `llm` و`embedder` في `closeables` و`usage_sources` كالمعتاد.
+
 ## البحث بالكلمات المفتاحية أيضًا {#searching-by-keyword-too}
 
 لفهرسة السجلات نفسها للبحث البولياني أيضًا، راجع
