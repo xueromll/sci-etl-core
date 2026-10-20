@@ -3047,8 +3047,9 @@
   غير مضبوط)، مع <code>AsyncMock</code> أو التثبيتة <code>mocker</code>.</li>
 <li><strong>لا شبكة حقيقية ولا انتظار للتراجع.</strong> حاكِ عملاء HTTP والنموذج اللغوي والتضمينات، واحقن
   <code>sleep=AsyncMock()</code> لتخطي فترات التراجع.</li>
-<li><strong>اختبارات العقود.</strong> لكل تطبيق لصنف مجرد عام حالة في
-  <code>tests/contract/test_abc_conformance.py</code>؛ أضف حالة لكل تطبيق جديد.</li>
+<li><strong>اختبارات العقود.</strong> يشغّل المستخرِج أو مدير الحالة أو المصدِّر أو المخزن المتجهي الجديد
+  مجموعته من <code>sci_etl_core.testing</code> تحت <code>tests/contract/</code>. ويتحقق mypy من أن تواقيع كل
+  تطبيق تطابق صنفه المجرد.</li>
 <li><strong>اختبارات الخصائص.</strong> ضع الثوابت، ولا سيما تلك التي يجب أن تتشاركها واجهتان خلفيتان مثل
   مخزنَي التضمينات في الذاكرة وفي SQLite، في اختبارات Hypothesis في
   <code>tests/test_properties.py</code>.</li>
@@ -3313,8 +3314,7 @@ ruff مجموعات القواعد <code>ASYNC</code> و<code>UP</code> و<code>
 <code>tests/contract/</code>.</p>
 <p>سجّل الصنف الجديد في خريطة <code>_EXPORTS</code> واستيرادات <code>TYPE_CHECKING</code> في حزمته الفرعية. وتحتاج
 الوحدة الجديدة أيضًا إلى إدخال في صفحتها تحت <code>docs/reference/</code>. وإن كان صنفًا أساسيًا يتعامل معه
-المستخدمون، فأضفه بالطريقة نفسها إلى <code>sci_etl_core/__init__.py</code>. وأضف حالة له في
-<code>tests/contract/test_abc_conformance.py</code>.</p>
+المستخدمون، فأضفه بالطريقة نفسها إلى <code>sci_etl_core/__init__.py</code>.</p>
 <p>برمجة ممتعة، وشكرًا لمساهمتك!</p>
 
 

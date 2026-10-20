@@ -2575,6 +2575,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#upgrading-to-07" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Actualizar a la 0.7
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#upgrading-to-06" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2989,6 +3000,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#upgrading-to-07" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Actualizar a la 0.7
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#upgrading-to-06" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3242,7 +3264,7 @@
 nueva versión de <code>sci-etl-core</code>, empezando por la más reciente.
 <a href="../changelog/">CHANGELOG.md</a> enumera todos los cambios, incluidas las
 novedades que no requieren ninguna acción.</p>
-<p>Fija un intervalo de versiones menores, como <code>sci-etl-core&gt;=0.6.0,&lt;0.7</code>, y sube
+<p>Fija un intervalo de versiones menores, como <code>sci-etl-core&gt;=0.7.0,&lt;0.8</code>, y sube
 el límite superior cuando tus pruebas pasen con la siguiente versión menor. Al
 pasar de una versión menor a otra posterior, aplica cada sección intermedia,
 empezando por la más antigua.</p>
@@ -3250,6 +3272,7 @@ empezando por la más antigua.</p>
 existente, sigue el ejemplo práctico de
 <a href="https://xueromll.github.io/sci-etl-core/latest/guide/migrating-a-pipeline/">Migrar un pipeline</a>.</p>
 <ul>
+<li><a href="#upgrading-to-07">Actualizar a la 0.7</a></li>
 <li><a href="#upgrading-to-06">Actualizar a la 0.6</a></li>
 <li><a href="#upgrading-to-051">Actualizar a la 0.5.1</a></li>
 <li><a href="#upgrading-to-05">Actualizar a la 0.5</a></li>
@@ -3257,13 +3280,42 @@ existente, sigue el ejemplo práctico de
 <li><a href="#upgrading-to-03">Actualizar a la 0.3</a></li>
 </ul>
 <hr />
+<h2 id="upgrading-to-07">Actualizar a la 0.7<a class="headerlink" href="#upgrading-to-07" title="Permanent link">&para;</a></h2>
+<p>La 0.7 no rompe ninguna llamada existente ni declara obsoleto ningún nombre,
+así que el código existente no necesita cambios. Exige la nueva versión menor
+con los extras que uses:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>sci-etl-core[config,async,arxiv,llm,pdf,processors]&gt;=0.7.0,&lt;0.8
+</code></pre></div>
+<p>Los archivos y bases de datos de estado, las cachés del LLM, los almacenes de
+embeddings, los índices de texto y los almacenes de afirmaciones y de rechazos
+escritos por la 0.6 se abren sin cambios.</p>
+<p>Cambia un valor por defecto: la búsqueda híbrida toma 500 candidatos por rama
+en lugar de 100, así que los 20 primeros resultados fusionados casi siempre
+coinciden con lo que devolvería un grupo de candidatos sin límite. Un ajuste
+nuevo, <code>max_chunks</code>, de 2500 por defecto, limita la petición de fragmentos de
+la rama semántica. Para conservar el grupo anterior, fíjalo en la
+configuración:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">search</span><span class="p">:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">hybrid</span><span class="p">:</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">candidate_pool</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+</code></pre></div>
+<p>o pasa <code>params=HybridParams(candidate_pool=100)</code> a <code>AsyncHybridSearcher</code>.</p>
+<ul>
+<li>Un <code>AsyncTextSearchStore</code> propio hereda versiones funcionales de los nuevos
+  <code>rank</code>, <code>hydrate</code>, <code>filter_candidates</code>, <code>get_headers</code> y <code>count_matches</code>.
+  Sobrescribe <code>rank</code>, <code>hydrate</code> y <code>count_matches</code> para que un índice grande
+  sea rápido.</li>
+<li>Un gestor de estado propio puede implementar <code>forget(record_ids)</code>, que
+  describe el protocolo <code>Forgetting</code>, para admitir el reprocesamiento
+  selectivo.</li>
+</ul>
 <h2 id="upgrading-to-06">Actualizar a la 0.6<a class="headerlink" href="#upgrading-to-06" title="Permanent link">&para;</a></h2>
 <p>La 0.6 cambia el contrato de datos: lo que devuelve un extractor de entidades,
 cómo recibe las entidades un exportador, cómo registra mensajes la biblioteca
 y qué contiene una instalación base. Es la última versión antes de la 1.0 que
 rompe un contrato existente. Exige la nueva versión menor con los extras que
 uses:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>sci-etl-core[config,async,arxiv,llm,pdf,processors]&gt;=0.6.0,&lt;0.7
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>sci-etl-core[config,async,arxiv,llm,pdf,processors]&gt;=0.6.0,&lt;0.7
 </code></pre></div>
 <p>Los archivos y bases de datos de estado, las cachés del LLM, los almacenes de
 embeddings y los índices de texto escritos por la 0.5 se abren sin cambios.
@@ -3314,12 +3366,12 @@ locales.</p>
 <h3 id="env-files-are-read-only-when-asked">Los archivos <code>.env</code> solo se leen cuando se pide<a class="headerlink" href="#env-files-are-read-only-when-asked" title="Permanent link">&para;</a></h3>
 <p><code>load_config</code> y <code>load_config_async</code> ya no buscan un archivo <code>.env</code> de forma
 implícita. Pasa el archivo o pide la búsqueda:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseAppConfig</span><span class="p">,</span> <span class="n">load_config</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">config</span> <span class="o">=</span> <span class="n">load_config</span><span class="p">(</span><span class="n">BaseAppConfig</span><span class="p">,</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"config.yaml"</span><span class="p">),</span> <span class="n">load_env</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">config</span> <span class="o">=</span> <span class="n">load_config</span><span class="p">(</span><span class="n">BaseAppConfig</span><span class="p">,</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"config.yaml"</span><span class="p">),</span> <span class="n">Path</span><span class="p">(</span><span class="s2">".env"</span><span class="p">))</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseAppConfig</span><span class="p">,</span> <span class="n">load_config</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">config</span> <span class="o">=</span> <span class="n">load_config</span><span class="p">(</span><span class="n">BaseAppConfig</span><span class="p">,</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"config.yaml"</span><span class="p">),</span> <span class="n">load_env</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="n">config</span> <span class="o">=</span> <span class="n">load_config</span><span class="p">(</span><span class="n">BaseAppConfig</span><span class="p">,</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"config.yaml"</span><span class="p">),</span> <span class="n">Path</span><span class="p">(</span><span class="s2">".env"</span><span class="p">))</span>
 </code></pre></div>
 <p>Sin ninguna de las dos opciones, la clave de la API ya debe estar en el
 entorno.</p>
@@ -3330,15 +3382,15 @@ pipeline llama a <code>open()</code> antes de la primera solicitud de listado, a
 entidades, a <code>flush()</code> después de cada página y a <code>aclose()</code> cuando termina la
 ejecución, termine como termine. Un exportador recibe su destino al
 construirse, así que el argumento <code>destination=</code> del pipeline ha desaparecido:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncCsvExporter</span><span class="p">,</span> <span class="n">AsyncETLPipeline</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">AsyncETLPipeline</span><span class="p">(</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">extractor</span><span class="p">,</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">relevance_filter</span><span class="p">,</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">entity_extractor</span><span class="p">,</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">AsyncCsvExporter</span><span class="p">(</span><span class="s2">"results.csv"</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"name"</span><span class="p">,</span> <span class="s2">"value_a"</span><span class="p">,</span> <span class="s2">"value_b"</span><span class="p">]),</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">state_manager</span><span class="p">,</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncCsvExporter</span><span class="p">,</span> <span class="n">AsyncETLPipeline</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">AsyncETLPipeline</span><span class="p">(</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="n">extractor</span><span class="p">,</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="n">relevance_filter</span><span class="p">,</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    <span class="n">entity_extractor</span><span class="p">,</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>    <span class="n">AsyncCsvExporter</span><span class="p">(</span><span class="s2">"results.csv"</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"name"</span><span class="p">,</span> <span class="s2">"value_a"</span><span class="p">,</span> <span class="s2">"value_b"</span><span class="p">]),</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    <span class="n">state_manager</span><span class="p">,</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="p">)</span>
 </code></pre></div>
 <p><code>AsyncCsvUpsertExporter</code> se ha eliminado. Su sustituto, <code>AsyncCsvExporter</code>, no
 fusiona filas: escribe una fila por entidad con el <code>record_id</code> del artículo
@@ -3346,14 +3398,14 @@ del que procede, guarda las demás claves en una columna <code>extra</code> y es
 valores sin cambios, de modo que un valor nunca se recorta, se convierte ni se
 pierde, y dos artículos que informan sobre un mismo objeto dan dos filas.
 Fusiona en el posprocesamiento, donde la elección es explícita:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.processors</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeduplicationStep</span><span class="p">,</span> <span class="n">DefaultKeyNormalizer</span><span class="p">,</span> <span class="n">NormalizationStep</span><span class="p">,</span> <span class="n">ProcessorChain</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">raw</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">"results.csv"</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="p">{</span><span class="s2">"record_id"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">:</span> <span class="nb">str</span><span class="p">})</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="n">one_row_per_name</span> <span class="o">=</span> <span class="n">ProcessorChain</span><span class="p">(</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="p">[</span><span class="n">NormalizationStep</span><span class="p">(</span><span class="s2">"name"</span><span class="p">,</span> <span class="n">DefaultKeyNormalizer</span><span class="p">()),</span> <span class="n">DeduplicationStep</span><span class="p">(</span><span class="s2">"_norm_key"</span><span class="p">)]</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="p">)</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.processors</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeduplicationStep</span><span class="p">,</span> <span class="n">DefaultKeyNormalizer</span><span class="p">,</span> <span class="n">NormalizationStep</span><span class="p">,</span> <span class="n">ProcessorChain</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">raw</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">"results.csv"</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="p">{</span><span class="s2">"record_id"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">:</span> <span class="nb">str</span><span class="p">})</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="n">one_row_per_name</span> <span class="o">=</span> <span class="n">ProcessorChain</span><span class="p">(</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    <span class="p">[</span><span class="n">NormalizationStep</span><span class="p">(</span><span class="s2">"name"</span><span class="p">,</span> <span class="n">DefaultKeyNormalizer</span><span class="p">()),</span> <span class="n">DeduplicationStep</span><span class="p">(</span><span class="s2">"_norm_key"</span><span class="p">)]</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="p">)</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
 </code></pre></div>
 <p>El archivo CSV se escribe cuando termina la ejecución; durante la ejecución,
 las páginas van a <code>results.csv.journal</code>, que la siguiente ejecución reproduce
@@ -3364,15 +3416,15 @@ empieza un archivo nuevo en lugar de apuntar el exportador a uno escrito por
 <code>AsyncJsonlExporter</code> escribe en su lugar una línea JSON por registro.</p>
 <p>Un exportador personalizado implementa <code>write</code> y, si usa búfer, fija
 <code>durable_writes = False</code> e implementa <code>flush</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncExporter</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">DatabaseExporter</span><span class="p">(</span><span class="n">AsyncExporter</span><span class="p">):</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database</span><span class="p">):</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">database</span> <span class="o">=</span> <span class="n">database</span>
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">,</span> <span class="n">entities</span><span class="p">):</span>
-<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">replace_rows</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">record_id</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">entities</span><span class="p">))</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncExporter</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">DatabaseExporter</span><span class="p">(</span><span class="n">AsyncExporter</span><span class="p">):</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database</span><span class="p">):</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">database</span> <span class="o">=</span> <span class="n">database</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">,</span> <span class="n">entities</span><span class="p">):</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">replace_rows</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">record_id</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">entities</span><span class="p">))</span>
 </code></pre></div>
 <p><code>write</code> debe ser idempotente, ya que un fallo puede repetir un registro, y un
 registro sin entidades debe borrar lo que guardó una escritura anterior. Un
@@ -3395,21 +3447,21 @@ a <code>extract_record(record, text)</code>, cuya implementación por defecto ll
 cambios. Un envoltorio alrededor de otro extractor debería delegar también
 <code>extract_record</code>, para seguir funcionando alrededor de un extractor que
 necesita el registro, como <code>AsyncLLMClaimExtractor</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncEntityExtractor</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">ValidatedEntityExtractor</span><span class="p">(</span><span class="n">AsyncEntityExtractor</span><span class="p">):</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inner</span><span class="p">,</span> <span class="n">validator</span><span class="p">):</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">inner</span> <span class="o">=</span> <span class="n">inner</span>
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">validator</span> <span class="o">=</span> <span class="n">validator</span>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">requires_record</span> <span class="o">=</span> <span class="n">inner</span><span class="o">.</span><span class="n">requires_record</span>
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">extract</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
-<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>        <span class="k">return</span> <span class="p">[</span><span class="n">entity</span> <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">validator</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(</span><span class="n">entity</span><span class="p">)]</span>
-<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>
-<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">extract_record</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
-<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>        <span class="n">entities</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner</span><span class="o">.</span><span class="n">extract_record</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
-<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>        <span class="k">return</span> <span class="p">[</span><span class="n">entity</span> <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">entities</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">validator</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(</span><span class="n">entity</span><span class="p">)]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncEntityExtractor</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">ValidatedEntityExtractor</span><span class="p">(</span><span class="n">AsyncEntityExtractor</span><span class="p">):</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inner</span><span class="p">,</span> <span class="n">validator</span><span class="p">):</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">inner</span> <span class="o">=</span> <span class="n">inner</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">validator</span> <span class="o">=</span> <span class="n">validator</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">requires_record</span> <span class="o">=</span> <span class="n">inner</span><span class="o">.</span><span class="n">requires_record</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">extract</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>        <span class="k">return</span> <span class="p">[</span><span class="n">entity</span> <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">validator</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(</span><span class="n">entity</span><span class="p">)]</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">extract_record</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>        <span class="n">entities</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner</span><span class="o">.</span><span class="n">extract_record</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>        <span class="k">return</span> <span class="p">[</span><span class="n">entity</span> <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">entities</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">validator</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(</span><span class="n">entity</span><span class="p">)]</span>
 </code></pre></div>
 <p>Ese envoltorio normalmente ya no es necesario: <code>AsyncLLMEntityExtractor</code>
 acepta un <code>validator</code>, registra cada rechazo con sus motivos y puede conservar
@@ -3426,19 +3478,19 @@ Un <code>AsyncLLMClient</code> personalizado que envuelve a otro debería reenvi
 Uno que ya calcula un motivo, como un método <code>rejection_reason</code>, puede
 sobrescribir <code>validate</code> en su lugar, y el motivo llega al registro y al almacén
 de rechazos:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.processors</span><span class="w"> </span><span class="kn">import</span> <span class="n">RecordValidator</span><span class="p">,</span> <span class="n">ValidationResult</span><span class="p">,</span> <span class="n">Violation</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">RangeValidator</span><span class="p">(</span><span class="n">RecordValidator</span><span class="p">):</span>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">is_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">record</span><span class="p">)</span><span class="o">.</span><span class="n">ok</span>
-<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
-<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>        <span class="n">radius</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"radius_kpc"</span><span class="p">)</span>
-<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>        <span class="k">if</span> <span class="n">radius</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="mf">0.1</span> <span class="o">&lt;=</span> <span class="nb">float</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">20.0</span><span class="p">:</span>
-<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>            <span class="n">violation</span> <span class="o">=</span> <span class="n">Violation</span><span class="p">(</span><span class="n">code</span><span class="o">=</span><span class="s2">"out-of-range"</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="s2">"radius_kpc"</span><span class="p">,</span> <span class="n">severity</span><span class="o">=</span><span class="s2">"error"</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="sa">f</span><span class="s2">"radius </span><span class="si">{</span><span class="n">radius</span><span class="si">}</span><span class="s2"> kpc"</span><span class="p">)</span>
-<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>            <span class="k">return</span> <span class="n">ValidationResult</span><span class="p">(</span><span class="n">violations</span><span class="o">=</span><span class="p">(</span><span class="n">violation</span><span class="p">,))</span>
-<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>        <span class="k">return</span> <span class="n">ValidationResult</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.processors</span><span class="w"> </span><span class="kn">import</span> <span class="n">RecordValidator</span><span class="p">,</span> <span class="n">ValidationResult</span><span class="p">,</span> <span class="n">Violation</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">RangeValidator</span><span class="p">(</span><span class="n">RecordValidator</span><span class="p">):</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">is_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">record</span><span class="p">)</span><span class="o">.</span><span class="n">ok</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>        <span class="n">radius</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"radius_kpc"</span><span class="p">)</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>        <span class="k">if</span> <span class="n">radius</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="mf">0.1</span> <span class="o">&lt;=</span> <span class="nb">float</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">20.0</span><span class="p">:</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>            <span class="n">violation</span> <span class="o">=</span> <span class="n">Violation</span><span class="p">(</span><span class="n">code</span><span class="o">=</span><span class="s2">"out-of-range"</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="s2">"radius_kpc"</span><span class="p">,</span> <span class="n">severity</span><span class="o">=</span><span class="s2">"error"</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="sa">f</span><span class="s2">"radius </span><span class="si">{</span><span class="n">radius</span><span class="si">}</span><span class="s2"> kpc"</span><span class="p">)</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>            <span class="k">return</span> <span class="n">ValidationResult</span><span class="p">(</span><span class="n">violations</span><span class="o">=</span><span class="p">(</span><span class="n">violation</span><span class="p">,))</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>        <span class="k">return</span> <span class="n">ValidationResult</span><span class="p">()</span>
 </code></pre></div>
 <h3 id="logging-goes-through-the-logging-module">El registro pasa por el módulo <code>logging</code><a class="headerlink" href="#logging-goes-through-the-logging-module" title="Permanent link">&para;</a></h3>
 <p>Se han eliminado todos los argumentos <code>logger=</code>: de <code>AsyncETLPipeline</code>,
@@ -3448,13 +3500,13 @@ de rechazos:</p>
 <code>sci_etl_core.log_utils</code>, y también <code>AsyncETLPipeline.log</code>. Cada módulo
 registra con su propio nombre por debajo del logger <code>sci_etl_core</code>, así que
 configura el registro en la aplicación:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>    <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="nb">format</span><span class="o">=</span><span class="s2">"[</span><span class="si">%(asctime)s</span><span class="s2">] [</span><span class="si">%(levelname)s</span><span class="s2">] </span><span class="si">%(name)s</span><span class="s2"> - </span><span class="si">%(message)s</span><span class="s2">"</span><span class="p">,</span>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>    <span class="n">handlers</span><span class="o">=</span><span class="p">[</span><span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="s2">"output/pipeline.log"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">),</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()],</span>
-<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>    <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>    <span class="nb">format</span><span class="o">=</span><span class="s2">"[</span><span class="si">%(asctime)s</span><span class="s2">] [</span><span class="si">%(levelname)s</span><span class="s2">] </span><span class="si">%(name)s</span><span class="s2"> - </span><span class="si">%(message)s</span><span class="s2">"</span><span class="p">,</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>    <span class="n">handlers</span><span class="o">=</span><span class="p">[</span><span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="s2">"output/pipeline.log"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">),</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()],</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="p">)</span>
 </code></pre></div>
 <p>Los mensajes conservan su redacción. <code>CachingLLMClient</code> aceptaba <code>logger</code> como
 cuarto argumento posicional; una llamada que lo pasaba por posición ahora falla
@@ -3515,7 +3567,7 @@ modo siguen marcados; solo una ejecución con un estado nuevo vuelve a ellos.</p
 <p>La 0.5 cambia cómo paginan los extractores, qué guarda el estado y cómo se
 construye el pipeline. Las entidades y los exportadores cambian en la 0.6.
 Exige la nueva versión menor y Python 3.11:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>sci-etl-core[async,llm,pdf]&gt;=0.5.0,&lt;0.6
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>sci-etl-core[async,llm,pdf]&gt;=0.5.0,&lt;0.6
 </code></pre></div>
 <p>El estado escrito por la 0.4 no necesita conversión. <code>AsyncSqliteStateManager</code>
 actualiza su base de datos en su sitio, y <code>AsyncFileStateManager</code> lee el
@@ -3529,27 +3581,27 @@ procesados, así que un extractor devuelve todas las entradas que puede leer.
 Una fuente que pagina por desplazamiento implementa también
 <code>cursor_for_offset</code>, lo que la convierte en un <code>OffsetListing</code>.</p>
 <p>Antes:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyExtractor</span><span class="p">(</span><span class="n">AsyncExtractor</span><span class="p">):</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">max_results</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">start_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>        <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">get_page</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">start_index</span><span class="p">,</span> <span class="n">max_results</span><span class="p">)</span>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parse_listing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw_listing</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">seen_ids</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">RawRecord</span><span class="p">],</span> <span class="nb">int</span><span class="p">]:</span>
-<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>        <span class="n">entries</span> <span class="o">=</span> <span class="n">parse</span><span class="p">(</span><span class="n">raw_listing</span><span class="p">)</span>
-<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>        <span class="k">return</span> <span class="p">[</span><span class="n">entry</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span> <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">record_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_ids</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyExtractor</span><span class="p">(</span><span class="n">AsyncExtractor</span><span class="p">):</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">max_results</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">start_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>        <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">get_page</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">start_index</span><span class="p">,</span> <span class="n">max_results</span><span class="p">)</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parse_listing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw_listing</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">seen_ids</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">RawRecord</span><span class="p">],</span> <span class="nb">int</span><span class="p">]:</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>        <span class="n">entries</span> <span class="o">=</span> <span class="n">parse</span><span class="p">(</span><span class="n">raw_listing</span><span class="p">)</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>        <span class="k">return</span> <span class="p">[</span><span class="n">entry</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span> <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">record_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_ids</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span>
 </code></pre></div>
 <p>Después:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyExtractor</span><span class="p">(</span><span class="n">AsyncExtractor</span><span class="p">):</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cursor_for_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">fetch_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cursor</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">page_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ListingPage</span><span class="p">:</span>
-<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>        <span class="n">offset</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">cursor</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">)</span>
-<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>        <span class="n">entries</span> <span class="o">=</span> <span class="n">parse</span><span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">get_page</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">page_size</span><span class="p">))</span>
-<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>        <span class="k">return</span> <span class="n">ListingPage</span><span class="p">(</span>
-<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>            <span class="n">records</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">entries</span><span class="p">),</span>
-<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>            <span class="n">entries</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">entries</span><span class="p">),</span>
-<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>            <span class="n">next_cursor</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">offset</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">entries</span><span class="p">))</span> <span class="k">if</span> <span class="n">entries</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>        <span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyExtractor</span><span class="p">(</span><span class="n">AsyncExtractor</span><span class="p">):</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cursor_for_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">fetch_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cursor</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">page_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ListingPage</span><span class="p">:</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>        <span class="n">offset</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">cursor</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">)</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>        <span class="n">entries</span> <span class="o">=</span> <span class="n">parse</span><span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">get_page</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">page_size</span><span class="p">))</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>        <span class="k">return</span> <span class="n">ListingPage</span><span class="p">(</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>            <span class="n">records</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">entries</span><span class="p">),</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>            <span class="n">entries</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">entries</span><span class="p">),</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>            <span class="n">next_cursor</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">offset</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">entries</span><span class="p">))</span> <span class="k">if</span> <span class="n">entries</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>        <span class="p">)</span>
 </code></pre></div>
 <p>Una fuente con tokens de continuación opacos devuelve el token como
 <code>next_cursor</code> y omite <code>cursor_for_offset</code>. Una fuente que se detiene en su
@@ -3560,13 +3612,13 @@ con un <code>DeprecationWarning</code>; la 0.6 elimina el adaptador.</p>
 <p>Un envoltorio que reenvía las llamadas a otro extractor, como uno que registra
 el progreso, reenvía <code>fetch_page</code>, y también <code>cursor_for_offset</code> cuando
 envuelve un <code>OffsetListing</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">LoggingExtractor</span><span class="p">(</span><span class="n">AsyncExtractor</span><span class="p">):</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cursor_for_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inner</span><span class="o">.</span><span class="n">cursor_for_offset</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">fetch_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cursor</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">page_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ListingPage</span><span class="p">:</span>
-<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Fetching listing page at cursor </span><span class="si">{</span><span class="n">cursor</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'start'</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>        <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inner</span><span class="o">.</span><span class="n">fetch_page</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">cursor</span><span class="p">,</span> <span class="n">page_size</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">LoggingExtractor</span><span class="p">(</span><span class="n">AsyncExtractor</span><span class="p">):</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cursor_for_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inner</span><span class="o">.</span><span class="n">cursor_for_offset</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">fetch_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cursor</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">page_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ListingPage</span><span class="p">:</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Fetching listing page at cursor </span><span class="si">{</span><span class="n">cursor</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'start'</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>        <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inner</span><span class="o">.</span><span class="n">fetch_page</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">cursor</span><span class="p">,</span> <span class="n">page_size</span><span class="p">)</span>
 </code></pre></div>
 <p><code>newest_first=True</code> y un <code>start_index</code> mayor que 0 necesitan un <code>OffsetListing</code>
 y, si no, lanzan <code>ValueError</code> antes de cualquier solicitud.
@@ -3580,8 +3632,8 @@ desplazamiento que guardó la 0.4 no es un cursor de OpenAlex.</p>
 <p><code>PipelineMetadata.cursor</code> sustituye a <code>last_start_index</code>. El código que lee la
 posición guardada lee el cursor, que es un desplazamiento decimal en el caso de
 un <code>OffsetListing</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">metadata</span> <span class="o">=</span> <span class="k">await</span> <span class="n">state</span><span class="o">.</span><span class="n">load_metadata</span><span class="p">()</span>
-<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="n">saved_offset</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">cursor</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="n">metadata</span> <span class="o">=</span> <span class="k">await</span> <span class="n">state</span><span class="o">.</span><span class="n">load_metadata</span><span class="p">()</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="n">saved_offset</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">cursor</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">)</span>
 </code></pre></div>
 <p>Los eventos de progreso incorporan <code>cursor</code>. <code>RunStarted.start_index</code>,
 <code>PageFetched.offset</code> y <code>PageFinished.offset</code> siguen conteniendo el
@@ -3604,7 +3656,7 @@ siguiente ejecución y se cuenta en <code>RunMetrics.quarantined</code>. Los fal
 página donde no se procesó nada, como durante una caída o con una clave de API
 rechazada, nunca se cuentan. Para mantener el comportamiento de la 0.4, que
 reintenta para siempre cada registro fallido:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">page_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">max_attempts</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">page_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">max_attempts</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 </code></pre></div>
 <p>Un gestor de estado de terceros sigue funcionando sin cambios: los nuevos
 <code>record_failure</code> y <code>failure_counts</code> tienen implementaciones por defecto que no
@@ -3613,16 +3665,16 @@ registran nada, así que nunca pone registros en cuarentena.</p>
 <p><code>AsyncETLPipeline</code> y <code>ETLPipeline</code> reciben los cinco colaboradores por posición
 o por nombre, y todo lo demás por nombre. <code>run</code> recibe <code>query</code> y después solo
 argumentos con nombre, y <code>max_records=</code> ha desaparecido:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">AsyncETLPipeline</span><span class="p">(</span>
-<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>    <span class="n">extractor</span><span class="p">,</span>
-<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>    <span class="n">relevance_filter</span><span class="p">,</span>
-<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>    <span class="n">entity_extractor</span><span class="p">,</span>
-<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>    <span class="n">exporter</span><span class="p">,</span>
-<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>    <span class="n">state_manager</span><span class="p">,</span>
-<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>    <span class="n">destination</span><span class="o">=</span><span class="s2">"results.csv"</span><span class="p">,</span>
-<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>    <span class="n">max_concurrency</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="p">)</span>
-<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s2">"all:galaxy"</span><span class="p">,</span> <span class="n">page_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">AsyncETLPipeline</span><span class="p">(</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>    <span class="n">extractor</span><span class="p">,</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>    <span class="n">relevance_filter</span><span class="p">,</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>    <span class="n">entity_extractor</span><span class="p">,</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>    <span class="n">exporter</span><span class="p">,</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>    <span class="n">state_manager</span><span class="p">,</span>
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>    <span class="n">destination</span><span class="o">=</span><span class="s2">"results.csv"</span><span class="p">,</span>
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>    <span class="n">max_concurrency</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="p">)</span>
+<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s2">"all:galaxy"</span><span class="p">,</span> <span class="n">page_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
 </code></pre></div>
 <p><code>RawRecord</code>, <code>PipelineMetadata</code>, <code>TokenUsage</code>, <code>RunMetrics</code> y los eventos son
 de solo argumentos con nombre, así que <code>RawRecord("id", "title", "abstract")</code>
@@ -3635,8 +3687,8 @@ silencio. Renombra <code>pipeline.max_records</code> a <code>total_limit</code> 
 <code>pipeline.max_workers</code> a <code>max_concurrency</code>. Una aplicación que de momento deba
 aceptar claves desconocidas lo desactiva en su clase de configuración, y cada
 clave descartada se notifica con un <code>UserWarning</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">AppConfig</span><span class="p">(</span><span class="n">BaseAppConfig</span><span class="p">):</span>
-<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>    <span class="n">strict_sections</span> <span class="o">=</span> <span class="kc">False</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">AppConfig</span><span class="p">(</span><span class="n">BaseAppConfig</span><span class="p">):</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>    <span class="n">strict_sections</span> <span class="o">=</span> <span class="kc">False</span>
 </code></pre></div>
 <p>Las secciones de nivel superior que define la aplicación se conservan como
 antes.</p>
@@ -3644,11 +3696,11 @@ antes.</p>
 <p><code>AsyncSqlTableExporter</code> y <code>AsyncPlotly3DExporter</code> recibían un <code>DataFrame</code> y no
 podían ejecutarse en el pipeline. Sus sustitutos son sumideros bloqueantes para
 la salida del posprocesamiento:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.processors.sinks</span><span class="w"> </span><span class="kn">import</span> <span class="n">Plotly3DSink</span><span class="p">,</span> <span class="n">ScatterPlotConfig</span><span class="p">,</span> <span class="n">SqlTableSink</span>
-<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
-<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="n">catalogue</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">raw_table</span><span class="p">)</span>
-<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="n">SqlTableSink</span><span class="p">(</span><span class="s2">"sqlite:///catalogue.db"</span><span class="p">,</span> <span class="s2">"galaxies"</span><span class="p">,</span> <span class="n">if_exists</span><span class="o">=</span><span class="s2">"replace"</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">catalogue</span><span class="p">)</span>
-<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="n">Plotly3DSink</span><span class="p">(</span><span class="n">ScatterPlotConfig</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">,</span> <span class="n">color_column</span><span class="o">=</span><span class="s2">"size"</span><span class="p">),</span> <span class="s2">"catalogue.html"</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">catalogue</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.processors.sinks</span><span class="w"> </span><span class="kn">import</span> <span class="n">Plotly3DSink</span><span class="p">,</span> <span class="n">ScatterPlotConfig</span><span class="p">,</span> <span class="n">SqlTableSink</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="n">catalogue</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">raw_table</span><span class="p">)</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="n">SqlTableSink</span><span class="p">(</span><span class="s2">"sqlite:///catalogue.db"</span><span class="p">,</span> <span class="s2">"galaxies"</span><span class="p">,</span> <span class="n">if_exists</span><span class="o">=</span><span class="s2">"replace"</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">catalogue</span><span class="p">)</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="n">Plotly3DSink</span><span class="p">(</span><span class="n">ScatterPlotConfig</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">,</span> <span class="n">color_column</span><span class="o">=</span><span class="s2">"size"</span><span class="p">),</span> <span class="s2">"catalogue.html"</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">catalogue</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="deprecations-with-no-replacement-before-06">Obsolescencias sin sustituto antes de la 0.6<a class="headerlink" href="#deprecations-with-no-replacement-before-06" title="Permanent link">&para;</a></h3>
 <p>Estos nombres siguen funcionando en la 0.5.x y emiten un
@@ -3666,7 +3718,7 @@ implementan todos los componentes, a <code>fetch_page</code> y a los sumideros d
 <p><code>build_retrying_session</code> se ha eliminado, y el extra <code>full</code> ya no instala
 <code>requests</code>.</p>
 <h2 id="upgrading-to-04">Actualizar a la 0.4<a class="headerlink" href="#upgrading-to-04" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>sci-etl-core[async]&gt;=0.4.0,&lt;0.5
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>sci-etl-core[async]&gt;=0.4.0,&lt;0.5
 </code></pre></div>
 <p>La 0.4 añade nuevas fuentes, analizadores, caché de respuestas del LLM, apagado
 ordenado, eventos de progreso, limitadores de frecuencia y funciones de
@@ -3717,7 +3769,7 @@ búsqueda. Estos cambios afectan al código existente:</p>
   <code>full</code>.</li>
 </ul>
 <h2 id="upgrading-to-03">Actualizar a la 0.3<a class="headerlink" href="#upgrading-to-03" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>sci-etl-core[async]&gt;=0.3.0,&lt;0.4
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>sci-etl-core[async]&gt;=0.3.0,&lt;0.4
 </code></pre></div>
 <p>La 0.3 añade la búsqueda local y los grafos de descubrimiento. Estos cambios
 afectan al código existente:</p>

@@ -3045,9 +3045,9 @@ quickly.</p>
   isn't configured), with <code>AsyncMock</code> or the <code>mocker</code> fixture.</li>
 <li><strong>No real network or backoff waits.</strong> Mock HTTP, LLM, and embedding clients,
   and inject <code>sleep=AsyncMock()</code> to skip backoff delays.</li>
-<li><strong>Contract tests.</strong> Every public ABC implementation has a case in
-  <code>tests/contract/test_abc_conformance.py</code>; add one for each new
-  implementation.</li>
+<li><strong>Contract tests.</strong> A new extractor, state manager, exporter, or vector
+  store runs its <code>sci_etl_core.testing</code> suite under <code>tests/contract/</code>. mypy
+  checks that every implementation's signatures match its ABC.</li>
 <li><strong>Property tests.</strong> Put invariants — especially ones two backends must share,
   such as the in-memory and SQLite embedding stores — in Hypothesis tests in
   <code>tests/test_properties.py</code>.</li>
@@ -3335,8 +3335,7 @@ to check this contract in their own tests; a new bundled one subclasses it
 under <code>tests/contract/</code>.</p>
 <p>Register the new class in its subpackage's <code>_EXPORTS</code> map and <code>TYPE_CHECKING</code>
 imports. A new module also needs an entry on its page under <code>docs/reference/</code>. If it's a primary user-facing class, add it to
-<code>sci_etl_core/__init__.py</code> the same way. Add a case for it to
-<code>tests/contract/test_abc_conformance.py</code>.</p>
+<code>sci_etl_core/__init__.py</code> the same way.</p>
 <p>Happy hacking — and thank you for contributing!</p>
 
 

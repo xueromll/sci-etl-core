@@ -2577,6 +2577,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#upgrading-to-07" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        升级到 0.7
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#upgrading-to-06" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2991,6 +3002,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#upgrading-to-07" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        升级到 0.7
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#upgrading-to-06" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3242,12 +3264,13 @@
 <h1 id="_1">迁移指南<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
 <p>本指南按从新到旧的顺序，列出升级到 <code>sci-etl-core</code> 新版本时现有代码需要做出的改动。
 <a href="../changelog/">CHANGELOG.md</a> 列出了所有变更，包括无需任何操作的新增内容。</p>
-<p>请锁定一个次版本范围，例如 <code>sci-etl-core&gt;=0.6.0,&lt;0.7</code>，并在测试于下一个次版本上通过之后
+<p>请锁定一个次版本范围，例如 <code>sci-etl-core&gt;=0.7.0,&lt;0.8</code>，并在测试于下一个次版本上通过之后
 再提高上限。从一个次版本升级到更晚的次版本时，请从最旧的开始，依次应用中间每一节的内容。</p>
 <p>如果是首次把现有的科研流水线迁移到本库，请按照
 <a href="https://xueromll.github.io/sci-etl-core/latest/guide/migrating-a-pipeline/">迁移流水线</a>中的
 完整示例操作。</p>
 <ul>
+<li><a href="#upgrading-to-07">升级到 0.7</a></li>
 <li><a href="#upgrading-to-06">升级到 0.6</a></li>
 <li><a href="#upgrading-to-051">升级到 0.5.1</a></li>
 <li><a href="#upgrading-to-05">升级到 0.5</a></li>
@@ -3255,11 +3278,33 @@
 <li><a href="#upgrading-to-03">升级到 0.3</a></li>
 </ul>
 <hr />
+<h2 id="upgrading-to-07">升级到 0.7<a class="headerlink" href="#upgrading-to-07" title="Permanent link">&para;</a></h2>
+<p>0.7 不破坏任何现有调用，也不弃用任何名称，因此现有代码无需改动。请连同你使用的 extra 一起
+要求新的次版本：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>sci-etl-core[config,async,arxiv,llm,pdf,processors]&gt;=0.7.0,&lt;0.8
+</code></pre></div>
+<p>0.6 写入的状态文件和数据库、LLM 缓存、嵌入存储、文本索引以及论断存储和拒绝记录存储都能原样
+打开。</p>
+<p>只有一个默认值改变：混合检索的每个分支取 500 个候选，而不是 100 个，因此融合后的前 20 条
+结果几乎总是与不设上限的候选池返回的结果一致。新的 <code>max_chunks</code> 设置默认为 2,500，用于限制
+语义分支请求的文本块数量。如果想保留原来的候选池，请在配置中设置：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">search</span><span class="p">:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">hybrid</span><span class="p">:</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">candidate_pool</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+</code></pre></div>
+<p>或者向 <code>AsyncHybridSearcher</code> 传入 <code>params=HybridParams(candidate_pool=100)</code>。</p>
+<ul>
+<li>自定义的 <code>AsyncTextSearchStore</code> 会继承新方法 <code>rank</code>、<code>hydrate</code>、<code>filter_candidates</code>、
+  <code>get_headers</code> 和 <code>count_matches</code> 的可用默认实现。重写 <code>rank</code>、<code>hydrate</code> 和 <code>count_matches</code>
+  可以让大型索引更快。</li>
+<li>自定义的状态管理器可以实现 <code>forget(record_ids)</code>（由 <code>Forgetting</code> 协议描述），以支持定向
+  重新处理。</li>
+</ul>
 <h2 id="upgrading-to-06">升级到 0.6<a class="headerlink" href="#upgrading-to-06" title="Permanent link">&para;</a></h2>
 <p>0.6 改变了数据契约：实体提取器返回什么、导出器如何接收实体、本库如何记录日志，以及基础安装
 包含什么。这是 1.0 之前最后一个破坏现有契约的版本。请连同你使用的 extra 一起要求新的
 次版本：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>sci-etl-core[config,async,arxiv,llm,pdf,processors]&gt;=0.6.0,&lt;0.7
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>sci-etl-core[config,async,arxiv,llm,pdf,processors]&gt;=0.6.0,&lt;0.7
 </code></pre></div>
 <p>0.5 写入的状态文件和数据库、LLM 缓存、嵌入存储以及文本索引都能原样打开。已缓存的 LLM 回答
 仍然有效：没有模式的请求，其缓存键与 0.5.1 中相同。</p>
@@ -3306,12 +3351,12 @@ extra 都不再安装 <code>aiofiles</code> 和 <code>aiosqlite</code>。导入�
 <h3 id="env-files-are-read-only-when-asked">只有在要求时才读取 <code>.env</code> 文件<a class="headerlink" href="#env-files-are-read-only-when-asked" title="Permanent link">&para;</a></h3>
 <p><code>load_config</code> 和 <code>load_config_async</code> 不再隐式查找 <code>.env</code> 文件。请传入该文件，或者要求进行
 查找：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseAppConfig</span><span class="p">,</span> <span class="n">load_config</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">config</span> <span class="o">=</span> <span class="n">load_config</span><span class="p">(</span><span class="n">BaseAppConfig</span><span class="p">,</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"config.yaml"</span><span class="p">),</span> <span class="n">load_env</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">config</span> <span class="o">=</span> <span class="n">load_config</span><span class="p">(</span><span class="n">BaseAppConfig</span><span class="p">,</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"config.yaml"</span><span class="p">),</span> <span class="n">Path</span><span class="p">(</span><span class="s2">".env"</span><span class="p">))</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseAppConfig</span><span class="p">,</span> <span class="n">load_config</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">config</span> <span class="o">=</span> <span class="n">load_config</span><span class="p">(</span><span class="n">BaseAppConfig</span><span class="p">,</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"config.yaml"</span><span class="p">),</span> <span class="n">load_env</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="n">config</span> <span class="o">=</span> <span class="n">load_config</span><span class="p">(</span><span class="n">BaseAppConfig</span><span class="p">,</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"config.yaml"</span><span class="p">),</span> <span class="n">Path</span><span class="p">(</span><span class="s2">".env"</span><span class="p">))</span>
 </code></pre></div>
 <p>两者都不使用时，API 密钥必须已经在环境中。</p>
 <h3 id="exporters-take-the-record-and-their-destination">导出器接收记录和自己的目标位置<a class="headerlink" href="#exporters-take-the-record-and-their-destination" title="Permanent link">&para;</a></h3>
@@ -3319,28 +3364,28 @@ extra 都不再安装 <code>aiofiles</code> 和 <code>aiosqlite</code>。导入�
 调用 <code>open()</code>，对每条已处理的记录（包括没有实体的记录）调用 <code>write(record, entities)</code>，在每
 一页之后调用 <code>flush()</code>，并在运行结束时（无论如何结束）调用 <code>aclose()</code>。导出器在构造时接收其
 目标位置，因此流水线的 <code>destination=</code> 参数已被移除：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncCsvExporter</span><span class="p">,</span> <span class="n">AsyncETLPipeline</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">AsyncETLPipeline</span><span class="p">(</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">extractor</span><span class="p">,</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">relevance_filter</span><span class="p">,</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">entity_extractor</span><span class="p">,</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">AsyncCsvExporter</span><span class="p">(</span><span class="s2">"results.csv"</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"name"</span><span class="p">,</span> <span class="s2">"value_a"</span><span class="p">,</span> <span class="s2">"value_b"</span><span class="p">]),</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">state_manager</span><span class="p">,</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncCsvExporter</span><span class="p">,</span> <span class="n">AsyncETLPipeline</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">AsyncETLPipeline</span><span class="p">(</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="n">extractor</span><span class="p">,</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="n">relevance_filter</span><span class="p">,</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    <span class="n">entity_extractor</span><span class="p">,</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>    <span class="n">AsyncCsvExporter</span><span class="p">(</span><span class="s2">"results.csv"</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"name"</span><span class="p">,</span> <span class="s2">"value_a"</span><span class="p">,</span> <span class="s2">"value_b"</span><span class="p">]),</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    <span class="n">state_manager</span><span class="p">,</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="p">)</span>
 </code></pre></div>
 <p><code>AsyncCsvUpsertExporter</code> 已被移除。它的替代者 <code>AsyncCsvExporter</code> 不会合并行：它为每个实体
 写一行，并带上其来源论文的 <code>record_id</code>，把其他键保存在 <code>extra</code> 列中，并原样写入值，因此值
 永远不会被截断、转换或丢弃，报告同一天体的两篇论文会产生两行。请在后处理中进行合并，在那里
 做出明确的选择：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.processors</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeduplicationStep</span><span class="p">,</span> <span class="n">DefaultKeyNormalizer</span><span class="p">,</span> <span class="n">NormalizationStep</span><span class="p">,</span> <span class="n">ProcessorChain</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">raw</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">"results.csv"</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="p">{</span><span class="s2">"record_id"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">:</span> <span class="nb">str</span><span class="p">})</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="n">one_row_per_name</span> <span class="o">=</span> <span class="n">ProcessorChain</span><span class="p">(</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="p">[</span><span class="n">NormalizationStep</span><span class="p">(</span><span class="s2">"name"</span><span class="p">,</span> <span class="n">DefaultKeyNormalizer</span><span class="p">()),</span> <span class="n">DeduplicationStep</span><span class="p">(</span><span class="s2">"_norm_key"</span><span class="p">)]</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="p">)</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.processors</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeduplicationStep</span><span class="p">,</span> <span class="n">DefaultKeyNormalizer</span><span class="p">,</span> <span class="n">NormalizationStep</span><span class="p">,</span> <span class="n">ProcessorChain</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">raw</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">"results.csv"</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="p">{</span><span class="s2">"record_id"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">:</span> <span class="nb">str</span><span class="p">})</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="n">one_row_per_name</span> <span class="o">=</span> <span class="n">ProcessorChain</span><span class="p">(</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    <span class="p">[</span><span class="n">NormalizationStep</span><span class="p">(</span><span class="s2">"name"</span><span class="p">,</span> <span class="n">DefaultKeyNormalizer</span><span class="p">()),</span> <span class="n">DeduplicationStep</span><span class="p">(</span><span class="s2">"_norm_key"</span><span class="p">)]</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="p">)</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
 </code></pre></div>
 <p>CSV 文件在运行结束时写出；运行期间，各页会写入 <code>results.csv.journal</code>，如果某次运行崩溃，下一
 次运行会重放它。请把 <code>*.journal</code> 加入 <code>.gitignore</code>，放在你的输出文件旁边。新文件的表头是
@@ -3348,15 +3393,15 @@ extra 都不再安装 <code>aiofiles</code> 和 <code>aiosqlite</code>。导入�
 <code>AsyncCsvUpsertExporter</code> 写入的文件；导出器会拒绝表头不同的文件。<code>AsyncJsonlExporter</code> 则为
 每条记录写一行 JSON。</p>
 <p>自定义导出器需实现 <code>write</code>；如果使用缓冲，则设置 <code>durable_writes = False</code> 并实现 <code>flush</code>：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncExporter</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">DatabaseExporter</span><span class="p">(</span><span class="n">AsyncExporter</span><span class="p">):</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database</span><span class="p">):</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">database</span> <span class="o">=</span> <span class="n">database</span>
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">,</span> <span class="n">entities</span><span class="p">):</span>
-<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">replace_rows</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">record_id</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">entities</span><span class="p">))</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncExporter</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">DatabaseExporter</span><span class="p">(</span><span class="n">AsyncExporter</span><span class="p">):</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database</span><span class="p">):</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">database</span> <span class="o">=</span> <span class="n">database</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">,</span> <span class="n">entities</span><span class="p">):</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">replace_rows</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">record_id</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">entities</span><span class="p">))</span>
 </code></pre></div>
 <p><code>write</code> 必须是幂等的，因为崩溃可能导致某条记录被重复处理；没有实体的记录应当清除之前写入的
 内容。只有当记录的实体已持久化时，它才会被标记为已处理：在 <code>write</code> 之后立即标记，或者在
@@ -3372,21 +3417,21 @@ extra 都不再安装 <code>aiofiles</code> 和 <code>aiosqlite</code>。导入�
 默认实现调用 <code>extract(text)</code>。只重写了 <code>extract</code> 的提取器无需修改。包装另一个提取器的包装层
 也应委托 <code>extract_record</code>，这样它在包装需要记录的提取器（例如 <code>AsyncLLMClaimExtractor</code>）时
 仍能正常工作：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncEntityExtractor</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">ValidatedEntityExtractor</span><span class="p">(</span><span class="n">AsyncEntityExtractor</span><span class="p">):</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inner</span><span class="p">,</span> <span class="n">validator</span><span class="p">):</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">inner</span> <span class="o">=</span> <span class="n">inner</span>
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">validator</span> <span class="o">=</span> <span class="n">validator</span>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">requires_record</span> <span class="o">=</span> <span class="n">inner</span><span class="o">.</span><span class="n">requires_record</span>
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">extract</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
-<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>        <span class="k">return</span> <span class="p">[</span><span class="n">entity</span> <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">validator</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(</span><span class="n">entity</span><span class="p">)]</span>
-<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>
-<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">extract_record</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
-<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>        <span class="n">entities</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner</span><span class="o">.</span><span class="n">extract_record</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
-<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>        <span class="k">return</span> <span class="p">[</span><span class="n">entity</span> <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">entities</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">validator</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(</span><span class="n">entity</span><span class="p">)]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncEntityExtractor</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">ValidatedEntityExtractor</span><span class="p">(</span><span class="n">AsyncEntityExtractor</span><span class="p">):</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inner</span><span class="p">,</span> <span class="n">validator</span><span class="p">):</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">inner</span> <span class="o">=</span> <span class="n">inner</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">validator</span> <span class="o">=</span> <span class="n">validator</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">requires_record</span> <span class="o">=</span> <span class="n">inner</span><span class="o">.</span><span class="n">requires_record</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">extract</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>        <span class="k">return</span> <span class="p">[</span><span class="n">entity</span> <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">validator</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(</span><span class="n">entity</span><span class="p">)]</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">extract_record</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>        <span class="n">entities</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner</span><span class="o">.</span><span class="n">extract_record</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>        <span class="k">return</span> <span class="p">[</span><span class="n">entity</span> <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">entities</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">validator</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(</span><span class="n">entity</span><span class="p">)]</span>
 </code></pre></div>
 <p>这样的包装层通常已不再需要：<code>AsyncLLMEntityExtractor</code> 接受 <code>validator</code>，会连同原因记录每次
 拒绝，并且可以把被拒绝的实体保存在拒绝记录存储中。<code>system_prompt</code> 之后的所有参数现在都只能
@@ -3399,19 +3444,19 @@ extra 都不再安装 <code>aiofiles</code> 和 <code>aiosqlite</code>。导入�
 <p><code>RecordValidator.validate(entity)</code> 返回一个由 <code>Violation</code> 组成的 <code>ValidationResult</code>。只实现
 了 <code>is_valid</code> 的校验器仍可使用。已经能计算原因的校验器（例如有 <code>rejection_reason</code> 方法）可以
 改为重写 <code>validate</code>，这样原因就会进入日志和拒绝记录存储：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.processors</span><span class="w"> </span><span class="kn">import</span> <span class="n">RecordValidator</span><span class="p">,</span> <span class="n">ValidationResult</span><span class="p">,</span> <span class="n">Violation</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">RangeValidator</span><span class="p">(</span><span class="n">RecordValidator</span><span class="p">):</span>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">is_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">record</span><span class="p">)</span><span class="o">.</span><span class="n">ok</span>
-<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
-<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>        <span class="n">radius</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"radius_kpc"</span><span class="p">)</span>
-<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>        <span class="k">if</span> <span class="n">radius</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="mf">0.1</span> <span class="o">&lt;=</span> <span class="nb">float</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">20.0</span><span class="p">:</span>
-<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>            <span class="n">violation</span> <span class="o">=</span> <span class="n">Violation</span><span class="p">(</span><span class="n">code</span><span class="o">=</span><span class="s2">"out-of-range"</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="s2">"radius_kpc"</span><span class="p">,</span> <span class="n">severity</span><span class="o">=</span><span class="s2">"error"</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="sa">f</span><span class="s2">"radius </span><span class="si">{</span><span class="n">radius</span><span class="si">}</span><span class="s2"> kpc"</span><span class="p">)</span>
-<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>            <span class="k">return</span> <span class="n">ValidationResult</span><span class="p">(</span><span class="n">violations</span><span class="o">=</span><span class="p">(</span><span class="n">violation</span><span class="p">,))</span>
-<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>        <span class="k">return</span> <span class="n">ValidationResult</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.processors</span><span class="w"> </span><span class="kn">import</span> <span class="n">RecordValidator</span><span class="p">,</span> <span class="n">ValidationResult</span><span class="p">,</span> <span class="n">Violation</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">RangeValidator</span><span class="p">(</span><span class="n">RecordValidator</span><span class="p">):</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">is_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">record</span><span class="p">)</span><span class="o">.</span><span class="n">ok</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>        <span class="n">radius</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"radius_kpc"</span><span class="p">)</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>        <span class="k">if</span> <span class="n">radius</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="mf">0.1</span> <span class="o">&lt;=</span> <span class="nb">float</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">20.0</span><span class="p">:</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>            <span class="n">violation</span> <span class="o">=</span> <span class="n">Violation</span><span class="p">(</span><span class="n">code</span><span class="o">=</span><span class="s2">"out-of-range"</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="s2">"radius_kpc"</span><span class="p">,</span> <span class="n">severity</span><span class="o">=</span><span class="s2">"error"</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="sa">f</span><span class="s2">"radius </span><span class="si">{</span><span class="n">radius</span><span class="si">}</span><span class="s2"> kpc"</span><span class="p">)</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>            <span class="k">return</span> <span class="n">ValidationResult</span><span class="p">(</span><span class="n">violations</span><span class="o">=</span><span class="p">(</span><span class="n">violation</span><span class="p">,))</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>        <span class="k">return</span> <span class="n">ValidationResult</span><span class="p">()</span>
 </code></pre></div>
 <h3 id="logging-goes-through-the-logging-module">日志通过 <code>logging</code> 模块输出<a class="headerlink" href="#logging-goes-through-the-logging-module" title="Permanent link">&para;</a></h3>
 <p>所有 <code>logger=</code> 参数都已移除：涉及 <code>AsyncETLPipeline</code>、<code>ETLPipeline</code>、四个提取器、
@@ -3419,13 +3464,13 @@ extra 都不再安装 <code>aiofiles</code> 和 <code>aiosqlite</code>。导入�
 <code>AsyncHybridSearcher</code> 和 <code>ShutdownSignal</code>。<code>configure_logging</code> 和 <code>sci_etl_core.log_utils</code>
 已被移除，<code>AsyncETLPipeline.log</code> 也是如此。每个模块都以自己的名称在 <code>sci_etl_core</code> 记录器
 之下输出日志，因此请在应用程序中配置日志：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>    <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="nb">format</span><span class="o">=</span><span class="s2">"[</span><span class="si">%(asctime)s</span><span class="s2">] [</span><span class="si">%(levelname)s</span><span class="s2">] </span><span class="si">%(name)s</span><span class="s2"> - </span><span class="si">%(message)s</span><span class="s2">"</span><span class="p">,</span>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>    <span class="n">handlers</span><span class="o">=</span><span class="p">[</span><span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="s2">"output/pipeline.log"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">),</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()],</span>
-<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>    <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>    <span class="nb">format</span><span class="o">=</span><span class="s2">"[</span><span class="si">%(asctime)s</span><span class="s2">] [</span><span class="si">%(levelname)s</span><span class="s2">] </span><span class="si">%(name)s</span><span class="s2"> - </span><span class="si">%(message)s</span><span class="s2">"</span><span class="p">,</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>    <span class="n">handlers</span><span class="o">=</span><span class="p">[</span><span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="s2">"output/pipeline.log"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">),</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()],</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="p">)</span>
 </code></pre></div>
 <p>消息保持原有措辞。<code>CachingLLMClient</code> 过去把 <code>logger</code> 作为第四个位置参数；以位置方式传入它的
 调用现在会因 <code>TypeError</code> 而失败。</p>
@@ -3469,7 +3514,7 @@ extra 都不再安装 <code>aiofiles</code> 和 <code>aiosqlite</code>。导入�
 <h2 id="upgrading-to-05">升级到 0.5<a class="headerlink" href="#upgrading-to-05" title="Permanent link">&para;</a></h2>
 <p>0.5 改变了提取器的分页方式、状态保存的内容以及流水线的构造方式。实体和导出器在 0.6 中变化。
 请要求新的次版本以及 Python 3.11：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>sci-etl-core[async,llm,pdf]&gt;=0.5.0,&lt;0.6
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>sci-etl-core[async,llm,pdf]&gt;=0.5.0,&lt;0.6
 </code></pre></div>
 <p>0.4 写入的状态无需转换。<code>AsyncSqliteStateManager</code> 会就地升级其数据库，
 <code>AsyncFileStateManager</code> 会读取旧的元数据文件，并在下次保存时以新格式改写它。无论哪种情况，
@@ -3479,27 +3524,27 @@ extra 都不再安装 <code>aiofiles</code> 和 <code>aiosqlite</code>。导入�
 会自行跳过已处理的记录，因此提取器应返回它能读取的每个条目。按偏移量分页的来源还要实现
 <code>cursor_for_offset</code>，这使它成为 <code>OffsetListing</code>。</p>
 <p>迁移前：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyExtractor</span><span class="p">(</span><span class="n">AsyncExtractor</span><span class="p">):</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">max_results</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">start_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>        <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">get_page</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">start_index</span><span class="p">,</span> <span class="n">max_results</span><span class="p">)</span>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parse_listing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw_listing</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">seen_ids</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">RawRecord</span><span class="p">],</span> <span class="nb">int</span><span class="p">]:</span>
-<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>        <span class="n">entries</span> <span class="o">=</span> <span class="n">parse</span><span class="p">(</span><span class="n">raw_listing</span><span class="p">)</span>
-<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>        <span class="k">return</span> <span class="p">[</span><span class="n">entry</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span> <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">record_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_ids</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyExtractor</span><span class="p">(</span><span class="n">AsyncExtractor</span><span class="p">):</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">max_results</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">start_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>        <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">get_page</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">start_index</span><span class="p">,</span> <span class="n">max_results</span><span class="p">)</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parse_listing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw_listing</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">seen_ids</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">RawRecord</span><span class="p">],</span> <span class="nb">int</span><span class="p">]:</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>        <span class="n">entries</span> <span class="o">=</span> <span class="n">parse</span><span class="p">(</span><span class="n">raw_listing</span><span class="p">)</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>        <span class="k">return</span> <span class="p">[</span><span class="n">entry</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span> <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">record_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_ids</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span>
 </code></pre></div>
 <p>迁移后：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyExtractor</span><span class="p">(</span><span class="n">AsyncExtractor</span><span class="p">):</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cursor_for_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">fetch_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cursor</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">page_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ListingPage</span><span class="p">:</span>
-<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>        <span class="n">offset</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">cursor</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">)</span>
-<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>        <span class="n">entries</span> <span class="o">=</span> <span class="n">parse</span><span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">get_page</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">page_size</span><span class="p">))</span>
-<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>        <span class="k">return</span> <span class="n">ListingPage</span><span class="p">(</span>
-<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>            <span class="n">records</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">entries</span><span class="p">),</span>
-<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>            <span class="n">entries</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">entries</span><span class="p">),</span>
-<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>            <span class="n">next_cursor</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">offset</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">entries</span><span class="p">))</span> <span class="k">if</span> <span class="n">entries</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>        <span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyExtractor</span><span class="p">(</span><span class="n">AsyncExtractor</span><span class="p">):</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cursor_for_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">fetch_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cursor</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">page_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ListingPage</span><span class="p">:</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>        <span class="n">offset</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">cursor</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">)</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>        <span class="n">entries</span> <span class="o">=</span> <span class="n">parse</span><span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">get_page</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">page_size</span><span class="p">))</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>        <span class="k">return</span> <span class="n">ListingPage</span><span class="p">(</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>            <span class="n">records</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">entries</span><span class="p">),</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>            <span class="n">entries</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">entries</span><span class="p">),</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>            <span class="n">next_cursor</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">offset</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">entries</span><span class="p">))</span> <span class="k">if</span> <span class="n">entries</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>        <span class="p">)</span>
 </code></pre></div>
 <p>使用不透明续传令牌的来源把令牌作为 <code>next_cursor</code> 返回，并且不实现 <code>cursor_for_offset</code>。在
 自身结果上限处停止的来源，在到达上限的那一页返回 <code>truncated=True</code> 和 <code>next_cursor=None</code>。在
@@ -3507,13 +3552,13 @@ extra 都不再安装 <code>aiofiles</code> 和 <code>aiosqlite</code>。导入�
 发出 <code>DeprecationWarning</code>；0.6 移除了该适配器。</p>
 <p>转发给另一个提取器的包装层（例如记录进度的包装层）要转发 <code>fetch_page</code>；当它包装的是
 <code>OffsetListing</code> 时，还要转发 <code>cursor_for_offset</code>：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">LoggingExtractor</span><span class="p">(</span><span class="n">AsyncExtractor</span><span class="p">):</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cursor_for_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inner</span><span class="o">.</span><span class="n">cursor_for_offset</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">fetch_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cursor</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">page_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ListingPage</span><span class="p">:</span>
-<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Fetching listing page at cursor </span><span class="si">{</span><span class="n">cursor</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'start'</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>        <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inner</span><span class="o">.</span><span class="n">fetch_page</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">cursor</span><span class="p">,</span> <span class="n">page_size</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">LoggingExtractor</span><span class="p">(</span><span class="n">AsyncExtractor</span><span class="p">):</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cursor_for_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inner</span><span class="o">.</span><span class="n">cursor_for_offset</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">fetch_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cursor</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">page_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ListingPage</span><span class="p">:</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Fetching listing page at cursor </span><span class="si">{</span><span class="n">cursor</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'start'</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>        <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inner</span><span class="o">.</span><span class="n">fetch_page</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">cursor</span><span class="p">,</span> <span class="n">page_size</span><span class="p">)</span>
 </code></pre></div>
 <p><code>newest_first=True</code> 和大于 0 的 <code>start_index</code> 需要 <code>OffsetListing</code>，否则会在任何请求之前
 抛出 <code>ValueError</code>。<code>AsyncArxivExtractor</code>、<code>AsyncPubMedExtractor</code> 和
@@ -3523,8 +3568,8 @@ OpenAlex 游标分页，因此可以越过前 10,000 篇作品，但不再支持
 <h3 id="what-the-state-saves">状态保存的内容<a class="headerlink" href="#what-the-state-saves" title="Permanent link">&para;</a></h3>
 <p><code>PipelineMetadata.cursor</code> 取代了 <code>last_start_index</code>。读取已保存位置的代码应读取游标；对于
 <code>OffsetListing</code>，游标是十进制偏移量：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">metadata</span> <span class="o">=</span> <span class="k">await</span> <span class="n">state</span><span class="o">.</span><span class="n">load_metadata</span><span class="p">()</span>
-<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="n">saved_offset</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">cursor</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="n">metadata</span> <span class="o">=</span> <span class="k">await</span> <span class="n">state</span><span class="o">.</span><span class="n">load_metadata</span><span class="p">()</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="n">saved_offset</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">cursor</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">)</span>
 </code></pre></div>
 <p>进度事件新增了 <code>cursor</code>。对于 <code>OffsetListing</code>，<code>RunStarted.start_index</code>、
 <code>PageFetched.offset</code> 和 <code>PageFinished.offset</code> 仍保存列表偏移量，对于其他任何提取器则为
@@ -3540,23 +3585,23 @@ OpenAlex 游标分页，因此可以越过前 10,000 篇作品，但不再支持
 隔离的记录跳过，并计入 <code>RunMetrics.quarantined</code>。在没有处理任何记录的页面上的失败（例如服务
 中断期间或 API 密钥被拒绝时）永远不会被计数。如需保留 0.4 的行为，即永远重试每条失败的
 记录：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">page_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">max_attempts</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">page_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">max_attempts</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 </code></pre></div>
 <p>第三方状态管理器无需修改即可继续使用：新增的 <code>record_failure</code> 和 <code>failure_counts</code> 都有不做任何
 跟踪的默认实现，因此它永远不会隔离记录。</p>
 <h3 id="keyword-arguments">关键字参数<a class="headerlink" href="#keyword-arguments" title="Permanent link">&para;</a></h3>
 <p><code>AsyncETLPipeline</code> 和 <code>ETLPipeline</code> 以位置或名称接收五个协作组件，其他所有参数都只能以关键字
 形式传入。<code>run</code> 接收 <code>query</code>，之后只接受关键字参数，并且 <code>max_records=</code> 已被移除：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">AsyncETLPipeline</span><span class="p">(</span>
-<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>    <span class="n">extractor</span><span class="p">,</span>
-<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>    <span class="n">relevance_filter</span><span class="p">,</span>
-<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>    <span class="n">entity_extractor</span><span class="p">,</span>
-<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>    <span class="n">exporter</span><span class="p">,</span>
-<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>    <span class="n">state_manager</span><span class="p">,</span>
-<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>    <span class="n">destination</span><span class="o">=</span><span class="s2">"results.csv"</span><span class="p">,</span>
-<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>    <span class="n">max_concurrency</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="p">)</span>
-<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s2">"all:galaxy"</span><span class="p">,</span> <span class="n">page_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">AsyncETLPipeline</span><span class="p">(</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>    <span class="n">extractor</span><span class="p">,</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>    <span class="n">relevance_filter</span><span class="p">,</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>    <span class="n">entity_extractor</span><span class="p">,</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>    <span class="n">exporter</span><span class="p">,</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>    <span class="n">state_manager</span><span class="p">,</span>
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>    <span class="n">destination</span><span class="o">=</span><span class="s2">"results.csv"</span><span class="p">,</span>
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>    <span class="n">max_concurrency</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="p">)</span>
+<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s2">"all:galaxy"</span><span class="p">,</span> <span class="n">page_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
 </code></pre></div>
 <p><code>RawRecord</code>、<code>PipelineMetadata</code>、<code>TokenUsage</code>、<code>RunMetrics</code> 以及各事件都只接受关键字参数，
 因此 <code>RawRecord("id", "title", "abstract")</code> 要改为
@@ -3567,18 +3612,18 @@ OpenAlex 游标分页，因此可以越过前 10,000 篇作品，但不再支持
 <code>pipeline.max_records</code> 改名为 <code>total_limit</code>，把 <code>pipeline.max_workers</code> 改名为
 <code>max_concurrency</code>。暂时必须接受未知键的应用程序可以在其配置类上选择退出，每个被丢弃的键都会
 以 <code>UserWarning</code> 报告：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">AppConfig</span><span class="p">(</span><span class="n">BaseAppConfig</span><span class="p">):</span>
-<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>    <span class="n">strict_sections</span> <span class="o">=</span> <span class="kc">False</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">AppConfig</span><span class="p">(</span><span class="n">BaseAppConfig</span><span class="p">):</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>    <span class="n">strict_sections</span> <span class="o">=</span> <span class="kc">False</span>
 </code></pre></div>
 <p>应用程序定义的顶层部分仍像以前一样保留。</p>
 <h3 id="table-sinks">表格输出端<a class="headerlink" href="#table-sinks" title="Permanent link">&para;</a></h3>
 <p><code>AsyncSqlTableExporter</code> 和 <code>AsyncPlotly3DExporter</code> 接收的是 <code>DataFrame</code>，无法在流水线中运行。
 它们的替代者是用于后处理输出的阻塞式输出端：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.processors.sinks</span><span class="w"> </span><span class="kn">import</span> <span class="n">Plotly3DSink</span><span class="p">,</span> <span class="n">ScatterPlotConfig</span><span class="p">,</span> <span class="n">SqlTableSink</span>
-<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
-<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="n">catalogue</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">raw_table</span><span class="p">)</span>
-<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="n">SqlTableSink</span><span class="p">(</span><span class="s2">"sqlite:///catalogue.db"</span><span class="p">,</span> <span class="s2">"galaxies"</span><span class="p">,</span> <span class="n">if_exists</span><span class="o">=</span><span class="s2">"replace"</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">catalogue</span><span class="p">)</span>
-<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="n">Plotly3DSink</span><span class="p">(</span><span class="n">ScatterPlotConfig</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">,</span> <span class="n">color_column</span><span class="o">=</span><span class="s2">"size"</span><span class="p">),</span> <span class="s2">"catalogue.html"</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">catalogue</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.processors.sinks</span><span class="w"> </span><span class="kn">import</span> <span class="n">Plotly3DSink</span><span class="p">,</span> <span class="n">ScatterPlotConfig</span><span class="p">,</span> <span class="n">SqlTableSink</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="n">catalogue</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">raw_table</span><span class="p">)</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="n">SqlTableSink</span><span class="p">(</span><span class="s2">"sqlite:///catalogue.db"</span><span class="p">,</span> <span class="s2">"galaxies"</span><span class="p">,</span> <span class="n">if_exists</span><span class="o">=</span><span class="s2">"replace"</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">catalogue</span><span class="p">)</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="n">Plotly3DSink</span><span class="p">(</span><span class="n">ScatterPlotConfig</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">,</span> <span class="n">color_column</span><span class="o">=</span><span class="s2">"size"</span><span class="p">),</span> <span class="s2">"catalogue.html"</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">catalogue</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="deprecations-with-no-replacement-before-06">0.6 之前没有替代品的弃用项<a class="headerlink" href="#deprecations-with-no-replacement-before-06" title="Permanent link">&para;</a></h3>
 <p>以下名称在 0.5.x 中仍可使用，并发出 <code>PendingDeprecationWarning</code> 而不是 <code>DeprecationWarning</code>，
@@ -3591,7 +3636,7 @@ OpenAlex 游标分页，因此可以越过前 10,000 篇作品，但不再支持
 契约、<code>fetch_page</code> 以及表格输出端。</p>
 <p><code>build_retrying_session</code> 已被移除，<code>full</code> extra 不再安装 <code>requests</code>。</p>
 <h2 id="upgrading-to-04">升级到 0.4<a class="headerlink" href="#upgrading-to-04" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>sci-etl-core[async]&gt;=0.4.0,&lt;0.5
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>sci-etl-core[async]&gt;=0.4.0,&lt;0.5
 </code></pre></div>
 <p>0.4 新增了来源、解析器、LLM 响应缓存、优雅关闭、进度事件、速率限制器和检索功能。以下变更会
 影响现有代码：</p>
@@ -3628,7 +3673,7 @@ OpenAlex 游标分页，因此可以越过前 10,000 篇作品，但不再支持
   <code>full</code> extra 中的 <code>requests</code> 一起被移除。</li>
 </ul>
 <h2 id="upgrading-to-03">升级到 0.3<a class="headerlink" href="#upgrading-to-03" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>sci-etl-core[async]&gt;=0.3.0,&lt;0.4
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>sci-etl-core[async]&gt;=0.3.0,&lt;0.4
 </code></pre></div>
 <p>0.3 新增了本地检索和发现图。以下变更会影响现有代码：</p>
 <ul>

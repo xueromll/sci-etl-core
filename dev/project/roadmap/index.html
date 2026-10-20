@@ -2599,10 +2599,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#current-release-v060" class="md-nav__link">
+  <a href="#current-release-v070" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Current release — v0.6.0
+        Current release — v0.7.0
       
     </span>
   </a>
@@ -2614,17 +2614,6 @@
     <span class="md-ellipsis">
       
         Path to 1.0
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#v070-additive-features-and-the-testing-kit" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        v0.7.0 — Additive features and the testing kit
       
     </span>
   </a>
@@ -2841,10 +2830,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#current-release-v060" class="md-nav__link">
+  <a href="#current-release-v070" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Current release — v0.6.0
+        Current release — v0.7.0
       
     </span>
   </a>
@@ -2856,17 +2845,6 @@
     <span class="md-ellipsis">
       
         Path to 1.0
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#v070-additive-features-and-the-testing-kit" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        v0.7.0 — Additive features and the testing kit
       
     </span>
   </a>
@@ -2953,10 +2931,10 @@ however useful it would be elsewhere. To work on an item, comment on its issue
 or open one. Items marked <strong>good first issue</strong> suit newcomers.</p>
 <p>Each milestone lists its exit criteria. A milestone ships when every criterion
 holds with the test suite offline and line coverage at 100%.</p>
-<h2 id="current-release-v060">Current release — v0.6.0<a class="headerlink" href="#current-release-v060" title="Permanent link">&para;</a></h2>
+<h2 id="current-release-v070">Current release — v0.7.0<a class="headerlink" href="#current-release-v070" title="Permanent link">&para;</a></h2>
 <p><a href="../changelog/">CHANGELOG.md</a> lists every change by release, and
-<a href="../migration/">MIGRATION.md</a> explains how to upgrade from 0.4 and what 0.5
-and 0.6 change.</p>
+<a href="../migration/">MIGRATION.md</a> explains how to upgrade from 0.4 and what 0.5,
+0.6, and 0.7 change.</p>
 <table>
 <thead>
 <tr>
@@ -2968,12 +2946,12 @@ and 0.6 change.</p>
 <tbody>
 <tr>
 <td><a href="https://github.com/xueromll/udg-catalogue">udg-catalogue</a></td>
-<td><code>&gt;=0.6.0.dev0,&lt;0.7</code> on <code>main</code>, with every extra it imports, and its suite passes against core <code>master</code></td>
+<td><code>&gt;=0.6.0.dev0,&lt;0.7</code> on <code>main</code>, with every extra it imports, and its suite passes against core 0.7.0</td>
 <td>0.4 in production, including search, discovery, and embeddings</td>
 </tr>
 <tr>
 <td><a href="https://github.com/xueromll/sci-etl-cli">sci-etl-cli</a></td>
-<td><code>&gt;=0.6.0.dev0,&lt;0.7</code> on <code>master</code>, and its suite passes against core <code>master</code>; its next release, 0.4.0, requires <code>&gt;=0.6.0,&lt;0.7</code></td>
+<td><code>&gt;=0.6.0.dev0,&lt;0.7</code> on <code>master</code>, and its suite passes against core 0.7.0</td>
 <td>0.2, in its latest release 0.2.1</td>
 </tr>
 </tbody>
@@ -3004,7 +2982,7 @@ and 0.6 change.</p>
 </tr>
 <tr>
 <td>Resumption</td>
-<td>Saved listing cursors that advance only past settled pages, result caps reported as truncated with the next run starting from the first page, a quarantine for records that keep failing, schema-versioned state that upgrades files written by 0.4, and <code>newest_first</code> runs that pick up new submissions without rescanning</td>
+<td>Saved listing cursors that advance only past settled pages, result caps reported as truncated with the next run starting from the first page, a quarantine for records that keep failing, schema-versioned state that upgrades files written by 0.4, <code>newest_first</code> runs that pick up new submissions without rescanning, and <code>forget(record_ids)</code> on both bundled state managers, so a run with <code>start_index=0</code> processes chosen records again</td>
 </tr>
 <tr>
 <td>Sources</td>
@@ -3012,7 +2990,7 @@ and 0.6 change.</p>
 </tr>
 <tr>
 <td>LLM</td>
-<td>OpenAI-compatible chat and embedding clients with token usage and JSON-schema structured output, response caching in memory or SQLite keyed on the entity schema, typed entities validated against a Pydantic model</td>
+<td>OpenAI-compatible chat and embedding clients with token usage and JSON-schema structured output, response caching in memory or SQLite keyed on the entity schema, typed entities validated against a Pydantic model, and <code>AsyncCascadingRelevanceFilter</code>, which lets a cheap relevance filter screen records before an LLM filter sees them</td>
 </tr>
 <tr>
 <td>Claims (provisional)</td>
@@ -3020,7 +2998,7 @@ and 0.6 change.</p>
 </tr>
 <tr>
 <td>Memory and search</td>
-<td>Vector memory, Boolean query language with <code>NEAR</code>, SQLite FTS5 and in-memory text stores, hybrid rank fusion, range and metadata filters, facets, snippets, discovery graphs, and backfill from vector memory</td>
+<td>Vector memory with a fast exact scan, Boolean query language with <code>NEAR</code>, SQLite FTS5 and in-memory text stores, hybrid rank fusion over 500 candidates per leg, range and metadata filters, facets, snippets, discovery graphs, and backfill from vector memory; search whose work follows the candidate pool rather than the corpus: text stores rank before they build snippets (<code>rank</code>, <code>hydrate</code>), count matches up to a cap, and count facets from the matches, with opt-in SQLite cache and memory-map settings (<code>SqliteTuning</code>)</td>
 </tr>
 <tr>
 <td>Configuration</td>
@@ -3040,16 +3018,19 @@ and 0.6 change.</p>
 </tr>
 <tr>
 <td>Guardrails</td>
-<td>A committed snapshot of every stable signature, which also covers every name a known consumer uses; the guarantees of <code>AsyncETLPipeline.run</code> numbered in a run-semantics guide, each with a named test; a CI check that every stable name imports from a bare install or from the extra its component needs; the sci-etl-cli and udg-catalogue suites run against every core change and gate every release; nightly smoke tests against each bundled source; a throughput benchmark that runs every exporter through the pipeline</td>
+<td>A committed snapshot of every stable signature, which also covers every name a known consumer uses; the guarantees of <code>AsyncETLPipeline.run</code> numbered in a run-semantics guide, each with a named test; a CI check that every stable name imports from a bare install or from the extra its component needs; the sci-etl-cli and udg-catalogue suites run against every core change and gate every release; nightly smoke tests against each bundled source; a throughput benchmark that runs every exporter through the pipeline; contract suites in <code>sci_etl_core.testing</code>, behind the <code>testing</code> extra, that check third-party extractors, state managers, exporters, and vector stores against the contracts the bundled components pass</td>
 </tr>
 </tbody>
 </table>
 <p>Still open:</p>
 <ul>
-<li>sci-etl-cli 0.4.0 and udg-catalogue on the released 0.6.0, requiring
-  <code>&gt;=0.6.0,&lt;0.7</code> instead of a development version and running without
-  <code>DeprecationWarning</code>.</li>
+<li>sci-etl-cli and udg-catalogue on the released 0.7.0, requiring a released
+  version with the upper bound <code>&lt;0.8</code> instead of a development version and
+  running without <code>DeprecationWarning</code>.</li>
 <li>A live check of how long OpenAlex cursors stay valid.</li>
+<li>A check of lexical search against its target, at most 200 ms at the 95th
+  percentile over a million records. It moves to v0.8.0, which measures it
+  on a real corpus of that size rather than a synthetic one.</li>
 </ul>
 <p>PubMed and Semantic Scholar keep offset paging and report their caps as
 truncated: E-utilities serves at most 9,999 results even through its history
@@ -3059,31 +3040,12 @@ papers, which cannot honor <code>page_size</code>.</p>
 <p>Every public contract has now had its last planned break before 1.0. The run
 contract (extractor, state, constructor) broke in 0.5.0 and the data contract
 (entities, exporter, logging, dependencies) in 0.6.0; every later release is
-additive, apart from the hybrid-search default that v0.7.0 raises. Each
+additive, apart from the hybrid-search default that v0.7.0 raised. Each
 breaking change has a <a href="../migration/">MIGRATION.md</a> entry.</p>
 <p>From 0.6.0 on, a deprecated name keeps working for at least two minor
 releases before it is removed. A release is tagged only when the test suites
 of sci-etl-cli and udg-catalogue pass against the release commit; the release
 workflow runs both and refuses to publish otherwise.</p>
-<h2 id="v070-additive-features-and-the-testing-kit">v0.7.0 — Additive features and the testing kit<a class="headerlink" href="#v070-additive-features-and-the-testing-kit" title="Permanent link">&para;</a></h2>
-<p>No breaking change and no new deprecation. One default changes: hybrid
-search draws 500 candidates per leg instead of 100.</p>
-<ul>
-<li><strong>Targeted reprocessing.</strong> An optional <code>forget(record_ids)</code> contract, which
-  both bundled state managers implement, lets records be re-extracted without
-  discarding all state.</li>
-<li><strong>Cascading relevance filters.</strong> A composite filter runs a cheap filter,
-  such as <code>AsyncEmbeddingRelevanceFilter</code>, before the LLM filter.</li>
-<li><strong>Testing kit.</strong> <code>sci_etl_core.testing</code> provides contract suites that
-  third-party extractors, state managers, exporters, and embedding stores can
-  run.</li>
-<li><strong>Search at scale.</strong> Lexical search ranks before it builds snippets,
-  filters and facet counts look only at matching records, match counts can
-  stop at a cap, and each SQLite store takes cache and memory-map settings.</li>
-<li><strong>Larger candidate pools.</strong> <code>candidate_pool</code> defaults to 500, which keeps
-  fused results stable on large corpora, and the semantic leg asks for at
-  most 2,500 chunks.</li>
-</ul>
 <h2 id="v080-scalable-vector-memory">v0.8.0 — Scalable vector memory<a class="headerlink" href="#v080-scalable-vector-memory" title="Permanent link">&para;</a></h2>
 <p>No breaking change and no new deprecation; the new names are provisional.</p>
 <ul>
@@ -3095,7 +3057,9 @@ search draws 500 candidates per leg instead of 100.</p>
   instead of waiting for one connection.</li>
 </ul>
 <p>The target is a hybrid query over a million records in under 300 ms at the
-95th percentile on a laptop.</p>
+95th percentile on a laptop, measured on a real corpus of that size. Lexical
+search is measured on the same corpus against its own target: at most 200 ms
+at the 95th percentile.</p>
 <h2 id="v100-stabilization">v1.0.0 — Stabilization<a class="headerlink" href="#v100-stabilization" title="Permanent link">&para;</a></h2>
 <p>1.0.0 guarantees three tiers: stable names follow Semantic Versioning,
 provisional names may change in a minor release with a changelog entry, and

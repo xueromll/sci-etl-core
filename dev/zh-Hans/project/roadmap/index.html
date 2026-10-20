@@ -2605,10 +2605,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#current-release-v060" class="md-nav__link">
+  <a href="#current-release-v070" class="md-nav__link">
     <span class="md-ellipsis">
       
-        当前版本：v0.6.0
+        当前版本：v0.7.0
       
     </span>
   </a>
@@ -2620,17 +2620,6 @@
     <span class="md-ellipsis">
       
         通往 1.0 之路
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#v070-additive-features-and-the-testing-kit" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        v0.7.0：增量功能与测试工具包
       
     </span>
   </a>
@@ -2847,10 +2836,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#current-release-v060" class="md-nav__link">
+  <a href="#current-release-v070" class="md-nav__link">
     <span class="md-ellipsis">
       
-        当前版本：v0.6.0
+        当前版本：v0.7.0
       
     </span>
   </a>
@@ -2862,17 +2851,6 @@
     <span class="md-ellipsis">
       
         通往 1.0 之路
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#v070-additive-features-and-the-testing-kit" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        v0.7.0：增量功能与测试工具包
       
     </span>
   </a>
@@ -2958,9 +2936,9 @@
 适合新手。</p>
 <p>每个里程碑都列出了完成标准。只有当测试套件离线运行、行覆盖率为 100%，且每条标准都满足时，
 该里程碑才会发布。</p>
-<h2 id="current-release-v060">当前版本：v0.6.0<a class="headerlink" href="#current-release-v060" title="Permanent link">&para;</a></h2>
+<h2 id="current-release-v070">当前版本：v0.7.0<a class="headerlink" href="#current-release-v070" title="Permanent link">&para;</a></h2>
 <p><a href="../changelog/">CHANGELOG.md</a> 按版本列出了所有变更，<a href="../migration/">MIGRATION.md</a> 说明了如何
-从 0.4 升级以及 0.5 和 0.6 带来了哪些变化。</p>
+从 0.4 升级以及 0.5、0.6 和 0.7 带来了哪些变化。</p>
 <table>
 <thead>
 <tr>
@@ -2972,12 +2950,12 @@
 <tbody>
 <tr>
 <td><a href="https://github.com/xueromll/udg-catalogue">udg-catalogue</a></td>
-<td><code>main</code> 分支上为 <code>&gt;=0.6.0.dev0,&lt;0.7</code>，并包含它导入的每个 extra，其测试套件可在核心库 <code>master</code> 上通过</td>
+<td><code>main</code> 分支上为 <code>&gt;=0.6.0.dev0,&lt;0.7</code>，并包含它导入的每个 extra，其测试套件可在核心库 0.7.0 上通过</td>
 <td>生产环境中为 0.4，包括检索、发现和嵌入</td>
 </tr>
 <tr>
 <td><a href="https://github.com/xueromll/sci-etl-cli">sci-etl-cli</a></td>
-<td><code>master</code> 分支上为 <code>&gt;=0.6.0.dev0,&lt;0.7</code>，其测试套件可在核心库 <code>master</code> 上通过；其下一个版本 0.4.0 要求 <code>&gt;=0.6.0,&lt;0.7</code></td>
+<td><code>master</code> 分支上为 <code>&gt;=0.6.0.dev0,&lt;0.7</code>，其测试套件可在核心库 0.7.0 上通过</td>
 <td>0.2，最新版本为 0.2.1</td>
 </tr>
 </tbody>
@@ -3008,7 +2986,7 @@
 </tr>
 <tr>
 <td>续跑</td>
-<td>只会越过已落定页面的已保存列表游标；结果上限被报告为截断，下一次运行从第一页开始；对持续失败的记录进行隔离；带模式版本的状态，可升级 0.4 写入的文件；无需重新扫描即可获取新投稿的 <code>newest_first</code> 运行</td>
+<td>只会越过已落定页面的已保存列表游标；结果上限被报告为截断，下一次运行从第一页开始；对持续失败的记录进行隔离；带模式版本的状态，可升级 0.4 写入的文件；无需重新扫描即可获取新投稿的 <code>newest_first</code> 运行；两种内置状态管理器都提供的 <code>forget(record_ids)</code>，使以 <code>start_index=0</code> 启动的运行重新处理选定的记录</td>
 </tr>
 <tr>
 <td>来源</td>
@@ -3016,7 +2994,7 @@
 </tr>
 <tr>
 <td>LLM</td>
-<td>带 token 用量统计和 JSON Schema 结构化输出的 OpenAI 兼容聊天和嵌入客户端；以实体模式为键、存放在内存或 SQLite 中的响应缓存；按 Pydantic 模型校验的类型化实体</td>
+<td>带 token 用量统计和 JSON Schema 结构化输出的 OpenAI 兼容聊天和嵌入客户端；以实体模式为键、存放在内存或 SQLite 中的响应缓存；按 Pydantic 模型校验的类型化实体；<code>AsyncCascadingRelevanceFilter</code>，让廉价的相关性过滤器先筛掉记录，再交给 LLM 过滤器</td>
 </tr>
 <tr>
 <td>论断（临时性）</td>
@@ -3024,7 +3002,7 @@
 </tr>
 <tr>
 <td>记忆与检索</td>
-<td>向量记忆、支持 <code>NEAR</code> 的布尔查询语言、SQLite FTS5 和内存文本存储、混合排名融合、范围和元数据过滤器、分面、摘要片段、发现图，以及从向量记忆回填</td>
+<td>带快速精确扫描的向量记忆、支持 <code>NEAR</code> 的布尔查询语言、SQLite FTS5 和内存文本存储、每个分支 500 个候选的混合排名融合、范围和元数据过滤器、分面、摘要片段、发现图，以及从向量记忆回填；工作量取决于候选池而非语料库的检索：文本存储先排序再生成摘要片段（<code>rank</code>、<code>hydrate</code>），计数匹配时可在上限处停止，并根据匹配结果计算分面，还可选择启用 SQLite 缓存和内存映射设置（<code>SqliteTuning</code>）</td>
 </tr>
 <tr>
 <td>配置</td>
@@ -3044,15 +3022,17 @@
 </tr>
 <tr>
 <td>防护措施</td>
-<td>已提交的所有稳定签名快照，同时覆盖已知使用方用到的每个名称；在运行语义指南中编号的 <code>AsyncETLPipeline.run</code> 保证，每条都有对应的具名测试；CI 检查每个稳定名称都能从基础安装或其组件所需的 extra 中导入；sci-etl-cli 和 udg-catalogue 的测试套件会针对每次核心变更运行，并为每次发布把关；针对每个内置来源的夜间冒烟测试；让每个导出器都通过流水线运行的吞吐量基准测试</td>
+<td>已提交的所有稳定签名快照，同时覆盖已知使用方用到的每个名称；在运行语义指南中编号的 <code>AsyncETLPipeline.run</code> 保证，每条都有对应的具名测试；CI 检查每个稳定名称都能从基础安装或其组件所需的 extra 中导入；sci-etl-cli 和 udg-catalogue 的测试套件会针对每次核心变更运行，并为每次发布把关；针对每个内置来源的夜间冒烟测试；让每个导出器都通过流水线运行的吞吐量基准测试；<code>sci_etl_core.testing</code> 中的契约测试套件（位于 <code>testing</code> extra 之后），按内置组件所通过的契约检查第三方提取器、状态管理器、导出器和向量存储</td>
 </tr>
 </tbody>
 </table>
 <p>尚未完成：</p>
 <ul>
-<li>sci-etl-cli 0.4.0 和 udg-catalogue 改用已发布的 0.6.0，要求 <code>&gt;=0.6.0,&lt;0.7</code> 而不是开发
-  版本，并且运行时没有 <code>DeprecationWarning</code>。</li>
+<li>sci-etl-cli 和 udg-catalogue 改用已发布的 0.7.0，要求上限为 <code>&lt;0.8</code> 的已发布版本而不是
+  开发版本，并且运行时没有 <code>DeprecationWarning</code>。</li>
 <li>实际检查 OpenAlex 游标的有效期有多长。</li>
+<li>检查词法检索是否达到其目标：对一百万条记录，第 95 百分位不超过 200 毫秒。该检查移至
+  v0.8.0，在同等规模的真实语料库而不是合成语料库上测量。</li>
 </ul>
 <p>PubMed 和 Semantic Scholar 保留按偏移量分页，并把各自的上限报告为截断：即使通过历史服务器，
 E-utilities 最多也只提供 9,999 条结果；Semantic Scholar 的批量检索返回固定为 1,000 篇论文的
@@ -3060,26 +3040,11 @@ E-utilities 最多也只提供 9,999 条结果；Semantic Scholar 的批量检�
 <h2 id="path-to-10">通往 1.0 之路<a class="headerlink" href="#path-to-10" title="Permanent link">&para;</a></h2>
 <p>每个公开契约在 1.0 之前计划内的最后一次破坏性变更都已完成。运行契约（提取器、状态、构造
 函数）在 0.5.0 中发生了破坏性变更，数据契约（实体、导出器、日志、依赖）在 0.6.0 中发生了
-破坏性变更；此后的每个版本都只做增量修改，v0.7.0 提高的混合检索默认值除外。每项破坏性变更都在 <a href="../migration/">MIGRATION.md</a>
+破坏性变更；此后的每个版本都只做增量修改，v0.7.0 已提高的混合检索默认值除外。每项破坏性变更都在 <a href="../migration/">MIGRATION.md</a>
 中有对应条目。</p>
 <p>自 0.6.0 起，已弃用的名称在被移除之前至少还能在两个次版本中使用。只有当 sci-etl-cli 和
 udg-catalogue 的测试套件在发布提交上通过时，才会打发布标签；发布工作流会运行两者，否则拒绝
 发布。</p>
-<h2 id="v070-additive-features-and-the-testing-kit">v0.7.0：增量功能与测试工具包<a class="headerlink" href="#v070-additive-features-and-the-testing-kit" title="Permanent link">&para;</a></h2>
-<p>不包含破坏性变更，也不引入新的弃用。只有一个默认值改变：混合检索的每个分支取 500 个候选，
-而不是 100 个。</p>
-<ul>
-<li><strong>定向重新处理。</strong> 一个可选的 <code>forget(record_ids)</code> 契约（两种内置状态管理器都会实现）可以
-  在不丢弃全部状态的情况下重新提取记录。</li>
-<li><strong>级联相关性过滤器。</strong> 一个组合过滤器先运行廉价的过滤器（例如
-  <code>AsyncEmbeddingRelevanceFilter</code>），再运行 LLM 过滤器。</li>
-<li><strong>测试工具包。</strong> <code>sci_etl_core.testing</code> 提供契约测试套件，第三方提取器、状态管理器、导出器
-  和嵌入存储都可以运行。</li>
-<li><strong>大规模检索。</strong> 词法检索先排序再生成摘要片段，过滤器和分面计数只查看匹配的记录，匹配计数
-  可以在达到上限时停止，每个 SQLite 存储都可以设置缓存和内存映射参数。</li>
-<li><strong>更大的候选池。</strong> <code>candidate_pool</code> 默认为 500，使融合结果在大型语料库上保持稳定；语义分支
-  最多请求 2,500 个文本块。</li>
-</ul>
 <h2 id="v080-scalable-vector-memory">v0.8.0：可扩展的向量记忆<a class="headerlink" href="#v080-scalable-vector-memory" title="Permanent link">&para;</a></h2>
 <p>不包含破坏性变更，也不引入新的弃用；新名称是临时性的。</p>
 <ul>
@@ -3087,7 +3052,8 @@ udg-catalogue 的测试套件在发布提交上通过时，才会打发布标签
   也可以使用带精确重排的二进制编码，或通过可选的 <code>ann</code> extra（安装 faiss-cpu）使用 HNSW。</li>
 <li><strong>并发检索。</strong> 同一存储上的多个检索并行运行，而不是等待同一个连接。</li>
 </ul>
-<p>目标是在笔记本电脑上，对一百万条记录的混合查询在第 95 百分位低于 300 毫秒。</p>
+<p>目标是在笔记本电脑上，对一百万条记录的混合查询在第 95 百分位低于 300 毫秒，并在同等规模的
+真实语料库上测量。词法检索也在同一语料库上按其自身目标测量：第 95 百分位不超过 200 毫秒。</p>
 <h2 id="v100-stabilization">v1.0.0：稳定化<a class="headerlink" href="#v100-stabilization" title="Permanent link">&para;</a></h2>
 <p>1.0.0 保证三个层级：稳定名称遵循语义化版本，临时性名称可以在次版本中变更并在更新日志中记录，
 私有名称可以随时变更。已知使用方导入的每个名称都是稳定的。当一个完整的次版本在没有破坏性

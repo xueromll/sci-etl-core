@@ -2603,10 +2603,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#current-release-v060" class="md-nav__link">
+  <a href="#current-release-v070" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Versión actual — v0.6.0
+        Versión actual — v0.7.0
       
     </span>
   </a>
@@ -2618,17 +2618,6 @@
     <span class="md-ellipsis">
       
         Camino hacia la 1.0
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#v070-additive-features-and-the-testing-kit" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        v0.7.0 — Funciones aditivas y el kit de pruebas
       
     </span>
   </a>
@@ -2845,10 +2834,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#current-release-v060" class="md-nav__link">
+  <a href="#current-release-v070" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Versión actual — v0.6.0
+        Versión actual — v0.7.0
       
     </span>
   </a>
@@ -2860,17 +2849,6 @@
     <span class="md-ellipsis">
       
         Camino hacia la 1.0
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#v070-additive-features-and-the-testing-kit" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        v0.7.0 — Funciones aditivas y el kit de pruebas
       
     </span>
   </a>
@@ -2960,10 +2938,10 @@ quien empieza.</p>
 <p>Cada hito enumera sus criterios de salida. Un hito se publica cuando se cumplen
 todos los criterios con la batería de pruebas sin conexión y una cobertura de
 líneas del 100 %.</p>
-<h2 id="current-release-v060">Versión actual — v0.6.0<a class="headerlink" href="#current-release-v060" title="Permanent link">&para;</a></h2>
+<h2 id="current-release-v070">Versión actual — v0.7.0<a class="headerlink" href="#current-release-v070" title="Permanent link">&para;</a></h2>
 <p><a href="../changelog/">CHANGELOG.md</a> enumera todos los cambios por versión, y
 <a href="../migration/">MIGRATION.md</a> explica cómo actualizar desde la 0.4 y qué cambian
-la 0.5 y la 0.6.</p>
+la 0.5, la 0.6 y la 0.7.</p>
 <table>
 <thead>
 <tr>
@@ -2975,12 +2953,12 @@ la 0.5 y la 0.6.</p>
 <tbody>
 <tr>
 <td><a href="https://github.com/xueromll/udg-catalogue">udg-catalogue</a></td>
-<td><code>&gt;=0.6.0.dev0,&lt;0.7</code> en <code>main</code>, con todos los extras que importa, y su batería de pruebas pasa contra <code>master</code> del núcleo</td>
+<td><code>&gt;=0.6.0.dev0,&lt;0.7</code> en <code>main</code>, con todos los extras que importa, y su batería de pruebas pasa contra el núcleo 0.7.0</td>
 <td>0.4 en producción, incluidos la búsqueda, el descubrimiento y los embeddings</td>
 </tr>
 <tr>
 <td><a href="https://github.com/xueromll/sci-etl-cli">sci-etl-cli</a></td>
-<td><code>&gt;=0.6.0.dev0,&lt;0.7</code> en <code>master</code>, y su batería de pruebas pasa contra <code>master</code> del núcleo; su próxima versión, la 0.4.0, requiere <code>&gt;=0.6.0,&lt;0.7</code></td>
+<td><code>&gt;=0.6.0.dev0,&lt;0.7</code> en <code>master</code>, y su batería de pruebas pasa contra el núcleo 0.7.0</td>
 <td>0.2, en su última versión 0.2.1</td>
 </tr>
 </tbody>
@@ -3011,7 +2989,7 @@ la 0.5 y la 0.6.</p>
 </tr>
 <tr>
 <td>Reanudación</td>
-<td>Cursores de listado guardados que solo avanzan más allá de páginas resueltas, límites de resultados notificados como truncamiento con la siguiente ejecución empezando desde la primera página, una cuarentena para los registros que siguen fallando, estado versionado por esquema que actualiza los archivos escritos por la 0.4, y ejecuciones <code>newest_first</code> que recogen los envíos nuevos sin volver a recorrerlo todo</td>
+<td>Cursores de listado guardados que solo avanzan más allá de páginas resueltas, límites de resultados notificados como truncamiento con la siguiente ejecución empezando desde la primera página, una cuarentena para los registros que siguen fallando, estado versionado por esquema que actualiza los archivos escritos por la 0.4, ejecuciones <code>newest_first</code> que recogen los envíos nuevos sin volver a recorrerlo todo, y <code>forget(record_ids)</code> en los dos gestores de estado incluidos, de modo que una ejecución con <code>start_index=0</code> vuelve a procesar los registros elegidos</td>
 </tr>
 <tr>
 <td>Fuentes</td>
@@ -3019,7 +2997,7 @@ la 0.5 y la 0.6.</p>
 </tr>
 <tr>
 <td>LLM</td>
-<td>Clientes de chat y embeddings compatibles con OpenAI con consumo de tokens y salida estructurada por JSON Schema, caché de respuestas en memoria o en SQLite con clave en el esquema de la entidad, entidades tipadas validadas contra un modelo de Pydantic</td>
+<td>Clientes de chat y embeddings compatibles con OpenAI con consumo de tokens y salida estructurada por JSON Schema, caché de respuestas en memoria o en SQLite con clave en el esquema de la entidad, entidades tipadas validadas contra un modelo de Pydantic, y <code>AsyncCascadingRelevanceFilter</code>, que permite que un filtro de relevancia barato descarte registros antes de que los vea un filtro con LLM</td>
 </tr>
 <tr>
 <td>Afirmaciones (provisional)</td>
@@ -3027,7 +3005,7 @@ la 0.5 y la 0.6.</p>
 </tr>
 <tr>
 <td>Memoria y búsqueda</td>
-<td>Memoria vectorial, lenguaje de consultas booleano con <code>NEAR</code>, almacenes de texto SQLite FTS5 y en memoria, fusión híbrida de clasificaciones, filtros de rango y de metadatos, facetas, extractos, grafos de descubrimiento y relleno desde la memoria vectorial</td>
+<td>Memoria vectorial con un recorrido exacto rápido, lenguaje de consultas booleano con <code>NEAR</code>, almacenes de texto SQLite FTS5 y en memoria, fusión híbrida de clasificaciones sobre 500 candidatos por rama, filtros de rango y de metadatos, facetas, extractos, grafos de descubrimiento y relleno desde la memoria vectorial; una búsqueda cuyo trabajo depende del grupo de candidatos y no del corpus: los almacenes de texto ordenan antes de construir los extractos (<code>rank</code>, <code>hydrate</code>), cuentan las coincidencias hasta un tope y cuentan las facetas a partir de las coincidencias, con ajustes opcionales de caché y de mapeo en memoria de SQLite (<code>SqliteTuning</code>)</td>
 </tr>
 <tr>
 <td>Configuración</td>
@@ -3047,17 +3025,20 @@ la 0.5 y la 0.6.</p>
 </tr>
 <tr>
 <td>Salvaguardas</td>
-<td>Una instantánea incluida en el repositorio de todas las firmas estables, que también cubre todos los nombres que usa un consumidor conocido; las garantías de <code>AsyncETLPipeline.run</code> numeradas en una guía de semántica de ejecución, cada una con una prueba con nombre; una comprobación en la CI de que cada nombre estable se importa desde una instalación base o desde el extra que necesita su componente; las baterías de pruebas de sci-etl-cli y udg-catalogue se ejecutan en cada cambio del núcleo y bloquean cada versión; pruebas de humo nocturnas contra cada fuente incluida; un benchmark de rendimiento que pasa cada exportador por el pipeline</td>
+<td>Una instantánea incluida en el repositorio de todas las firmas estables, que también cubre todos los nombres que usa un consumidor conocido; las garantías de <code>AsyncETLPipeline.run</code> numeradas en una guía de semántica de ejecución, cada una con una prueba con nombre; una comprobación en la CI de que cada nombre estable se importa desde una instalación base o desde el extra que necesita su componente; las baterías de pruebas de sci-etl-cli y udg-catalogue se ejecutan en cada cambio del núcleo y bloquean cada versión; pruebas de humo nocturnas contra cada fuente incluida; un benchmark de rendimiento que pasa cada exportador por el pipeline; baterías de pruebas de contrato en <code>sci_etl_core.testing</code>, detrás del extra <code>testing</code>, que comprueban extractores, gestores de estado, exportadores y almacenes vectoriales de terceros frente a los contratos que superan los componentes incluidos</td>
 </tr>
 </tbody>
 </table>
 <p>Pendiente:</p>
 <ul>
-<li>sci-etl-cli 0.4.0 y udg-catalogue sobre la 0.6.0 publicada, requiriendo
-  <code>&gt;=0.6.0,&lt;0.7</code> en lugar de una versión de desarrollo y funcionando sin
-  <code>DeprecationWarning</code>.</li>
+<li>sci-etl-cli y udg-catalogue sobre la 0.7.0 publicada, requiriendo una
+  versión publicada con el límite superior <code>&lt;0.8</code> en lugar de una versión de
+  desarrollo y funcionando sin <code>DeprecationWarning</code>.</li>
 <li>Una comprobación real de cuánto tiempo siguen siendo válidos los cursores de
   OpenAlex.</li>
+<li>Una comprobación de la búsqueda léxica frente a su objetivo: como máximo
+  200 ms en el percentil 95 sobre un millón de registros. Pasa a la v0.8.0,
+  que la mide sobre un corpus real de ese tamaño en lugar de uno sintético.</li>
 </ul>
 <p>PubMed y Semantic Scholar mantienen la paginación por desplazamiento y notifican
 sus límites como truncamiento: E-utilities sirve como máximo 9999 resultados
@@ -3069,32 +3050,12 @@ Scholar devuelve páginas fijas de 1000 artículos, lo que no permite respetar
 la 1.0. El contrato de ejecución (extractor, estado, constructor) se rompió en
 la 0.5.0 y el contrato de datos (entidades, exportador, registro, dependencias)
 en la 0.6.0; todas las versiones posteriores son aditivas,
-salvo el valor por defecto de la búsqueda híbrida que sube la v0.7.0. Cada cambio
+salvo el valor por defecto de la búsqueda híbrida que subió la v0.7.0. Cada cambio
 incompatible tiene una entrada en <a href="../migration/">MIGRATION.md</a>.</p>
 <p>Desde la 0.6.0, un nombre obsoleto sigue funcionando durante al menos dos
 versiones menores antes de eliminarse. Una versión solo se etiqueta cuando las
 baterías de pruebas de sci-etl-cli y udg-catalogue pasan contra el commit de la
 versión; el flujo de publicación ejecuta ambas y, si no, se niega a publicar.</p>
-<h2 id="v070-additive-features-and-the-testing-kit">v0.7.0 — Funciones aditivas y el kit de pruebas<a class="headerlink" href="#v070-additive-features-and-the-testing-kit" title="Permanent link">&para;</a></h2>
-<p>Sin cambios incompatibles y sin nuevas obsolescencias. Cambia un valor por
-defecto: la búsqueda híbrida toma 500 candidatos por rama en lugar de 100.</p>
-<ul>
-<li><strong>Reprocesamiento selectivo.</strong> Un contrato opcional <code>forget(record_ids)</code>, que
-  implementan los dos gestores de estado incluidos, permite volver a extraer
-  registros sin descartar todo el estado.</li>
-<li><strong>Filtros de relevancia en cascada.</strong> Un filtro compuesto ejecuta un filtro
-  barato, como <code>AsyncEmbeddingRelevanceFilter</code>, antes del filtro con LLM.</li>
-<li><strong>Kit de pruebas.</strong> <code>sci_etl_core.testing</code> ofrece baterías de pruebas de
-  contrato que pueden ejecutar los extractores, gestores de estado,
-  exportadores y almacenes de embeddings de terceros.</li>
-<li><strong>Búsqueda a escala.</strong> La búsqueda léxica ordena antes de construir los
-  extractos, los filtros y los recuentos de facetas solo miran los registros
-  que coinciden, los recuentos de coincidencias pueden detenerse en un tope y
-  cada almacén SQLite acepta ajustes de caché y de mapeo en memoria.</li>
-<li><strong>Grupos de candidatos más grandes.</strong> <code>candidate_pool</code> vale 500 por defecto,
-  lo que mantiene estables los resultados fusionados en corpus grandes, y la
-  rama semántica pide como máximo 2500 fragmentos.</li>
-</ul>
 <h2 id="v080-scalable-vector-memory">v0.8.0 — Memoria vectorial escalable<a class="headerlink" href="#v080-scalable-vector-memory" title="Permanent link">&para;</a></h2>
 <p>Sin cambios incompatibles y sin nuevas obsolescencias; los nombres nuevos son
 provisionales.</p>
@@ -3108,7 +3069,9 @@ provisionales.</p>
   ejecutan en paralelo en lugar de esperar a una sola conexión.</li>
 </ul>
 <p>El objetivo es una consulta híbrida sobre un millón de registros en menos de
-300 ms en el percentil 95 en un portátil.</p>
+300 ms en el percentil 95 en un portátil, medida sobre un corpus real de ese
+tamaño. La búsqueda léxica se mide sobre el mismo corpus frente a su propio
+objetivo: como máximo 200 ms en el percentil 95.</p>
 <h2 id="v100-stabilization">v1.0.0 — Estabilización<a class="headerlink" href="#v100-stabilization" title="Permanent link">&para;</a></h2>
 <p>La 1.0.0 garantiza tres niveles: los nombres estables siguen el versionado
 semántico, los nombres provisionales pueden cambiar en una versión menor con

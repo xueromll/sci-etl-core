@@ -3058,9 +3058,10 @@ ni un servicio de embeddings.</p>
   <code>AsyncMock</code> o el fixture <code>mocker</code>.</li>
 <li><strong>Sin red real ni esperas exponenciales.</strong> Simula los clientes HTTP, del LLM
   y de embeddings, e inyecta <code>sleep=AsyncMock()</code> para saltarte las esperas.</li>
-<li><strong>Pruebas de contrato.</strong> Cada implementación de una ABC pública tiene un caso
-  en <code>tests/contract/test_abc_conformance.py</code>; añade uno por cada
-  implementación nueva.</li>
+<li><strong>Pruebas de contrato.</strong> Un extractor, gestor de estado, exportador o
+  almacén vectorial nuevo ejecuta su batería de <code>sci_etl_core.testing</code> en
+  <code>tests/contract/</code>. mypy comprueba que las firmas de cada implementación
+  coincidan con su ABC.</li>
 <li><strong>Pruebas de propiedades.</strong> Pon los invariantes —sobre todo los que deben
   compartir dos backends, como los almacenes de embeddings en memoria y en
   SQLite— en pruebas de Hypothesis en <code>tests/test_properties.py</code>.</li>
@@ -3364,8 +3365,7 @@ propias pruebas; uno nuevo incluido en la biblioteca la hereda en
 <p>Registra la nueva clase en el mapa <code>_EXPORTS</code> y en las importaciones
 <code>TYPE_CHECKING</code> de su subpaquete. Un módulo nuevo necesita también una entrada
 en su página de <code>docs/reference/</code>. Si es una clase principal de cara a los
-usuarios, añádela del mismo modo a <code>sci_etl_core/__init__.py</code>. Añade un caso
-para ella en <code>tests/contract/test_abc_conformance.py</code>.</p>
+usuarios, añádela del mismo modo a <code>sci_etl_core/__init__.py</code>.</p>
 <p>¡Que disfrutes programando, y gracias por contribuir!</p>
 
 
