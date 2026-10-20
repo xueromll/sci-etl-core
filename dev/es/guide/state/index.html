@@ -1449,6 +1449,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#reprocessing-records" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reprocesar registros
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#newest-first-listings" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2804,6 +2815,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#reprocessing-records" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reprocesar registros
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#newest-first-listings" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2928,6 +2950,29 @@ listado continúa después de él.</p>
 fallidos en cada ejecución, como hacía la 0.4. Un gestor de estado
 personalizado que no sobrescribe <code>record_failure</code> y <code>failure_counts</code> nunca pone
 registros en cuarentena.</p>
+<h2 id="reprocessing-records">Reprocesar registros<a class="headerlink" href="#reprocessing-records" title="Permanent link">&para;</a></h2>
+<p>Para volver a procesar registros, por ejemplo después de cambiar el prompt o el
+modelo, olvídalos entre ejecuciones y luego ejecuta el pipeline que usa el
+mismo gestor de estado desde la primera página del listado:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncSqliteStateManager</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">state</span> <span class="o">=</span> <span class="n">AsyncSqliteStateManager</span><span class="p">(</span><span class="s2">"state.sqlite"</span><span class="p">)</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">await</span> <span class="n">state</span><span class="o">.</span><span class="n">forget</span><span class="p">([</span><span class="s2">"2401.00001v1"</span><span class="p">,</span> <span class="s2">"2401.00002v1"</span><span class="p">])</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="s2">"all:galaxy"</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">start_index</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</code></pre></div>
+<p><code>forget</code> borra la marca de procesado y los intentos fallidos de cada registro,
+así que un registro en cuarentena vuelve a empezar con todo su <code>max_attempts</code>.
+El cursor guardado se conserva, y por eso la ejecución pasa <code>start_index=0</code>;
+los registros que siguen marcados como procesados se omiten por id, de modo
+que la nueva pasada procesa solo los olvidados. Los exportadores incluidos
+reemplazan la salida anterior de un registro cuando se vuelve a escribir.</p>
+<p>Los dos gestores de estado incluidos implementan el protocolo opcional
+<code>Forgetting</code>. Un gestor de estado propio lo admite si añade <code>forget</code>, e
+<code>isinstance(state, Forgetting)</code> indica si lo hace. Una ejecución carga los ids
+procesados al empezar, así que olvida los registros entre ejecuciones.
+<code>AsyncFileStateManager</code> reescribe su archivo de ids con un renombrado atómico;
+un id que otro proceso añada mientras tanto puede perderse, lo que solo hace
+que ese registro se repita más adelante.</p>
 <h2 id="newest-first-listings">Listados de más recientes primero<a class="headerlink" href="#newest-first-listings" title="Permanent link">&para;</a></h2>
 <p>El extractor de arXiv lista primero los envíos más recientes, y el extractor de
 PubMed ordena de más reciente a más antiguo por defecto, así que los artículos
@@ -2935,7 +2980,7 @@ nuevos empujan a los antiguos hacia desplazamientos mayores. Una ejecución que
 se reanuda desde el desplazamiento guardado sigue avanzando hacia atrás por los
 artículos más antiguos y nunca ve los nuevos. Pasa <code>newest_first=True</code> para
 recoger ambos:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="s2">"all:galaxy"</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">newest_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="s2">"all:galaxy"</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">newest_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
 <p>Una ejecución así pagina desde el desplazamiento 0 hasta haber pasado los
 registros que la ejecución anterior vio al principio del listado. Lo que se han

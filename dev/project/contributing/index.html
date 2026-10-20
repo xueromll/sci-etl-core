@@ -3223,7 +3223,7 @@ requested changes are about the code, never about you.</p>
 <td>State manager</td>
 <td><code>AsyncStateManager</code></td>
 <td><code>load_processed_ids</code>, <code>mark_processed</code>, <code>load_metadata</code>, <code>save_metadata</code></td>
-<td>Concurrency-safe. Override <code>record_failure</code> and <code>failure_counts</code> to support quarantine; the defaults track nothing. Record a schema version and refuse a file from a newer release. Override <code>flush()</code> if you buffer; add <code>aclose()</code> if you hold connections.</td>
+<td>Concurrency-safe. Override <code>record_failure</code> and <code>failure_counts</code> to support quarantine; the defaults track nothing. Add <code>forget</code> to support reprocessing (<code>Forgetting</code>). Record a schema version and refuse a file from a newer release. Override <code>flush()</code> if you buffer; add <code>aclose()</code> if you hold connections.</td>
 </tr>
 <tr>
 <td>Embedder</td>

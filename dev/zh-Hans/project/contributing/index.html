@@ -3178,7 +3178,7 @@ PR 中夹带无关的格式调整。请把面向用户的变更记录在 <a href
 <td>状态管理器</td>
 <td><code>AsyncStateManager</code></td>
 <td><code>load_processed_ids</code>、<code>mark_processed</code>、<code>load_metadata</code>、<code>save_metadata</code></td>
-<td>必须并发安全。重写 <code>record_failure</code> 和 <code>failure_counts</code> 以支持隔离；默认实现不做任何跟踪。记录模式版本，并拒绝来自更新版本的文件。如果使用缓冲，请重写 <code>flush()</code>；如果持有连接，请添加 <code>aclose()</code>。</td>
+<td>必须并发安全。重写 <code>record_failure</code> 和 <code>failure_counts</code> 以支持隔离；默认实现不做任何跟踪。添加 <code>forget</code> 以支持重新处理（<code>Forgetting</code>）。记录模式版本，并拒绝来自更新版本的文件。如果使用缓冲，请重写 <code>flush()</code>；如果持有连接，请添加 <code>aclose()</code>。</td>
 </tr>
 <tr>
 <td>嵌入器</td>

@@ -1451,6 +1451,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#reprocessing-records" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        重新处理记录
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#newest-first-listings" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2806,6 +2817,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#reprocessing-records" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        重新处理记录
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#newest-first-listings" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2900,11 +2922,28 @@
 任何内容，因此这样的记录只有在列表越过它继续下去的运行中才会进入隔离状态。</p>
 <p>传入 <code>max_attempts=None</code> 则不做任何计数，并在每次运行中重试每条失败的记录，与 0.4 的行为
 相同。没有重写 <code>record_failure</code> 和 <code>failure_counts</code> 的自定义状态管理器永远不会隔离记录。</p>
+<h2 id="reprocessing-records">重新处理记录<a class="headerlink" href="#reprocessing-records" title="Permanent link">&para;</a></h2>
+<p>要重新处理记录，例如在更换提示词或模型之后，请在两次运行之间遗忘这些记录，然后让使用同一个
+状态管理器的流水线从列表的第一页开始运行：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncSqliteStateManager</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">state</span> <span class="o">=</span> <span class="n">AsyncSqliteStateManager</span><span class="p">(</span><span class="s2">"state.sqlite"</span><span class="p">)</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">await</span> <span class="n">state</span><span class="o">.</span><span class="n">forget</span><span class="p">([</span><span class="s2">"2401.00001v1"</span><span class="p">,</span> <span class="s2">"2401.00002v1"</span><span class="p">])</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="s2">"all:galaxy"</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">start_index</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</code></pre></div>
+<p><code>forget</code> 会清除每条记录的已处理标记和失败尝试，因此被隔离的记录会重新获得完整的
+<code>max_attempts</code>。保存的游标保持不变，所以这次运行要传入 <code>start_index=0</code>；仍标记为已处理的
+记录会按 id 跳过，因此这次重新扫描只处理被遗忘的记录。内置导出器在记录再次写入时会替换其先前
+的输出。</p>
+<p>两种内置状态管理器都实现了可选的 <code>Forgetting</code> 协议。自定义状态管理器只要添加 <code>forget</code> 即可
+支持它，<code>isinstance(state, Forgetting)</code> 可以判断它是否支持。运行在开始时加载已处理的 id，
+因此请在两次运行之间遗忘记录。<code>AsyncFileStateManager</code> 通过原子重命名重写它的 id 文件；
+其他进程在此期间追加的 id 可能会丢失，后果只是该记录之后会被再处理一次。</p>
 <h2 id="newest-first-listings">最新优先的列表<a class="headerlink" href="#newest-first-listings" title="Permanent link">&para;</a></h2>
 <p>arXiv 提取器先列出最新的投稿，PubMed 提取器默认也按最新优先排序，因此新论文会把旧论文推到
 更大的偏移量处。从保存的偏移量续跑的运行会继续向更旧的论文推进，永远看不到新论文。传入
 <code>newest_first=True</code> 即可兼顾两者：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="s2">"all:galaxy"</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">newest_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="s2">"all:galaxy"</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">newest_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
 <p>这样的运行会从偏移量 0 开始翻页，直到越过上一次运行在列表顶部看到的那些记录。这些记录移动的
 距离就是新投稿的数量，因此保存的偏移量也向后移动了同样的数量。运行会跳到该偏移量之前的那一

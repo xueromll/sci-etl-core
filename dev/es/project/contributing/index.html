@@ -3250,7 +3250,7 @@ existente:</p>
 <td>Gestor de estado</td>
 <td><code>AsyncStateManager</code></td>
 <td><code>load_processed_ids</code>, <code>mark_processed</code>, <code>load_metadata</code>, <code>save_metadata</code></td>
-<td>Seguro ante la concurrencia. Sobrescribe <code>record_failure</code> y <code>failure_counts</code> para admitir la cuarentena; las implementaciones por defecto no registran nada. Registra una versión de esquema y rechaza un archivo de una versión más reciente. Sobrescribe <code>flush()</code> si usas búfer; añade <code>aclose()</code> si mantienes conexiones.</td>
+<td>Seguro ante la concurrencia. Sobrescribe <code>record_failure</code> y <code>failure_counts</code> para admitir la cuarentena; las implementaciones por defecto no registran nada. Añade <code>forget</code> para admitir el reprocesamiento (<code>Forgetting</code>). Registra una versión de esquema y rechaza un archivo de una versión más reciente. Sobrescribe <code>flush()</code> si usas búfer; añade <code>aclose()</code> si mantienes conexiones.</td>
 </tr>
 <tr>
 <td>Generador de embeddings</td>

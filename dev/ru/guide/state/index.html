@@ -1447,6 +1447,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#reprocessing-records" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Повторная обработка записей
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#newest-first-listings" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2802,6 +2813,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#reprocessing-records" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Повторная обработка записей
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#newest-first-listings" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2923,13 +2945,36 @@ UTC.</p>
 неудавшуюся запись в каждом запуске, как в 0.4. Собственный менеджер состояния,
 который не переопределяет <code>record_failure</code> и <code>failure_counts</code>, никогда не
 помещает записи в карантин.</p>
+<h2 id="reprocessing-records">Повторная обработка записей<a class="headerlink" href="#reprocessing-records" title="Permanent link">&para;</a></h2>
+<p>Чтобы обработать записи заново, например после смены промпта или модели,
+забудьте их между запусками, а затем запустите пайплайн с тем же менеджером
+состояния с первой страницы листинга:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncSqliteStateManager</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">state</span> <span class="o">=</span> <span class="n">AsyncSqliteStateManager</span><span class="p">(</span><span class="s2">"state.sqlite"</span><span class="p">)</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">await</span> <span class="n">state</span><span class="o">.</span><span class="n">forget</span><span class="p">([</span><span class="s2">"2401.00001v1"</span><span class="p">,</span> <span class="s2">"2401.00002v1"</span><span class="p">])</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="s2">"all:galaxy"</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">start_index</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</code></pre></div>
+<p><code>forget</code> снимает с каждой записи пометку обработанной и стирает её неудачные
+попытки, поэтому запись в карантине снова получает полный <code>max_attempts</code>.
+Сохранённый курсор не меняется, поэтому запуск передаёт <code>start_index=0</code>;
+записи, которые по-прежнему помечены как обработанные, пропускаются по id, так
+что повторное сканирование обрабатывает только забытые. Встроенные экспортёры
+заменяют прежний вывод записи при повторной записи.</p>
+<p>Оба встроенных менеджера состояния реализуют необязательный протокол
+<code>Forgetting</code>. Собственный менеджер состояния поддерживает его, если добавить
+<code>forget</code>, а <code>isinstance(state, Forgetting)</code> показывает, поддерживает ли он его.
+Запуск загружает обработанные id при старте, поэтому забывайте записи между
+запусками. <code>AsyncFileStateManager</code> переписывает свой файл id атомарным
+переименованием; id, который другой процесс дописывает в это время, может
+потеряться, и тогда эта запись лишь будет обработана позже ещё раз.</p>
 <h2 id="newest-first-listings">Выдачи «сначала новые»<a class="headerlink" href="#newest-first-listings" title="Permanent link">&para;</a></h2>
 <p>Экстрактор arXiv выдаёт сначала самые новые поступления, а экстрактор PubMed по
 умолчанию сортирует от новых к старым, поэтому новые статьи сдвигают старые к
 большим смещениям. Запуск, возобновляющийся с сохранённого смещения,
 продолжает двигаться назад по более старым статьям и никогда не видит новых.
 Передайте <code>newest_first=True</code>, чтобы подхватывать и те и другие:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="s2">"all:galaxy"</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">newest_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="s2">"all:galaxy"</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">newest_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
 <p>Такой запуск листает со смещения 0, пока не пройдёт записи, которые предыдущий
 запуск видел в начале листинга. Насколько эти записи сдвинулись — столько и

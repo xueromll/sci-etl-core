@@ -1445,6 +1445,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#reprocessing-records" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reprocessing records
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#newest-first-listings" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2800,6 +2811,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#reprocessing-records" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reprocessing records
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#newest-first-listings" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2912,13 +2934,35 @@ reaches quarantine only in a run where the listing continues past it.</p>
 <p>Pass <code>max_attempts=None</code> to count nothing and retry every failed record on
 every run, as 0.4 did. A custom state manager that does not override
 <code>record_failure</code> and <code>failure_counts</code> never quarantines.</p>
+<h2 id="reprocessing-records">Reprocessing records<a class="headerlink" href="#reprocessing-records" title="Permanent link">&para;</a></h2>
+<p>To process records again, for example after a prompt or model change, forget
+them between runs, then run the pipeline that uses the same state manager from
+the first page of the listing:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncSqliteStateManager</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">state</span> <span class="o">=</span> <span class="n">AsyncSqliteStateManager</span><span class="p">(</span><span class="s2">"state.sqlite"</span><span class="p">)</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">await</span> <span class="n">state</span><span class="o">.</span><span class="n">forget</span><span class="p">([</span><span class="s2">"2401.00001v1"</span><span class="p">,</span> <span class="s2">"2401.00002v1"</span><span class="p">])</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="s2">"all:galaxy"</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">start_index</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</code></pre></div>
+<p><code>forget</code> clears each record's processed mark and failed attempts, so a
+quarantined record starts again with the full <code>max_attempts</code>. The saved cursor
+is kept, which is why the run passes <code>start_index=0</code>; records still marked
+processed are skipped by id, so the rescan processes only the forgotten ones.
+The bundled exporters replace a record's earlier output when it is written
+again.</p>
+<p>Both bundled state managers implement the optional <code>Forgetting</code> protocol. A
+custom state manager supports it by adding <code>forget</code>, and
+<code>isinstance(state, Forgetting)</code> tells whether one does. A run loads the
+processed ids when it starts, so forget between runs. <code>AsyncFileStateManager</code>
+rewrites its ids file by atomic rename; an id that another process appends
+meanwhile can be lost, which only repeats that record later.</p>
 <h2 id="newest-first-listings">Newest-first listings<a class="headerlink" href="#newest-first-listings" title="Permanent link">&para;</a></h2>
 <p>The arXiv extractor lists the newest submissions first, and the PubMed
 extractor sorts newest first by default, so new papers push older ones to
 higher offsets. A run that resumes from the saved offset keeps
 working backwards through older papers and never sees the new ones. Pass
 <code>newest_first=True</code> to pick up both:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="s2">"all:galaxy"</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">newest_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">await</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="s2">"all:galaxy"</span><span class="p">,</span> <span class="n">total_limit</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">newest_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
 <p>Such a run pages from offset 0 until it has passed the records the previous
 run saw at the top of the listing. How far those records have moved is the

@@ -3245,7 +3245,7 @@
 <td>Менеджер состояния</td>
 <td><code>AsyncStateManager</code></td>
 <td><code>load_processed_ids</code>, <code>mark_processed</code>, <code>load_metadata</code>, <code>save_metadata</code></td>
-<td>Безопасен при параллелизме. Переопределяйте <code>record_failure</code> и <code>failure_counts</code> для поддержки карантина; реализации по умолчанию ничего не отслеживают. Записывайте версию схемы и отказывайтесь работать с файлом более нового релиза. Переопределите <code>flush()</code>, если используете буферизацию; добавьте <code>aclose()</code>, если удерживаете соединения.</td>
+<td>Безопасен при параллелизме. Переопределяйте <code>record_failure</code> и <code>failure_counts</code> для поддержки карантина; реализации по умолчанию ничего не отслеживают. Добавьте <code>forget</code> для поддержки повторной обработки (<code>Forgetting</code>). Записывайте версию схемы и отказывайтесь работать с файлом более нового релиза. Переопределите <code>flush()</code>, если используете буферизацию; добавьте <code>aclose()</code>, если удерживаете соединения.</td>
 </tr>
 <tr>
 <td>Эмбеддер</td>

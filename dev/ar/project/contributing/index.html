@@ -3201,7 +3201,7 @@ ruff مجموعات القواعد <code>ASYNC</code> و<code>UP</code> و<code>
 <td>مدير الحالة</td>
 <td><code>AsyncStateManager</code></td>
 <td><code>load_processed_ids</code>، <code>mark_processed</code>، <code>load_metadata</code>، <code>save_metadata</code></td>
-<td>آمن مع التزامن. أعِد تعريف <code>record_failure</code> و<code>failure_counts</code> لدعم الحجر؛ فالتنفيذات الافتراضية لا تتتبّع شيئًا. سجّل إصدار المخطط وارفض ملفًا من إصدار أحدث. أعِد تعريف <code>flush()</code> إن كنت تخزّن مؤقتًا؛ وأضف <code>aclose()</code> إن كنت تحتفظ باتصالات.</td>
+<td>آمن مع التزامن. أعِد تعريف <code>record_failure</code> و<code>failure_counts</code> لدعم الحجر؛ فالتنفيذات الافتراضية لا تتتبّع شيئًا. وأضف <code>forget</code> لدعم إعادة المعالجة (<code>Forgetting</code>). سجّل إصدار المخطط وارفض ملفًا من إصدار أحدث. أعِد تعريف <code>flush()</code> إن كنت تخزّن مؤقتًا؛ وأضف <code>aclose()</code> إن كنت تحتفظ باتصالات.</td>
 </tr>
 <tr>
 <td>مولّد التضمينات</td>

@@ -2461,6 +2461,34 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#sci_etl_core.state.async_base.Forgetting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;Forgetting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" Forgetting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sci_etl_core.state.async_base.Forgetting.forget" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;forget
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2528,6 +2556,17 @@
     <span class="md-ellipsis">
       
         <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;record_failure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sci_etl_core.state.async_file_state.AsyncFileStateManager.forget" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;forget
       
     </span>
   </a>
@@ -2639,6 +2678,17 @@
     <span class="md-ellipsis">
       
         <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;failure_counts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sci_etl_core.state.sqlite_async.AsyncSqliteStateManager.forget" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;forget
       
     </span>
   </a>
@@ -3146,6 +3196,34 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#sci_etl_core.state.async_base.Forgetting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;Forgetting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" Forgetting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sci_etl_core.state.async_base.Forgetting.forget" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;forget
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3213,6 +3291,17 @@
     <span class="md-ellipsis">
       
         <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;record_failure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sci_etl_core.state.async_file_state.AsyncFileStateManager.forget" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;forget
       
     </span>
   </a>
@@ -3324,6 +3413,17 @@
     <span class="md-ellipsis">
       
         <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;failure_counts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sci_etl_core.state.sqlite_async.AsyncSqliteStateManager.forget" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;forget
       
     </span>
   </a>
@@ -3679,6 +3779,109 @@ is a no-op.</p>
 
 </div>
 
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sci_etl_core.state.async_base.Forgetting" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">Forgetting</span>
+
+
+<a href="#sci_etl_core.state.async_base.Forgetting" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-external" title="typing.Protocol" href="https://docs.python.org/3/library/typing.html#typing.Protocol">Protocol</a></code></p>
+
+
+
+        <p>A state manager that can hand records back to the pipeline for reprocessing.</p>
+<p>:meth:<code>forget</code> clears records' processed marks and failed attempts, so a
+later run that lists them again processes them again, for example after a
+prompt or model change. The saved cursor is kept: run with
+<code>start_index=0</code> to rescan the listing from its first page. Forget between
+runs, because a run loads the processed ids when it starts. Both bundled
+state managers implement it.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sci_etl_core.state.async_base.Forgetting.forget" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">forget</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#sci_etl_core.state.async_base.Forgetting.forget" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">forget</span><span class="p">(</span><span class="n">record_ids</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Collection" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Collection">Collection</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Clear the processed mark and failed attempts of every id in <code>record_ids</code>.</p>
+<p>An id that is not tracked, or an empty id, is ignored.</p>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError">ValueError</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p><code>record_ids</code> is a single string rather than a
+collection of ids.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
 
 
 
@@ -3772,7 +3975,8 @@ thread to keep the loop responsive.</p>
 written by sci-etl-core 0.4, and its saved offset is read as the cursor.
 Failed attempts are kept in the metadata file per record, with the last
 error truncated to 4,096 characters, and :meth:<code>mark_processed</code> clears
-them.</p>
+them. :meth:<code>forget</code> clears both a record's processed mark and its
+attempts.</p>
 <p>A file that cannot be read raises <code>OSError</code> rather than reading as empty,
 because an empty processed-id set would silently reprocess every record.</p>
 
@@ -3948,6 +4152,79 @@ file was written by a newer sci-etl-core.</p>
             <td>
               <div class="doc-md-description">
                 <p>The metadata file cannot be read or written.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="            StateStoreError (sci_etl_core.exceptions.StateStoreError)" href="../models/#sci_etl_core.exceptions.StateStoreError">StateStoreError</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The metadata file was written by a newer sci-etl-core.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sci_etl_core.state.async_file_state.AsyncFileStateManager.forget" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">forget</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#sci_etl_core.state.async_file_state.AsyncFileStateManager.forget" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">forget</span><span class="p">(</span><span class="n">record_ids</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Collection" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Collection">Collection</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Clear the processed mark and failed attempts of every id in <code>record_ids</code>.</p>
+<p>The ids file is rewritten without the forgotten ids by atomic rename,
+and only when it holds one of them; the metadata file is rewritten only
+when one of them has failed attempts. Empty ids are ignored. Forget
+between runs: an id another process appends while the ids file is
+rewritten can be lost, which only repeats that record later.</p>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError">ValueError</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p><code>record_ids</code> is a single string rather than a
+collection of ids.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/exceptions.html#OSError">OSError</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A state file cannot be read or written.</p>
               </div>
             </td>
           </tr>
@@ -4232,6 +4509,7 @@ file records its schema version in <code>PRAGMA user_version</code>. A database
 written by sci-etl-core 0.4 is upgraded in place, its saved offset becoming
 the cursor. Failed attempts are stored per record with the last error,
 truncated to 4,096 characters, and :meth:<code>mark_processed</code> clears them.
+:meth:<code>forget</code> clears both a record's processed mark and its attempts.
 <code>timeout</code> is how many seconds a statement waits for another process's
 lock. A :class:<code>sqlite3.Error</code> propagates unwrapped, and a database written
 by a newer sci-etl-core raises
@@ -4345,6 +4623,54 @@ one event loop.</p>
 </code></pre></div>
 
     <div class="doc doc-contents ">
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sci_etl_core.state.sqlite_async.AsyncSqliteStateManager.forget" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">forget</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#sci_etl_core.state.sqlite_async.AsyncSqliteStateManager.forget" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">forget</span><span class="p">(</span><span class="n">record_ids</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Collection" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Collection">Collection</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Clear the processed mark and failed attempts of every id in one transaction; empty ids are ignored.</p>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError">ValueError</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p><code>record_ids</code> is a single string rather than a
+collection of ids.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
 
 
     </div>
