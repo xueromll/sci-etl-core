@@ -376,6 +376,99 @@ class TestTextSearchStoreContract:
             (hit,) = await store.search(Term("galaxy"))
             assert marked(hit) == ["galaxy"]
 
+    @pytest.mark.asyncio
+    async def test_rank_orders_and_scores_as_search_and_hydrate_completes_the_hits(self, kind, tmp_path):
+        documents = [
+            SearchDocument(f"r{index}", title="galaxy", body="galaxy " * index, metadata={"year": str(2020 + index)})
+            for index in range(6)
+        ]
+        query = parse_query("galaxy OR survey")
+        recent = [MetadataFilter("year", {"2022", "2023", "2024", "2025"})]
+        async with open_store(kind, tmp_path, facet_keys=("year",)) as store:
+            await store.index(documents)
+            for options in ({}, {"limit": 3}, {"exclude_record_id": "r5", "filters": recent}):
+                expected = await store.search(query, **options)
+                ranked = await store.rank(query, **options)
+                assert [(hit.record_id, hit.score) for hit in ranked] == [
+                    (hit.record_id, hit.score) for hit in expected
+                ]
+                assert await store.hydrate(query, ranked) == expected
+            assert await store.rank(query, limit=0) == []
+            assert await store.hydrate(query, []) == []
+
+    @pytest.mark.asyncio
+    async def test_hydrate_returns_a_hit_whose_record_is_gone_or_no_longer_matches_as_given(self, kind, tmp_path):
+        async with open_store(kind, tmp_path) as store:
+            await store.index([SearchDocument(record_id, title="galaxy") for record_id in ("a", "b", "c")])
+            ranked = await store.rank(Term("galaxy"))
+            await store.delete_record("a")
+            await store.index([SearchDocument("b", title="quasar")])
+            hydrated = await store.hydrate(Term("galaxy"), ranked)
+            assert hydrated[:2] == ranked[:2]
+            assert (hydrated[2].record_id, hydrated[2].title, marked(hydrated[2])) == ("c", "galaxy", ["galaxy"])
+
+    @pytest.mark.asyncio
+    async def test_rank_and_hydrate_refuse_a_query_that_cannot_be_ranked(self, kind, tmp_path):
+        async with open_store(kind, tmp_path) as store:
+            await store.index(DWARF_AND_GIANT)
+            with pytest.raises(SearchQueryError, match=NOT_RANKABLE):
+                await store.rank(Not(Term("dwarf")))
+            with pytest.raises(SearchQueryError, match=NOT_RANKABLE):
+                await store.hydrate(parse_query("NOT dwarf OR giant"), [])
+
+    @pytest.mark.asyncio
+    async def test_filter_candidates_keep_the_stored_candidates_passing_the_filters(self, kind, tmp_path):
+        async with open_store(kind, tmp_path, facet_keys=FACETS) as store:
+            await store.index(FACET_DOCUMENTS)
+            candidates = ["d1", "d2", "d4", "unknown"]
+            assert await store.filter_candidates(candidates, SELECTED) == frozenset({"d1"})
+            assert await store.filter_candidates(candidates, [MetadataFilter("year", {"2025"}, negated=True)]) == {"d4"}
+            assert await store.filter_candidates(candidates) == frozenset({"d1", "d2", "d4"})
+            assert await store.filter_candidates([], SELECTED) == frozenset()
+            with pytest.raises(ValueError, match="'authors' is not a facet key"):
+                await store.filter_candidates(candidates, [MetadataFilter("authors", {"A"})])
+
+    @pytest.mark.asyncio
+    async def test_get_headers_return_the_title_and_metadata_without_the_text(self, kind, tmp_path):
+        async with open_store(kind, tmp_path) as store:
+            await store.index([SearchDocument("r1", "Dwarf galaxies", "An abstract", "Body", {"year": 2025})])
+            assert await store.get_headers(["r1", "unknown"]) == {
+                "r1": SearchDocument("r1", "Dwarf galaxies", metadata={"year": 2025})
+            }
+            assert await store.get_headers([]) == {}
+
+    @pytest.mark.asyncio
+    async def test_count_matches_counts_what_filter_ids_returns_and_stops_at_the_cap(self, kind, tmp_path):
+        async with open_store(kind, tmp_path, facet_keys=FACETS) as store:
+            await store.index([*DWARF_AND_GIANT, *FACET_DOCUMENTS])
+            assert await store.count_matches() == 7
+            assert await store.count_matches(Term("dwarf")) == 2
+            assert await store.count_matches(parse_query("NOT dwarf OR giant")) == 6
+            assert await store.count_matches(Term("galaxy"), [MetadataFilter("categories", {"CO"})]) == 2
+            assert await store.count_matches(None, [MetadataFilter("year", {"2025"})]) == 3
+            assert await store.count_matches(Term("quasar")) == 0
+            assert await store.count_matches(cap=5) == 5
+            assert await store.count_matches(Term("dwarf"), cap=1) == 1
+            assert await store.count_matches(Term("dwarf"), cap=3) == 2
+            assert await store.count_matches(Not(Term("dwarf")), cap=2) == 2
+
+    @pytest.mark.asyncio
+    async def test_invalid_counts_raise_before_any_io(self, kind, tmp_path):
+        async with open_store(kind, tmp_path / "never-created", facet_keys=FACETS) as store:
+            for cap in (0, -1):
+                with pytest.raises(ValueError, match=f"cap must be at least 1, not {cap}"):
+                    await store.count_matches(Term("galaxy"), cap=cap)
+            with pytest.raises(ValueError, match="Only one filter per key"):
+                await store.count_matches(filters=[MetadataFilter("year", {"2024"}), RangeFilter("year", 2020)])
+
+    @pytest.mark.asyncio
+    async def test_facet_counts_accept_a_query_that_cannot_be_ranked(self, kind, tmp_path):
+        async with open_store(kind, tmp_path, facet_keys=FACETS) as store:
+            await store.index([*FACET_DOCUMENTS, SearchDocument("q", title="quasar", metadata={"year": "2024"})])
+            assert await store.facet_counts(["year"], query=Not(Term("quasar")), filters=SELECTED) == {
+                "year": (("2024", 1), ("2025", 1))
+            }
+
 
 CORPUS = [
     SearchDocument(

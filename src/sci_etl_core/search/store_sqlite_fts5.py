@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from collections.abc import Callable, Collection, Iterable, Sequence
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, TypeVar
@@ -10,7 +11,7 @@ from typing import Any, TypeVar
 from sci_etl_core._sqlite_async import AsyncSqliteRunner
 from sci_etl_core.exceptions import SearchQueryError, SearchStoreError
 from sci_etl_core.search._schema import bootstrap, read_facet_keys, transaction, write_facet_keys
-from sci_etl_core.search.compile_fts5 import to_filter_expression, to_match_expression
+from sci_etl_core.search.compile_fts5 import is_rankable, to_filter_expression, to_match_expression
 from sci_etl_core.search.filters import (
     SNIPPET_CLOSE,
     SNIPPET_ELLIPSIS,
@@ -40,21 +41,72 @@ _SELECT_DOC_ID = "SELECT doc_id FROM documents WHERE record_id = ?"
 _DELETE_TAGS = "DELETE FROM document_tags WHERE doc_id = ?"
 _INSERT_TAG = "INSERT INTO document_tags (doc_id, key, value) VALUES (?, ?, ?)"
 _SNIPPET = "snippet(documents_fts, {column}, ?, ?, ?, ?)"
-_SEARCH = (
-    "SELECT d.record_id, d.title, d.metadata, bm25(documents_fts, ?, ?, ?) AS score, "
+_SNIPPET_PARAMETERS = [SNIPPET_OPEN, SNIPPET_CLOSE, SNIPPET_ELLIPSIS, SNIPPET_TOKENS] * (len(FIELDS) + 1)
+_RANK = (
+    "SELECT documents_fts.rowid, bm25(documents_fts, ?, ?, ?) AS score FROM documents_fts"
+    " WHERE documents_fts MATCH ?{conditions} ORDER BY score LIMIT ?"
+)
+_RANK_BY_RECORD = (
+    "SELECT documents_fts.rowid, d.record_id, bm25(documents_fts, ?, ?, ?) AS score"
+    " FROM documents_fts JOIN documents d ON d.doc_id = documents_fts.rowid"
+    " WHERE documents_fts MATCH ?{conditions} ORDER BY score, d.record_id LIMIT ?"
+)
+_HIGHLIGHT = (
+    "SELECT documents_fts.rowid, d.title, d.metadata, "
     + ", ".join(_SNIPPET.format(column=column) for column in range(-1, len(FIELDS)))
     + " FROM documents_fts JOIN documents d ON d.doc_id = documents_fts.rowid"
-    " WHERE documents_fts MATCH ?{conditions}"
-    " ORDER BY score, d.record_id LIMIT ?"
+    " WHERE documents_fts MATCH ? AND +documents_fts.rowid IN ({placeholders})"
 )
+_EXCLUDE_DOC_ID = "documents_fts.rowid IS NOT (SELECT doc_id FROM documents WHERE record_id = ?)"
 _FACET_COUNTS = (
     "SELECT t.value, COUNT(*) AS matched FROM document_tags t JOIN documents d ON d.doc_id = t.doc_id"
     " WHERE t.key = ? AND {conditions} GROUP BY t.value ORDER BY matched DESC, t.value"
 )
+_TAG_COUNTS = (
+    "SELECT f.value, COUNT(*) AS matched FROM document_tags f"
+    " WHERE f.key = ?{conditions} GROUP BY f.value ORDER BY matched DESC, f.value"
+)
+_MATCHED_TAG_COUNTS = (
+    "SELECT f.value, COUNT(*) AS matched FROM documents_fts"
+    " CROSS JOIN document_tags f ON f.doc_id = documents_fts.rowid AND f.key = ?"
+    " WHERE documents_fts MATCH ?{conditions} GROUP BY f.value ORDER BY matched DESC, f.value"
+)
 _RANGE_COUNT = "SELECT COUNT(*) FROM documents d WHERE {conditions}"
 _MATCH_COUNT = "SELECT COUNT(*) FROM documents_fts WHERE documents_fts MATCH ?"
+_COUNT_MATCHED = "SELECT COUNT(*) FROM (SELECT 1 FROM documents_fts WHERE documents_fts MATCH ?{conditions} LIMIT ?)"
+_COUNT_DOCUMENTS = "SELECT COUNT(*) FROM (SELECT 1 FROM documents d WHERE {conditions} LIMIT ?)"
 _ID_BATCH = 500
 _IN_RANGE_FUNCTION = "sci_etl_tag_in_range"
+_FTS_DOC_ID = "documents_fts.rowid"
+_SQLITE_MAX_INTEGER = 2**63 - 1
+_DOCUMENT_COLUMNS = "record_id, title, abstract, body, metadata"
+_HEADER_COLUMNS = "record_id, title, metadata"
+_Ranked = list[tuple[int, str, float]]
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class SqliteTuning:
+    """Memory settings for the SQLite connection of one store.
+
+    ``cache_size`` is SQLite's page cache in bytes, rounded down to whole
+    kibibytes, and ``mmap_size`` the most bytes of the file SQLite reads through
+    a memory map. ``None`` keeps SQLite's default, a page cache of about 2 MB
+    and no memory map, so ``SqliteTuning()`` changes nothing. A larger cache and
+    a memory map speed up queries once the index outgrows the default cache, at
+    the cost of the process's memory, which is why both are opt-in.
+
+    Raises:
+        ValueError: A size is not a whole number of bytes, or is negative.
+    """
+
+    cache_size: int | None = None
+    mmap_size: int | None = None
+
+    def __post_init__(self) -> None:
+        for name in ("cache_size", "mmap_size"):
+            size = getattr(self, name)
+            if size is not None and (isinstance(size, bool) or not isinstance(size, int) or size < 0):
+                raise ValueError(f"{name} must be a whole number of bytes that is not negative, not {size!r}")
 
 
 def fts5_available(connect: Callable[[], sqlite3.Connection] | None = None) -> bool:
@@ -101,12 +153,15 @@ class AsyncSqliteFts5Store(AsyncTextSearchStore):
     known SQLite fault: some builds, including 3.50.4, fail to highlight a
     field-scoped ``NEAR`` group inside ``OR`` or ``NOT`` for some documents and report
     the file as malformed. When the same match runs cleanly without
-    highlighting, :meth:`search` raises
+    highlighting, :meth:`search`, :meth:`rank`, and :meth:`hydrate` raise
     :class:`~sci_etl_core.exceptions.SearchQueryError` naming the SQLite
     version instead.
 
     Ranking is FTS5's ``bm25()`` with the field ``weights``, reported as a
-    score where higher is better. ``snippet`` comes from the one field FTS5
+    score where higher is better. A search ranks the matches first and
+    computes snippets, and reads titles and metadata, only for the hits it
+    returns, so its cost follows ``limit`` rather than the number of matches.
+    ``snippet`` comes from the one field FTS5
     chooses, and ``snippets`` holds FTS5's snippet of every field it
     highlights a match in. On the queries where FTS5 counts a word inside a
     part of the query that fails to match, as
@@ -124,7 +179,9 @@ class AsyncSqliteFts5Store(AsyncTextSearchStore):
     The file is opened, and created or migrated to the current schema, on the
     first operation rather than at construction. A file that is not a database,
     or whose schema is newer than this library supports, raises
-    :class:`~sci_etl_core.exceptions.SearchStoreError` then.
+    :class:`~sci_etl_core.exceptions.SearchStoreError` then. ``tuning`` sets
+    the connection's page cache and memory map (:class:`SqliteTuning`); by
+    default SQLite's own settings apply.
 
     :meth:`aclose` is not terminal: a later call reopens the connection. Give
     each instance exactly one owner, which awaits :meth:`aclose`, and use it
@@ -142,6 +199,7 @@ class AsyncSqliteFts5Store(AsyncTextSearchStore):
         facet_keys: Iterable[str] = (),
         weights: BM25Weights | None = None,
         now: Callable[[], datetime] | None = None,
+        tuning: SqliteTuning | None = None,
     ) -> None:
         if not fts5_available():
             raise SearchStoreError(
@@ -152,6 +210,7 @@ class AsyncSqliteFts5Store(AsyncTextSearchStore):
         self._facet_keys = frozenset(facet_keys)
         self._weights = BM25Weights() if weights is None else weights
         self._now = _utc_now if now is None else now
+        self._tuning = SqliteTuning() if tuning is None else tuning
         self._runner = AsyncSqliteRunner(self._open_connection, error_factory=SearchStoreError)
 
     @property
@@ -182,30 +241,59 @@ class AsyncSqliteFts5Store(AsyncTextSearchStore):
         expression = to_match_expression(query)
         if limit < 1:
             return []
-        conditions, condition_parameters = _conditions(None, filters)
-        if exclude_record_id is not None:
-            conditions.insert(0, "d.record_id != ?")
-            condition_parameters.insert(0, exclude_record_id)
-        sql = _SEARCH.format(conditions="".join(f" AND {condition}" for condition in conditions))
-        parameters = [
-            self._weights.title,
-            self._weights.abstract,
-            self._weights.body,
-            *[SNIPPET_OPEN, SNIPPET_CLOSE, SNIPPET_ELLIPSIS, SNIPPET_TOKENS] * (len(FIELDS) + 1),
-            expression,
-            *condition_parameters,
-            limit,
-        ]
-        try:
-            rows = await self._read(filters, lambda connection: connection.execute(sql, parameters).fetchall())
-        except SearchStoreError as error:
-            if await self._is_snippet_fault(query, expression, error):
-                raise SearchQueryError(
-                    f"SQLite {sqlite3.sqlite_version} fails to highlight a field-scoped NEAR group inside OR "
-                    "or NOT for some documents; drop the field scope from the NEAR group"
-                ) from error
-            raise
-        return [_hit(*row) for row in rows]
+        rank = self._ranking(expression, limit, exclude_record_id, filters)
+
+        def rank_and_highlight(connection: sqlite3.Connection) -> list[TextHit]:
+            ranked = rank(connection)
+            found = _highlights(connection, expression, [rowid for rowid, _record_id, _rank in ranked])
+            return [_hit(record_id, rank, *found[rowid]) for rowid, record_id, rank in ranked]
+
+        return await self._highlighting(query, expression, filters, rank_and_highlight)
+
+    async def rank(
+        self,
+        query: Node,
+        limit: int = 20,
+        exclude_record_id: str | None = None,
+        filters: Sequence[SearchFilter] = (),
+    ) -> list[TextHit]:
+        """Return :meth:`search`'s hits with their record ids and scores only.
+
+        No snippet is computed and no title or metadata is read, so ranking a
+        pool of 500 costs little more than ranking 20. :meth:`hydrate` completes
+        the hits a caller shows.
+        """
+        validate_filters(filters, self._facet_keys)
+        expression = to_match_expression(query)
+        if limit < 1:
+            return []
+        ranked = await self._highlighting(
+            query, expression, filters, self._ranking(expression, limit, exclude_record_id, filters)
+        )
+        return [TextHit(record_id, -rank) for _rowid, record_id, rank in ranked]
+
+    async def hydrate(self, query: Node, hits: Sequence[TextHit]) -> list[TextHit]:
+        """Compute the snippets, and read the title and metadata, of ``hits`` in one consistent read.
+
+        The snippets are the ones :meth:`search` computes, as
+        :meth:`AsyncTextSearchStore.hydrate` describes.
+        """
+        expression = to_match_expression(query)
+        if not hits:
+            return []
+        wanted = sorted({hit.record_id for hit in hits})
+
+        def highlight(connection: sqlite3.Connection) -> dict[str, tuple[Any, ...]]:
+            doc_ids = dict(_select_documents(connection, wanted, "record_id, doc_id"))
+            found = _highlights(connection, expression, sorted(doc_ids.values()))
+            return {record_id: found[doc_id] for record_id, doc_id in doc_ids.items() if doc_id in found}
+
+        rows = await self._highlighting(query, expression, (), highlight)
+        hydrated: list[TextHit] = []
+        for hit in hits:
+            row = rows.get(hit.record_id)
+            hydrated.append(hit if row is None else _hit(hit.record_id, -hit.score, *row))
+        return hydrated
 
     async def filter_ids(
         self, query: Node | None = None, filters: Sequence[SearchFilter] = ()
@@ -216,14 +304,50 @@ class AsyncSqliteFts5Store(AsyncTextSearchStore):
         rows = await self._read(filters, lambda connection: connection.execute(sql, parameters).fetchall())
         return frozenset(record_id for (record_id,) in rows)
 
+    async def filter_candidates(
+        self, record_ids: Collection[str], filters: Sequence[SearchFilter] = ()
+    ) -> frozenset[str]:
+        """Test ``filters`` on ``record_ids`` alone, 500 ids per statement, in one consistent read."""
+        validate_filters(filters, self._facet_keys)
+        wanted = sorted(set(record_ids))
+        conditions, parameters = _conditions(None, filters)
+        restriction = _restriction(conditions)
+
+        def select(connection: sqlite3.Connection) -> list[tuple[Any, ...]]:
+            rows: list[tuple[Any, ...]] = []
+            for start in range(0, len(wanted), _ID_BATCH):
+                batch = wanted[start : start + _ID_BATCH]
+                placeholders = ", ".join("?" * len(batch))
+                sql = f"SELECT d.record_id FROM documents d WHERE d.record_id IN ({placeholders}){restriction}"
+                rows.extend(connection.execute(sql, [*batch, *parameters]).fetchall())
+            return rows
+
+        rows = await self._read(filters, select)
+        return frozenset(record_id for (record_id,) in rows)
+
     async def get_documents(self, record_ids: Collection[str]) -> dict[str, SearchDocument]:
         wanted = sorted(set(record_ids))
         if not wanted:
             return {}
-        rows = await self._runner.run(lambda connection: _select_documents(connection, wanted), "read search documents")
+        rows = await self._runner.run(
+            lambda connection: _select_documents(connection, wanted, _DOCUMENT_COLUMNS), "read search documents"
+        )
         return {
             record_id: SearchDocument(record_id, title, abstract, body, _decode_metadata(metadata))
             for record_id, title, abstract, body, metadata in rows
+        }
+
+    async def get_headers(self, record_ids: Collection[str]) -> dict[str, SearchDocument]:
+        """Read the title and metadata of each record, never selecting its abstract or body."""
+        wanted = sorted(set(record_ids))
+        if not wanted:
+            return {}
+        rows = await self._runner.run(
+            lambda connection: _select_documents(connection, wanted, _HEADER_COLUMNS), "read search documents"
+        )
+        return {
+            record_id: SearchDocument(record_id, title, metadata=_decode_metadata(metadata))
+            for record_id, title, metadata in rows
         }
 
     async def facet_counts(
@@ -233,15 +357,30 @@ class AsyncSqliteFts5Store(AsyncTextSearchStore):
         query: Node | None = None,
         filters: Sequence[SearchFilter] = (),
     ) -> dict[str, tuple[tuple[str, int], ...]]:
+        """Count matching documents per value of each facet key, in one consistent read.
+
+        The counts are those :meth:`AsyncTextSearchStore.facet_counts`
+        describes. For a rankable query the counts are driven by the query's
+        matches, joined to their tags, and with no query by the tag index alone,
+        so neither reads every tag of a key against the documents table.
+        """
         validate_filters(filters, self._facet_keys)
         validate_facet_keys(keys, self._facet_keys)
-        filter_expression = None if query is None else to_filter_expression(query)
+        match = None if query is None or not is_rankable(query) else to_match_expression(query)
+        filter_expression = None if query is None or match is not None else to_filter_expression(query)
         statements: dict[str, tuple[str, list[Any]]] = {}
         for key in keys:
             others = [metadata_filter for metadata_filter in filters if metadata_filter.key != key]
-            conditions, parameters = _conditions(filter_expression, others)
-            sql = _FACET_COUNTS.format(conditions=" AND ".join(conditions) or "1")
-            statements[key] = (sql, [key, *parameters])
+            if match is not None:
+                conditions, parameters = _conditions(None, others, _FTS_DOC_ID)
+                sql = _MATCHED_TAG_COUNTS.format(conditions=_restriction(conditions))
+                statements[key] = (sql, [key, match, *parameters])
+            elif filter_expression is None:
+                conditions, parameters = _conditions(None, others, "f.doc_id")
+                statements[key] = (_TAG_COUNTS.format(conditions=_restriction(conditions)), [key, *parameters])
+            else:
+                conditions, parameters = _conditions(filter_expression, others)
+                statements[key] = (_FACET_COUNTS.format(conditions=" AND ".join(conditions)), [key, *parameters])
 
         def count_values(connection: sqlite3.Connection) -> dict[str, tuple[tuple[str, int], ...]]:
             return {
@@ -276,6 +415,35 @@ class AsyncSqliteFts5Store(AsyncTextSearchStore):
             return tuple(int(connection.execute(sql, parameters).fetchone()[0]) for sql, parameters in statements)
 
         return await self._read(filters, count_ranges, required_keys=range_keys)
+
+    async def count_matches(
+        self,
+        query: Node | None = None,
+        filters: Sequence[SearchFilter] = (),
+        *,
+        cap: int | None = None,
+    ) -> int:
+        """Count matching documents with ``COUNT(*)``, never returning their ids.
+
+        The count is the one :meth:`AsyncTextSearchStore.count_matches`
+        describes. A rankable query is counted on its FTS5 matches alone, and
+        ``cap`` stops the count after ``cap`` documents, so a capped count of a
+        frequent word costs ``cap`` steps rather than one per match.
+        """
+        validate_filters(filters, self._facet_keys)
+        if cap is not None and cap < 1:
+            raise ValueError(f"cap must be at least 1, not {cap!r}")
+        limit = -1 if cap is None else cap
+        if query is not None and is_rankable(query):
+            conditions, parameters = _conditions(None, filters, _FTS_DOC_ID)
+            sql = _COUNT_MATCHED.format(conditions=_restriction(conditions))
+            parameters = [to_match_expression(query), *parameters, limit]
+        else:
+            conditions, parameters = _conditions(None if query is None else to_filter_expression(query), filters)
+            sql = _COUNT_DOCUMENTS.format(conditions=" AND ".join(conditions) or "1")
+            parameters.append(limit)
+        row = await self._read(filters, lambda connection: connection.execute(sql, parameters).fetchone())
+        return int(row[0])
 
     async def count(self) -> int:
         rows = await self._runner.run(
@@ -338,6 +506,7 @@ class AsyncSqliteFts5Store(AsyncTextSearchStore):
             raise SearchStoreError(f"Failed to open the SQLite search index: {exc}") from exc
         try:
             connection.create_function(_IN_RANGE_FUNCTION, 3, tag_in_range, deterministic=True)
+            _tune(connection, self._tuning)
             bootstrap(connection, self._facet_keys)
         except sqlite3.Error as exc:
             connection.close()
@@ -358,6 +527,53 @@ class AsyncSqliteFts5Store(AsyncTextSearchStore):
             self._now().isoformat(),
             tag_rows(json.loads(encoded), self._facet_keys),
         )
+
+    def _ranking(
+        self, expression: str, limit: int, exclude_record_id: str | None, filters: Sequence[SearchFilter]
+    ) -> Callable[[sqlite3.Connection], _Ranked]:
+        weights = [self._weights.title, self._weights.abstract, self._weights.body]
+        conditions, parameters = _conditions(None, filters, _FTS_DOC_ID)
+        joined_conditions, joined_parameters = _conditions(None, filters)
+        if exclude_record_id is not None:
+            conditions.insert(0, _EXCLUDE_DOC_ID)
+            parameters.insert(0, exclude_record_id)
+            joined_conditions.insert(0, "d.record_id != ?")
+            joined_parameters.insert(0, exclude_record_id)
+        fetched = limit + 1 if limit < _SQLITE_MAX_INTEGER else limit
+        by_score = (_RANK.format(conditions=_restriction(conditions)), [*weights, expression, *parameters, fetched])
+        by_record = (
+            _RANK_BY_RECORD.format(conditions=_restriction(joined_conditions)),
+            [*weights, expression, *joined_parameters, limit],
+        )
+
+        def rank(connection: sqlite3.Connection) -> _Ranked:
+            scored: list[tuple[int, float]] = connection.execute(*by_score).fetchall()
+            if len(scored) > limit and scored[limit - 1][1] == scored[limit][1]:
+                return connection.execute(*by_record).fetchall()
+            top = scored[:limit]
+            names = _record_ids(connection, [rowid for rowid, _rank in top])
+            if len(names) < len(top):
+                return connection.execute(*by_record).fetchall()
+            return sorted(((rowid, names[rowid], rank) for rowid, rank in top), key=lambda row: (row[2], row[1]))
+
+        return rank
+
+    async def _highlighting(
+        self,
+        query: Node,
+        expression: str,
+        filters: Sequence[SearchFilter],
+        operation: Callable[[sqlite3.Connection], T],
+    ) -> T:
+        try:
+            return await self._read(filters, operation)
+        except SearchStoreError as error:
+            if await self._is_snippet_fault(query, expression, error):
+                raise SearchQueryError(
+                    f"SQLite {sqlite3.sqlite_version} fails to highlight a field-scoped NEAR group inside OR "
+                    "or NOT for some documents; drop the field scope from the NEAR group"
+                ) from error
+            raise
 
     async def _is_snippet_fault(self, query: Node, expression: str, error: SearchStoreError) -> bool:
         cause = error.__cause__
@@ -415,8 +631,19 @@ class AsyncSqliteFts5Store(AsyncTextSearchStore):
             write_facet_keys(connection, self._facet_keys)
 
 
+def _tune(connection: sqlite3.Connection, tuning: SqliteTuning) -> None:
+    if tuning.cache_size is not None:
+        connection.execute(f"PRAGMA cache_size = {-(tuning.cache_size // 1024)}")
+    if tuning.mmap_size is not None:
+        connection.execute(f"PRAGMA mmap_size = {tuning.mmap_size}")
+
+
+def _restriction(conditions: Iterable[str]) -> str:
+    return "".join(f" AND {condition}" for condition in conditions)
+
+
 def _conditions(
-    filter_expression: tuple[str, tuple[str, ...]] | None, filters: Iterable[SearchFilter]
+    filter_expression: tuple[str, tuple[str, ...]] | None, filters: Iterable[SearchFilter], doc_id: str = "d.doc_id"
 ) -> tuple[list[str], list[Any]]:
     conditions: list[str] = []
     parameters: list[Any] = []
@@ -432,24 +659,45 @@ def _conditions(
             test = f"t.value IN ({', '.join('?' * len(search_filter.values))})"
             values = sorted(search_filter.values)
         conditions.append(
-            f"{exists} (SELECT 1 FROM document_tags t WHERE t.doc_id = d.doc_id AND t.key = ? AND {test})"
+            f"{exists} (SELECT 1 FROM document_tags t WHERE t.doc_id = {doc_id} AND t.key = ? AND {test})"
         )
         parameters.extend([search_filter.key, *values])
     return conditions, parameters
 
 
-def _select_documents(connection: sqlite3.Connection, record_ids: list[str]) -> list[tuple[Any, ...]]:
+def _select_documents(connection: sqlite3.Connection, record_ids: list[str], columns: str) -> list[tuple[Any, ...]]:
     rows: list[tuple[Any, ...]] = []
     for start in range(0, len(record_ids), _ID_BATCH):
         batch = record_ids[start : start + _ID_BATCH]
         placeholders = ", ".join("?" * len(batch))
         rows.extend(
             connection.execute(
-                f"SELECT record_id, title, abstract, body, metadata FROM documents WHERE record_id IN ({placeholders})",
+                f"SELECT {columns} FROM documents WHERE record_id IN ({placeholders})",
                 batch,
             ).fetchall()
         )
     return rows
+
+
+def _record_ids(connection: sqlite3.Connection, doc_ids: list[int]) -> dict[int, str]:
+    names: dict[int, str] = {}
+    for start in range(0, len(doc_ids), _ID_BATCH):
+        batch = doc_ids[start : start + _ID_BATCH]
+        placeholders = ", ".join("?" * len(batch))
+        names.update(
+            connection.execute(f"SELECT doc_id, record_id FROM documents WHERE doc_id IN ({placeholders})", batch)
+        )
+    return names
+
+
+def _highlights(connection: sqlite3.Connection, expression: str, doc_ids: list[int]) -> dict[int, tuple[Any, ...]]:
+    found: dict[int, tuple[Any, ...]] = {}
+    for start in range(0, len(doc_ids), _ID_BATCH):
+        batch = doc_ids[start : start + _ID_BATCH]
+        sql = _HIGHLIGHT.format(placeholders=", ".join("?" * len(batch)))
+        for doc_id, *row in connection.execute(sql, [*_SNIPPET_PARAMETERS, expression, *batch]):
+            found[doc_id] = tuple(row)
+    return found
 
 
 def _integrity_check(connection: sqlite3.Connection) -> bool:
@@ -473,7 +721,7 @@ def _optional_scoped_near(node: Node, optional: bool = False) -> bool:
     return False
 
 
-def _hit(record_id: str, title: str, metadata: str, rank: float, raw_snippet: str, *raw_fields: str) -> TextHit:
+def _hit(record_id: str, rank: float, title: str, metadata: str, raw_snippet: str, *raw_fields: str) -> TextHit:
     snippet, highlights = split_markers(raw_snippet)
     snippets = tuple(
         Snippet(name, *marked)

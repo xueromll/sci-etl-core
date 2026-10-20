@@ -15,8 +15,8 @@ from sci_etl_core.llm.relevance_async import AsyncRelevanceFilter
 from sci_etl_core.pipeline_async import AsyncETLPipeline
 from sci_etl_core.search.filters import MetadataFilter, RangeFilter
 from sci_etl_core.search.query import And, Near, Not, Or, Term
-from sci_etl_core.search.store_base import SearchDocument
-from sci_etl_core.search.store_sqlite_fts5 import AsyncSqliteFts5Store, fts5_available
+from sci_etl_core.search.store_base import SearchDocument, TextHit
+from sci_etl_core.search.store_sqlite_fts5 import AsyncSqliteFts5Store, SqliteTuning, fts5_available
 from sci_etl_core.state.async_base import AsyncStateManager
 
 
@@ -112,6 +112,16 @@ class TestSnippetFault:
             mocker.patch.object(store, "_read", side_effect=[malformed(), SearchStoreError("still malformed")])
             with pytest.raises(SearchStoreError, match="database disk image is malformed"):
                 await store.search(_SCOPED_NEAR_INSIDE_OR)
+
+    @pytest.mark.asyncio
+    async def test_rank_and_hydrate_report_the_sqlite_limitation_too(self, tmp_path, mocker):
+        async with opened(tmp_path / "search.db") as store:
+            await store.index(_AUDITED_DOCUMENTS)
+            mocker.patch.object(store, "_read", side_effect=[malformed(), (2,), malformed(), (2,)])
+            with pytest.raises(SearchQueryError, match=f"SQLite {sqlite3.sqlite_version} fails to highlight"):
+                await store.rank(_SCOPED_NEAR_INSIDE_OR)
+            with pytest.raises(SearchQueryError, match=f"SQLite {sqlite3.sqlite_version} fails to highlight"):
+                await store.hydrate(_SCOPED_NEAR_INSIDE_OR, [TextHit("r1", 1.0)])
 
     @pytest.mark.asyncio
     async def test_another_sqlite_fault_stays_a_store_error(self, tmp_path, mocker):
@@ -366,6 +376,79 @@ class TestMaintenance:
                 await store.search(Term("galaxy"))
             with pytest.raises(SearchStoreError, match="metadata is not a JSON object"):
                 await store.rebuild_tags()
+
+
+class TestPoolSizedReads:
+    @pytest.mark.asyncio
+    async def test_a_match_without_its_document_row_is_left_out_as_before(self, tmp_path):
+        path = tmp_path / "search.db"
+        async with opened(path) as store:
+            await store.index([document("r1"), document("r2"), document("r3", title="quasar")])
+            raw(path, "DROP TRIGGER documents_ad")
+            raw(path, "DELETE FROM documents WHERE record_id = 'r1'")
+            assert [hit.record_id for hit in await store.search(Term("galaxy"))] == ["r2"]
+            assert [hit.record_id for hit in await store.rank(Term("galaxy"), limit=1)] == ["r2"]
+
+    @pytest.mark.asyncio
+    async def test_the_largest_limit_sqlite_accepts_returns_every_match(self, tmp_path):
+        async with opened(tmp_path / "search.db") as store:
+            await store.index([document("r1"), document("r2", title="galaxy galaxy")])
+            hits = await store.search(Term("galaxy"), limit=2**63 - 1)
+            assert [hit.record_id for hit in hits] == ["r2", "r1"]
+
+    @pytest.mark.asyncio
+    async def test_more_hits_and_candidates_than_one_read_batch(self, tmp_path):
+        records = [document(f"r{index:04d}", title="galaxy " + "survey " * (index % 7), year=str(index % 2))
+                   for index in range(1_203)]
+        async with opened(tmp_path / "search.db", facet_keys=("year",)) as store:
+            await store.index(records)
+            hits = await store.search(Term("galaxy"), limit=1_300)
+            assert len(hits) == 1_203
+            assert {hit.snippet[slice(*hit.highlights[0])] for hit in hits} == {"galaxy"}
+            assert await store.hydrate(Term("galaxy"), await store.rank(Term("galaxy"), limit=1_300)) == hits
+            candidates = [record.record_id for record in records] + ["unknown"]
+            assert len(await store.filter_candidates(candidates, [MetadataFilter("year", {"1"})])) == 601
+            assert len(await store.get_headers(candidates)) == 1_203
+
+    @pytest.mark.asyncio
+    async def test_new_reads_raise_until_the_tags_of_a_filter_key_are_built(self, tmp_path):
+        path = tmp_path / "search.db"
+        async with opened(path, facet_keys=("categories",)) as first:
+            await first.index([document("r1", categories=["GA"], year="2024")])
+        async with opened(path, facet_keys=("categories", "year")) as second:
+            year = [MetadataFilter("year", {"2024"})]
+            not_built = "Tags for 'year' are not built; call rebuild_tags()"
+            with pytest.raises(SearchStoreError, match=not_built):
+                await second.rank(Term("galaxy"), filters=year)
+            with pytest.raises(SearchStoreError, match=not_built):
+                await second.filter_candidates([], year)
+            with pytest.raises(SearchStoreError, match=not_built):
+                await second.count_matches(Term("galaxy"), year)
+            with pytest.raises(SearchStoreError, match=not_built):
+                await second.count_matches(None, year)
+
+
+class TestTuning:
+    @pytest.mark.parametrize("option", ["cache_size", "mmap_size"])
+    @pytest.mark.parametrize("size", [-1, 1.5, True, "1024"])
+    def test_a_size_that_is_not_a_whole_number_of_bytes_is_refused(self, option, size):
+        with pytest.raises(ValueError, match=f"{option} must be a whole number of bytes that is not negative"):
+            SqliteTuning(**{option: size})
+
+    @pytest.mark.asyncio
+    async def test_the_connection_keeps_sqlites_defaults_unless_tuned(self, tmp_path):
+        def settings(connection):
+            return tuple(connection.execute(f"PRAGMA {name}").fetchone()[0] for name in ("cache_size", "mmap_size"))
+
+        async with opened(tmp_path / "default.db") as default, opened(
+            tmp_path / "tuned.db", tuning=SqliteTuning(cache_size=4 * 2**20 + 1023, mmap_size=2**20)
+        ) as tuned, opened(tmp_path / "untouched.db", tuning=SqliteTuning()) as untouched:
+            for store in (default, tuned, untouched):
+                await store.index([document("r1")])
+            assert await default._runner.run(settings, "read settings") == (-2000, 0)
+            assert await untouched._runner.run(settings, "read settings") == (-2000, 0)
+            assert await tuned._runner.run(settings, "read settings") == (-4096, 2**20)
+            assert [hit.record_id for hit in await tuned.search(Term("galaxy"))] == ["r1"]
 
 
 class TestLifetime:

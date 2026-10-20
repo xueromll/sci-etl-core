@@ -79,6 +79,7 @@ _EXPORTS: dict[str, str] = {
     "TextHit": "sci_etl_core.search.store_base",
     "InMemoryTextSearchStore": "sci_etl_core.search.store_memory",
     "AsyncSqliteFts5Store": "sci_etl_core.search.store_sqlite_fts5",
+    "SqliteTuning": "sci_etl_core.search.store_sqlite_fts5",
     "fts5_available": "sci_etl_core.search.store_sqlite_fts5",
     "Token": "sci_etl_core.search.tokenize",
     "Tokenizer": "sci_etl_core.search.tokenize",
@@ -165,5 +166,5 @@ if TYPE_CHECKING:
     from sci_etl_core.search.snippets import passage_snippet, snippet_window
     from sci_etl_core.search.store_base import AsyncTextSearchStore, BM25Weights, SearchDocument, Snippet, TextHit
     from sci_etl_core.search.store_memory import InMemoryTextSearchStore
-    from sci_etl_core.search.store_sqlite_fts5 import AsyncSqliteFts5Store, fts5_available
+    from sci_etl_core.search.store_sqlite_fts5 import AsyncSqliteFts5Store, SqliteTuning, fts5_available
     from sci_etl_core.search.tokenize import Token, Tokenizer, Unicode61Tokenizer

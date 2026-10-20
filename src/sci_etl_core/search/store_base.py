@@ -6,6 +6,7 @@ from collections.abc import Collection, Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
+from sci_etl_core.search.compile_fts5 import require_rankable
 from sci_etl_core.search.filters import validate_facet_keys, validate_filters
 
 if TYPE_CHECKING:
@@ -158,6 +159,55 @@ class AsyncTextSearchStore(ABC):
                 built tags yet (see ``AsyncSqliteFts5Store.rebuild_tags``).
         """
 
+    async def rank(
+        self,
+        query: Node,
+        limit: int = 20,
+        exclude_record_id: str | None = None,
+        filters: Sequence[SearchFilter] = (),
+    ) -> list[TextHit]:
+        """Rank as :meth:`search` does, leaving out what only a shown hit needs.
+
+        The hits are the ones :meth:`search` returns, in the same order and with
+        the same scores, but their snippets, highlights, title, and metadata may
+        be left empty. :meth:`hydrate` fills them in for the hits a caller
+        shows, so a large pool is ranked without computing a snippet for every
+        hit in it.
+
+        The default returns the complete hits of :meth:`search`; a backend that
+        can rank without computing snippets overrides this method and
+        :meth:`hydrate` together.
+
+        Raises:
+            ValueError: A filter's key is not in :attr:`facet_keys`, or two
+                filters share a key.
+            SearchQueryError: ``query`` is not rankable, such as a pure
+                negation (:func:`~sci_etl_core.search.compile_fts5.is_rankable`).
+            SearchStoreError: The index cannot be read, or a filter's key has no
+                built tags yet (see ``AsyncSqliteFts5Store.rebuild_tags``).
+        """
+        return await self.search(query, limit, exclude_record_id, filters)
+
+    async def hydrate(self, query: Node, hits: Sequence[TextHit]) -> list[TextHit]:
+        """Return ``hits`` with the snippets, highlights, title, and metadata :meth:`search` gives them.
+
+        ``hits`` come from :meth:`rank` with the same ``query``. The result
+        keeps their order, record ids, and scores. A store that completes the
+        hits here reads the index as it is now: a hit whose record was deleted
+        since it was ranked, or no longer matches ``query``, is returned as
+        given, and a record indexed again meanwhile gets the snippets of its
+        new text.
+
+        The default returns ``hits`` unchanged, because the default
+        :meth:`rank` returns hits already complete.
+
+        Raises:
+            SearchQueryError: ``query`` is not rankable.
+            SearchStoreError: The index cannot be read.
+        """
+        require_rankable(query)
+        return list(hits)
+
     @abstractmethod
     async def filter_ids(
         self, query: Node | None = None, filters: Sequence[SearchFilter] = ()
@@ -174,9 +224,47 @@ class AsyncTextSearchStore(ABC):
                 built tags yet (see ``AsyncSqliteFts5Store.rebuild_tags``).
         """
 
+    async def filter_candidates(
+        self, record_ids: Collection[str], filters: Sequence[SearchFilter] = ()
+    ) -> frozenset[str]:
+        """Return those of ``record_ids`` that are stored and satisfy ``filters``, in no order.
+
+        The result is ``filter_ids(None, filters)`` restricted to
+        ``record_ids``, so a caller holding a pool of candidates, such as the
+        semantic leg's hits, checks the filters on the pool instead of the
+        whole index.
+
+        The default calls :meth:`filter_ids` and keeps the candidates; a backend
+        that can test the candidates alone should override it.
+
+        Raises:
+            ValueError: A filter's key is not in :attr:`facet_keys`, or two
+                filters share a key.
+            SearchStoreError: The index cannot be read, or a filter's key has no
+                built tags yet (see ``AsyncSqliteFts5Store.rebuild_tags``).
+        """
+        validate_filters(filters, self.facet_keys)
+        return await self.filter_ids(None, filters) & frozenset(record_ids)
+
     @abstractmethod
     async def get_documents(self, record_ids: Collection[str]) -> dict[str, SearchDocument]:
         """Return the stored documents for ``record_ids``; unknown ids are omitted."""
+
+    async def get_headers(self, record_ids: Collection[str]) -> dict[str, SearchDocument]:
+        """Return the stored documents for ``record_ids`` with their title and metadata only.
+
+        Each document is the one :meth:`get_documents` returns, with
+        ``abstract`` and ``body`` left empty, so showing a hit's title and
+        metadata never returns its text. Unknown ids are omitted.
+
+        The default calls :meth:`get_documents` and drops the text; a backend
+        that can read the title and metadata alone should override it.
+        """
+        documents = await self.get_documents(record_ids)
+        return {
+            record_id: SearchDocument(record_id, document.title, metadata=document.metadata)
+            for record_id, document in documents.items()
+        }
 
     @abstractmethod
     async def facet_counts(
@@ -238,6 +326,36 @@ class AsyncTextSearchStore(ABC):
             others = [search_filter for search_filter in filters if search_filter.key != search_range.key]
             counts.append(len(await self.filter_ids(query, [*others, search_range])))
         return tuple(counts)
+
+    async def count_matches(
+        self,
+        query: Node | None = None,
+        filters: Sequence[SearchFilter] = (),
+        *,
+        cap: int | None = None,
+    ) -> int:
+        """Count the records satisfying ``query`` and ``filters``, as many as :meth:`filter_ids` returns.
+
+        Any query is accepted, as :meth:`filter_ids` accepts it, and
+        ``query=None`` matches every document. The count is exact by default.
+        With ``cap``, counting stops at ``cap`` records: the result is the exact
+        count when that is below ``cap``, and ``cap`` otherwise, which a UI
+        shows as, for example, "10,000+".
+
+        The default counts what :meth:`filter_ids` returns; a backend that can
+        count without returning every id should override it.
+
+        Raises:
+            ValueError: ``cap`` is less than 1, a filter's key is not in
+                :attr:`facet_keys`, or two filters share a key.
+            SearchStoreError: The index cannot be read, or a filter's key has no
+                built tags yet (see ``AsyncSqliteFts5Store.rebuild_tags``).
+        """
+        validate_filters(filters, self.facet_keys)
+        if cap is not None and cap < 1:
+            raise ValueError(f"cap must be at least 1, not {cap!r}")
+        matched = len(await self.filter_ids(query, filters))
+        return matched if cap is None else min(matched, cap)
 
     @abstractmethod
     async def count(self) -> int:

@@ -978,6 +978,31 @@ class TestTextSearchStoreProperties:
 
         asyncio.run(scenario())
 
+    @given(tree=_TREE, rows=_ROWS, limit=st.integers(min_value=1, max_value=6))
+    @_FS_SETTINGS
+    def test_counts_follow_filter_ids_and_hydrated_ranks_equal_the_search(self, tree, rows, limit):
+        documents = _documents(rows)
+
+        async def scenario():
+            async with _both_text_stores() as (memory, fts5):
+                for store in (memory, fts5):
+                    await store.index(documents)
+                    matched = len(await store.filter_ids(tree))
+                    assert await store.count_matches(tree) == matched
+                    assert await store.count_matches(tree, cap=2) == min(matched, 2)
+                if not is_rankable(tree):
+                    return
+                expected = await _fts5_hits_unless_sqlite_cannot_highlight(fts5, tree, limit)
+                if expected is None:
+                    return
+                ranked = await fts5.rank(tree, limit)
+                assert [(hit.record_id, hit.score) for hit in ranked] == [
+                    (hit.record_id, hit.score) for hit in expected
+                ]
+                assert await fts5.hydrate(tree, ranked) == expected
+
+        asyncio.run(scenario())
+
 
 _TAG_VALUE = st.one_of(
     st.text(max_size=3), st.integers(min_value=-3, max_value=3), st.booleans(), st.floats(allow_nan=False), st.none()
