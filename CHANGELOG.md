@@ -6,7 +6,13 @@ All notable changes to sci-etl-core are recorded here. The format follows
 change behavior; each such change is listed under **Changed**.
 
 
-## [Unreleased]
+## [0.7.0] - 2026-10-20
+
+This release adds targeted reprocessing with `forget`, cascading relevance
+filters, contract suites for third-party components, and search whose work
+follows the candidate pool rather than the corpus. It breaks nothing; one
+default changes: hybrid search draws 500 candidates per leg. See "Upgrading to
+0.7" in MIGRATION.md.
 
 ### Added
 
@@ -560,7 +566,8 @@ extractor, OpenAI-compatible chat and embedding clients, PDF, LaTeX, and HTML
 parsers, CSV, SQL, and Plotly exporters, dataframe processors and validators,
 file and SQLite state, semantic memory, and the udg-catalogue migration guide.
 
-[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/xueromll/sci-etl-core/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/xueromll/sci-etl-core/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/xueromll/sci-etl-core/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/xueromll/sci-etl-core/compare/v0.4.1...v0.5.0

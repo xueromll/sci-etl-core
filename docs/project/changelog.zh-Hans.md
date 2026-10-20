@@ -6,7 +6,11 @@ sci-etl-core 的所有重要变更都记录在这里。格式遵循
 变更都列在**变更**之下。
 
 
-## [Unreleased] {#unreleased}
+## [0.7.0] - 2026-10-20 {#070-2026-10-20}
+
+本版本新增了通过 `forget`
+进行的定向重新处理、级联相关性过滤器、面向第三方组件的契约测试套件，以及工作量取决于候选池而不是语料库的检索。它没有破坏性变更；只有一个默认值改变：混合检索每条分支获取 500 个候选。请参阅
+MIGRATION.md 中的“升级到 0.7”。
 
 ### 新增 {#added}
 
@@ -451,7 +455,8 @@ sci-etl-core 的所有重要变更都记录在这里。格式遵循
 PDF、LaTeX 和 HTML 解析器、CSV、SQL 和 Plotly 导出器、数据框处理器和校验器、文件和 SQLite
 状态、语义记忆，以及 udg-catalogue 迁移指南。
 
-[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/xueromll/sci-etl-core/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/xueromll/sci-etl-core/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/xueromll/sci-etl-core/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/xueromll/sci-etl-core/compare/v0.4.1...v0.5.0

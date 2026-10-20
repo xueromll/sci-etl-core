@@ -7,7 +7,13 @@
 **Изменено**.
 
 
-## [Unreleased] {#unreleased}
+## [0.7.0] - 2026-10-20 {#070-2026-10-20}
+
+Этот релиз добавляет точечную повторную обработку через `forget`, каскадные
+фильтры релевантности, контрактные наборы тестов для сторонних компонентов и
+поиск, объём работы которого зависит от пула кандидатов, а не от корпуса. Он
+ничего не ломает; меняется одно значение по умолчанию: гибридный поиск берёт
+500 кандидатов на ветвь. См. раздел «Обновление до 0.7» в MIGRATION.md.
 
 ### Добавлено {#added}
 
@@ -604,7 +610,8 @@ HTML, экспортёры CSV, SQL и Plotly, процессоры датафр
 файловое состояние и состояние в SQLite, семантическая память и руководство по
 миграции udg-catalogue.
 
-[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/xueromll/sci-etl-core/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/xueromll/sci-etl-core/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/xueromll/sci-etl-core/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/xueromll/sci-etl-core/compare/v0.4.1...v0.5.0

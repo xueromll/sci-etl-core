@@ -7,7 +7,13 @@ una versión menor puede cambiar el comportamiento; cada uno de esos cambios
 aparece en **Cambiado**.
 
 
-## [Unreleased] {#unreleased}
+## [0.7.0] - 2026-10-20 {#070-2026-10-20}
+
+Esta versión añade el reprocesamiento selectivo con `forget`, filtros de
+relevancia en cascada, baterías de pruebas de contrato para componentes de
+terceros y una búsqueda cuyo trabajo depende del grupo de candidatos y no del
+corpus. No rompe nada; cambia un valor por defecto: la búsqueda híbrida toma
+500 candidatos por rama. Consulta "Actualizar a la 0.7" en MIGRATION.md.
 
 ### Añadido {#added}
 
@@ -611,7 +617,8 @@ analizadores de PDF, LaTeX y HTML, exportadores CSV, SQL y Plotly,
 procesadores y validadores de dataframes, estado en archivos y en SQLite,
 memoria semántica y la guía de migración de udg-catalogue.
 
-[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/xueromll/sci-etl-core/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/xueromll/sci-etl-core/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/xueromll/sci-etl-core/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/xueromll/sci-etl-core/compare/v0.4.1...v0.5.0

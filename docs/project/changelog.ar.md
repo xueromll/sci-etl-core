@@ -6,7 +6,12 @@
 ويُسرد كل تغيير من هذا النوع تحت **التغييرات**.
 
 
-## [Unreleased] {#unreleased}
+## [0.7.0] - 2026-10-20 {#070-2026-10-20}
+
+يضيف هذا الإصدار إعادة المعالجة الانتقائية عبر `forget`، ومرشحات الصلة المتسلسلة، ومجموعات
+اختبارات العقد للمكونات الخارجية، وبحثًا يتبع عمله مجمع المرشحين لا المتن كله. ولا يكسر شيئًا؛
+ويتغير إعداد افتراضي واحد: يجلب البحث الهجين 500 مرشح لكل فرع. راجع "الترقية إلى 0.7" في
+MIGRATION.md.
 
 ### الإضافات {#added}
 
@@ -479,7 +484,8 @@ MIGRATION.md.
 أُطُر البيانات ومدقّقاتها، والحالة في الملفات وفي SQLite، والذاكرة الدلالية، ودليل ترحيل
 udg-catalogue.
 
-[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/xueromll/sci-etl-core/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/xueromll/sci-etl-core/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/xueromll/sci-etl-core/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/xueromll/sci-etl-core/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/xueromll/sci-etl-core/compare/v0.4.1...v0.5.0
