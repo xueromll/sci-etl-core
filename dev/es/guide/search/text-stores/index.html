@@ -736,6 +736,8 @@
       
         
       
+        
+      
     
     
     
@@ -1654,6 +1656,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Probar tus componentes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../architecture/" class="md-nav__link">
         
   
@@ -1917,6 +1947,8 @@
       
         
           
+        
+      
         
       
         
@@ -2342,6 +2374,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pruebas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../reference/utilities/" class="md-nav__link">
         
   
@@ -2687,6 +2747,12 @@
   base de datos, lanza <code>SearchStoreError</code>.
   <code>weights=BM25Weights(title=10.0, abstract=4.0, body=1.0)</code> fija cuánto cuenta
   una coincidencia en cada campo; esos son los valores por defecto.</li>
+<li><strong>Los ajustes de memoria son opcionales.</strong>
+  <code>tuning=SqliteTuning(cache_size=200 * 2**20, mmap_size=2 * 2**30)</code> da a la
+  conexión del almacén una caché de páginas y un mapa de memoria (memory map)
+  de esos tamaños, en bytes. Aceleran las consultas cuando el índice supera la
+  caché por defecto de SQLite, de unos 2 MB, a costa de memoria. Sin
+  <code>tuning</code>, se aplican los valores por defecto de SQLite.</li>
 <li><strong>FTS5 es obligatorio.</strong> El almacén necesita un Python cuyo SQLite se haya
   compilado con FTS5, y lanza <code>SearchStoreError</code> al construirse en caso
   contrario. <code>fts5_available()</code> lo comprueba de antemano;

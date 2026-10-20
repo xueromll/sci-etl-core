@@ -740,6 +740,8 @@
       
         
       
+        
+      
     
     
     
@@ -1117,6 +1119,17 @@
     <span class="md-ellipsis">
       
         المقتطفات
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ranking-a-pool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ترتيب مجمع
       
     </span>
   </a>
@@ -1706,6 +1719,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    اختبار مكوّناتك
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../architecture/" class="md-nav__link">
         
   
@@ -1969,6 +2010,8 @@
       
         
           
+        
+      
         
       
         
@@ -2394,6 +2437,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    الاختبار
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../reference/utilities/" class="md-nav__link">
         
   
@@ -2730,6 +2801,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#ranking-a-pool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ترتيب مجمع
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2782,6 +2864,30 @@
 <p>تبني <code>passage_snippet(query, text)</code> بالطريقة نفسها <code>Snippet</code> لأي نص آخر، مُبرزةً
 كل كلمة غير منفية في الاستعلام. ويستخدمها الباحث الهجين للمقاطع التي يجدها الفرع
 الدلالي.</p>
+<h2 id="ranking-a-pool">ترتيب مجمع<a class="headerlink" href="#ranking-a-pool" title="Permanent link">&para;</a></h2>
+<p>تأخذ <code>rank</code> الوسائط نفسها التي تأخذها <code>search</code>، وتُعيد النتائج نفسها بالترتيب نفسه
+وبالدرجات نفسها، لكنها قد تترك مقتطفاتها وإبرازاتها وعنوانها وبياناتها الوصفية
+فارغة. وتملؤها <code>hydrate</code> للنتائج التي تعرضها، فيُرتَّب المجمع الكبير دون حساب
+مقتطف لكل نتيجة فيه:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.search</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_query</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">query</span> <span class="o">=</span> <span class="n">parse_query</span><span class="p">(</span><span class="s2">"dwarf galaxy"</span><span class="p">)</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">pool</span> <span class="o">=</span> <span class="k">await</span> <span class="n">text_store</span><span class="o">.</span><span class="n">rank</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">page</span> <span class="o">=</span> <span class="k">await</span> <span class="n">text_store</span><span class="o">.</span><span class="n">hydrate</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">pool</span><span class="p">[:</span><span class="mi">20</span><span class="p">])</span>
+</code></pre></div>
+<ul>
+<li><strong>الكلفة.</strong> يرتّب <code>AsyncSqliteFts5Store</code> باستخدام <code>bm25()</code> وحدها، ولا يحسب
+  المقتطفات ولا يقرأ العناوين والبيانات الوصفية إلا في <code>hydrate</code>، فلا يكلّف ترتيب
+  500 نتيجة إلا أكثر قليلًا من ترتيب 20. وتعمل <code>search</code> الخاصة به بالطريقة نفسها
+  داخل قراءة واحدة: ترتّب أولًا ولا تحسب المقتطفات إلا للنتائج التي تُعيدها.
+  ويرتّب <code>AsyncHybridSearcher</code> مجمع المرشحين الخاص به بـ <code>rank</code> ولا يملأ بـ
+  <code>hydrate</code> إلا النتائج التي يعرضها.</li>
+<li><strong>بين الاستدعاءين.</strong> تقرأ <code>hydrate</code> الفهرس على حاله وقت استدعائها. والنتيجة
+  التي حُذف سجلها بعد <code>rank</code>، أو لم يعد يطابق، تعود كما مُرِّرت، أما السجل الذي
+  أُعيدت فهرسته في الأثناء فيحصل على مقتطفات نصه الجديد.</li>
+<li><strong>المخازن المخصصة</strong> ترث <code>rank</code> تستدعي <code>search</code> و<code>hydrate</code> تُعيد النتائج دون
+  تغيير، وهذا صحيح لأي مخزن؛ أعِد تعريف الاثنتين معًا للترتيب دون مقتطفات.</li>
+</ul>
 
 
 

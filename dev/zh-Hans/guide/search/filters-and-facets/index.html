@@ -738,6 +738,8 @@
       
         
       
+        
+      
     
     
     
@@ -1182,6 +1184,17 @@
     <span class="md-ellipsis">
       
         范围计数
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#counting-matches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        匹配计数
       
     </span>
   </a>
@@ -1715,6 +1728,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    测试你的组件
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../architecture/" class="md-nav__link">
         
   
@@ -1978,6 +2019,8 @@
       
         
           
+        
+      
         
       
         
@@ -2403,6 +2446,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    测试
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../reference/utilities/" class="md-nav__link">
         
   
@@ -2750,6 +2821,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#counting-matches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        匹配计数
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2794,7 +2876,9 @@
   发现图上。</li>
 <li><strong>分面计数。</strong> <code>facet_counts</code> 把每个键映射为 <code>(value, count)</code> 对，先按计数、再按值排序，
   不含计数为零的项。每个键的计数会应用查询以及作用于<em>其他</em>键的所有过滤器，因此计数表示选择
-  该值后会得到多少结果，且被过滤键的其他值仍然可见。<code>query=None</code> 对整个索引计数。</li>
+  该值后会得到多少结果，且被过滤键的其他值仍然可见。<code>query=None</code> 对整个索引计数。对于可
+  排序的查询，<code>AsyncSqliteFts5Store</code> 根据其匹配项计数，因此开销取决于匹配数量，而不是
+  标签数量。</li>
 <li><strong>修改 <code>facet_keys</code>。</strong> 这些键在构造存储时确定，并记录在文件中。要修改它们，请用新的键
   构造存储，然后执行 <code>await text_store.rebuild_tags()</code>。在此之前，对尚未建立标签的键进行
   过滤或分面会抛出 <code>SearchStoreError</code>。</li>
@@ -2851,6 +2935,24 @@
 <p>计数按 <code>ranges</code> 的顺序以元组形式返回，各范围可以共用同一个键，也可以相互重叠。
 <code>AsyncSqliteFts5Store</code> 在一次一致的读取中统计所有范围。自定义存储会继承一个按范围逐个调用
 <code>filter_ids</code> 的实现。</p>
+<h2 id="counting-matches">匹配计数<a class="headerlink" href="#counting-matches" title="Permanent link">&para;</a></h2>
+<p><code>count_matches</code> 统计查询和过滤器选中的记录数，即 <code>filter_ids</code> 会返回的 id 数量，但不返回
+这些 id。默认情况下计数是精确的。<code>cap</code> 会在计到该数量的记录时停止计数，因此一个高频词只需
+<code>cap</code> 步，而不是每个匹配一步；结果等于 <code>cap</code> 时表示“至少这么多”：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.search</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_query</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">query</span> <span class="o">=</span> <span class="n">parse_query</span><span class="p">(</span><span class="s2">"dwarf galaxy"</span><span class="p">)</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">exact</span> <span class="o">=</span> <span class="k">await</span> <span class="n">text_store</span><span class="o">.</span><span class="n">count_matches</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">filters</span><span class="p">)</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">capped</span> <span class="o">=</span> <span class="k">await</span> <span class="n">text_store</span><span class="o">.</span><span class="n">count_matches</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">cap</span><span class="o">=</span><span class="mi">10_000</span><span class="p">)</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">capped</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">+"</span> <span class="k">if</span> <span class="n">capped</span> <span class="o">==</span> <span class="mi">10_000</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">capped</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">"</span>
+</code></pre></div>
+<ul>
+<li><strong>任意查询。</strong> 与 <code>filter_ids</code> 一样，<code>count_matches</code> 接受纯否定查询，<code>query=None</code> 会统计
+  通过过滤器的所有记录。小于 1 的 <code>cap</code> 会在任何 I/O 之前抛出 <code>ValueError</code>。</li>
+<li><strong>已知候选。</strong> <code>filter_candidates(record_ids, filters)</code> 返回 <code>record_ids</code> 中已存储且通过
+  过滤器的那些 id。混合检索器以这种方式检查其语义候选，而不是加载所有通过过滤器的记录。</li>
+<li><strong>自定义存储</strong>会继承这两个方法的实现，它们都调用 <code>filter_ids</code>。</li>
+</ul>
 
 
 

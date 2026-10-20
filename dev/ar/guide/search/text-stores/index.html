@@ -740,6 +740,8 @@
       
         
       
+        
+      
     
     
     
@@ -1658,6 +1660,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    اختبار مكوّناتك
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../architecture/" class="md-nav__link">
         
   
@@ -1921,6 +1951,8 @@
       
         
           
+        
+      
         
       
         
@@ -2346,6 +2378,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    الاختبار
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../reference/utilities/" class="md-nav__link">
         
   
@@ -2690,6 +2750,12 @@
   SQLite، بما في ذلك ملف ليس قاعدة بيانات، يرفع <code>SearchStoreError</code>. ويحدد
   <code>weights=BM25Weights(title=10.0, abstract=4.0, body=1.0)</code> وزن المطابقة في كل
   حقل؛ وهذه هي القيم الافتراضية.</li>
+<li><strong>إعدادات الذاكرة اختيارية.</strong>
+  يمنح <code>tuning=SqliteTuning(cache_size=200 * 2**20, mmap_size=2 * 2**30)</code>
+  اتصال المخزن ذاكرة مؤقتة للصفحات وتعيينًا للذاكرة (memory map) بهذين الحجمين،
+  بالبايت. ويسرّعان الاستعلامات متى تجاوز الفهرس الذاكرة المؤقتة الافتراضية في
+  SQLite، وهي نحو 2 MB، على حساب الذاكرة. ومن دون <code>tuning</code> تُطبَّق القيم
+  الافتراضية في SQLite.</li>
 <li><strong>FTS5 مطلوب.</strong> يحتاج المخزن إلى بايثون بُنيت مكتبة SQLite فيه مع FTS5، وإلا
   رفع <code>SearchStoreError</code> عند إنشائه. تتحقق <code>fts5_available()</code> من ذلك مسبقًا؛
   أما <code>InMemoryTextSearchStore</code> فيعمل في كل مكان.</li>

@@ -738,6 +738,8 @@
       
         
       
+        
+      
     
     
     
@@ -969,6 +971,17 @@
     <span class="md-ellipsis">
       
         不用 LLM 判断相关性
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cascading-relevance-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        级联相关性过滤器
       
     </span>
   </a>
@@ -1713,6 +1726,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    测试你的组件
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../architecture/" class="md-nav__link">
         
   
@@ -1976,6 +2017,8 @@
       
         
           
+        
+      
         
       
         
@@ -2401,6 +2444,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    测试
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../reference/utilities/" class="md-nav__link">
         
   
@@ -2738,6 +2809,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#cascading-relevance-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        级联相关性过滤器
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#searching-by-keyword-too" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2827,6 +2909,41 @@
 <a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">threshold</span><span class="o">=</span><span class="mf">0.35</span><span class="p">,</span>  <span class="c1"># 最小余弦相似度</span>
 <a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="p">)</span>
 </code></pre></div>
+<h2 id="cascading-relevance-filters">级联相关性过滤器<a class="headerlink" href="#cascading-relevance-filters" title="Permanent link">&para;</a></h2>
+<p><code>AsyncCascadingRelevanceFilter</code> 按顺序运行相关性过滤器，并在第一次拒绝时停止，这样廉价的过滤器先筛选记录，昂贵的过滤器只看到留下的记录。在下面的例子中，只有嵌入过滤器保留的记录才会交给 LLM：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="n">AsyncCascadingRelevanceFilter</span><span class="p">,</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="n">AsyncEmbeddingRelevanceFilter</span><span class="p">,</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="n">AsyncLLMRelevanceFilter</span><span class="p">,</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="n">AsyncOpenAICompatibleClient</span><span class="p">,</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="p">)</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="n">llm</span> <span class="o">=</span> <span class="n">AsyncOpenAICompatibleClient</span><span class="p">(</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>    <span class="n">api_key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"LLM_API_KEY"</span><span class="p">],</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>    <span class="n">base_url</span><span class="o">=</span><span class="s2">"https://api.openai.com/v1"</span><span class="p">,</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>    <span class="n">model</span><span class="o">=</span><span class="s2">"gpt-4o-mini"</span><span class="p">,</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="p">)</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="n">relevance_filter</span> <span class="o">=</span> <span class="n">AsyncCascadingRelevanceFilter</span><span class="p">(</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>    <span class="n">AsyncEmbeddingRelevanceFilter</span><span class="p">(</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>        <span class="n">embedder</span><span class="o">=</span><span class="n">embedder</span><span class="p">,</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>        <span class="n">reference_texts</span><span class="o">=</span><span class="p">[</span><span class="s2">"ultra-diffuse galaxies"</span><span class="p">,</span> <span class="s2">"low surface brightness galaxies"</span><span class="p">],</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>    <span class="p">),</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>    <span class="n">AsyncLLMRelevanceFilter</span><span class="p">(</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>        <span class="n">llm_client</span><span class="o">=</span><span class="n">llm</span><span class="p">,</span>
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>        <span class="n">system_prompt</span><span class="o">=</span><span class="p">(</span>
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>            <span class="s2">"Decide whether the paper reports measurements of galaxies. "</span>
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>            <span class="s1">'Reply with JSON: {"relevant": true} or {"relevant": false}.'</span>
+<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>        <span class="p">),</span>
+<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a>    <span class="p">),</span>
+<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li><strong>判定。</strong> 只有所有过滤器都接受时，记录才算相关。第一次拒绝之后的过滤器不会被调用。</li>
+<li><strong>故障。</strong> 过滤器抛出的异常会原样传播，其后的过滤器不会被调用；异常从不算作拒绝。每个过滤器自己的 <code>default_on_error</code> 决定它的故障是放行记录还是抛出异常。</li>
+<li><strong>资源。</strong> 级联相关性过滤器不关闭任何东西，自身也不报告 token 用量：像平常一样把 <code>llm</code> 和 <code>embedder</code> 列入 <code>closeables</code> 和 <code>usage_sources</code>。</li>
+</ul>
 <h2 id="searching-by-keyword-too">同时按关键词检索<a class="headerlink" href="#searching-by-keyword-too" title="Permanent link">&para;</a></h2>
 <p>若要让相同的记录也支持布尔检索，请参阅<a href="../search/">本地检索与发现</a>。其 SQLite 文本
 索引 <code>AsyncSqliteFts5Store</code> 是需要与嵌入存储一起列入 <code>closeables</code> 的另一个存储，它的

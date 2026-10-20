@@ -736,6 +736,8 @@
       
         
       
+        
+      
     
     
     
@@ -1633,6 +1635,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guide/testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    测试你的组件
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guide/architecture/" class="md-nav__link">
         
   
@@ -1896,6 +1926,8 @@
       
         
           
+        
+      
         
       
         
@@ -2301,6 +2333,34 @@
     
   
     状态
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    测试
   
 
     
@@ -3224,6 +3284,9 @@ PR 中夹带无关的格式调整。请把面向用户的变更记录在 <a href
 </tr>
 </tbody>
 </table>
+<p>第三方提取器、导出器、状态管理器和向量存储可以运行 <code>sci_etl_core.testing</code> 中对应的
+契约测试套件（<code>testing</code> extra），在自己的测试中检查这一契约；新的内置组件则在
+<code>tests/contract/</code> 下继承它。</p>
 <p>在新类所在子包的 <code>_EXPORTS</code> 映射和 <code>TYPE_CHECKING</code> 导入中注册它。新模块还需要在
 <code>docs/reference/</code> 下它所属的页面上添加条目。如果它是主要的面向用户的类，请以同样的方式把它
 加入 <code>sci_etl_core/__init__.py</code>。在 <code>tests/contract/test_abc_conformance.py</code> 中为它添加一个

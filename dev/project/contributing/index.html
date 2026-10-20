@@ -730,6 +730,8 @@
       
         
       
+        
+      
     
     
     
@@ -1627,6 +1629,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guide/testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing your components
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guide/architecture/" class="md-nav__link">
         
   
@@ -1890,6 +1920,8 @@
       
         
           
+        
+      
         
       
         
@@ -2295,6 +2327,34 @@
     
   
     State
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
   
 
     
@@ -3269,6 +3329,10 @@ requested changes are about the code, never about you.</p>
 </tr>
 </tbody>
 </table>
+<p>Third-party extractors, exporters, state managers, and vector stores can run
+the matching contract suite from <code>sci_etl_core.testing</code> (the <code>testing</code> extra)
+to check this contract in their own tests; a new bundled one subclasses it
+under <code>tests/contract/</code>.</p>
 <p>Register the new class in its subpackage's <code>_EXPORTS</code> map and <code>TYPE_CHECKING</code>
 imports. A new module also needs an entry on its page under <code>docs/reference/</code>. If it's a primary user-facing class, add it to
 <code>sci_etl_core/__init__.py</code> the same way. Add a case for it to

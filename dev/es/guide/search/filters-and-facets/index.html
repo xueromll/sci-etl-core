@@ -736,6 +736,8 @@
       
         
       
+        
+      
     
     
     
@@ -1180,6 +1182,17 @@
     <span class="md-ellipsis">
       
         Contar rangos
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#counting-matches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contar coincidencias
       
     </span>
   </a>
@@ -1713,6 +1726,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Probar tus componentes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../architecture/" class="md-nav__link">
         
   
@@ -1976,6 +2017,8 @@
       
         
           
+        
+      
         
       
         
@@ -2401,6 +2444,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pruebas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../reference/utilities/" class="md-nav__link">
         
   
@@ -2748,6 +2819,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#counting-matches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contar coincidencias
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2802,7 +2884,10 @@ fuente), y <code>AsyncSearchIndexer</code> copia esos metadatos en el índice.</
   nulos. Los recuentos de cada clave aplican la consulta y todos los filtros
   sobre <em>otras</em> claves, de modo que un recuento indica cuántos resultados daría
   seleccionar ese valor, y los demás valores de una clave filtrada siguen
-  visibles. <code>query=None</code> cuenta sobre todo el índice.</li>
+  visibles. <code>query=None</code> cuenta sobre todo el índice. <code>AsyncSqliteFts5Store</code>
+  cuenta una consulta ordenable por relevancia a partir de sus coincidencias,
+  así que el coste depende del número de coincidencias y no del de
+  etiquetas.</li>
 <li><strong>Cambiar <code>facet_keys</code>.</strong> Las claves se fijan al construir un almacén y
   quedan registradas en el archivo. Para cambiarlas, construye el almacén con
   las claves nuevas y ejecuta <code>await text_store.rebuild_tags()</code>. Hasta
@@ -2868,6 +2953,31 @@ que seleccionar una barra deja visibles los recuentos de las demás:</p>
 pueden compartir clave y solaparse. <code>AsyncSqliteFts5Store</code> cuenta todos los
 rangos en una única lectura coherente. Un almacén personalizado hereda una
 versión que llama a <code>filter_ids</code> una vez por rango.</p>
+<h2 id="counting-matches">Contar coincidencias<a class="headerlink" href="#counting-matches" title="Permanent link">&para;</a></h2>
+<p><code>count_matches</code> cuenta los registros que seleccionan una consulta y unos
+filtros, el número de identificadores que devolvería <code>filter_ids</code>, sin
+devolverlos. El recuento es exacto por defecto. <code>cap</code> detiene el recuento en
+ese número de registros, así que una palabra frecuente cuesta <code>cap</code> pasos en
+lugar de uno por coincidencia, y un resultado igual a <code>cap</code> significa "al
+menos esa cantidad":</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.search</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_query</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">query</span> <span class="o">=</span> <span class="n">parse_query</span><span class="p">(</span><span class="s2">"dwarf galaxy"</span><span class="p">)</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">exact</span> <span class="o">=</span> <span class="k">await</span> <span class="n">text_store</span><span class="o">.</span><span class="n">count_matches</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">filters</span><span class="p">)</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">capped</span> <span class="o">=</span> <span class="k">await</span> <span class="n">text_store</span><span class="o">.</span><span class="n">count_matches</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">cap</span><span class="o">=</span><span class="mi">10_000</span><span class="p">)</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">capped</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">+"</span> <span class="k">if</span> <span class="n">capped</span> <span class="o">==</span> <span class="mi">10_000</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">capped</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">"</span>
+</code></pre></div>
+<ul>
+<li><strong>Cualquier consulta.</strong> Igual que <code>filter_ids</code>, <code>count_matches</code> acepta una
+  negación pura, y <code>query=None</code> cuenta todos los registros que pasan los
+  filtros. Un <code>cap</code> menor que 1 lanza <code>ValueError</code> antes de cualquier E/S.</li>
+<li><strong>Candidatos conocidos.</strong> <code>filter_candidates(record_ids, filters)</code>
+  devuelve los de <code>record_ids</code> que están guardados y pasan los filtros. El
+  buscador híbrido comprueba así sus candidatos semánticos en lugar de cargar
+  todos los registros que pasan los filtros.</li>
+<li><strong>Los almacenes personalizados</strong> heredan versiones de ambos que llaman a
+  <code>filter_ids</code>.</li>
+</ul>
 
 
 

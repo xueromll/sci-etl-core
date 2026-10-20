@@ -734,6 +734,8 @@
       
         
       
+        
+      
     
     
     
@@ -1652,6 +1654,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Тестирование своих компонентов
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../architecture/" class="md-nav__link">
         
   
@@ -1915,6 +1945,8 @@
       
         
           
+        
+      
         
       
         
@@ -2340,6 +2372,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Тестирование
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../reference/utilities/" class="md-nav__link">
         
   
@@ -2685,6 +2745,12 @@
   данных, вызывает <code>SearchStoreError</code>.
   <code>weights=BM25Weights(title=10.0, abstract=4.0, body=1.0)</code> задаёт, сколько
   весит совпадение в каждом поле; это значения по умолчанию.</li>
+<li><strong>Настройки памяти включаются явно.</strong>
+  <code>tuning=SqliteTuning(cache_size=200 * 2**20, mmap_size=2 * 2**30)</code> даёт
+  соединению хранилища кэш страниц и отображение в память (memory map) этих
+  размеров в байтах. Они ускоряют запросы, когда индекс перерастает
+  стандартный кэш SQLite размером около 2 МБ, ценой расхода памяти. Без
+  <code>tuning</code> действуют значения SQLite по умолчанию.</li>
 <li><strong>Нужен FTS5.</strong> Хранилищу нужен Python, чей SQLite собран с FTS5; иначе при
   создании оно вызывает <code>SearchStoreError</code>. <code>fts5_available()</code> проверяет это
   заранее; <code>InMemoryTextSearchStore</code> работает везде.</li>

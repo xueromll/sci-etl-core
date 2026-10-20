@@ -734,6 +734,8 @@
       
         
       
+        
+      
     
     
     
@@ -1631,6 +1633,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guide/testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Probar tus componentes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guide/architecture/" class="md-nav__link">
         
   
@@ -1894,6 +1924,8 @@
       
         
           
+        
+      
         
       
         
@@ -2299,6 +2331,34 @@
     
   
     Estado
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pruebas
   
 
     
@@ -3683,6 +3743,31 @@ aparece en <strong>Cambiado</strong>.</p>
   intentos fallidos de los registros, así que una ejecución que vuelve a pasar
   por el listado con <code>start_index=0</code> los procesa de nuevo, por ejemplo después
   de cambiar el prompt o el modelo.</li>
+<li><code>AsyncCascadingRelevanceFilter(*filters)</code> ejecuta filtros de relevancia en
+  orden y se detiene en el primer rechazo, de modo que un filtro barato como
+  <code>AsyncEmbeddingRelevanceFilter</code> criba los registros antes de que los vea un
+  filtro de LLM caro. Una excepción de un filtro se propaga en lugar de rechazar
+  el registro.</li>
+<li><code>sci_etl_core.testing</code>, tras el nuevo extra <code>testing</code>, contiene baterías de
+  pruebas de contrato para extractores, gestores de estado, exportadores y
+  almacenes vectoriales: <code>ExtractorContract</code>, <code>StateManagerContract</code>,
+  <code>ExporterContract</code> y <code>EmbeddingStoreContract</code>. Hereda una y añade una fixture
+  que construya tu componente, y pytest comprueba su comportamiento con el mismo
+  contrato que pasan las implementaciones incluidas, sin pytest-asyncio.</li>
+<li><code>AsyncTextSearchStore.rank</code> y <code>hydrate</code> clasifican un grupo grande de
+  resultados sin extractos y después completan extractos, título y metadatos
+  solo para los resultados que muestras. <code>count_matches(query, filters, *,
+  cap=None)</code> cuenta coincidencias sin cargar sus ids; un <code>cap</code> detiene el
+  recuento antes, para que una interfaz pueda mostrar "10.000+".
+  <code>filter_candidates</code> comprueba filtros sobre registros conocidos y
+  <code>get_headers</code> lee títulos y metadatos sin el texto. Los almacenes propios
+  heredan versiones funcionales de los cinco.</li>
+<li><code>SqliteTuning(cache_size=..., mmap_size=...)</code>, pasado como
+  <code>AsyncSqliteFts5Store(..., tuning=...)</code>, fija la caché de páginas y el mapeo
+  en memoria de la conexión. Está desactivado por defecto.</li>
+<li><code>HybridParams.max_chunks</code> y el ajuste <code>search.hybrid.max_chunks</code> limitan la
+  petición de fragmentos de la rama semántica: 2500 por defecto, nunca menos que
+  el grupo de candidatos.</li>
 </ul>
 <h3 id="changed">Cambiado<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
 <ul>
@@ -3691,6 +3776,17 @@ aparece en <strong>Cambiado</strong>.</p>
   ordenaba todos los fragmentos. Una consulta sobre un millón de fragmentos de
   384 dimensiones los puntúa y clasifica en aproximadamente la mitad de
   tiempo, y devuelve los mismos resultados en el mismo orden.</li>
+<li><code>AsyncSqliteFts5Store.search</code> clasifica primero y calcula extractos solo para
+  los resultados que devuelve, y <code>facet_counts</code> cuenta a partir de las
+  coincidencias. <code>AsyncHybridSearcher</code> calcula extractos solo para los
+  resultados que muestra, comprueba los filtros sobre los candidatos semánticos
+  en lugar de sobre todos los registros que los cumplen, y lee solo títulos y
+  metadatos de los resultados encontrados únicamente por significado. Los
+  resultados son idénticos y los índices grandes responden más rápido.</li>
+<li>La búsqueda híbrida toma por defecto 500 candidatos por rama en lugar de 100
+  (<code>HybridParams.candidate_pool</code> y <code>search.hybrid.candidate_pool</code>), así que los
+  20 primeros fusionados casi siempre coinciden con lo que devolvería un grupo
+  sin límite. Pon <code>candidate_pool</code> en 100 para conservar el grupo anterior.</li>
 </ul>
 <h2 id="060-2026-09-27"><a href="https://github.com/xueromll/sci-etl-core/compare/v0.5.1...v0.6.0">0.6.0</a> - 2026-09-27<a class="headerlink" href="#060-2026-09-27" title="Permanent link">&para;</a></h2>
 <p>Esta versión cambia el contrato de datos: los extractores de entidades pueden

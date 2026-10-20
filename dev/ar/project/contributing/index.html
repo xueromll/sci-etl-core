@@ -738,6 +738,8 @@
       
         
       
+        
+      
     
     
     
@@ -1635,6 +1637,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guide/testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    اختبار مكوّناتك
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guide/architecture/" class="md-nav__link">
         
   
@@ -1898,6 +1928,8 @@
       
         
           
+        
+      
         
       
         
@@ -2303,6 +2335,34 @@
     
   
     الحالة
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    الاختبار
   
 
     
@@ -3247,6 +3307,10 @@ ruff مجموعات القواعد <code>ASYNC</code> و<code>UP</code> و<code>
 </tr>
 </tbody>
 </table>
+<p>يمكن للمستخرِجات والمصدِّرات ومديري الحالة والمخازن المتجهية من أطراف ثالثة تشغيل
+مجموعة اختبارات العقد المطابقة من <code>sci_etl_core.testing</code> (الإضافة (extra) <code>testing</code>)
+للتحقق من هذا العقد في اختباراتها الخاصة؛ أما المكوّن المضمَّن الجديد فيرث منها في
+<code>tests/contract/</code>.</p>
 <p>سجّل الصنف الجديد في خريطة <code>_EXPORTS</code> واستيرادات <code>TYPE_CHECKING</code> في حزمته الفرعية. وتحتاج
 الوحدة الجديدة أيضًا إلى إدخال في صفحتها تحت <code>docs/reference/</code>. وإن كان صنفًا أساسيًا يتعامل معه
 المستخدمون، فأضفه بالطريقة نفسها إلى <code>sci_etl_core/__init__.py</code>. وأضف حالة له في

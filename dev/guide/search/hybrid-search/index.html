@@ -732,6 +732,8 @@
       
         
       
+        
+      
     
     
     
@@ -1650,6 +1652,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing your components
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../architecture/" class="md-nav__link">
         
   
@@ -1913,6 +1943,8 @@
       
         
           
+        
+      
         
       
         
@@ -2338,6 +2370,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../reference/utilities/" class="md-nav__link">
         
   
@@ -2729,11 +2789,19 @@ runs one or both retrieval legs:</p>
   <code>lexical_rank is None</code> to label it, for example "related passage", or read
   the abstract with <code>text_store.get_documents</code> instead.</li>
 <li><strong>Candidate pool.</strong> Each leg fetches <code>HybridParams.candidate_pool</code> records
-  (default 100, and never fewer than <code>top_k</code>) before fusion, so a record
+  (default 500, and never fewer than <code>top_k</code>) before fusion, so a record
   ranked 40th lexically and 3rd semantically can still reach the top 20. The
   semantic leg asks the vector memory for <code>candidate_pool × chunk_pool_factor</code>
-  chunks (default factor 5). Raise the factor when long articles fill the top
+  chunks (default factor 5), capped at <code>max_chunks</code> (default 2,500) but never
+  fewer than the pool. Raise the factor when long articles fill the top
   chunks and the pool comes back short.</li>
+<li><strong>Work per search.</strong> The work follows the candidate pool, not the corpus.
+  The lexical leg ranks the pool with <code>text_store.rank</code> and computes snippets
+  only for the fused hits shown, with <code>text_store.hydrate</code>. Filters are checked
+  on the semantic candidates alone, with <code>text_store.filter_candidates</code>. A hit
+  only the semantic leg found reads its title and metadata with
+  <code>text_store.get_headers</code>, never its text. The hits are the ones a single
+  <code>search</code> of the pool would give.</li>
 </ul>
 
 

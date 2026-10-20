@@ -740,6 +740,8 @@
       
         
       
+        
+      
     
     
     
@@ -971,6 +973,17 @@
     <span class="md-ellipsis">
       
         الصلة دون نموذج لغوي
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cascading-relevance-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        مرشحات الصلة المتسلسلة
       
     </span>
   </a>
@@ -1715,6 +1728,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    اختبار مكوّناتك
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../architecture/" class="md-nav__link">
         
   
@@ -1978,6 +2019,8 @@
       
         
           
+        
+      
         
       
         
@@ -2403,6 +2446,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    الاختبار
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../reference/utilities/" class="md-nav__link">
         
   
@@ -2740,6 +2811,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#cascading-relevance-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        مرشحات الصلة المتسلسلة
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#searching-by-keyword-too" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2837,6 +2919,47 @@
 <a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">threshold</span><span class="o">=</span><span class="mf">0.35</span><span class="p">,</span>  <span class="c1"># الحد الأدنى لتشابه جيب التمام</span>
 <a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="p">)</span>
 </code></pre></div>
+<h2 id="cascading-relevance-filters">مرشحات الصلة المتسلسلة<a class="headerlink" href="#cascading-relevance-filters" title="Permanent link">&para;</a></h2>
+<p>يشغّل <code>AsyncCascadingRelevanceFilter</code> مرشحات الصلة بالترتيب ويتوقف عند أول
+رفض، فيغربل مرشح رخيص السجلات قبل أن يراها مرشح مكلف. هنا لا يصل إلى
+النموذج اللغوي إلا السجلات التي يُبقيها مرشح التضمينات:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="n">AsyncCascadingRelevanceFilter</span><span class="p">,</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="n">AsyncEmbeddingRelevanceFilter</span><span class="p">,</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="n">AsyncLLMRelevanceFilter</span><span class="p">,</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="n">AsyncOpenAICompatibleClient</span><span class="p">,</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="p">)</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="n">llm</span> <span class="o">=</span> <span class="n">AsyncOpenAICompatibleClient</span><span class="p">(</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>    <span class="n">api_key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"LLM_API_KEY"</span><span class="p">],</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>    <span class="n">base_url</span><span class="o">=</span><span class="s2">"https://api.openai.com/v1"</span><span class="p">,</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>    <span class="n">model</span><span class="o">=</span><span class="s2">"gpt-4o-mini"</span><span class="p">,</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="p">)</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="n">relevance_filter</span> <span class="o">=</span> <span class="n">AsyncCascadingRelevanceFilter</span><span class="p">(</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>    <span class="n">AsyncEmbeddingRelevanceFilter</span><span class="p">(</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>        <span class="n">embedder</span><span class="o">=</span><span class="n">embedder</span><span class="p">,</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>        <span class="n">reference_texts</span><span class="o">=</span><span class="p">[</span><span class="s2">"ultra-diffuse galaxies"</span><span class="p">,</span> <span class="s2">"low surface brightness galaxies"</span><span class="p">],</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>    <span class="p">),</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>    <span class="n">AsyncLLMRelevanceFilter</span><span class="p">(</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>        <span class="n">llm_client</span><span class="o">=</span><span class="n">llm</span><span class="p">,</span>
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>        <span class="n">system_prompt</span><span class="o">=</span><span class="p">(</span>
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>            <span class="s2">"Decide whether the paper reports measurements of galaxies. "</span>
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>            <span class="s1">'Reply with JSON: {"relevant": true} or {"relevant": false}.'</span>
+<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>        <span class="p">),</span>
+<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a>    <span class="p">),</span>
+<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li><strong>الحكم.</strong> يكون السجل ذا صلة فقط عندما تقبله كل المرشحات. ولا تُستدعى
+  المرشحات التي تلي أول رفض.</li>
+<li><strong>الأعطال.</strong> ينتشر الاستثناء الصادر عن مرشح دون تغيير، ولا تُستدعى
+  المرشحات التي تليه؛ ولا يُحسب رفضًا أبدًا. ويقرر <code>default_on_error</code> الخاص
+  بكل مرشح ما إذا كانت أعطاله تُمرّر السجل أم تطلق استثناءً.</li>
+<li><strong>الموارد.</strong> لا تغلق مرشحات الصلة المتسلسلة شيئًا ولا تبلّغ بنفسها عن استهلاك
+  الرموز: أدرج <code>llm</code> و<code>embedder</code> في <code>closeables</code> و<code>usage_sources</code> كالمعتاد.</li>
+</ul>
 <h2 id="searching-by-keyword-too">البحث بالكلمات المفتاحية أيضًا<a class="headerlink" href="#searching-by-keyword-too" title="Permanent link">&para;</a></h2>
 <p>لفهرسة السجلات نفسها للبحث البولياني أيضًا، راجع
 <a href="../search/">البحث والاستكشاف المحليان</a>. وفهرسه النصي في SQLite،

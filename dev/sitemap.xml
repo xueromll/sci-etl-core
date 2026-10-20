@@ -201,6 +201,16 @@
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/devzh-Hans/guide/state/"/>
     </url>
     <url>
+        <loc>https://xueromll.github.io/sci-etl-core/dev/guide/testing-kit/</loc>
+        <lastmod>2026-10-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/guide/testing-kit/"/>
+        <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/testing-kit/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/deves/guide/testing-kit/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/guide/testing-kit/"/>
+        <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/devzh-Hans/guide/testing-kit/"/>
+    </url>
+    <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/guide/token-usage/</loc>
         <lastmod>2026-10-20</lastmod>
         <changefreq>daily</changefreq>
@@ -521,6 +531,16 @@
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/devzh-Hans/reference/state/"/>
     </url>
     <url>
+        <loc>https://xueromll.github.io/sci-etl-core/dev/reference/testing/</loc>
+        <lastmod>2026-10-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/dev/reference/testing/"/>
+        <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/testing/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/deves/reference/testing/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/reference/testing/"/>
+        <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/devzh-Hans/reference/testing/"/>
+    </url>
+    <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/reference/utilities/</loc>
         <lastmod>2026-10-20</lastmod>
         <changefreq>daily</changefreq>
@@ -789,6 +809,16 @@
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/state/"/>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/deves/guide/state/"/>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/devzh-Hans/guide/state/"/>
+    </url>
+    <url>
+        <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/testing-kit/</loc>
+        <lastmod>2026-10-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/guide/testing-kit/"/>
+        <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/testing-kit/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/testing-kit/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/deves/guide/testing-kit/"/>
+        <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/devzh-Hans/guide/testing-kit/"/>
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/guide/token-usage/</loc>
@@ -1111,6 +1141,16 @@
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/devzh-Hans/reference/state/"/>
     </url>
     <url>
+        <loc>https://xueromll.github.io/sci-etl-core/dev/ru/reference/testing/</loc>
+        <lastmod>2026-10-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/dev/ru/reference/testing/"/>
+        <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/testing/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devreference/testing/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/deves/reference/testing/"/>
+        <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/devzh-Hans/reference/testing/"/>
+    </url>
+    <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ru/reference/utilities/</loc>
         <lastmod>2026-10-20</lastmod>
         <changefreq>daily</changefreq>
@@ -1379,6 +1419,16 @@
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/state/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/guide/state/"/>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/devzh-Hans/guide/state/"/>
+    </url>
+    <url>
+        <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/testing-kit/</loc>
+        <lastmod>2026-10-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/testing-kit/"/>
+        <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/testing-kit/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/testing-kit/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/guide/testing-kit/"/>
+        <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/devzh-Hans/guide/testing-kit/"/>
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/guide/token-usage/</loc>
@@ -1701,6 +1751,16 @@
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/devzh-Hans/reference/state/"/>
     </url>
     <url>
+        <loc>https://xueromll.github.io/sci-etl-core/dev/es/reference/testing/</loc>
+        <lastmod>2026-10-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/dev/es/reference/testing/"/>
+        <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/testing/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devreference/testing/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/reference/testing/"/>
+        <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/devzh-Hans/reference/testing/"/>
+    </url>
+    <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/es/reference/utilities/</loc>
         <lastmod>2026-10-20</lastmod>
         <changefreq>daily</changefreq>
@@ -1969,6 +2029,16 @@
         <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/state/"/>
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/deves/guide/state/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/guide/state/"/>
+    </url>
+    <url>
+        <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/testing-kit/</loc>
+        <lastmod>2026-10-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/testing-kit/"/>
+        <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/guide/testing-kit/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/testing-kit/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/deves/guide/testing-kit/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/guide/testing-kit/"/>
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/guide/token-usage/</loc>
@@ -2291,6 +2361,16 @@
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/reference/state/"/>
     </url>
     <url>
+        <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/testing/</loc>
+        <lastmod>2026-10-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/testing/"/>
+        <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/devar/reference/testing/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devreference/testing/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/deves/reference/testing/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/reference/testing/"/>
+    </url>
+    <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/zh-Hans/reference/utilities/</loc>
         <lastmod>2026-10-20</lastmod>
         <changefreq>daily</changefreq>
@@ -2559,6 +2639,16 @@
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/deves/guide/state/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/guide/state/"/>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/devzh-Hans/guide/state/"/>
+    </url>
+    <url>
+        <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/testing-kit/</loc>
+        <lastmod>2026-10-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/testing-kit/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devguide/testing-kit/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/deves/guide/testing-kit/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/guide/testing-kit/"/>
+        <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/devzh-Hans/guide/testing-kit/"/>
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/guide/token-usage/</loc>
@@ -2879,6 +2969,16 @@
         <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/deves/reference/state/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/reference/state/"/>
         <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/devzh-Hans/reference/state/"/>
+    </url>
+    <url>
+        <loc>https://xueromll.github.io/sci-etl-core/dev/ar/reference/testing/</loc>
+        <lastmod>2026-10-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ar" href="https://xueromll.github.io/sci-etl-core/dev/ar/reference/testing/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://xueromll.github.io/sci-etl-core/devreference/testing/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://xueromll.github.io/sci-etl-core/deves/reference/testing/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://xueromll.github.io/sci-etl-core/devru/reference/testing/"/>
+        <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://xueromll.github.io/sci-etl-core/devzh-Hans/reference/testing/"/>
     </url>
     <url>
         <loc>https://xueromll.github.io/sci-etl-core/dev/ar/reference/utilities/</loc>

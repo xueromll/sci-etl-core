@@ -738,6 +738,8 @@
       
         
       
+        
+      
     
     
     
@@ -1656,6 +1658,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    测试你的组件
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../architecture/" class="md-nav__link">
         
   
@@ -1919,6 +1949,8 @@
       
         
           
+        
+      
         
       
         
@@ -2344,6 +2376,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    测试
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../reference/utilities/" class="md-nav__link">
         
   
@@ -2684,7 +2744,8 @@
 两者都是不可变的 dataclass，导入该模块不会加载任何存储、事件循环机制或可选依赖。</p>
 <p>请根据 <code>FusedHit.snippets</code> 的 <code>highlights</code> 用你自己的标记来渲染它们，每个字段一行；
 对于 <code>lexical_rank</code> 为 <code>None</code> 的命中结果，将其标注为按语义匹配。日期或年份直方图可以由
-<code>range_counts</code> 构建，它在选中某个区间时仍让所有区间保持可见。</p>
+<code>range_counts</code> 构建，它在选中某个区间时仍让所有区间保持可见。匹配数量取自
+<code>count_matches</code>；传入 <code>cap</code> 即可显示“10,000+”，而不必统计高频词的每一个匹配。</p>
 <p>让查询解析在每次按键时同步进行，只把检索做成异步：对检索做防抖（debounce），在新的检索
 开始时取消旧的检索，并丢弃在更新的检索开始之后才到达的任何结果。</p>
 <p>在界面和摄取运行之间共享存储之前，请阅读<a href="../store-ownership/">存储的所有权</a>。</p>

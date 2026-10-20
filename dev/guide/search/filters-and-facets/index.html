@@ -732,6 +732,8 @@
       
         
       
+        
+      
     
     
     
@@ -1176,6 +1178,17 @@
     <span class="md-ellipsis">
       
         Counting ranges
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#counting-matches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Counting matches
       
     </span>
   </a>
@@ -1709,6 +1722,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing your components
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../architecture/" class="md-nav__link">
         
   
@@ -1972,6 +2013,8 @@
       
         
           
+        
+      
         
       
         
@@ -2397,6 +2440,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../reference/utilities/" class="md-nav__link">
         
   
@@ -2744,6 +2815,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#counting-matches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Counting matches
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2794,7 +2876,9 @@ index.</p>
   sorted by count and then value, without zero counts. Each key's counts apply
   the query and every filter on <em>other</em> keys, so a count says how many results
   selecting that value would give, and the other values of a filtered key stay
-  visible. <code>query=None</code> counts across the whole index.</li>
+  visible. <code>query=None</code> counts across the whole index. <code>AsyncSqliteFts5Store</code>
+  counts a rankable query from its matches, so the cost follows the number of
+  matches rather than the number of tags.</li>
 <li><strong>Changing <code>facet_keys</code>.</strong> The keys are fixed when a store is constructed
   and recorded in the file. To change them, construct the store with the new
   keys and <code>await text_store.rebuild_tags()</code>. Until then, a filter or facet on
@@ -2856,6 +2940,29 @@ leaves the counts of the other buckets visible:</p>
 <p>The counts come back as a tuple in the order of <code>ranges</code>, and ranges may share
 a key and overlap. <code>AsyncSqliteFts5Store</code> counts every range in one consistent
 read. A custom store inherits a version that calls <code>filter_ids</code> once per range.</p>
+<h2 id="counting-matches">Counting matches<a class="headerlink" href="#counting-matches" title="Permanent link">&para;</a></h2>
+<p><code>count_matches</code> counts the records a query and filters select, the number of
+ids <code>filter_ids</code> would return, without returning them. The count is exact by
+default. <code>cap</code> stops counting at that many records, so a frequent word costs
+<code>cap</code> steps instead of one per match, and a result equal to <code>cap</code> means "at
+least that many":</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.search</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_query</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">query</span> <span class="o">=</span> <span class="n">parse_query</span><span class="p">(</span><span class="s2">"dwarf galaxy"</span><span class="p">)</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">exact</span> <span class="o">=</span> <span class="k">await</span> <span class="n">text_store</span><span class="o">.</span><span class="n">count_matches</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">filters</span><span class="p">)</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">capped</span> <span class="o">=</span> <span class="k">await</span> <span class="n">text_store</span><span class="o">.</span><span class="n">count_matches</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">cap</span><span class="o">=</span><span class="mi">10_000</span><span class="p">)</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">capped</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">+"</span> <span class="k">if</span> <span class="n">capped</span> <span class="o">==</span> <span class="mi">10_000</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">capped</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">"</span>
+</code></pre></div>
+<ul>
+<li><strong>Any query.</strong> Like <code>filter_ids</code>, <code>count_matches</code> accepts a pure negation,
+  and <code>query=None</code> counts every record that passes the filters. A <code>cap</code> below
+  1 raises <code>ValueError</code> before any I/O.</li>
+<li><strong>Known candidates.</strong> <code>filter_candidates(record_ids, filters)</code> returns the
+  ones among <code>record_ids</code> that are stored and pass the filters. The hybrid
+  searcher checks its semantic candidates this way instead of loading every
+  record that passes the filters.</li>
+<li><strong>Custom stores</strong> inherit versions of both that call <code>filter_ids</code>.</li>
+</ul>
 
 
 

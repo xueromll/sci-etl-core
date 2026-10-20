@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://xueromll.github.io/sci-etl-core/dev/es/guide/architecture/">
       
       
-        <link rel="prev" href="../migrating-a-pipeline/">
+        <link rel="prev" href="../testing-kit/">
       
       
         <link rel="next" href="../../cli/">
@@ -717,6 +717,8 @@
   
     
     
+      
+        
       
         
       
@@ -1639,6 +1641,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Probar tus componentes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -1963,6 +1993,8 @@
       
         
           
+        
+      
         
       
         
@@ -2368,6 +2400,34 @@
     
   
     Estado
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pruebas
   
 
     
@@ -2817,7 +2877,7 @@
 <tr>
 <td>Relevancia</td>
 <td><code>AsyncRelevanceFilter</code></td>
-<td><code>AsyncLLMRelevanceFilter</code>, <code>AsyncEmbeddingRelevanceFilter</code></td>
+<td><code>AsyncLLMRelevanceFilter</code>, <code>AsyncEmbeddingRelevanceFilter</code>, <code>AsyncCascadingRelevanceFilter</code></td>
 <td><code>sci_etl_core.llm</code></td>
 </tr>
 <tr>
@@ -2918,6 +2978,10 @@ de lectura para interfaces de usuario). Todos los módulos registran mensajes a
 través del módulo estándar <code>logging</code>; consulta <a href="../logging/">Registro</a>. Cada
 paquete carga sus nombres públicos en el primer acceso, así que importar un
 componente nunca requiere las dependencias opcionales de otro.</p>
+<p>Las baterías de pruebas de contrato de <code>sci_etl_core.testing</code>, que necesitan el
+extra <code>testing</code>, comprueban tus propios extractores, gestores de estado,
+exportadores y almacenes vectoriales con los mismos contratos que los incluidos;
+consulta <a href="../testing-kit/">Probar tus componentes</a>.</p>
 <p>La <a href="../../reference/">referencia de la API</a> documenta cada módulo en
 detalle.</p>
 
@@ -2955,7 +3019,7 @@ detalle.</p>
       <nav class="md-footer__inner md-grid" aria-label="Pie" >
         
           
-          <a href="../migrating-a-pipeline/" class="md-footer__link md-footer__link--prev" aria-label="Anterior: Migrar un pipeline">
+          <a href="../testing-kit/" class="md-footer__link md-footer__link--prev" aria-label="Anterior: Probar tus componentes">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2965,7 +3029,7 @@ detalle.</p>
                 Anterior
               </span>
               <div class="md-ellipsis">
-                Migrar un pipeline
+                Probar tus componentes
               </div>
             </div>
           </a>

@@ -736,6 +736,8 @@
       
         
       
+        
+      
     
     
     
@@ -1113,6 +1115,17 @@
     <span class="md-ellipsis">
       
         Extractos
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ranking-a-pool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ordenar un grupo por relevancia
       
     </span>
   </a>
@@ -1702,6 +1715,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Probar tus componentes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../architecture/" class="md-nav__link">
         
   
@@ -1965,6 +2006,8 @@
       
         
           
+        
+      
         
       
         
@@ -2390,6 +2433,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pruebas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../reference/utilities/" class="md-nav__link">
         
   
@@ -2726,6 +2797,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#ranking-a-pool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ordenar un grupo por relevancia
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2785,6 +2867,35 @@ la consulta que no coincide, lo cual documenta <code>InMemoryTextSearchStore</co
 cualquier otro texto, resaltando cada palabra de la consulta que no esté
 negada. El buscador híbrido lo usa para los pasajes que encuentra la rama
 semántica.</p>
+<h2 id="ranking-a-pool">Ordenar un grupo por relevancia<a class="headerlink" href="#ranking-a-pool" title="Permanent link">&para;</a></h2>
+<p><code>rank</code> recibe los mismos argumentos que <code>search</code> y devuelve los mismos
+resultados en el mismo orden con las mismas puntuaciones, pero puede dejar
+vacíos sus extractos, resaltados, título y metadatos. <code>hydrate</code> los rellena
+para los resultados que muestras, de modo que un grupo grande se ordena sin
+calcular un extracto para cada uno de sus resultados:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.search</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_query</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">query</span> <span class="o">=</span> <span class="n">parse_query</span><span class="p">(</span><span class="s2">"dwarf galaxy"</span><span class="p">)</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">pool</span> <span class="o">=</span> <span class="k">await</span> <span class="n">text_store</span><span class="o">.</span><span class="n">rank</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">page</span> <span class="o">=</span> <span class="k">await</span> <span class="n">text_store</span><span class="o">.</span><span class="n">hydrate</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">pool</span><span class="p">[:</span><span class="mi">20</span><span class="p">])</span>
+</code></pre></div>
+<ul>
+<li><strong>Coste.</strong> <code>AsyncSqliteFts5Store</code> ordena solo con <code>bm25()</code> y calcula los
+  extractos, y lee los títulos y los metadatos, únicamente en <code>hydrate</code>, así
+  que ordenar 500 resultados cuesta poco más que ordenar 20. Su <code>search</code>
+  funciona igual dentro de una sola lectura: primero ordena y calcula
+  extractos solo para los resultados que devuelve. <code>AsyncHybridSearcher</code>
+  ordena su grupo de candidatos con <code>rank</code> y completa con <code>hydrate</code> solo los
+  resultados que muestra.</li>
+<li><strong>Entre las dos llamadas.</strong> <code>hydrate</code> lee el índice tal como está cuando se
+  llama. Un resultado cuyo registro se eliminó después de <code>rank</code>, o que ya no
+  coincide, vuelve tal como se pasó, y un registro indexado de nuevo
+  entretanto recibe los extractos de su texto nuevo.</li>
+<li><strong>Los almacenes personalizados</strong> heredan un <code>rank</code> que llama a <code>search</code> y
+  un <code>hydrate</code> que devuelve los resultados sin cambios, lo cual es correcto
+  para cualquier almacén; sobrescribe ambos a la vez para ordenar sin
+  extractos.</li>
+</ul>
 
 
 

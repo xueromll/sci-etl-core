@@ -738,6 +738,8 @@
       
         
       
+        
+      
     
     
     
@@ -1635,6 +1637,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guide/testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    اختبار مكوّناتك
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guide/architecture/" class="md-nav__link">
         
   
@@ -1898,6 +1928,8 @@
       
         
           
+        
+      
         
       
         
@@ -2303,6 +2335,34 @@
     
   
     الحالة
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    الاختبار
   
 
     
@@ -3684,12 +3744,43 @@
 <li><code>forget(record_ids)</code> في كلا مديري الحالة المضمّنين، والبروتوكول الاختياري <code>Forgetting</code>
   الذي يصفها. وهي تمحو علامة المعالَج والمحاولات الفاشلة للسجلات، فيعالجها من جديد التشغيلُ
   الذي يعيد مسح القائمة مع <code>start_index=0</code>، مثلًا بعد تغيير الموجِّه أو النموذج.</li>
+<li>يشغّل <code>AsyncCascadingRelevanceFilter(*filters)</code> مرشحات الصلة بالترتيب ويتوقف
+  عند أول رفض، فيغربل مرشح رخيص مثل <code>AsyncEmbeddingRelevanceFilter</code> السجلات قبل
+  أن يراها مرشح مكلف يعتمد على النموذج اللغوي. وينتشر الاستثناء الصادر عن مرشح
+  بدل أن يرفض السجل.</li>
+<li>تضم <code>sci_etl_core.testing</code>، المتاحة عبر الإضافة (extra) الجديدة <code>testing</code>،
+  مجموعات اختبارات العقد للمستخرِجات ومديري الحالة والمصدِّرات والمخازن
+  المتجهية: <code>ExtractorContract</code> و<code>StateManagerContract</code> و<code>ExporterContract</code>
+  و<code>EmbeddingStoreContract</code>. ورِّث إحداها وأضف تجهيزة (fixture) تبني مكوّنك،
+  فيتحقق pytest من سلوكه وفق العقد نفسه الذي تجتازه التنفيذات المضمَّنة، دون
+  pytest-asyncio.</li>
+<li>ترتّب <code>AsyncTextSearchStore.rank</code> و<code>hydrate</code> مجمعًا كبيرًا من النتائج دون
+  مقتطفات، ثم تكمل المقتطفات والعنوان والبيانات الوصفية للنتائج التي تعرضها فقط.
+  وتعدّ <code>count_matches(query, filters, *, cap=None)</code> المطابقات دون تحميل
+  معرّفاتها؛ ويوقف <code>cap</code> العدّ مبكرًا لتعرض الواجهة "10,000+". وتتحقق
+  <code>filter_candidates</code> من المرشحات على سجلات معروفة، وتقرأ <code>get_headers</code> العناوين
+  والبيانات الوصفية دون النص. وترث المخازن المخصصة نسخًا عاملة من الخمس كلها.</li>
+<li>يضبط <code>SqliteTuning(cache_size=..., mmap_size=...)</code>، الممرَّر بالشكل
+  <code>AsyncSqliteFts5Store(..., tuning=...)</code>، ذاكرة الصفحات المؤقتة والربط بالذاكرة
+  للاتصال. وهو معطّل افتراضيًا.</li>
+<li>يحدّ <code>HybridParams.max_chunks</code> والإعداد <code>search.hybrid.max_chunks</code> من عدد
+  المقاطع التي يطلبها الفرع الدلالي، 2500 افتراضيًا، ودون أن يقل عن مجمع
+  المرشحين.</li>
 </ul>
 <h3 id="changed">التغييرات<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
 <ul>
 <li>صارت <code>AsyncSqliteEmbeddingStore.query</code> ترتّب الدرجات بصيغة float32 ولا تفرز إلا أفضل
   <code>top_k</code>، بعد أن كانت تحوّلها إلى float64 وتفرز كل المقاطع. ويستغرق حساب درجات استعلام على
   مليون مقطع من 384 بُعدًا وترتيبها نحو نصف الوقت، ويعيد النتائج نفسها بالترتيب نفسه.</li>
+<li>ترتّب <code>AsyncSqliteFts5Store.search</code> أولًا ولا تحسب المقتطفات إلا للنتائج التي
+  تعيدها، وتعدّ <code>facet_counts</code> من المطابقات. ولا يحسب <code>AsyncHybridSearcher</code>
+  المقتطفات إلا للنتائج التي يعرضها، ويتحقق من المرشحات على المرشحين الدلاليين
+  بدل كل السجلات التي تجتازها، ولا يقرأ إلا العناوين والبيانات الوصفية للنتائج
+  التي وُجدت بالمعنى وحده. والنتائج مطابقة، وتجيب الفهارس الكبيرة أسرع.</li>
+<li>يجلب البحث الهجين افتراضيًا 500 مرشح لكل فرع بدل 100
+  (<code>HybridParams.candidate_pool</code> و<code>search.hybrid.candidate_pool</code>)، فتطابق
+  العشرون الأوائل بعد الدمج في الغالب ما كان سيعيده مجمع بلا حد. اضبط
+  <code>candidate_pool</code> على 100 للإبقاء على المجمع السابق.</li>
 </ul>
 <h2 id="060-2026-09-27"><a href="https://github.com/xueromll/sci-etl-core/compare/v0.5.1...v0.6.0">0.6.0</a> - 2026-09-27<a class="headerlink" href="#060-2026-09-27" title="Permanent link">&para;</a></h2>
 <p>يغيّر هذا الإصدار عقد البيانات: يمكن لمستخرِجات الكيانات أن تُعيد كيانات منمّطة، وتتلقى

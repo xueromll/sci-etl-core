@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://xueromll.github.io/sci-etl-core/dev/ar/guide/architecture/">
       
       
-        <link rel="prev" href="../migrating-a-pipeline/">
+        <link rel="prev" href="../testing-kit/">
       
       
         <link rel="next" href="../../cli/">
@@ -721,6 +721,8 @@
   
     
     
+      
+        
       
         
       
@@ -1643,6 +1645,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    اختبار مكوّناتك
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -1967,6 +1997,8 @@
       
         
           
+        
+      
         
       
         
@@ -2372,6 +2404,34 @@
     
   
     الحالة
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    الاختبار
   
 
     
@@ -2832,7 +2892,7 @@
 <tr>
 <td>الصلة</td>
 <td><code>AsyncRelevanceFilter</code></td>
-<td><code>AsyncLLMRelevanceFilter</code>، <code>AsyncEmbeddingRelevanceFilter</code></td>
+<td><code>AsyncLLMRelevanceFilter</code>، <code>AsyncEmbeddingRelevanceFilter</code>، <code>AsyncCascadingRelevanceFilter</code></td>
 <td><code>sci_etl_core.llm</code></td>
 </tr>
 <tr>
@@ -2930,6 +2990,10 @@
 المستخدم). تسجّل كل وحدة رسائلها عبر الوحدة القياسية <code>logging</code>؛ راجع
 <a href="../logging/">التسجيل</a>. وتحمّل كل حزمة أسماءها العامة عند أول وصول إليها، فلا يتطلب
 استيراد مكوّن واحد أبدًا الاعتماديات الاختيارية لمكوّن آخر.</p>
+<p>تتحقق مجموعات اختبارات العقد في <code>sci_etl_core.testing</code>، التي تحتاج إلى الإضافة
+(extra) <code>testing</code>، من مستخرِجاتك ومديري الحالة والمصدِّرات والمخازن المتجهية
+الخاصة بك وفق العقود نفسها التي تلتزم بها المكوّنات المضمَّنة؛ انظر <a href="../testing-kit/">اختبار
+مكوّناتك</a>.</p>
 <p>يوثّق <a href="../../reference/">مرجع الواجهة البرمجية</a> كل وحدة بالتفصيل.</p>
 
 
@@ -2966,7 +3030,7 @@
       <nav class="md-footer__inner md-grid" aria-label="هامش سفلي" >
         
           
-          <a href="../migrating-a-pipeline/" class="md-footer__link md-footer__link--prev" aria-label="السابقة: ترحيل خط معالجة">
+          <a href="../testing-kit/" class="md-footer__link md-footer__link--prev" aria-label="السابقة: اختبار مكوّناتك">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2976,7 +3040,7 @@
                 السابقة
               </span>
               <div class="md-ellipsis">
-                ترحيل خط معالجة
+                اختبار مكوّناتك
               </div>
             </div>
           </a>

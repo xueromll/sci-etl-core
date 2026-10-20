@@ -738,6 +738,8 @@
       
         
       
+        
+      
     
     
     
@@ -1656,6 +1658,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    测试你的组件
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../architecture/" class="md-nav__link">
         
   
@@ -1919,6 +1949,8 @@
       
         
           
+        
+      
         
       
         
@@ -2344,6 +2376,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    测试
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../reference/utilities/" class="md-nav__link">
         
   
@@ -2728,10 +2788,16 @@
   <code>"body"</code> 的 <code>Snippet</code>。该段落是按语义匹配的，因此可能没有任何高亮；可检查
   <code>lexical_rank is None</code> 为其加上标签（例如“相关段落”），或者改用
   <code>text_store.get_documents</code> 读取摘要。</li>
-<li><strong>候选池。</strong> 每条分支在融合前获取 <code>HybridParams.candidate_pool</code> 条记录（默认 100，且不少
+<li><strong>候选池。</strong> 每条分支在融合前获取 <code>HybridParams.candidate_pool</code> 条记录（默认 500，且不少
   于 <code>top_k</code>），因此在词法分支中排第 40、在语义分支中排第 3 的记录仍可能进入前 20。语义
-  分支向向量记忆请求 <code>candidate_pool × chunk_pool_factor</code> 个文本块（默认因子为 5）。当长
+  分支向向量记忆请求 <code>candidate_pool × chunk_pool_factor</code> 个文本块（默认因子为 5），最多 <code>max_chunks</code> 个（默认 2,500），
+  但不少于候选池的大小。当长
   文章占满靠前的文本块、导致候选池不足时，请调高该因子。</li>
+<li><strong>每次检索的工作量。</strong> 工作量取决于候选池，而不是语料库。词法分支用 <code>text_store.rank</code>
+  对候选池排序，并只为展示的融合命中结果用 <code>text_store.hydrate</code> 计算摘要片段。过滤器只在
+  语义候选上用 <code>text_store.filter_candidates</code> 检查。仅由语义分支找到的命中结果用
+  <code>text_store.get_headers</code> 读取标题和元数据，从不读取其文本。得到的命中结果与对候选池执行
+  一次 <code>search</code> 所得的相同。</li>
 </ul>
 
 

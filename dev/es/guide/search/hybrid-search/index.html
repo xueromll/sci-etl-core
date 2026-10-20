@@ -736,6 +736,8 @@
       
         
       
+        
+      
     
     
     
@@ -1654,6 +1656,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Probar tus componentes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../architecture/" class="md-nav__link">
         
   
@@ -1917,6 +1947,8 @@
       
         
           
+        
+      
         
       
         
@@ -2342,6 +2374,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pruebas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../reference/utilities/" class="md-nav__link">
         
   
@@ -2738,12 +2798,21 @@ ejecuta una o las dos ramas de recuperación:</p>
   etiquetarlo, por ejemplo como "pasaje relacionado", o lee el resumen con
   <code>text_store.get_documents</code>.</li>
 <li><strong>Grupo de candidatos.</strong> Cada rama obtiene <code>HybridParams.candidate_pool</code>
-  registros (100 por defecto, y nunca menos que <code>top_k</code>) antes de la fusión,
+  registros (500 por defecto, y nunca menos que <code>top_k</code>) antes de la fusión,
   de modo que un registro en el puesto 40 léxicamente y en el 3 semánticamente
   aún puede llegar a los 20 primeros. La rama semántica pide a la memoria
   vectorial <code>candidate_pool × chunk_pool_factor</code> fragmentos (factor 5 por
-  defecto). Aumenta el factor cuando los artículos largos llenan los primeros
+  defecto), como máximo <code>max_chunks</code> (2500 por defecto) y nunca menos que el
+  grupo. Aumenta el factor cuando los artículos largos llenan los primeros
   fragmentos y el grupo vuelve incompleto.</li>
+<li><strong>Trabajo por búsqueda.</strong> El trabajo depende del grupo de candidatos, no del
+  corpus. La rama léxica ordena el grupo con <code>text_store.rank</code> y calcula
+  extractos solo para los resultados fusionados que se muestran, con
+  <code>text_store.hydrate</code>. Los filtros se comprueban solo sobre los candidatos
+  semánticos, con <code>text_store.filter_candidates</code>. Un resultado que solo
+  encontró la rama semántica lee su título y sus metadatos con
+  <code>text_store.get_headers</code>, nunca su texto. Los resultados son los que daría
+  una sola llamada a <code>search</code> sobre el grupo.</li>
 </ul>
 
 

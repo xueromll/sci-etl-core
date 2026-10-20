@@ -732,6 +732,8 @@
       
         
       
+        
+      
     
     
     
@@ -1109,6 +1111,17 @@
     <span class="md-ellipsis">
       
         Snippets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ranking-a-pool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ranking a pool
       
     </span>
   </a>
@@ -1698,6 +1711,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing your components
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../architecture/" class="md-nav__link">
         
   
@@ -1961,6 +2002,8 @@
       
         
           
+        
+      
         
       
         
@@ -2386,6 +2429,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../reference/utilities/" class="md-nav__link">
         
   
@@ -2722,6 +2793,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#ranking-a-pool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ranking a pool
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2775,6 +2857,32 @@ also counts a word inside a part of the query that fails to match, which
 <p><code>passage_snippet(query, text)</code> builds a <code>Snippet</code> of any other text in the same
 way, highlighting every word of the query that isn't negated. The hybrid
 searcher uses it for the passages the semantic leg finds.</p>
+<h2 id="ranking-a-pool">Ranking a pool<a class="headerlink" href="#ranking-a-pool" title="Permanent link">&para;</a></h2>
+<p><code>rank</code> takes the same arguments as <code>search</code> and returns the same hits in the
+same order with the same scores, but may leave their snippets, highlights,
+title, and metadata empty. <code>hydrate</code> fills them in for the hits you show, so a
+large pool is ranked without computing a snippet for every hit in it:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.search</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_query</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">query</span> <span class="o">=</span> <span class="n">parse_query</span><span class="p">(</span><span class="s2">"dwarf galaxy"</span><span class="p">)</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">pool</span> <span class="o">=</span> <span class="k">await</span> <span class="n">text_store</span><span class="o">.</span><span class="n">rank</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">page</span> <span class="o">=</span> <span class="k">await</span> <span class="n">text_store</span><span class="o">.</span><span class="n">hydrate</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">pool</span><span class="p">[:</span><span class="mi">20</span><span class="p">])</span>
+</code></pre></div>
+<ul>
+<li><strong>Cost.</strong> <code>AsyncSqliteFts5Store</code> ranks with <code>bm25()</code> alone and computes
+  snippets, and reads titles and metadata, only in <code>hydrate</code>, so ranking 500
+  hits costs little more than ranking 20. Its <code>search</code> works the same way
+  inside one read: it ranks first and computes snippets only for the hits it
+  returns. <code>AsyncHybridSearcher</code> ranks its candidate pool with <code>rank</code> and
+  hydrates only the hits it shows.</li>
+<li><strong>Between the two calls.</strong> <code>hydrate</code> reads the index as it is when called. A
+  hit whose record was deleted since <code>rank</code>, or no longer matches, comes back
+  as it was given, and a record indexed again meanwhile gets the snippets of
+  its new text.</li>
+<li><strong>Custom stores</strong> inherit a <code>rank</code> that calls <code>search</code> and a <code>hydrate</code> that
+  returns the hits unchanged, which is correct for any store; override both
+  together to rank without snippets.</li>
+</ul>
 
 
 

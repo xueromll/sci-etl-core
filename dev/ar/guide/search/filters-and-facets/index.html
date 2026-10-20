@@ -740,6 +740,8 @@
       
         
       
+        
+      
     
     
     
@@ -1184,6 +1186,17 @@
     <span class="md-ellipsis">
       
         عدّ النطاقات
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#counting-matches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        عدّ المطابقات
       
     </span>
   </a>
@@ -1717,6 +1730,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    اختبار مكوّناتك
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../architecture/" class="md-nav__link">
         
   
@@ -1980,6 +2021,8 @@
       
         
           
+        
+      
         
       
         
@@ -2405,6 +2448,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    الاختبار
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../reference/utilities/" class="md-nav__link">
         
   
@@ -2752,6 +2823,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#counting-matches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        عدّ المطابقات
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2801,7 +2883,8 @@
   حسب العدد ثم حسب القيمة، دون الأعداد الصفرية. وتطبّق أعداد كل مفتاح الاستعلام وكل
   المرشحات على المفاتيح <em>الأخرى</em>، فيدل العدد على عدد النتائج التي سيعطيها اختيار
   تلك القيمة، وتبقى القيم الأخرى للمفتاح المرشَّح ظاهرة. و<code>query=None</code> يعدّ على
-  الفهرس كله.</li>
+  الفهرس كله. ويعدّ <code>AsyncSqliteFts5Store</code> الاستعلام القابل للترتيب انطلاقًا من
+  مطابقاته، فتتبع الكلفة عدد المطابقات لا عدد الوسوم.</li>
 <li><strong>تغيير <code>facet_keys</code>.</strong> تُثبَّت المفاتيح عند إنشاء المخزن وتُسجَّل في الملف.
   ولتغييرها، أنشئ المخزن بالمفاتيح الجديدة ثم نفّذ
   <code>await text_store.rebuild_tags()</code>. وحتى ذلك الحين، يرفع أي مرشح أو وجه على مفتاح لم
@@ -2862,6 +2945,27 @@
 <p>تعود الأعداد في صورة صف (tuple) بترتيب <code>ranges</code>، ويمكن للنطاقات أن تتشارك مفتاحًا
 وأن تتداخل. ويعدّ <code>AsyncSqliteFts5Store</code> كل النطاقات في قراءة واحدة متسقة. أما المخزن
 المخصص فيرث نسخة تستدعي <code>filter_ids</code> مرة واحدة لكل نطاق.</p>
+<h2 id="counting-matches">عدّ المطابقات<a class="headerlink" href="#counting-matches" title="Permanent link">&para;</a></h2>
+<p>تعدّ <code>count_matches</code> السجلات التي يختارها الاستعلام والمرشحات، أي عدد المعرّفات
+التي كانت <code>filter_ids</code> ستُعيدها، دون أن تُعيدها. والعدّ دقيق افتراضيًا. ويوقف
+<code>cap</code> العدّ عند ذلك العدد من السجلات، فلا تكلّف الكلمة الشائعة إلا <code>cap</code> خطوة
+بدلًا من خطوة لكل مطابقة، والنتيجة المساوية لـ <code>cap</code> تعني "هذا العدد على الأقل":</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.search</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_query</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">query</span> <span class="o">=</span> <span class="n">parse_query</span><span class="p">(</span><span class="s2">"dwarf galaxy"</span><span class="p">)</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">exact</span> <span class="o">=</span> <span class="k">await</span> <span class="n">text_store</span><span class="o">.</span><span class="n">count_matches</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">filters</span><span class="p">)</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">capped</span> <span class="o">=</span> <span class="k">await</span> <span class="n">text_store</span><span class="o">.</span><span class="n">count_matches</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">cap</span><span class="o">=</span><span class="mi">10_000</span><span class="p">)</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">capped</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">+"</span> <span class="k">if</span> <span class="n">capped</span> <span class="o">==</span> <span class="mi">10_000</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">capped</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">"</span>
+</code></pre></div>
+<ul>
+<li><strong>أي استعلام.</strong> كما في <code>filter_ids</code>، تقبل <code>count_matches</code> النفي الخالص،
+  و<code>query=None</code> يعدّ كل السجلات التي تجتاز المرشحات. وقيمة <code>cap</code> الأقل من 1
+  ترفع <code>ValueError</code> قبل أي إدخال وإخراج.</li>
+<li><strong>المرشحون المعروفون.</strong> تُعيد <code>filter_candidates(record_ids, filters)</code> ما كان
+  من <code>record_ids</code> مخزنًا ويجتاز المرشحات. ويفحص الباحث الهجين مرشحيه الدلاليين
+  بهذه الطريقة بدلًا من تحميل كل سجل يجتاز المرشحات.</li>
+<li><strong>المخازن المخصصة</strong> ترث نسخًا من الاثنتين تستدعي <code>filter_ids</code>.</li>
+</ul>
 
 
 

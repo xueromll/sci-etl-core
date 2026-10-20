@@ -738,6 +738,8 @@
       
         
       
+        
+      
     
     
     
@@ -1115,6 +1117,17 @@
     <span class="md-ellipsis">
       
         摘要片段
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ranking-a-pool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        对候选池排序
       
     </span>
   </a>
@@ -1704,6 +1717,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    测试你的组件
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../architecture/" class="md-nav__link">
         
   
@@ -1967,6 +2008,8 @@
       
         
           
+        
+      
         
       
         
@@ -2392,6 +2435,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    测试
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../reference/utilities/" class="md-nav__link">
         
   
@@ -2728,6 +2799,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#ranking-a-pool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        对候选池排序
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2776,6 +2858,27 @@
 的文档说明了这种情况。</p>
 <p><code>passage_snippet(query, text)</code> 以同样方式为任意其他文本构建 <code>Snippet</code>，高亮查询中每个
 未被否定的词。混合检索器用它来处理语义分支找到的段落。</p>
+<h2 id="ranking-a-pool">对候选池排序<a class="headerlink" href="#ranking-a-pool" title="Permanent link">&para;</a></h2>
+<p><code>rank</code> 接受与 <code>search</code> 相同的参数，并以相同的顺序、相同的分数返回相同的命中结果，但可能让
+它们的摘要片段、高亮、标题和元数据留空。<code>hydrate</code> 为你要展示的命中结果补全这些内容，因此
+对一个大的候选池排序时，无需为其中每个命中结果计算摘要片段：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.search</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_query</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">query</span> <span class="o">=</span> <span class="n">parse_query</span><span class="p">(</span><span class="s2">"dwarf galaxy"</span><span class="p">)</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">pool</span> <span class="o">=</span> <span class="k">await</span> <span class="n">text_store</span><span class="o">.</span><span class="n">rank</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">page</span> <span class="o">=</span> <span class="k">await</span> <span class="n">text_store</span><span class="o">.</span><span class="n">hydrate</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">pool</span><span class="p">[:</span><span class="mi">20</span><span class="p">])</span>
+</code></pre></div>
+<ul>
+<li><strong>开销。</strong> <code>AsyncSqliteFts5Store</code> 只用 <code>bm25()</code> 排序，仅在 <code>hydrate</code> 中计算摘要片段并
+  读取标题和元数据，因此对 500 个命中结果排序的开销只比对 20 个略多。它的 <code>search</code> 也在
+  一次读取内以同样方式工作：先排序，只为返回的命中结果计算摘要片段。<code>AsyncHybridSearcher</code>
+  用 <code>rank</code> 对其候选池排序，只对展示的命中结果调用 <code>hydrate</code>。</li>
+<li><strong>两次调用之间。</strong> <code>hydrate</code> 读取调用那一刻的索引。如果某个命中结果的记录在 <code>rank</code> 之后
+  被删除或不再匹配，该命中结果会按传入时的原样返回；在此期间重新索引的记录会得到其新文本
+  的摘要片段。</li>
+<li><strong>自定义存储</strong>会继承一个调用 <code>search</code> 的 <code>rank</code>，以及一个原样返回命中结果的 <code>hydrate</code>，
+  这对任何存储都是正确的；要在不计算摘要片段的情况下排序，请同时重写这两个方法。</li>
+</ul>
 
 
 

@@ -736,6 +736,8 @@
       
         
       
+        
+      
     
     
     
@@ -1633,6 +1635,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guide/testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    测试你的组件
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guide/architecture/" class="md-nav__link">
         
   
@@ -1896,6 +1926,8 @@
       
         
           
+        
+      
         
       
         
@@ -2301,6 +2333,34 @@
     
   
     状态
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    测试
   
 
     
@@ -3682,12 +3742,34 @@
 <li>两种内置状态管理器新增 <code>forget(record_ids)</code>，并新增描述它的可选 <code>Forgetting</code> 协议。它会清除
   记录的已处理标记和失败尝试，因此用 <code>start_index=0</code> 重新扫描列表的运行会再次处理这些记录，
   例如在更换提示词或模型之后。</li>
+<li><code>AsyncCascadingRelevanceFilter(*filters)</code> 按顺序运行相关性过滤器，并在第一次拒绝时停止，这样像
+  <code>AsyncEmbeddingRelevanceFilter</code> 这样的廉价过滤器会在昂贵的 LLM
+  过滤器之前筛选记录。过滤器抛出的异常会继续传播，而不会拒绝该记录。</li>
+<li>新的 <code>testing</code> extra 提供
+  <code>sci_etl_core.testing</code>，其中包含面向提取器、状态管理器、导出器和向量存储的契约测试套件：<code>ExtractorContract</code>、<code>StateManagerContract</code>、<code>ExporterContract</code>
+  和 <code>EmbeddingStoreContract</code>。继承其中一个套件并添加构建你的组件的 fixture，pytest
+  就会按照内置实现同样通过的契约检查它的行为，无需 pytest-asyncio。</li>
+<li><code>AsyncTextSearchStore.rank</code> 和 <code>hydrate</code>
+  先在不生成摘要片段的情况下对大量命中结果排名，再只为展示的命中结果补上摘要片段、标题和元数据。<code>count_matches(query, filters,
+  *, cap=None)</code> 统计匹配数而不加载它们的 id；<code>cap</code>
+  会提前停止计数，让界面可以显示“10,000+”。<code>filter_candidates</code> 在已知记录上检查过滤器，<code>get_headers</code>
+  只读取标题和元数据而不读取文本。自定义存储会继承这五个方法的可用实现。</li>
+<li><code>SqliteTuning(cache_size=..., mmap_size=...)</code> 通过 <code>AsyncSqliteFts5Store(...,
+  tuning=...)</code> 传入，用于设置连接的页缓存和内存映射。默认关闭。</li>
+<li><code>HybridParams.max_chunks</code> 和 <code>search.hybrid.max_chunks</code> 设置会限制语义分支请求的文本块数量，默认
+  2,500，但不少于候选池。</li>
 </ul>
 <h3 id="changed">变更<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>AsyncSqliteEmbeddingStore.query</code> 以 float32 为分数排名，并且只对最好的 <code>top_k</code> 排序，
   此前它会把分数转换为 float64 并对所有文本块排序。对一百万个 384 维文本块的查询，打分和排名
   所需时间约为原来的一半，返回的命中结果及其顺序不变。</li>
+<li><code>AsyncSqliteFts5Store.search</code> 先排名，只为返回的命中结果计算摘要片段，<code>facet_counts</code>
+  根据匹配结果计数。<code>AsyncHybridSearcher</code>
+  只为展示的命中结果计算摘要片段，在语义候选上检查过滤器，而不是在所有满足过滤器的记录上检查，并且对仅按语义找到的命中结果只读取标题和元数据。结果完全相同，大型索引响应更快。</li>
+<li>混合检索默认每条分支获取 500 个候选，而不是 100 个（<code>HybridParams.candidate_pool</code> 和
+  <code>search.hybrid.candidate_pool</code>），因此融合后的前 20 几乎总是与不设上限的候选池返回的结果一致。将
+  <code>candidate_pool</code> 设为 100 可保留原来的候选池。</li>
 </ul>
 <h2 id="060-2026-09-27"><a href="https://github.com/xueromll/sci-etl-core/compare/v0.5.1...v0.6.0">0.6.0</a> - 2026-09-27<a class="headerlink" href="#060-2026-09-27" title="Permanent link">&para;</a></h2>
 <p>本版本改变了数据契约：实体提取器可以返回类型化实体，导出器接收每条记录及其实体，本库通过

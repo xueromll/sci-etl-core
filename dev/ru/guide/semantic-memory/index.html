@@ -734,6 +734,8 @@
       
         
       
+        
+      
     
     
     
@@ -965,6 +967,17 @@
     <span class="md-ellipsis">
       
         Релевантность без LLM
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cascading-relevance-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Каскад фильтров релевантности
       
     </span>
   </a>
@@ -1709,6 +1722,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Тестирование своих компонентов
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../architecture/" class="md-nav__link">
         
   
@@ -1972,6 +2013,8 @@
       
         
           
+        
+      
         
       
         
@@ -2397,6 +2440,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Тестирование
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../reference/utilities/" class="md-nav__link">
         
   
@@ -2734,6 +2805,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#cascading-relevance-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Каскад фильтров релевантности
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#searching-by-keyword-too" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2839,6 +2921,49 @@
 <a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">threshold</span><span class="o">=</span><span class="mf">0.35</span><span class="p">,</span>  <span class="c1"># минимальное косинусное сходство</span>
 <a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="p">)</span>
 </code></pre></div>
+<h2 id="cascading-relevance-filters">Каскад фильтров релевантности<a class="headerlink" href="#cascading-relevance-filters" title="Permanent link">&para;</a></h2>
+<p><code>AsyncCascadingRelevanceFilter</code> запускает фильтры релевантности по порядку и
+останавливается на первом отклонении, так что дешёвый фильтр отсеивает записи
+до того, как их увидит дорогой. Здесь до LLM доходят только записи, которые
+оставил фильтр на эмбеддингах:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="n">AsyncCascadingRelevanceFilter</span><span class="p">,</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="n">AsyncEmbeddingRelevanceFilter</span><span class="p">,</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="n">AsyncLLMRelevanceFilter</span><span class="p">,</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="n">AsyncOpenAICompatibleClient</span><span class="p">,</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="p">)</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="n">llm</span> <span class="o">=</span> <span class="n">AsyncOpenAICompatibleClient</span><span class="p">(</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>    <span class="n">api_key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"LLM_API_KEY"</span><span class="p">],</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>    <span class="n">base_url</span><span class="o">=</span><span class="s2">"https://api.openai.com/v1"</span><span class="p">,</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>    <span class="n">model</span><span class="o">=</span><span class="s2">"gpt-4o-mini"</span><span class="p">,</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="p">)</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="n">relevance_filter</span> <span class="o">=</span> <span class="n">AsyncCascadingRelevanceFilter</span><span class="p">(</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>    <span class="n">AsyncEmbeddingRelevanceFilter</span><span class="p">(</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>        <span class="n">embedder</span><span class="o">=</span><span class="n">embedder</span><span class="p">,</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>        <span class="n">reference_texts</span><span class="o">=</span><span class="p">[</span><span class="s2">"ultra-diffuse galaxies"</span><span class="p">,</span> <span class="s2">"low surface brightness galaxies"</span><span class="p">],</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>    <span class="p">),</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>    <span class="n">AsyncLLMRelevanceFilter</span><span class="p">(</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>        <span class="n">llm_client</span><span class="o">=</span><span class="n">llm</span><span class="p">,</span>
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>        <span class="n">system_prompt</span><span class="o">=</span><span class="p">(</span>
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>            <span class="s2">"Decide whether the paper reports measurements of galaxies. "</span>
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>            <span class="s1">'Reply with JSON: {"relevant": true} or {"relevant": false}.'</span>
+<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>        <span class="p">),</span>
+<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a>    <span class="p">),</span>
+<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li><strong>Вердикт.</strong> Запись релевантна, только если её принимают все фильтры.
+  Фильтры после первого отклонения не вызываются.</li>
+<li><strong>Сбои.</strong> Исключение фильтра пробрасывается без изменений, и фильтры после
+  него не вызываются; оно никогда не считается отклонением. Собственный
+  <code>default_on_error</code> каждого фильтра решает, пропускают ли его сбои запись
+  или поднимают исключение.</li>
+<li><strong>Ресурсы.</strong> Каскад ничего не закрывает и сам не сообщает о расходе токенов:
+  перечислите <code>llm</code> и <code>embedder</code> в <code>closeables</code> и <code>usage_sources</code>, как обычно.</li>
+</ul>
 <h2 id="searching-by-keyword-too">Поиск ещё и по ключевым словам<a class="headerlink" href="#searching-by-keyword-too" title="Permanent link">&para;</a></h2>
 <p>Чтобы индексировать те же записи и для булева поиска, см. раздел
 <a href="../search/">Локальный поиск и обзор</a>. Его текстовый индекс SQLite,

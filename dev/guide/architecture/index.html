@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://xueromll.github.io/sci-etl-core/dev/guide/architecture/">
       
       
-        <link rel="prev" href="../migrating-a-pipeline/">
+        <link rel="prev" href="../testing-kit/">
       
       
         <link rel="next" href="../../cli/">
@@ -713,6 +713,8 @@
   
     
     
+      
+        
       
         
       
@@ -1635,6 +1637,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing your components
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -1959,6 +1989,8 @@
       
         
           
+        
+      
         
       
         
@@ -2364,6 +2396,34 @@
     
   
     State
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
   
 
     
@@ -2813,7 +2873,7 @@
 <tr>
 <td>Relevance</td>
 <td><code>AsyncRelevanceFilter</code></td>
-<td><code>AsyncLLMRelevanceFilter</code>, <code>AsyncEmbeddingRelevanceFilter</code></td>
+<td><code>AsyncLLMRelevanceFilter</code>, <code>AsyncEmbeddingRelevanceFilter</code>, <code>AsyncCascadingRelevanceFilter</code></td>
 <td><code>sci_etl_core.llm</code></td>
 </tr>
 <tr>
@@ -2913,6 +2973,10 @@ read-model for user interfaces). Every module logs through the standard
 <code>logging</code> module; see <a href="../logging/">Logging</a>. Every package loads its public names on first access, so
 importing one component never requires another component's optional
 dependencies.</p>
+<p>The contract suites in <code>sci_etl_core.testing</code>, which need the <code>testing</code> extra,
+check your own extractors, state managers, exporters, and vector stores against
+the same contracts as the bundled ones; see <a href="../testing-kit/">Testing your
+components</a>.</p>
 <p>The <a href="../../reference/">API reference</a> documents each module in detail.</p>
 
 
@@ -2949,7 +3013,7 @@ dependencies.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../migrating-a-pipeline/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Migrating a pipeline">
+          <a href="../testing-kit/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Testing your components">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2959,7 +3023,7 @@ dependencies.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                Migrating a pipeline
+                Testing your components
               </div>
             </div>
           </a>

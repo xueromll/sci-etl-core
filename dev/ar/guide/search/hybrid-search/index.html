@@ -740,6 +740,8 @@
       
         
       
+        
+      
     
     
     
@@ -1658,6 +1660,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    اختبار مكوّناتك
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../architecture/" class="md-nav__link">
         
   
@@ -1921,6 +1951,8 @@
       
         
           
+        
+      
         
       
         
@@ -2346,6 +2378,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    الاختبار
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../reference/utilities/" class="md-nav__link">
         
   
@@ -2734,12 +2794,19 @@
   <code>"body"</code>. ذلك المقطع طابق بالمعنى، فقد لا يُبرز شيئًا؛ افحص
   <code>lexical_rank is None</code> لوسمه، مثلًا بعبارة "مقطع ذو صلة"، أو اقرأ الملخص بـ
   <code>text_store.get_documents</code> بدلًا من ذلك.</li>
-<li><strong>مجمع المرشحين.</strong> يجلب كل فرع <code>HybridParams.candidate_pool</code> سجلًا (100
+<li><strong>مجمع المرشحين.</strong> يجلب كل فرع <code>HybridParams.candidate_pool</code> سجلًا (500
   افتراضيًا، ولا يقل أبدًا عن <code>top_k</code>) قبل الدمج، فيمكن للسجل الذي يحتل المرتبة
   الأربعين معجميًا والثالثة دلاليًا أن يصل إلى العشرين الأوائل. ويطلب الفرع
   الدلالي من الذاكرة المتجهية <code>candidate_pool × chunk_pool_factor</code> مقطعًا (المعامل
-  الافتراضي 5). ارفع المعامل عندما تملأ المقالات الطويلة المقاطع الأولى ويعود
+  الافتراضي 5)، بحدٍّ أقصى <code>max_chunks</code> (2500 افتراضيًا) ودون أن يقل عن حجم
+  المجمع. ارفع المعامل عندما تملأ المقالات الطويلة المقاطع الأولى ويعود
   المجمع ناقصًا.</li>
+<li><strong>العمل في كل بحث.</strong> يتبع العمل مجمع المرشحين لا المجموعة النصية. يرتّب الفرع
+  المعجمي المجمع بـ <code>text_store.rank</code> ولا يحسب المقتطفات إلا للنتائج المدموجة
+  المعروضة، بـ <code>text_store.hydrate</code>. وتُفحص المرشحات على المرشحين الدلاليين
+  وحدهم، بـ <code>text_store.filter_candidates</code>. ويُقرأ عنوان النتيجة التي وجدها
+  الفرع الدلالي وحده وبياناتها الوصفية بـ <code>text_store.get_headers</code>، ولا يُقرأ
+  نصها أبدًا. والنتائج هي نفسها التي يعطيها استدعاء واحد لـ <code>search</code> على المجمع.</li>
 </ul>
 
 

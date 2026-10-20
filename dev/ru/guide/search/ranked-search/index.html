@@ -734,6 +734,8 @@
       
         
       
+        
+      
     
     
     
@@ -1111,6 +1113,17 @@
     <span class="md-ellipsis">
       
         Сниппеты
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ranking-a-pool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ранжирование пула
       
     </span>
   </a>
@@ -1700,6 +1713,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Тестирование своих компонентов
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../architecture/" class="md-nav__link">
         
   
@@ -1963,6 +2004,8 @@
       
         
           
+        
+      
         
       
         
@@ -2388,6 +2431,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Тестирование
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../reference/utilities/" class="md-nav__link">
         
   
@@ -2724,6 +2795,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#ranking-a-pool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ранжирование пула
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2779,6 +2861,36 @@
 <p><code>passage_snippet(query, text)</code> таким же образом строит <code>Snippet</code> для любого
 другого текста, подсвечивая каждое слово запроса, которое не отрицается.
 Гибридный поиск использует его для чанков, найденных семантической ветвью.</p>
+<h2 id="ranking-a-pool">Ранжирование пула<a class="headerlink" href="#ranking-a-pool" title="Permanent link">&para;</a></h2>
+<p><code>rank</code> принимает те же аргументы, что и <code>search</code>, и возвращает те же
+результаты в том же порядке с теми же оценками, но может оставить их
+сниппеты, подсветку, заголовок и метаданные пустыми. <code>hydrate</code> заполняет их
+для результатов, которые вы показываете, поэтому большой пул ранжируется без
+вычисления сниппета для каждого результата в нём:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.search</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_query</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">query</span> <span class="o">=</span> <span class="n">parse_query</span><span class="p">(</span><span class="s2">"dwarf galaxy"</span><span class="p">)</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">pool</span> <span class="o">=</span> <span class="k">await</span> <span class="n">text_store</span><span class="o">.</span><span class="n">rank</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">page</span> <span class="o">=</span> <span class="k">await</span> <span class="n">text_store</span><span class="o">.</span><span class="n">hydrate</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">pool</span><span class="p">[:</span><span class="mi">20</span><span class="p">])</span>
+</code></pre></div>
+<ul>
+<li><strong>Затраты.</strong> <code>AsyncSqliteFts5Store</code> ранжирует одной лишь <code>bm25()</code>, а
+  сниппеты вычисляет и заголовки с метаданными читает только в <code>hydrate</code>,
+  поэтому ранжирование 500 результатов стоит немногим больше ранжирования 20.
+  Его <code>search</code> работает так же внутри одного чтения: сначала ранжирует, а
+  сниппеты вычисляет только для возвращаемых результатов.
+  <code>AsyncHybridSearcher</code> ранжирует свой пул кандидатов через <code>rank</code> и
+  заполняет через <code>hydrate</code> только показываемые результаты.</li>
+<li><strong>Между двумя вызовами.</strong> <code>hydrate</code> читает индекс в том состоянии, в каком
+  он находится в момент вызова. Результат, запись которого после <code>rank</code> была
+  удалена или больше не подходит под запрос, возвращается таким, каким был
+  передан, а запись, заново проиндексированная за это время, получает
+  сниппеты своего нового текста.</li>
+<li><strong>Собственные хранилища</strong> наследуют <code>rank</code>, который вызывает <code>search</code>, и
+  <code>hydrate</code>, который возвращает результаты без изменений, что корректно для
+  любого хранилища; чтобы ранжировать без сниппетов, переопределите оба
+  метода вместе.</li>
+</ul>
 
 
 

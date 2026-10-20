@@ -734,6 +734,8 @@
       
         
       
+        
+      
     
     
     
@@ -1178,6 +1180,17 @@
     <span class="md-ellipsis">
       
         Подсчёт диапазонов
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#counting-matches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Подсчёт совпадений
       
     </span>
   </a>
@@ -1711,6 +1724,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../testing-kit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Тестирование своих компонентов
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../architecture/" class="md-nav__link">
         
   
@@ -1974,6 +2015,8 @@
       
         
           
+        
+      
         
       
         
@@ -2399,6 +2442,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../reference/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Тестирование
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../reference/utilities/" class="md-nav__link">
         
   
@@ -2746,6 +2817,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#counting-matches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Подсчёт совпадений
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2800,7 +2882,9 @@
   нулевых счётчиков. Счётчики каждого ключа учитывают запрос и все фильтры по
   <em>другим</em> ключам, поэтому счётчик показывает, сколько результатов даст выбор
   этого значения, а остальные значения отфильтрованного ключа остаются видимыми.
-  <code>query=None</code> считает по всему индексу.</li>
+  <code>query=None</code> считает по всему индексу. <code>AsyncSqliteFts5Store</code> считает
+  ранжируемый запрос по его совпадениям, поэтому затраты зависят от числа
+  совпадений, а не от числа тегов.</li>
 <li><strong>Изменение <code>facet_keys</code>.</strong> Ключи фиксируются при создании хранилища и
   записываются в файл. Чтобы изменить их, создайте хранилище с новыми ключами и
   выполните <code>await text_store.rebuild_tags()</code>. До этого фильтр или фасет по
@@ -2865,6 +2949,30 @@
 общий ключ и перекрываться. <code>AsyncSqliteFts5Store</code> считает все диапазоны за
 одно согласованное чтение. Собственное хранилище наследует версию, которая
 вызывает <code>filter_ids</code> по одному разу на диапазон.</p>
+<h2 id="counting-matches">Подсчёт совпадений<a class="headerlink" href="#counting-matches" title="Permanent link">&para;</a></h2>
+<p><code>count_matches</code> считает записи, которые выбирают запрос и фильтры, то есть
+число идентификаторов, которое вернул бы <code>filter_ids</code>, не возвращая их. По
+умолчанию подсчёт точный. <code>cap</code> останавливает подсчёт на этом числе записей,
+поэтому частое слово стоит <code>cap</code> шагов вместо одного шага на каждое
+совпадение, а результат, равный <code>cap</code>, означает «не меньше этого»:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sci_etl_core.search</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_query</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">query</span> <span class="o">=</span> <span class="n">parse_query</span><span class="p">(</span><span class="s2">"dwarf galaxy"</span><span class="p">)</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">exact</span> <span class="o">=</span> <span class="k">await</span> <span class="n">text_store</span><span class="o">.</span><span class="n">count_matches</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">filters</span><span class="p">)</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">capped</span> <span class="o">=</span> <span class="k">await</span> <span class="n">text_store</span><span class="o">.</span><span class="n">count_matches</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">cap</span><span class="o">=</span><span class="mi">10_000</span><span class="p">)</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">capped</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">+"</span> <span class="k">if</span> <span class="n">capped</span> <span class="o">==</span> <span class="mi">10_000</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">capped</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">"</span>
+</code></pre></div>
+<ul>
+<li><strong>Любой запрос.</strong> Как и <code>filter_ids</code>, <code>count_matches</code> принимает чистое
+  отрицание, а <code>query=None</code> считает все записи, проходящие фильтры. <code>cap</code>
+  меньше 1 вызывает <code>ValueError</code> до любого ввода-вывода.</li>
+<li><strong>Известные кандидаты.</strong> <code>filter_candidates(record_ids, filters)</code>
+  возвращает те из <code>record_ids</code>, которые сохранены и проходят фильтры.
+  Гибридный поиск проверяет так свои семантические кандидаты, вместо того
+  чтобы загружать все записи, проходящие фильтры.</li>
+<li><strong>Собственные хранилища</strong> наследуют версии обоих методов, которые
+  вызывают <code>filter_ids</code>.</li>
+</ul>
 
 
 
