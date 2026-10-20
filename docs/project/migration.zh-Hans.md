@@ -3,13 +3,14 @@
 本指南按从新到旧的顺序，列出升级到 `sci-etl-core` 新版本时现有代码需要做出的改动。
 [CHANGELOG.md](changelog.md) 列出了所有变更，包括无需任何操作的新增内容。
 
-请锁定一个次版本范围，例如 `sci-etl-core>=0.6.0,<0.7`，并在测试于下一个次版本上通过之后
+请锁定一个次版本范围，例如 `sci-etl-core>=0.7.0,<0.8`，并在测试于下一个次版本上通过之后
 再提高上限。从一个次版本升级到更晚的次版本时，请从最旧的开始，依次应用中间每一节的内容。
 
 如果是首次把现有的科研流水线迁移到本库，请按照
 [迁移流水线](https://xueromll.github.io/sci-etl-core/latest/guide/migrating-a-pipeline/)中的
 完整示例操作。
 
+- [升级到 0.7](#upgrading-to-07)
 - [升级到 0.6](#upgrading-to-06)
 - [升级到 0.5.1](#upgrading-to-051)
 - [升级到 0.5](#upgrading-to-05)
@@ -17,6 +18,36 @@
 - [升级到 0.3](#upgrading-to-03)
 
 ---
+
+## 升级到 0.7 {#upgrading-to-07}
+
+0.7 不破坏任何现有调用，也不弃用任何名称，因此现有代码无需改动。请连同你使用的 extra 一起
+要求新的次版本：
+
+```text
+sci-etl-core[config,async,arxiv,llm,pdf,processors]>=0.7.0,<0.8
+```
+
+0.6 写入的状态文件和数据库、LLM 缓存、嵌入存储、文本索引以及论断存储和拒绝记录存储都能原样
+打开。
+
+只有一个默认值改变：混合检索的每个分支取 500 个候选，而不是 100 个，因此融合后的前 20 条
+结果几乎总是与不设上限的候选池返回的结果一致。新的 `max_chunks` 设置默认为 2,500，用于限制
+语义分支请求的文本块数量。如果想保留原来的候选池，请在配置中设置：
+
+```yaml
+search:
+  hybrid:
+    candidate_pool: 100
+```
+
+或者向 `AsyncHybridSearcher` 传入 `params=HybridParams(candidate_pool=100)`。
+
+- 自定义的 `AsyncTextSearchStore` 会继承新方法 `rank`、`hydrate`、`filter_candidates`、
+  `get_headers` 和 `count_matches` 的可用默认实现。重写 `rank`、`hydrate` 和 `count_matches`
+  可以让大型索引更快。
+- 自定义的状态管理器可以实现 `forget(record_ids)`（由 `Forgetting` 协议描述），以支持定向
+  重新处理。
 
 ## 升级到 0.6 {#upgrading-to-06}
 

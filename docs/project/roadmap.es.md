@@ -12,16 +12,16 @@ Cada hito enumera sus criterios de salida. Un hito se publica cuando se cumplen
 todos los criterios con la batería de pruebas sin conexión y una cobertura de
 líneas del 100 %.
 
-## Versión actual — v0.6.0 {#current-release-v060}
+## Versión actual — v0.7.0 {#current-release-v070}
 
 [CHANGELOG.md](changelog.md) enumera todos los cambios por versión, y
 [MIGRATION.md](migration.md) explica cómo actualizar desde la 0.4 y qué cambian
-la 0.5 y la 0.6.
+la 0.5, la 0.6 y la 0.7.
 
 | Consumidor | Requiere | Ejecuta |
 |------------|----------|---------|
-| [udg-catalogue](https://github.com/xueromll/udg-catalogue) | `>=0.6.0.dev0,<0.7` en `main`, con todos los extras que importa, y su batería de pruebas pasa contra `master` del núcleo | 0.4 en producción, incluidos la búsqueda, el descubrimiento y los embeddings |
-| [sci-etl-cli](https://github.com/xueromll/sci-etl-cli) | `>=0.6.0.dev0,<0.7` en `master`, y su batería de pruebas pasa contra `master` del núcleo; su próxima versión, la 0.4.0, requiere `>=0.6.0,<0.7` | 0.2, en su última versión 0.2.1 |
+| [udg-catalogue](https://github.com/xueromll/udg-catalogue) | `>=0.6.0.dev0,<0.7` en `main`, con todos los extras que importa, y su batería de pruebas pasa contra el núcleo 0.7.0 | 0.4 en producción, incluidos la búsqueda, el descubrimiento y los embeddings |
+| [sci-etl-cli](https://github.com/xueromll/sci-etl-cli) | `>=0.6.0.dev0,<0.7` en `master`, y su batería de pruebas pasa contra el núcleo 0.7.0 | 0.2, en su última versión 0.2.1 |
 
 | Área | Publicado |
 |------|-----------|
@@ -29,24 +29,27 @@ la 0.5 y la 0.6.
 | Contratos | ABC para extractores, filtros de relevancia, extractores de entidades, clientes del LLM, exportadores, gestores de estado, analizadores, generadores de embeddings, fragmentadores, almacenes vectoriales y de texto, procesadores y validadores; extractores de entidades y exportadores genéricos en el tipo de entidad |
 | Entrega | Los exportadores reciben cada registro con sus entidades mediante `open`, `write`, `flush` y `aclose`, y un registro se marca como procesado solo cuando sus entidades son duraderas, así que un fallo puede repetir un registro pero nunca perderlo; `AsyncCsvExporter` con una fila por entidad y `AsyncJsonlExporter` con una línea por registro, ambos lineales en el número de registros |
 | Fiabilidad | Apagado ordenado mediante `ShutdownSignal`, estado volcado termine como termine una ejecución, escrituras atómicas y cerrojos de archivo del sistema operativo, reintentos que respetan `Retry-After`, limitadores de frecuencia compartidos y por host, límites de tamaño de descarga y de descompresión |
-| Reanudación | Cursores de listado guardados que solo avanzan más allá de páginas resueltas, límites de resultados notificados como truncamiento con la siguiente ejecución empezando desde la primera página, una cuarentena para los registros que siguen fallando, estado versionado por esquema que actualiza los archivos escritos por la 0.4, y ejecuciones `newest_first` que recogen los envíos nuevos sin volver a recorrerlo todo |
+| Reanudación | Cursores de listado guardados que solo avanzan más allá de páginas resueltas, límites de resultados notificados como truncamiento con la siguiente ejecución empezando desde la primera página, una cuarentena para los registros que siguen fallando, estado versionado por esquema que actualiza los archivos escritos por la 0.4, ejecuciones `newest_first` que recogen los envíos nuevos sin volver a recorrerlo todo, y `forget(record_ids)` en los dos gestores de estado incluidos, de modo que una ejecución con `start_index=0` vuelve a procesar los registros elegidos |
 | Fuentes | Extractores de arXiv, PubMed, Semantic Scholar y OpenAlex; analizadores de PDF, LaTeX, HTML, DOCX y JATS XML |
-| LLM | Clientes de chat y embeddings compatibles con OpenAI con consumo de tokens y salida estructurada por JSON Schema, caché de respuestas en memoria o en SQLite con clave en el esquema de la entidad, entidades tipadas validadas contra un modelo de Pydantic |
+| LLM | Clientes de chat y embeddings compatibles con OpenAI con consumo de tokens y salida estructurada por JSON Schema, caché de respuestas en memoria o en SQLite con clave en el esquema de la entidad, entidades tipadas validadas contra un modelo de Pydantic, y `AsyncCascadingRelevanceFilter`, que permite que un filtro de relevancia barato descarte registros antes de que los vea un filtro con LLM |
 | Afirmaciones (provisional) | `sci_etl_core.claims`: cada valor extraído con su artículo, su frase de evidencia y el modelo, el prompt y el esquema que lo produjeron; almacenes de afirmaciones y de rechazos en memoria o en SQLite; validadores que nombran el campo y la regla detrás de cada rechazo |
-| Memoria y búsqueda | Memoria vectorial, lenguaje de consultas booleano con `NEAR`, almacenes de texto SQLite FTS5 y en memoria, fusión híbrida de clasificaciones, filtros de rango y de metadatos, facetas, extractos, grafos de descubrimiento y relleno desde la memoria vectorial |
+| Memoria y búsqueda | Memoria vectorial con un recorrido exacto rápido, lenguaje de consultas booleano con `NEAR`, almacenes de texto SQLite FTS5 y en memoria, fusión híbrida de clasificaciones sobre 500 candidatos por rama, filtros de rango y de metadatos, facetas, extractos, grafos de descubrimiento y relleno desde la memoria vectorial; una búsqueda cuyo trabajo depende del grupo de candidatos y no del corpus: los almacenes de texto ordenan antes de construir los extractos (`rank`, `hydrate`), cuentan las coincidencias hasta un tope y cuentan las facetas a partir de las coincidencias, con ajustes opcionales de caché y de mapeo en memoria de SQLite (`SqliteTuning`) |
 | Configuración | Modelos de Pydantic cargados desde YAML, con `.env` leído solo bajo petición, claves `SecretStr`, errores de validación que no revelan secretos y constructores `from_config` |
 | Instalación | Una instalación base que solo requiere `pydantic`, con cada analizador, cargador, extractor y procesador detrás del extra que necesita |
 | Observabilidad | `logging` estándar bajo el logger `sci_etl_core`, eventos de progreso y `RunMetrics` con recuentos, duraciones, resultado y consumo de tokens |
 | Salud del proyecto | Batería de pruebas pytest e Hypothesis sin conexión con un 100 % de cobertura de líneas y cobertura de ramas notificada; ruff con los conjuntos de reglas `ASYNC`, `UP`, `RUF` y `PT`, y mypy con opciones más estrictas en los contratos principales; CI en Linux, Windows y macOS para Python 3.11–3.14, publicación de confianza en PyPI, un sitio de documentación con una referencia de la API generada |
-| Salvaguardas | Una instantánea incluida en el repositorio de todas las firmas estables, que también cubre todos los nombres que usa un consumidor conocido; las garantías de `AsyncETLPipeline.run` numeradas en una guía de semántica de ejecución, cada una con una prueba con nombre; una comprobación en la CI de que cada nombre estable se importa desde una instalación base o desde el extra que necesita su componente; las baterías de pruebas de sci-etl-cli y udg-catalogue se ejecutan en cada cambio del núcleo y bloquean cada versión; pruebas de humo nocturnas contra cada fuente incluida; un benchmark de rendimiento que pasa cada exportador por el pipeline |
+| Salvaguardas | Una instantánea incluida en el repositorio de todas las firmas estables, que también cubre todos los nombres que usa un consumidor conocido; las garantías de `AsyncETLPipeline.run` numeradas en una guía de semántica de ejecución, cada una con una prueba con nombre; una comprobación en la CI de que cada nombre estable se importa desde una instalación base o desde el extra que necesita su componente; las baterías de pruebas de sci-etl-cli y udg-catalogue se ejecutan en cada cambio del núcleo y bloquean cada versión; pruebas de humo nocturnas contra cada fuente incluida; un benchmark de rendimiento que pasa cada exportador por el pipeline; baterías de pruebas de contrato en `sci_etl_core.testing`, detrás del extra `testing`, que comprueban extractores, gestores de estado, exportadores y almacenes vectoriales de terceros frente a los contratos que superan los componentes incluidos |
 
 Pendiente:
 
-- sci-etl-cli 0.4.0 y udg-catalogue sobre la 0.6.0 publicada, requiriendo
-  `>=0.6.0,<0.7` en lugar de una versión de desarrollo y funcionando sin
-  `DeprecationWarning`.
+- sci-etl-cli y udg-catalogue sobre la 0.7.0 publicada, requiriendo una
+  versión publicada con el límite superior `<0.8` en lugar de una versión de
+  desarrollo y funcionando sin `DeprecationWarning`.
 - Una comprobación real de cuánto tiempo siguen siendo válidos los cursores de
   OpenAlex.
+- Una comprobación de la búsqueda léxica frente a su objetivo: como máximo
+  200 ms en el percentil 95 sobre un millón de registros. Pasa a la v0.8.0,
+  que la mide sobre un corpus real de ese tamaño en lugar de uno sintético.
 
 PubMed y Semantic Scholar mantienen la paginación por desplazamiento y notifican
 sus límites como truncamiento: E-utilities sirve como máximo 9999 resultados
@@ -60,34 +63,13 @@ Todos los contratos públicos han tenido ya su última ruptura prevista antes de
 la 1.0. El contrato de ejecución (extractor, estado, constructor) se rompió en
 la 0.5.0 y el contrato de datos (entidades, exportador, registro, dependencias)
 en la 0.6.0; todas las versiones posteriores son aditivas,
-salvo el valor por defecto de la búsqueda híbrida que sube la v0.7.0. Cada cambio
+salvo el valor por defecto de la búsqueda híbrida que subió la v0.7.0. Cada cambio
 incompatible tiene una entrada en [MIGRATION.md](migration.md).
 
 Desde la 0.6.0, un nombre obsoleto sigue funcionando durante al menos dos
 versiones menores antes de eliminarse. Una versión solo se etiqueta cuando las
 baterías de pruebas de sci-etl-cli y udg-catalogue pasan contra el commit de la
 versión; el flujo de publicación ejecuta ambas y, si no, se niega a publicar.
-
-## v0.7.0 — Funciones aditivas y el kit de pruebas {#v070-additive-features-and-the-testing-kit}
-
-Sin cambios incompatibles y sin nuevas obsolescencias. Cambia un valor por
-defecto: la búsqueda híbrida toma 500 candidatos por rama en lugar de 100.
-
-- **Reprocesamiento selectivo.** Un contrato opcional `forget(record_ids)`, que
-  implementan los dos gestores de estado incluidos, permite volver a extraer
-  registros sin descartar todo el estado.
-- **Filtros de relevancia en cascada.** Un filtro compuesto ejecuta un filtro
-  barato, como `AsyncEmbeddingRelevanceFilter`, antes del filtro con LLM.
-- **Kit de pruebas.** `sci_etl_core.testing` ofrece baterías de pruebas de
-  contrato que pueden ejecutar los extractores, gestores de estado,
-  exportadores y almacenes de embeddings de terceros.
-- **Búsqueda a escala.** La búsqueda léxica ordena antes de construir los
-  extractos, los filtros y los recuentos de facetas solo miran los registros
-  que coinciden, los recuentos de coincidencias pueden detenerse en un tope y
-  cada almacén SQLite acepta ajustes de caché y de mapeo en memoria.
-- **Grupos de candidatos más grandes.** `candidate_pool` vale 500 por defecto,
-  lo que mantiene estables los resultados fusionados en corpus grandes, y la
-  rama semántica pide como máximo 2500 fragmentos.
 
 ## v0.8.0 — Memoria vectorial escalable {#v080-scalable-vector-memory}
 
@@ -103,7 +85,9 @@ provisionales.
   ejecutan en paralelo en lugar de esperar a una sola conexión.
 
 El objetivo es una consulta híbrida sobre un millón de registros en menos de
-300 ms en el percentil 95 en un portátil.
+300 ms en el percentil 95 en un portátil, medida sobre un corpus real de ese
+tamaño. La búsqueda léxica se mide sobre el mismo corpus frente a su propio
+objetivo: como máximo 200 ms en el percentil 95.
 
 ## v1.0.0 — Estabilización {#v100-stabilization}
 

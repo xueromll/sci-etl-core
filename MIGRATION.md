@@ -4,7 +4,7 @@ This guide lists what changes for existing code when you move to a new
 release of `sci-etl-core`, newest release first. [CHANGELOG.md](CHANGELOG.md)
 lists every change, including the additions that need no action.
 
-Pin a minor release range, such as `sci-etl-core>=0.6.0,<0.7`, and raise the
+Pin a minor release range, such as `sci-etl-core>=0.7.0,<0.8`, and raise the
 upper bound after your tests pass on the next minor release. Moving from one
 minor release to a later one, apply each section in between, oldest first.
 
@@ -12,6 +12,7 @@ To move an existing research pipeline onto the library for the first time,
 follow the worked example in
 [Migrating a pipeline](https://xueromll.github.io/sci-etl-core/latest/guide/migrating-a-pipeline/).
 
+- [Upgrading to 0.7](#upgrading-to-07)
 - [Upgrading to 0.6](#upgrading-to-06)
 - [Upgrading to 0.5.1](#upgrading-to-051)
 - [Upgrading to 0.5](#upgrading-to-05)
@@ -19,6 +20,37 @@ follow the worked example in
 - [Upgrading to 0.3](#upgrading-to-03)
 
 ---
+
+## Upgrading to 0.7
+
+0.7 breaks no existing call and deprecates no name, so existing code needs no
+change. Require the new minor with the extras you use:
+
+```text
+sci-etl-core[config,async,arxiv,llm,pdf,processors]>=0.7.0,<0.8
+```
+
+State files and databases, LLM caches, embedding stores, text indexes, and
+claim and rejection stores written by 0.6 open unchanged.
+
+One default changes: hybrid search draws 500 candidates per leg instead of
+100, so the fused top 20 almost always matches what an unbounded pool would
+return. A new `max_chunks` setting, 2,500 by default, caps the semantic leg's
+chunk request. To keep the old pool, set it in the configuration:
+
+```yaml
+search:
+  hybrid:
+    candidate_pool: 100
+```
+
+or pass `params=HybridParams(candidate_pool=100)` to `AsyncHybridSearcher`.
+
+- A custom `AsyncTextSearchStore` inherits working versions of the new
+  `rank`, `hydrate`, `filter_candidates`, `get_headers`, and `count_matches`.
+  Override `rank`, `hydrate`, and `count_matches` to make a large index fast.
+- A custom state manager can implement `forget(record_ids)`, which the
+  `Forgetting` protocol describes, to support targeted reprocessing.
 
 ## Upgrading to 0.6
 

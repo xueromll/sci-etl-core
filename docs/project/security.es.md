@@ -7,8 +7,8 @@ por ayudar a mantener seguros el proyecto y su comunidad.
 
 | Versión | Compatible |
 |---------|------------|
-| 0.6.x   | ✅         |
-| < 0.6   | ❌         |
+| 0.7.x   | ✅         |
+| < 0.7   | ❌         |
 
 Las correcciones de seguridad se publican en la última versión menor. Actualiza
 antes de informar de problemas en versiones anteriores.

@@ -9,16 +9,16 @@ or open one. Items marked **good first issue** suit newcomers.
 Each milestone lists its exit criteria. A milestone ships when every criterion
 holds with the test suite offline and line coverage at 100%.
 
-## Current release — v0.6.0
+## Current release — v0.7.0
 
 [CHANGELOG.md](CHANGELOG.md) lists every change by release, and
-[MIGRATION.md](MIGRATION.md) explains how to upgrade from 0.4 and what 0.5
-and 0.6 change.
+[MIGRATION.md](MIGRATION.md) explains how to upgrade from 0.4 and what 0.5,
+0.6, and 0.7 change.
 
 | Consumer | Requires | Runs |
 |----------|----------|------|
-| [udg-catalogue](https://github.com/xueromll/udg-catalogue) | `>=0.6.0.dev0,<0.7` on `main`, with every extra it imports, and its suite passes against core `master` | 0.4 in production, including search, discovery, and embeddings |
-| [sci-etl-cli](https://github.com/xueromll/sci-etl-cli) | `>=0.6.0.dev0,<0.7` on `master`, and its suite passes against core `master`; its next release, 0.4.0, requires `>=0.6.0,<0.7` | 0.2, in its latest release 0.2.1 |
+| [udg-catalogue](https://github.com/xueromll/udg-catalogue) | `>=0.6.0.dev0,<0.7` on `main`, with every extra it imports, and its suite passes against core 0.7.0 | 0.4 in production, including search, discovery, and embeddings |
+| [sci-etl-cli](https://github.com/xueromll/sci-etl-cli) | `>=0.6.0.dev0,<0.7` on `master`, and its suite passes against core 0.7.0 | 0.2, in its latest release 0.2.1 |
 
 | Area | Shipped |
 |------|---------|
@@ -26,23 +26,26 @@ and 0.6 change.
 | Contracts | ABCs for extractors, relevance filters, entity extractors, LLM clients, exporters, state managers, parsers, embedders, chunkers, vector and text stores, processors, and validators; entity extractors and exporters generic in the entity type |
 | Delivery | Exporters receive each record with its entities through `open`, `write`, `flush`, and `aclose`, and a record is marked processed only once its entities are durable, so a crash can repeat a record but never lose one; `AsyncCsvExporter` with one row per entity and `AsyncJsonlExporter` with one line per record, both linear in the number of records |
 | Reliability | Graceful shutdown through `ShutdownSignal`, state flushed however a run ends, atomic writes and OS file locks, `Retry-After`-aware retries, shared and per-host rate limiters, download and decompression size limits |
-| Resumption | Saved listing cursors that advance only past settled pages, result caps reported as truncated with the next run starting from the first page, a quarantine for records that keep failing, schema-versioned state that upgrades files written by 0.4, and `newest_first` runs that pick up new submissions without rescanning |
+| Resumption | Saved listing cursors that advance only past settled pages, result caps reported as truncated with the next run starting from the first page, a quarantine for records that keep failing, schema-versioned state that upgrades files written by 0.4, `newest_first` runs that pick up new submissions without rescanning, and `forget(record_ids)` on both bundled state managers, so a run with `start_index=0` processes chosen records again |
 | Sources | arXiv, PubMed, Semantic Scholar, and OpenAlex extractors; PDF, LaTeX, HTML, DOCX, and JATS XML parsers |
-| LLM | OpenAI-compatible chat and embedding clients with token usage and JSON-schema structured output, response caching in memory or SQLite keyed on the entity schema, typed entities validated against a Pydantic model |
+| LLM | OpenAI-compatible chat and embedding clients with token usage and JSON-schema structured output, response caching in memory or SQLite keyed on the entity schema, typed entities validated against a Pydantic model, and `AsyncCascadingRelevanceFilter`, which lets a cheap relevance filter screen records before an LLM filter sees them |
 | Claims (provisional) | `sci_etl_core.claims`: each extracted value with its paper, its evidence sentence, and the model, prompt, and schema that produced it; claim and rejection stores in memory or SQLite; validators that name the field and rule behind each rejection |
-| Memory and search | Vector memory, Boolean query language with `NEAR`, SQLite FTS5 and in-memory text stores, hybrid rank fusion, range and metadata filters, facets, snippets, discovery graphs, and backfill from vector memory |
+| Memory and search | Vector memory with a fast exact scan, Boolean query language with `NEAR`, SQLite FTS5 and in-memory text stores, hybrid rank fusion over 500 candidates per leg, range and metadata filters, facets, snippets, discovery graphs, and backfill from vector memory; search whose work follows the candidate pool rather than the corpus: text stores rank before they build snippets (`rank`, `hydrate`), count matches up to a cap, and count facets from the matches, with opt-in SQLite cache and memory-map settings (`SqliteTuning`) |
 | Configuration | Pydantic models loaded from YAML, with `.env` read only on request, `SecretStr` keys, secret-safe validation errors, `from_config` builders |
 | Installation | A base install that requires only `pydantic`, with each parser, loader, extractor, and processor behind the extra it needs |
 | Observability | Standard `logging` under the `sci_etl_core` logger, progress events, and `RunMetrics` with counts, durations, outcome, and token usage |
 | Project health | Offline pytest and Hypothesis suite at 100% line coverage, with branch coverage reported; ruff with the `ASYNC`, `UP`, `RUF`, and `PT` rule sets, and mypy with stricter flags on the core contracts; CI on Linux, Windows, and macOS for Python 3.11–3.14, PyPI trusted publishing, a documentation site with a generated API reference |
-| Guardrails | A committed snapshot of every stable signature, which also covers every name a known consumer uses; the guarantees of `AsyncETLPipeline.run` numbered in a run-semantics guide, each with a named test; a CI check that every stable name imports from a bare install or from the extra its component needs; the sci-etl-cli and udg-catalogue suites run against every core change and gate every release; nightly smoke tests against each bundled source; a throughput benchmark that runs every exporter through the pipeline |
+| Guardrails | A committed snapshot of every stable signature, which also covers every name a known consumer uses; the guarantees of `AsyncETLPipeline.run` numbered in a run-semantics guide, each with a named test; a CI check that every stable name imports from a bare install or from the extra its component needs; the sci-etl-cli and udg-catalogue suites run against every core change and gate every release; nightly smoke tests against each bundled source; a throughput benchmark that runs every exporter through the pipeline; contract suites in `sci_etl_core.testing`, behind the `testing` extra, that check third-party extractors, state managers, exporters, and vector stores against the contracts the bundled components pass |
 
 Still open:
 
-- sci-etl-cli 0.4.0 and udg-catalogue on the released 0.6.0, requiring
-  `>=0.6.0,<0.7` instead of a development version and running without
-  `DeprecationWarning`.
+- sci-etl-cli and udg-catalogue on the released 0.7.0, requiring a released
+  version with the upper bound `<0.8` instead of a development version and
+  running without `DeprecationWarning`.
 - A live check of how long OpenAlex cursors stay valid.
+- A check of lexical search against its target, at most 200 ms at the 95th
+  percentile over a million records. It moves to v0.8.0, which measures it
+  on a real corpus of that size rather than a synthetic one.
 
 PubMed and Semantic Scholar keep offset paging and report their caps as
 truncated: E-utilities serves at most 9,999 results even through its history
@@ -54,33 +57,13 @@ papers, which cannot honor `page_size`.
 Every public contract has now had its last planned break before 1.0. The run
 contract (extractor, state, constructor) broke in 0.5.0 and the data contract
 (entities, exporter, logging, dependencies) in 0.6.0; every later release is
-additive, apart from the hybrid-search default that v0.7.0 raises. Each
+additive, apart from the hybrid-search default that v0.7.0 raised. Each
 breaking change has a [MIGRATION.md](MIGRATION.md) entry.
 
 From 0.6.0 on, a deprecated name keeps working for at least two minor
 releases before it is removed. A release is tagged only when the test suites
 of sci-etl-cli and udg-catalogue pass against the release commit; the release
 workflow runs both and refuses to publish otherwise.
-
-## v0.7.0 — Additive features and the testing kit
-
-No breaking change and no new deprecation. One default changes: hybrid
-search draws 500 candidates per leg instead of 100.
-
-- **Targeted reprocessing.** An optional `forget(record_ids)` contract, which
-  both bundled state managers implement, lets records be re-extracted without
-  discarding all state.
-- **Cascading relevance filters.** A composite filter runs a cheap filter,
-  such as `AsyncEmbeddingRelevanceFilter`, before the LLM filter.
-- **Testing kit.** `sci_etl_core.testing` provides contract suites that
-  third-party extractors, state managers, exporters, and embedding stores can
-  run.
-- **Search at scale.** Lexical search ranks before it builds snippets,
-  filters and facet counts look only at matching records, match counts can
-  stop at a cap, and each SQLite store takes cache and memory-map settings.
-- **Larger candidate pools.** `candidate_pool` defaults to 500, which keeps
-  fused results stable on large corpora, and the semantic leg asks for at
-  most 2,500 chunks.
 
 ## v0.8.0 — Scalable vector memory
 
@@ -94,7 +77,9 @@ No breaking change and no new deprecation; the new names are provisional.
   instead of waiting for one connection.
 
 The target is a hybrid query over a million records in under 300 ms at the
-95th percentile on a laptop.
+95th percentile on a laptop, measured on a real corpus of that size. Lexical
+search is measured on the same corpus against its own target: at most 200 ms
+at the 95th percentile.
 
 ## v1.0.0 — Stabilization
 

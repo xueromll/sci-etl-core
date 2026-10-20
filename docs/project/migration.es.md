@@ -5,7 +5,7 @@ nueva versión de `sci-etl-core`, empezando por la más reciente.
 [CHANGELOG.md](changelog.md) enumera todos los cambios, incluidas las
 novedades que no requieren ninguna acción.
 
-Fija un intervalo de versiones menores, como `sci-etl-core>=0.6.0,<0.7`, y sube
+Fija un intervalo de versiones menores, como `sci-etl-core>=0.7.0,<0.8`, y sube
 el límite superior cuando tus pruebas pasen con la siguiente versión menor. Al
 pasar de una versión menor a otra posterior, aplica cada sección intermedia,
 empezando por la más antigua.
@@ -14,6 +14,7 @@ Para trasladar por primera vez a la biblioteca un pipeline de investigación
 existente, sigue el ejemplo práctico de
 [Migrar un pipeline](https://xueromll.github.io/sci-etl-core/latest/guide/migrating-a-pipeline/).
 
+- [Actualizar a la 0.7](#upgrading-to-07)
 - [Actualizar a la 0.6](#upgrading-to-06)
 - [Actualizar a la 0.5.1](#upgrading-to-051)
 - [Actualizar a la 0.5](#upgrading-to-05)
@@ -21,6 +22,43 @@ existente, sigue el ejemplo práctico de
 - [Actualizar a la 0.3](#upgrading-to-03)
 
 ---
+
+## Actualizar a la 0.7 {#upgrading-to-07}
+
+La 0.7 no rompe ninguna llamada existente ni declara obsoleto ningún nombre,
+así que el código existente no necesita cambios. Exige la nueva versión menor
+con los extras que uses:
+
+```text
+sci-etl-core[config,async,arxiv,llm,pdf,processors]>=0.7.0,<0.8
+```
+
+Los archivos y bases de datos de estado, las cachés del LLM, los almacenes de
+embeddings, los índices de texto y los almacenes de afirmaciones y de rechazos
+escritos por la 0.6 se abren sin cambios.
+
+Cambia un valor por defecto: la búsqueda híbrida toma 500 candidatos por rama
+en lugar de 100, así que los 20 primeros resultados fusionados casi siempre
+coinciden con lo que devolvería un grupo de candidatos sin límite. Un ajuste
+nuevo, `max_chunks`, de 2500 por defecto, limita la petición de fragmentos de
+la rama semántica. Para conservar el grupo anterior, fíjalo en la
+configuración:
+
+```yaml
+search:
+  hybrid:
+    candidate_pool: 100
+```
+
+o pasa `params=HybridParams(candidate_pool=100)` a `AsyncHybridSearcher`.
+
+- Un `AsyncTextSearchStore` propio hereda versiones funcionales de los nuevos
+  `rank`, `hydrate`, `filter_candidates`, `get_headers` y `count_matches`.
+  Sobrescribe `rank`, `hydrate` y `count_matches` para que un índice grande
+  sea rápido.
+- Un gestor de estado propio puede implementar `forget(record_ids)`, que
+  describe el protocolo `Forgetting`, para admitir el reprocesamiento
+  selectivo.
 
 ## Actualizar a la 0.6 {#upgrading-to-06}
 

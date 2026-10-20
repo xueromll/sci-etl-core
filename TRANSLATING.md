@@ -177,6 +177,7 @@ ideas.
 | durable | надёжно сохранённая | duradero | 已持久化 | دائم |
 | stalled page | застрявшая страница | página atascada | 停滞页 | صفحة متعثرة |
 | quarantine / quarantined | карантин / в карантине | cuarentena / en cuarentena | 隔离 / 被隔离 | الحجر / محجور |
+| reprocessing | повторная обработка | reprocesamiento | 重新处理 | إعادة المعالجة |
 | attempt | попытка | intento | 尝试 | المحاولة |
 | retry | повторная попытка | reintento | 重试 | إعادة المحاولة |
 | backoff | задержка | espera exponencial | 退避 | التراجع |

@@ -7,8 +7,8 @@ helping keep the project and its community safe.
 
 | Version | Supported |
 |---------|-----------|
-| 0.6.x   | ✅        |
-| < 0.6   | ❌        |
+| 0.7.x   | ✅        |
+| < 0.7   | ❌        |
 
 Security fixes land on the latest minor release. Please upgrade before
 reporting issues against older versions.
