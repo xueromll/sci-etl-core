@@ -76,5 +76,10 @@ través del módulo estándar `logging`; consulta [Registro](logging.md). Cada
 paquete carga sus nombres públicos en el primer acceso, así que importar un
 componente nunca requiere las dependencias opcionales de otro.
 
+Las baterías de pruebas de contrato de `sci_etl_core.testing`, que necesitan el
+extra `testing`, comprueban tus propios extractores, gestores de estado,
+exportadores y almacenes vectoriales con los mismos contratos que los incluidos;
+consulta [Probar tus componentes](testing-kit.md).
+
 La [referencia de la API](../reference/index.md) documenta cada módulo en
 detalle.

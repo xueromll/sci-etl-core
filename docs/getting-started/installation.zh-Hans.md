@@ -35,6 +35,7 @@ LaTeX 解析、文本分块、布尔文本检索、排名融合以及发现图�
 | `embeddings-local` | `numpy`、`sentence-transformers` | `AsyncSentenceTransformerEmbedder` |
 | `search` | 无 | 无额外功能：`sci_etl_core.search` 只需要标准库，这个 extra 只是记录安装该包的原因 |
 | `full` | 上述除 `sentence-transformers` 之外的所有包 | 除本地嵌入外的所有内置组件 |
+| `testing` | `pytest` | `sci_etl_core.testing` 中的契约测试套件，用于测试你自己的组件；参见[测试你的组件](../guide/testing-kit.md) |
 | `dev` | pytest 及其插件、`hypothesis` | 运行测试套件 |
 | `lint` | `ruff`、`mypy`、类型存根 | 对源代码做静态检查和类型检查 |
 | `docs` | MkDocs、Material for MkDocs、mkdocstrings、mkdocs-click、mike、mkdocs-static-i18n、`ruff` | 构建本文档站点 |

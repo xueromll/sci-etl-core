@@ -21,6 +21,7 @@ entre versiones.
 | [Afirmaciones](claims.md) | `sci_etl_core.claims` | afirmaciones, fragmentos de evidencia, sellos, almacenes de afirmaciones y de rechazos, el extractor y el exportador de afirmaciones (provisional) |
 | [Procesadores](processors.md) | `sci_etl_core.processors` | pasos sobre DataFrames, normalizadores de claves, validadores de registros y sus infracciones, sumideros de tablas |
 | [Estado](state.md) | `sci_etl_core.state` | gestores de estado en archivos y en SQLite |
+| [Pruebas](testing.md) | `sci_etl_core.testing` | baterías de pruebas de contrato para extractores, gestores de estado, exportadores y almacenes vectoriales |
 | [Utilidades](utilities.md) | módulo que lo define | clientes HTTP, limitadores de frecuencia, incluidos los límites por host |
 
 Para ver cómo encajan las piezas, consulta

@@ -71,4 +71,7 @@ Backfill:  AsyncEmbeddingStore.iter_records --> merge_passages --> AsyncTextSear
 读模型）。每个模块都通过标准 `logging` 模块输出日志；参见[日志](logging.md)。每个包在首次
 访问时才加载其公开名称，因此导入一个组件永远不需要另一个组件的可选依赖。
 
+`sci_etl_core.testing` 中的契约测试套件需要 `testing` extra，它们按照与内置组件相同的
+契约检查你自己的提取器、状态管理器、导出器和向量存储；参见[测试你的组件](testing-kit.md)。
+
 [API 参考](../reference/index.md)详细记录了每个模块。

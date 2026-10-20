@@ -285,6 +285,10 @@ ideas.
 | extra | extra | extra | extra | الإضافة (extra) |
 | base install | базовая установка | instalación base | 基础安装 | التثبيت الأساسي |
 | test suite | набор тестов | batería de pruebas | 测试套件 | مجموعة الاختبارات |
+| contract suite | контрактный набор тестов | batería de pruebas de contrato | 契约测试套件 | مجموعة اختبارات العقد |
+| fixture | фикстура | fixture | fixture | التجهيزة (fixture) |
+| factory | фабрика | fábrica | 工厂 | المصنع |
+| stub | заглушка | stub | 桩 | البديل (stub) |
 | coverage | покрытие | cobertura | 覆盖率 | التغطية |
 | issue | issue | incidencia | 议题 | المشكلة |
 | pull request | pull request | pull request | pull request | طلب السحب |

@@ -97,6 +97,7 @@ group you use:
 | `cluster` | `ClusteringStep`, together with `processors` |
 | `embeddings` | `AsyncOpenAIEmbedder`, the vector stores, `AsyncEmbeddingRelevanceFilter` |
 | `embeddings-local` | `AsyncSentenceTransformerEmbedder` |
+| `testing` | The contract suites in `sci_etl_core.testing`, which test your own components |
 
 The
 [installation guide](https://xueromll.github.io/sci-etl-core/latest/getting-started/installation/)

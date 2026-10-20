@@ -40,6 +40,7 @@ los componentes que uses:
 | `embeddings-local` | `numpy`, `sentence-transformers` | `AsyncSentenceTransformerEmbedder` |
 | `search` | nada | nada adicional: `sci_etl_core.search` solo necesita la biblioteca estándar, así que este extra solo deja constancia de por qué está instalado el paquete |
 | `full` | todos los paquetes anteriores salvo `sentence-transformers` | todos los componentes incluidos salvo los embeddings locales |
+| `testing` | `pytest` | las baterías de pruebas de contrato de `sci_etl_core.testing`, que prueban tus propios componentes; consulta [Probar tus componentes](../guide/testing-kit.md) |
 | `dev` | pytest y plugins, `hypothesis` | ejecutar la batería de pruebas |
 | `lint` | `ruff`, `mypy`, stubs de tipos | revisar el estilo y los tipos del código fuente |
 | `docs` | MkDocs, Material for MkDocs, mkdocstrings, mkdocs-click, mike, mkdocs-static-i18n, `ruff` | construir este sitio de documentación |

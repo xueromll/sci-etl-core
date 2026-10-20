@@ -38,6 +38,7 @@ component, so add the extras for the components you use:
 | `embeddings-local` | `numpy`, `sentence-transformers` | `AsyncSentenceTransformerEmbedder` |
 | `search` | nothing | nothing extra: `sci_etl_core.search` needs only the standard library, so this extra just records why the package is installed |
 | `full` | every package above except `sentence-transformers` | every bundled component except local embeddings |
+| `testing` | `pytest` | the contract suites in `sci_etl_core.testing`, which test your own components; see [Testing your components](../guide/testing-kit.md) |
 | `dev` | pytest and plugins, `hypothesis` | running the test suite |
 | `lint` | `ruff`, `mypy`, type stubs | linting and type-checking the source |
 | `docs` | MkDocs, Material for MkDocs, mkdocstrings, mkdocs-click, mike, mkdocs-static-i18n, `ruff` | building this documentation site |

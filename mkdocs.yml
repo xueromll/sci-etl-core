@@ -123,6 +123,7 @@ plugins:
             Token usage: Расход токенов
             LLM response caching: Кэширование ответов LLM
             Migrating a pipeline: Перенос пайплайна
+            Testing your components: Тестирование своих компонентов
             Architecture: Архитектура
             API reference: Справочник API
             Pipelines: Конвейеры
@@ -135,6 +136,7 @@ plugins:
             Claims: Утверждения
             Processors: Процессоры
             State: Состояние
+            Testing: Тестирование
             Utilities: Утилиты
             Project: Проект
             Changelog: Журнал изменений
@@ -183,6 +185,7 @@ plugins:
             Token usage: Consumo de tokens
             LLM response caching: Caché de respuestas del LLM
             Migrating a pipeline: Migrar un pipeline
+            Testing your components: Probar tus componentes
             Architecture: Arquitectura
             API reference: Referencia de la API
             Pipelines: Pipelines
@@ -195,6 +198,7 @@ plugins:
             Claims: Afirmaciones
             Processors: Procesadores
             State: Estado
+            Testing: Pruebas
             Utilities: Utilidades
             Project: Proyecto
             Changelog: Registro de cambios
@@ -243,6 +247,7 @@ plugins:
             Token usage: Token 用量
             LLM response caching: LLM 响应缓存
             Migrating a pipeline: 迁移流水线
+            Testing your components: 测试你的组件
             Architecture: 架构
             API reference: API 参考
             Pipelines: 流水线
@@ -255,6 +260,7 @@ plugins:
             Claims: 论断
             Processors: 处理器
             State: 状态
+            Testing: 测试
             Utilities: 工具
             Project: 项目
             Changelog: 更新日志
@@ -303,6 +309,7 @@ plugins:
             Token usage: استهلاك الرموز
             LLM response caching: التخزين المؤقت لاستجابات النموذج اللغوي
             Migrating a pipeline: ترحيل خط معالجة
+            Testing your components: اختبار مكوّناتك
             Architecture: البنية
             API reference: مرجع الواجهة البرمجية
             Pipelines: خطوط المعالجة
@@ -316,6 +323,7 @@ plugins:
             Claims: الادعاءات
             Processors: المعالِجات
             State: الحالة
+            Testing: الاختبار
             Utilities: الأدوات المساعدة
             Project: المشروع
             Changelog: سجل التغييرات
@@ -404,6 +412,7 @@ nav:
           - Token usage: guide/token-usage.md
           - LLM response caching: guide/llm-caching.md
       - Migrating a pipeline: guide/migrating-a-pipeline.md
+      - Testing your components: guide/testing-kit.md
       - Architecture: guide/architecture.md
   - CLI: cli/index.md
   - API reference:
@@ -420,6 +429,7 @@ nav:
       - Claims: reference/claims.md
       - Processors: reference/processors.md
       - State: reference/state.md
+      - Testing: reference/testing.md
       - Utilities: reference/utilities.md
   - Project:
       - Changelog: project/changelog.md

@@ -39,6 +39,7 @@ pip install -e ".[full]"
 | `embeddings-local` | `numpy`, `sentence-transformers` | `AsyncSentenceTransformerEmbedder` |
 | `search` | ничего | ничего дополнительного: `sci_etl_core.search` нужна только стандартная библиотека, поэтому этот extra лишь фиксирует, зачем установлен пакет |
 | `full` | все пакеты выше, кроме `sentence-transformers` | все встроенные компоненты, кроме локальных эмбеддингов |
+| `testing` | `pytest` | контрактные наборы тестов в `sci_etl_core.testing`, которые проверяют ваши собственные компоненты; см. [Тестирование своих компонентов](../guide/testing-kit.md) |
 | `dev` | pytest с плагинами, `hypothesis` | запуск набора тестов |
 | `lint` | `ruff`, `mypy`, заглушки типов | проверка стиля и типов исходного кода |
 | `docs` | MkDocs, Material for MkDocs, mkdocstrings, mkdocs-click, mike, mkdocs-static-i18n, `ruff` | сборка этого сайта документации |

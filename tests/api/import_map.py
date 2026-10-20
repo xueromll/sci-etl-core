@@ -37,6 +37,7 @@ PACKAGES = (
     "sci_etl_core.processors",
     "sci_etl_core.search",
     "sci_etl_core.state",
+    "sci_etl_core.testing",
 )
 MODULE_DISTRIBUTIONS = {
     "bs4": "beautifulsoup4",

@@ -75,4 +75,9 @@ read-model for user interfaces). Every module logs through the standard
 importing one component never requires another component's optional
 dependencies.
 
+The contract suites in `sci_etl_core.testing`, which need the `testing` extra,
+check your own extractors, state managers, exporters, and vector stores against
+the same contracts as the bundled ones; see [Testing your
+components](testing-kit.md).
+
 The [API reference](../reference/index.md) documents each module in detail.

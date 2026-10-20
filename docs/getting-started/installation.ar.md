@@ -38,6 +38,7 @@ pip install -e ".[full]"
 | `embeddings-local` | `numpy`، `sentence-transformers` | `AsyncSentenceTransformerEmbedder` |
 | `search` | لا شيء | لا شيء إضافي: لا تحتاج `sci_etl_core.search` إلا إلى المكتبة القياسية، فهذه الإضافة تسجّل فقط سبب تثبيت الحزمة |
 | `full` | كل الحزم أعلاه عدا `sentence-transformers` | كل المكوّنات المضمّنة عدا التضمينات المحلية |
+| `testing` | `pytest` | مجموعات اختبارات العقد في `sci_etl_core.testing`، التي تختبر مكوّناتك الخاصة؛ انظر [اختبار مكوّناتك](../guide/testing-kit.md) |
 | `dev` | pytest وإضافاته، `hypothesis` | تشغيل مجموعة الاختبارات |
 | `lint` | `ruff`، `mypy`، وملفات تعريف الأنواع | فحص الشيفرة المصدرية وأنواعها |
 | `docs` | MkDocs، Material for MkDocs، mkdocstrings، mkdocs-click، mike، mkdocs-static-i18n، `ruff` | بناء موقع التوثيق هذا |

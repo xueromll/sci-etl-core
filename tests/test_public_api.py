@@ -25,6 +25,7 @@ PACKAGES = [
     "sci_etl_core.processors",
     "sci_etl_core.search",
     "sci_etl_core.state",
+    "sci_etl_core.testing",
 ]
 
 _OPTIONAL = (
@@ -38,6 +39,7 @@ _OPTIONAL = (
     "pandas",
     "pdfplumber",
     "plotly",
+    "pytest",
     "requests",
     "sentence_transformers",
     "sklearn",
@@ -171,6 +173,18 @@ class TestInstallFootprint:
         result = _run_with_only(set(), "from sci_etl_core import AsyncArxivExtractor")
         assert result.returncode != 0
         assert "httpx" in result.stderr
+
+    def test_the_contract_suites_need_only_the_testing_extra(self):
+        code = (
+            "from sci_etl_core.testing import "
+            "EmbeddingStoreContract, ExporterContract, ExtractorContract, StateManagerContract"
+        )
+
+        without = _run_with_only(set(), code)
+        with_extra = _run_with_only({"pytest"}, code)
+
+        assert "No module named 'pytest'" in without.stderr
+        assert with_extra.returncode == 0, with_extra.stderr
 
     @pytest.mark.parametrize(
         ("code", "extra_modules"),

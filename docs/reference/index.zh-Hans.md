@@ -18,6 +18,7 @@
 | [论断](claims.md) | `sci_etl_core.claims` | 论断、证据片段、标记、论断存储和拒绝记录存储、论断提取器和导出器（临时性 API） |
 | [处理器](processors.md) | `sci_etl_core.processors` | DataFrame 步骤、键规范化器、记录校验器及其违规项、表格输出端 |
 | [状态](state.md) | `sci_etl_core.state` | 文件和 SQLite 状态管理器 |
+| [测试](testing.md) | `sci_etl_core.testing` | 面向提取器、状态管理器、导出器和向量存储的契约测试套件 |
 | [工具](utilities.md) | 定义该名称的模块 | HTTP 客户端、速率限制器，包括按主机的限制 |
 
 各部分如何协同工作，请参阅[架构](../guide/architecture.md)。

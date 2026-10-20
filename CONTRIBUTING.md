@@ -313,6 +313,11 @@ Most contributions plug into an existing abstract base class:
 | Processor | `Processor` | `process(frame) -> DataFrame` | Don't mutate the input frame. |
 | Validator | `RecordValidator` | `is_valid(record) -> bool`; optionally `validate(record) -> ValidationResult` | Operates on one entity dict. Override `validate` to name the field and rule of each rejection; it must reject exactly what `is_valid` rejects. |
 
+Third-party extractors, exporters, state managers, and vector stores can run
+the matching contract suite from `sci_etl_core.testing` (the `testing` extra)
+to check this contract in their own tests; a new bundled one subclasses it
+under `tests/contract/`.
+
 Register the new class in its subpackage's `_EXPORTS` map and `TYPE_CHECKING`
 imports. A new module also needs an entry on its page under `docs/reference/`. If it's a primary user-facing class, add it to
 `sci_etl_core/__init__.py` the same way. Add a case for it to

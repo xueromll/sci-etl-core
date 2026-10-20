@@ -336,6 +336,12 @@ existente:
 | Procesador | `Processor` | `process(frame) -> DataFrame` | No modifiques el DataFrame de entrada. |
 | Validador | `RecordValidator` | `is_valid(record) -> bool`; opcionalmente `validate(record) -> ValidationResult` | Opera sobre un diccionario de entidad. Sobrescribe `validate` para nombrar el campo y la regla de cada rechazo; debe rechazar exactamente lo mismo que rechaza `is_valid`. |
 
+Los extractores, exportadores, gestores de estado y almacenes vectoriales de
+terceros pueden ejecutar la batería de pruebas de contrato correspondiente de
+`sci_etl_core.testing` (el extra `testing`) para comprobar este contrato en sus
+propias pruebas; uno nuevo incluido en la biblioteca la hereda en
+`tests/contract/`.
+
 Registra la nueva clase en el mapa `_EXPORTS` y en las importaciones
 `TYPE_CHECKING` de su subpaquete. Un módulo nuevo necesita también una entrada
 en su página de `docs/reference/`. Si es una clase principal de cara a los

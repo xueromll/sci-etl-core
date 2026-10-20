@@ -262,6 +262,10 @@ docs(readme): document ETLPipeline event-loop behavior
 | 处理器 | `Processor` | `process(frame) -> DataFrame` | 不要修改输入的 DataFrame。 |
 | 校验器 | `RecordValidator` | `is_valid(record) -> bool`；可选 `validate(record) -> ValidationResult` | 作用于单个实体字典。重写 `validate` 以指明每次拒绝的字段和规则；它拒绝的内容必须与 `is_valid` 完全相同。 |
 
+第三方提取器、导出器、状态管理器和向量存储可以运行 `sci_etl_core.testing` 中对应的
+契约测试套件（`testing` extra），在自己的测试中检查这一契约；新的内置组件则在
+`tests/contract/` 下继承它。
+
 在新类所在子包的 `_EXPORTS` 映射和 `TYPE_CHECKING` 导入中注册它。新模块还需要在
 `docs/reference/` 下它所属的页面上添加条目。如果它是主要的面向用户的类，请以同样的方式把它
 加入 `sci_etl_core/__init__.py`。在 `tests/contract/test_abc_conformance.py` 中为它添加一个

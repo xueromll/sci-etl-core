@@ -19,6 +19,7 @@ module layout inside a package may change between releases.
 | [Claims](claims.md) | `sci_etl_core.claims` | claims, evidence spans, stamps, claim and rejection stores, the claim extractor and exporter (provisional) |
 | [Processors](processors.md) | `sci_etl_core.processors` | DataFrame steps, key normalizers, record validators and their violations, table sinks |
 | [State](state.md) | `sci_etl_core.state` | file and SQLite state managers |
+| [Testing](testing.md) | `sci_etl_core.testing` | contract suites for extractors, state managers, exporters, and vector stores |
 | [Utilities](utilities.md) | defining module | HTTP clients, rate limiters, including per-host limits |
 
 For how the pieces fit together, see [Architecture](../guide/architecture.md).
