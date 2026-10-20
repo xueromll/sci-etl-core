@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-from collections.abc import Callable
+from collections.abc import Callable, Collection
 from pathlib import Path
 from typing import Any
 
@@ -70,7 +70,8 @@ class AsyncFileStateManager(AsyncStateManager):
     written by sci-etl-core 0.4, and its saved offset is read as the cursor.
     Failed attempts are kept in the metadata file per record, with the last
     error truncated to 4,096 characters, and :meth:`mark_processed` clears
-    them.
+    them. :meth:`forget` clears both a record's processed mark and its
+    attempts.
 
     A file that cannot be read raises ``OSError`` rather than reading as empty,
     because an empty processed-id set would silently reprocess every record.
@@ -150,6 +151,38 @@ class AsyncFileStateManager(AsyncStateManager):
             await asyncio.to_thread(self._update_metadata, count)
         return attempts
 
+    async def forget(self, record_ids: Collection[str]) -> None:
+        """Clear the processed mark and failed attempts of every id in ``record_ids``.
+
+        The ids file is rewritten without the forgotten ids by atomic rename,
+        and only when it holds one of them; the metadata file is rewritten only
+        when one of them has failed attempts. Empty ids are ignored. Forget
+        between runs: an id another process appends while the ids file is
+        rewritten can be lost, which only repeats that record later.
+
+        Raises:
+            ValueError: ``record_ids`` is a single string rather than a
+                collection of ids.
+            OSError: A state file cannot be read or written.
+            StateStoreError: The metadata file was written by a newer sci-etl-core.
+        """
+        if isinstance(record_ids, str):
+            raise ValueError("record_ids must be a collection of ids, not a single string")
+        forgotten = {record_id for record_id in record_ids if record_id}
+        if not forgotten:
+            return
+
+        def drop_failures(raw: dict[str, Any]) -> None:
+            for record_id in forgotten:
+                raw[_FAILURES].pop(record_id, None)
+
+        async with self._get_lock():
+            await asyncio.to_thread(self._drop_ids, forgotten)
+            if self._failed_ids is None:
+                await asyncio.to_thread(self._read_metadata)
+            if self._failed_ids is not None and self._failed_ids & forgotten:
+                await asyncio.to_thread(self._update_metadata, drop_failures)
+
     async def failure_counts(self) -> dict[str, int]:
         """Return the attempts per record id that has failed and not been marked processed since.
 
@@ -225,6 +258,16 @@ class AsyncFileStateManager(AsyncStateManager):
                 handle.write(f"{record_id}\n")
                 handle.flush()
                 os.fsync(handle.fileno())
+
+    def _drop_ids(self, forgotten: set[str]) -> None:
+        if not self._processed_ids_file.is_file():
+            return
+        with self._processed_ids_file.open("r", encoding="utf-8") as handle:
+            with exclusive_lock(handle):
+                lines = handle.read().splitlines()
+        kept = [line for line in lines if line.strip() not in forgotten]
+        if len(kept) < len(lines):
+            atomic_write_text(self._processed_ids_file, "".join(f"{line}\n" for line in kept))
 
     def _read_metadata(self) -> dict[str, Any]:
         raw = self._read_metadata_file()

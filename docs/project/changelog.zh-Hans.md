@@ -8,6 +8,12 @@ sci-etl-core 的所有重要变更都记录在这里。格式遵循
 
 ## [Unreleased] {#unreleased}
 
+### 新增 {#added}
+
+- 两种内置状态管理器新增 `forget(record_ids)`，并新增描述它的可选 `Forgetting` 协议。它会清除
+  记录的已处理标记和失败尝试，因此用 `start_index=0` 重新扫描列表的运行会再次处理这些记录，
+  例如在更换提示词或模型之后。
+
 ### 变更 {#changed}
 
 - `AsyncSqliteEmbeddingStore.query` 以 float32 为分数排名，并且只对最好的 `top_k` 排序，
@@ -20,7 +26,7 @@ sci-etl-core 的所有重要变更都记录在这里。格式遵循
 标准 `logging` 模块输出日志，基础安装只需要 Pydantic。它还新增了带有证据和溯源信息的论断。
 请参阅 MIGRATION.md 中的“升级到 0.6”。
 
-### 新增 {#added}
+### 新增 {#added_1}
 
 - **导出器生命周期。** `AsyncExporter` 具有 `open()`、`write(record, entities)`、`flush()`
   和 `aclose()`，`durable_writes` 说明是由 `write` 还是 `flush` 使实体持久化。流水线只有在
@@ -96,7 +102,7 @@ sci-etl-core 的所有重要变更都记录在这里。格式遵循
 解压大小限制。升级后的第一次运行会让 LLM 缓存未命中一次。请参阅 MIGRATION.md 中的“升级到
 0.5.1”。
 
-### 新增 {#added_1}
+### 新增 {#added_2}
 
 - `AsyncLLMClient.invalidate(system_prompt, user_content)` 报告被拒绝的响应，
   `AsyncLLMResponseCache.delete(key)` 删除一个条目；两种内置缓存都实现了它。
@@ -151,7 +157,7 @@ sci-etl-core 的所有重要变更都记录在这里。格式遵循
 本版本改变了提取器翻阅列表的方式、保存的运行状态以及流水线的构造方式。0.4 保存的状态会被
 自动升级。代码层面的改动请参阅 MIGRATION.md 中的“升级到 0.5”。
 
-### 新增 {#added_2}
+### 新增 {#added_3}
 
 - **游标分页。** 提取器从 `fetch_page` 返回一个 `ListingPage`，其中带有下一页的游标。按偏移量
   分页的提取器还实现了 `OffsetListing`，这是 `newest_first` 运行和 `run(start_index=)` 所
@@ -234,7 +240,7 @@ sci-etl-core 的所有重要变更都记录在这里。格式遵循
 
 ## [0.4.0] - 2026-09-16 {#040-2026-09-16}
 
-### 新增 {#added_3}
+### 新增 {#added_4}
 
 - `AsyncPubMedExtractor`、`AsyncSemanticScholarExtractor` 和 `AsyncOpenAlexExtractor`。每个
   提取器都会在 `RawRecord.metadata` 中填写 `authors` 和 `categories`，在来源提供日期时还会
@@ -299,7 +305,7 @@ sci-etl-core 的所有重要变更都记录在这里。格式遵循
 
 ## [0.3.0] - 2026-09-15 {#030-2026-09-15}
 
-### 新增 {#added_4}
+### 新增 {#added_5}
 
 - `sci_etl_core.search` 中的本地布尔检索，只需要标准库：
   - 一种查询语言，支持词项、`"短语"`、`prefix*` 前缀词项、`title:`、`abstract:` 和 `body:`
@@ -359,7 +365,7 @@ sci-etl-core 的所有重要变更都记录在这里。格式遵循
   `ConfigurationError` 中。该文本可能包含原始设置，进而包含从环境中读取的 API 密钥。消息现在
   会列出每个出错的键及原因，但不包含其值，校验错误也不再与之链接。
 
-### 新增 {#added_5}
+### 新增 {#added_6}
 
 - `validate_config(config_cls, raw, source)` 使用同样不泄露机密的消息，校验以其他方式加载的
   设置。
@@ -400,7 +406,7 @@ sci-etl-core 的所有重要变更都记录在这里。格式遵循
   现在它会拒绝这类 id，流水线会跳过空 id。
 - `last_run_at` 以带偏移量的 UTC 时间记录，而不再使用不带时区的本地时间。
 
-### 新增 {#added_6}
+### 新增 {#added_7}
 
 - `PipelineConfig.page_size` 和 `PipelineConfig.search_delay`。
 - 对每个配置部分进行范围校验。
@@ -411,7 +417,7 @@ sci-etl-core 的所有重要变更都记录在这里。格式遵循
 
 ## [0.1.1] - 2026-09-14 {#011-2026-09-14}
 
-### 新增 {#added_7}
+### 新增 {#added_8}
 
 - 由标签触发的发布工作流：运行 CI 测试套件，核对标签与项目版本是否一致，并通过可信发布发布到
   PyPI。

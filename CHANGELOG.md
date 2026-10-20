@@ -8,6 +8,13 @@ change behavior; each such change is listed under **Changed**.
 
 ## [Unreleased]
 
+### Added
+
+- `forget(record_ids)` on both bundled state managers, and the optional
+  `Forgetting` protocol that describes it. It clears records' processed marks
+  and failed attempts, so a run that rescans the listing with `start_index=0`
+  processes them again, for example after a prompt or model change.
+
 ### Changed
 
 - `AsyncSqliteEmbeddingStore.query` ranks the scores in float32 and sorts

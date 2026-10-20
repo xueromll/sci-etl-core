@@ -8,14 +8,21 @@ from pathlib import Path
 import pytest
 import pytest_asyncio
 
+from pipeline_doubles import entity_extractor, exporter
 from sci_etl_core import (
+    AsyncETLPipeline,
+    AsyncExtractor,
     AsyncFileStateManager,
+    AsyncRelevanceFilter,
     AsyncSqliteEmbeddingStore,
     AsyncSqliteLLMResponseCache,
     AsyncSqliteStateManager,
     EmbeddingStoreError,
+    Forgetting,
+    ListingPage,
     LLMCacheError,
     PipelineMetadata,
+    RawRecord,
     StateStoreError,
 )
 from sci_etl_core.state._failures import ERROR_TEXT_LIMIT, TRUNCATION_MARKER, bounded_error_text
@@ -163,6 +170,107 @@ class TestFileStateFailures:
         with pytest.raises(StateStoreError):
             await state.save_metadata(PipelineMetadata())
         assert (tmp_path / "meta.json").read_text(encoding="utf-8") == payload
+
+
+class _Listing(AsyncExtractor):
+    def __init__(self, size: int) -> None:
+        self._ids = [f"r{index}" for index in range(size)]
+        self.fetched: list[str] = []
+
+    def cursor_for_offset(self, offset: int) -> str:
+        return str(offset)
+
+    async def fetch_page(self, query: str, cursor: str | None, page_size: int) -> ListingPage:
+        start = int(cursor or 0)
+        ids = self._ids[start : start + page_size]
+        records = tuple(RawRecord(record_id=record_id, title=record_id, abstract="abstract") for record_id in ids)
+        end = start + len(ids)
+        return ListingPage(records=records, entries=len(ids), next_cursor=str(end) if end < len(self._ids) else None)
+
+    async def fetch_full_text(self, record: RawRecord) -> str:
+        self.fetched.append(record.record_id)
+        return record.record_id
+
+
+class TestBundledStateManagersForget:
+    @pytest.mark.asyncio
+    async def test_forget_clears_processed_marks_and_failed_attempts(self, manager):
+        for record_id in ("a", "b"):
+            await manager.mark_processed(record_id)
+        await manager.record_failure("c", "boom")
+        await manager.record_failure("d", "boom")
+
+        await manager.forget(["a", "c", "missing", ""])
+
+        assert isinstance(manager, Forgetting)
+        assert await manager.load_processed_ids() == {"b"}
+        assert await manager.failure_counts() == {"d": 1}
+
+    @pytest.mark.asyncio
+    async def test_a_single_string_is_refused_before_any_io(self, manager, tmp_path):
+        with pytest.raises(ValueError, match="record_ids must be a collection of ids, not a single string"):
+            await manager.forget("ab")
+        assert list(tmp_path.iterdir()) == []
+
+    @pytest.mark.parametrize("record_ids", [[], [""]])
+    @pytest.mark.asyncio
+    async def test_forgetting_no_id_touches_nothing(self, manager, tmp_path, record_ids):
+        await manager.forget(record_ids)
+        assert list(tmp_path.iterdir()) == []
+
+    @pytest.mark.asyncio
+    async def test_forgotten_records_are_processed_again_when_the_listing_is_rescanned(self, manager, mocker):
+        listing = _Listing(5)
+        relevance = mocker.Mock(spec=AsyncRelevanceFilter)
+        relevance.is_relevant = mocker.AsyncMock(return_value=True)
+        pipeline = AsyncETLPipeline(
+            extractor=listing,
+            relevance_filter=relevance,
+            entity_extractor=entity_extractor(mocker),
+            exporter=exporter(mocker),
+            state_manager=manager,
+        )
+        async with pipeline:
+            assert await pipeline.run(query="q", page_size=2, total_limit=10) == 5
+            await manager.forget(["r1", "r3"])
+            listing.fetched.clear()
+            assert await pipeline.run(query="q", page_size=2, total_limit=10, start_index=0) == 2
+
+        assert sorted(listing.fetched) == ["r1", "r3"]
+
+
+class TestFileStateForget:
+    @pytest.mark.asyncio
+    async def test_the_ids_file_keeps_its_other_lines_in_order(self, tmp_path):
+        state = _file_manager(tmp_path)
+        for record_id in ("a", "b", "c"):
+            await state.mark_processed(record_id)
+
+        await _file_manager(tmp_path).forget(["b"])
+
+        assert (tmp_path / "ids.txt").read_text(encoding="utf-8") == "a\nc\n"
+        assert not (tmp_path / "meta.json").exists()
+
+    @pytest.mark.asyncio
+    async def test_an_untracked_id_rewrites_no_file(self, tmp_path, mocker):
+        state = _file_manager(tmp_path)
+        await state.mark_processed("a")
+        write = mocker.patch("sci_etl_core.state.async_file_state.atomic_write_text")
+
+        await state.forget(["b"])
+
+        write.assert_not_called()
+        assert (tmp_path / "ids.txt").read_text(encoding="utf-8") == "a\n"
+
+    @pytest.mark.asyncio
+    async def test_failures_are_cleared_when_no_ids_file_exists(self, tmp_path):
+        await _file_manager(tmp_path).record_failure("a", "boom")
+        state = _file_manager(tmp_path)
+
+        await state.forget(["a"])
+
+        assert await state.failure_counts() == {}
+        assert not (tmp_path / "ids.txt").exists()
 
 
 class TestSchemaVersions:

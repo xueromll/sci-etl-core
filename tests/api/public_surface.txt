@@ -47,6 +47,7 @@ class sci_etl_core.AsyncFileStateManager(sci_etl_core.state.async_base.AsyncStat
 def sci_etl_core.AsyncFileStateManager.__init__(self, processed_ids_file: str | Path, metadata_file: str | Path) -> None
 async def sci_etl_core.AsyncFileStateManager.failure_counts(self) -> dict[str, int]
 async def sci_etl_core.AsyncFileStateManager.flush(self) -> None
+async def sci_etl_core.AsyncFileStateManager.forget(self, record_ids: Collection[str]) -> None
 async def sci_etl_core.AsyncFileStateManager.load_metadata(self) -> PipelineMetadata
 async def sci_etl_core.AsyncFileStateManager.load_processed_ids(self) -> set[str]
 async def sci_etl_core.AsyncFileStateManager.mark_processed(self, record_id: str) -> None
@@ -115,6 +116,7 @@ def sci_etl_core.AsyncSqliteStateManager.__init__(self, database_path: str | Pat
 async def sci_etl_core.AsyncSqliteStateManager.aclose(self) -> None
 async def sci_etl_core.AsyncSqliteStateManager.failure_counts(self) -> dict[str, int]
 async def sci_etl_core.AsyncSqliteStateManager.flush(self) -> None
+async def sci_etl_core.AsyncSqliteStateManager.forget(self, record_ids: Collection[str]) -> None
 async def sci_etl_core.AsyncSqliteStateManager.load_metadata(self) -> PipelineMetadata
 async def sci_etl_core.AsyncSqliteStateManager.load_processed_ids(self) -> set[str]
 async def sci_etl_core.AsyncSqliteStateManager.mark_processed(self, record_id: str) -> None
@@ -147,6 +149,9 @@ class sci_etl_core.EmbeddingError(sci_etl_core.exceptions.SciEtlError)
 class sci_etl_core.EmbeddingStoreError(sci_etl_core.exceptions.SciEtlError)
 class sci_etl_core.ExportError(sci_etl_core.exceptions.SciEtlError)
 class sci_etl_core.ExtractionError(sci_etl_core.exceptions.SciEtlError)
+class sci_etl_core.Forgetting(typing.Protocol)
+def sci_etl_core.Forgetting.__init__(self, *args, **kwargs)
+async def sci_etl_core.Forgetting.forget(self, record_ids: Collection[str]) -> None
 class sci_etl_core.HttpConfig(pydantic.main.BaseModel)
 sci_etl_core.HttpConfig: user_agent: str = 'sci-etl-core/<version>', max_retries: int = 3, backoff_factor: float = 2.0, timeout: int = 25 [extra=forbid]
 def sci_etl_core.HttpConfig.build_client(self) -> httpx.AsyncClient

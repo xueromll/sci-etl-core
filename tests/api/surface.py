@@ -54,6 +54,7 @@ STABLE: dict[str, tuple[str, ...]] = {
         "EmbeddingStoreError",
         "ExportError",
         "ExtractionError",
+        "Forgetting",
         "HttpConfig",
         "InMemoryLLMResponseCache",
         "LLMCacheError",

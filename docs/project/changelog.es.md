@@ -9,6 +9,14 @@ aparece en **Cambiado**.
 
 ## [Unreleased] {#unreleased}
 
+### Añadido {#added}
+
+- `forget(record_ids)` en los dos gestores de estado incluidos, y el protocolo
+  opcional `Forgetting` que lo describe. Borra la marca de procesado y los
+  intentos fallidos de los registros, así que una ejecución que vuelve a pasar
+  por el listado con `start_index=0` los procesa de nuevo, por ejemplo después
+  de cambiar el prompt o el modelo.
+
 ### Cambiado {#changed}
 
 - `AsyncSqliteEmbeddingStore.query` clasifica las puntuaciones en float32 y
@@ -25,7 +33,7 @@ entidades, la biblioteca registra mensajes mediante el módulo estándar
 `logging` y una instalación base solo necesita Pydantic. Añade afirmaciones con
 evidencia y procedencia. Consulta "Actualizar a la 0.6" en MIGRATION.md.
 
-### Añadido {#added}
+### Añadido {#added_1}
 
 - **Ciclo de vida del exportador.** `AsyncExporter` tiene `open()`,
   `write(record, entities)`, `flush()` y `aclose()`, y `durable_writes` indica
@@ -129,7 +137,7 @@ tamaño de descarga y de descompresión. La primera ejecución tras la
 actualización falla una vez en la caché del LLM. Consulta "Actualizar a la
 0.5.1" en MIGRATION.md.
 
-### Añadido {#added_1}
+### Añadido {#added_2}
 
 - `AsyncLLMClient.invalidate(system_prompt, user_content)` notifica una
   respuesta rechazada, y `AsyncLLMResponseCache.delete(key)` elimina una
@@ -207,7 +215,7 @@ ejecución se guarda y cómo se construye el pipeline. El estado guardado por la
 0.4 se actualiza automáticamente. Consulta "Actualizar a la 0.5" en
 MIGRATION.md para ver los cambios de código.
 
-### Añadido {#added_2}
+### Añadido {#added_3}
 
 - **Paginación por cursor.** Los extractores devuelven un `ListingPage` desde
   `fetch_page`, con el cursor de la página siguiente. Los extractores que
@@ -308,7 +316,7 @@ todavía no hay que cambiar nada):
 
 ## [0.4.0] - 2026-09-16 {#040-2026-09-16}
 
-### Añadido {#added_3}
+### Añadido {#added_4}
 
 - `AsyncPubMedExtractor`, `AsyncSemanticScholarExtractor` y
   `AsyncOpenAlexExtractor`. Cada uno rellena `RawRecord.metadata` con
@@ -398,7 +406,7 @@ todavía no hay que cambiar nada):
 
 ## [0.3.0] - 2026-09-15 {#030-2026-09-15}
 
-### Añadido {#added_4}
+### Añadido {#added_5}
 
 - Búsqueda booleana local en `sci_etl_core.search`, que solo necesita la
   biblioteca estándar:
@@ -483,7 +491,7 @@ todavía no hay que cambiar nada):
   enumera ahora cada clave errónea y el motivo sin su valor, y el error de
   validación ya no se encadena a él.
 
-### Añadido {#added_5}
+### Añadido {#added_6}
 
 - `validate_config(config_cls, raw, source)` valida los ajustes cargados de
   otra forma con los mismos mensajes que no revelan secretos.
@@ -539,7 +547,7 @@ todavía no hay que cambiar nada):
 - `last_run_at` se registra en UTC con un desplazamiento en lugar de en hora
   local sin zona horaria.
 
-### Añadido {#added_6}
+### Añadido {#added_7}
 
 - `PipelineConfig.page_size` y `PipelineConfig.search_delay`.
 - Validación de rangos para todas las secciones de configuración.
@@ -551,7 +559,7 @@ todavía no hay que cambiar nada):
 
 ## [0.1.1] - 2026-09-14 {#011-2026-09-14}
 
-### Añadido {#added_7}
+### Añadido {#added_8}
 
 - Un flujo de publicación que se activa con una etiqueta, ejecuta la batería
   de la CI, comprueba la etiqueta frente a la versión del proyecto y publica en

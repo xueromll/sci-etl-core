@@ -8,12 +8,13 @@ _EXPORTS: dict[str, str] = {
     "AsyncFileStateManager": "sci_etl_core.state.async_file_state",
     "AsyncSqliteStateManager": "sci_etl_core.state.sqlite_async",
     "AsyncStateManager": "sci_etl_core.state.async_base",
+    "Forgetting": "sci_etl_core.state.async_base",
 }
 
 __all__ = list(_EXPORTS)
 __getattr__, __dir__ = lazy_exports(__name__, globals(), _EXPORTS)
 
 if TYPE_CHECKING:
-    from sci_etl_core.state.async_base import AsyncStateManager
+    from sci_etl_core.state.async_base import AsyncStateManager, Forgetting
     from sci_etl_core.state.async_file_state import AsyncFileStateManager
     from sci_etl_core.state.sqlite_async import AsyncSqliteStateManager

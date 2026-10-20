@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from collections.abc import Collection
 from pathlib import Path
 
 from sci_etl_core._migrations import Migration, migrate, newer_schema_message, transaction
@@ -66,6 +67,7 @@ class AsyncSqliteStateManager(AsyncStateManager):
     written by sci-etl-core 0.4 is upgraded in place, its saved offset becoming
     the cursor. Failed attempts are stored per record with the last error,
     truncated to 4,096 characters, and :meth:`mark_processed` clears them.
+    :meth:`forget` clears both a record's processed mark and its attempts.
     ``timeout`` is how many seconds a statement waits for another process's
     lock. A :class:`sqlite3.Error` propagates unwrapped, and a database written
     by a newer sci-etl-core raises
@@ -106,6 +108,20 @@ class AsyncSqliteStateManager(AsyncStateManager):
             "load failure counts",
         )
         return {record_id: attempts for record_id, attempts in rows}
+
+    async def forget(self, record_ids: Collection[str]) -> None:
+        """Clear the processed mark and failed attempts of every id in one transaction; empty ids are ignored.
+
+        Raises:
+            ValueError: ``record_ids`` is a single string rather than a
+                collection of ids.
+        """
+        if isinstance(record_ids, str):
+            raise ValueError("record_ids must be a collection of ids, not a single string")
+        rows = [(record_id,) for record_id in set(record_ids) if record_id]
+        if not rows:
+            return
+        await self._runner.run(lambda connection: _forget(connection, rows), "forget records")
 
     async def load_metadata(self) -> PipelineMetadata:
         row = await self._runner.run(
@@ -179,6 +195,12 @@ def _mark(connection: sqlite3.Connection, record_id: str) -> None:
     with transaction(connection):
         connection.execute("INSERT OR IGNORE INTO processed_ids (record_id) VALUES (?)", (record_id,))
         connection.execute("DELETE FROM record_failures WHERE record_id = ?", (record_id,))
+
+
+def _forget(connection: sqlite3.Connection, rows: list[tuple[str]]) -> None:
+    with transaction(connection):
+        connection.executemany("DELETE FROM processed_ids WHERE record_id = ?", rows)
+        connection.executemany("DELETE FROM record_failures WHERE record_id = ?", rows)
 
 
 def _count_failure(connection: sqlite3.Connection, record_id: str, error: str) -> int:

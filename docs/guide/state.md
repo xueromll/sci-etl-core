@@ -73,6 +73,34 @@ Pass `max_attempts=None` to count nothing and retry every failed record on
 every run, as 0.4 did. A custom state manager that does not override
 `record_failure` and `failure_counts` never quarantines.
 
+## Reprocessing records
+
+To process records again, for example after a prompt or model change, forget
+them between runs, then run the pipeline that uses the same state manager from
+the first page of the listing:
+
+```python
+from sci_etl_core import AsyncSqliteStateManager
+
+state = AsyncSqliteStateManager("state.sqlite")
+await state.forget(["2401.00001v1", "2401.00002v1"])
+await pipeline.run(query="all:galaxy", total_limit=500, start_index=0)
+```
+
+`forget` clears each record's processed mark and failed attempts, so a
+quarantined record starts again with the full `max_attempts`. The saved cursor
+is kept, which is why the run passes `start_index=0`; records still marked
+processed are skipped by id, so the rescan processes only the forgotten ones.
+The bundled exporters replace a record's earlier output when it is written
+again.
+
+Both bundled state managers implement the optional `Forgetting` protocol. A
+custom state manager supports it by adding `forget`, and
+`isinstance(state, Forgetting)` tells whether one does. A run loads the
+processed ids when it starts, so forget between runs. `AsyncFileStateManager`
+rewrites its ids file by atomic rename; an id that another process appends
+meanwhile can be lost, which only repeats that record later.
+
 ## Newest-first listings
 
 The arXiv extractor lists the newest submissions first, and the PubMed

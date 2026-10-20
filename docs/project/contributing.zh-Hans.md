@@ -253,7 +253,7 @@ docs(readme): document ETLPipeline event-loop behavior
 | 相关性过滤器 | `AsyncRelevanceFilter` | `async is_relevant(record)` | 重新抛出 `CancelledError`。 |
 | 实体提取器 | `AsyncEntityExtractor[E]` | `async extract(text) -> Sequence[E]`；需要记录时实现 `extract_record(record, text)` | 流水线调用 `extract_record`，其默认实现调用 `extract`。失败时抛出异常，而不是返回 `[]`，以便重试该记录。需要记录的提取器设置 `requires_record = True`；包装层委托给内层的 `extract_record`。 |
 | 导出器 | `AsyncExporter[E]` | `async write(record, entities)`；可选 `open`、`flush`、`aclose` 和 `durable_writes` | 在构造函数中接收目标位置。`write` 会对每条已处理的记录运行（包括没有实体的记录），可能是并发的，并且必须是幂等的。当 `durable_writes = False` 时，`flush` 必须让之前的每次写入都持久化。 |
-| 状态管理器 | `AsyncStateManager` | `load_processed_ids`、`mark_processed`、`load_metadata`、`save_metadata` | 必须并发安全。重写 `record_failure` 和 `failure_counts` 以支持隔离；默认实现不做任何跟踪。记录模式版本，并拒绝来自更新版本的文件。如果使用缓冲，请重写 `flush()`；如果持有连接，请添加 `aclose()`。 |
+| 状态管理器 | `AsyncStateManager` | `load_processed_ids`、`mark_processed`、`load_metadata`、`save_metadata` | 必须并发安全。重写 `record_failure` 和 `failure_counts` 以支持隔离；默认实现不做任何跟踪。添加 `forget` 以支持重新处理（`Forgetting`）。记录模式版本，并拒绝来自更新版本的文件。如果使用缓冲，请重写 `flush()`；如果持有连接，请添加 `aclose()`。 |
 | 嵌入器 | `AsyncEmbedder` | `async embed(texts) -> list[list[float]]` | 每个输入对应一个向量，顺序相同；失败时抛出 `EmbeddingError`。 |
 | 向量存储 | `AsyncEmbeddingStore` | `add`、`delete_record`、`query`、`count` | 替换具有相同 `(record_id, chunk_index)` 的文本块；`delete_record` 删除某条记录的所有文本块。如果你的后端能原子地完成删除和添加，请重写 `replace_record`（默认先删除再添加）。永远不要返回分数非有限的结果。在 `top_k`、`min_score` 和 `exclude_record_id` 上与 `InMemoryEmbeddingStore` 的行为一致。串行化对共享连接的使用，并抛出 `EmbeddingStoreError`。如果希望文本索引能从你的存储回填，请实现 `iter_records`（段落按 `chunk_index` 排序，记录按 `record_id` 排序，不含向量）。 |
 | 分块器 | `TextChunker` | `chunk(text) -> list[str]` | 覆盖整段文本的有序段落。 |

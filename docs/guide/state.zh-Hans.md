@@ -55,6 +55,29 @@
 传入 `max_attempts=None` 则不做任何计数，并在每次运行中重试每条失败的记录，与 0.4 的行为
 相同。没有重写 `record_failure` 和 `failure_counts` 的自定义状态管理器永远不会隔离记录。
 
+## 重新处理记录 {#reprocessing-records}
+
+要重新处理记录，例如在更换提示词或模型之后，请在两次运行之间遗忘这些记录，然后让使用同一个
+状态管理器的流水线从列表的第一页开始运行：
+
+```python
+from sci_etl_core import AsyncSqliteStateManager
+
+state = AsyncSqliteStateManager("state.sqlite")
+await state.forget(["2401.00001v1", "2401.00002v1"])
+await pipeline.run(query="all:galaxy", total_limit=500, start_index=0)
+```
+
+`forget` 会清除每条记录的已处理标记和失败尝试，因此被隔离的记录会重新获得完整的
+`max_attempts`。保存的游标保持不变，所以这次运行要传入 `start_index=0`；仍标记为已处理的
+记录会按 id 跳过，因此这次重新扫描只处理被遗忘的记录。内置导出器在记录再次写入时会替换其先前
+的输出。
+
+两种内置状态管理器都实现了可选的 `Forgetting` 协议。自定义状态管理器只要添加 `forget` 即可
+支持它，`isinstance(state, Forgetting)` 可以判断它是否支持。运行在开始时加载已处理的 id，
+因此请在两次运行之间遗忘记录。`AsyncFileStateManager` 通过原子重命名重写它的 id 文件；
+其他进程在此期间追加的 id 可能会丢失，后果只是该记录之后会被再处理一次。
+
 ## 最新优先的列表 {#newest-first-listings}
 
 arXiv 提取器先列出最新的投稿，PubMed 提取器默认也按最新优先排序，因此新论文会把旧论文推到

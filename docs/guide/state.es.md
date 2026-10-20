@@ -85,6 +85,35 @@ fallidos en cada ejecución, como hacía la 0.4. Un gestor de estado
 personalizado que no sobrescribe `record_failure` y `failure_counts` nunca pone
 registros en cuarentena.
 
+## Reprocesar registros {#reprocessing-records}
+
+Para volver a procesar registros, por ejemplo después de cambiar el prompt o el
+modelo, olvídalos entre ejecuciones y luego ejecuta el pipeline que usa el
+mismo gestor de estado desde la primera página del listado:
+
+```python
+from sci_etl_core import AsyncSqliteStateManager
+
+state = AsyncSqliteStateManager("state.sqlite")
+await state.forget(["2401.00001v1", "2401.00002v1"])
+await pipeline.run(query="all:galaxy", total_limit=500, start_index=0)
+```
+
+`forget` borra la marca de procesado y los intentos fallidos de cada registro,
+así que un registro en cuarentena vuelve a empezar con todo su `max_attempts`.
+El cursor guardado se conserva, y por eso la ejecución pasa `start_index=0`;
+los registros que siguen marcados como procesados se omiten por id, de modo
+que la nueva pasada procesa solo los olvidados. Los exportadores incluidos
+reemplazan la salida anterior de un registro cuando se vuelve a escribir.
+
+Los dos gestores de estado incluidos implementan el protocolo opcional
+`Forgetting`. Un gestor de estado propio lo admite si añade `forget`, e
+`isinstance(state, Forgetting)` indica si lo hace. Una ejecución carga los ids
+procesados al empezar, así que olvida los registros entre ejecuciones.
+`AsyncFileStateManager` reescribe su archivo de ids con un renombrado atómico;
+un id que otro proceso añada mientras tanto puede perderse, lo que solo hace
+que ese registro se repita más adelante.
+
 ## Listados de más recientes primero {#newest-first-listings}
 
 El extractor de arXiv lista primero los envíos más recientes, y el extractor de

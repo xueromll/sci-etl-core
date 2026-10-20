@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Collection
+from typing import Protocol, runtime_checkable
 
 from sci_etl_core.models import PipelineMetadata
 
@@ -57,3 +59,27 @@ class AsyncStateManager(ABC):
         is a no-op.
         """
         return None
+
+
+@runtime_checkable
+class Forgetting(Protocol):
+    """A state manager that can hand records back to the pipeline for reprocessing.
+
+    :meth:`forget` clears records' processed marks and failed attempts, so a
+    later run that lists them again processes them again, for example after a
+    prompt or model change. The saved cursor is kept: run with
+    ``start_index=0`` to rescan the listing from its first page. Forget between
+    runs, because a run loads the processed ids when it starts. Both bundled
+    state managers implement it.
+    """
+
+    async def forget(self, record_ids: Collection[str]) -> None:
+        """Clear the processed mark and failed attempts of every id in ``record_ids``.
+
+        An id that is not tracked, or an empty id, is ignored.
+
+        Raises:
+            ValueError: ``record_ids`` is a single string rather than a
+                collection of ids.
+        """
+        ...

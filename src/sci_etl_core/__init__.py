@@ -95,6 +95,7 @@ _EXPORTS: dict[str, str] = {
     "Violation": "sci_etl_core.processors.validation",
     "ShutdownSignal": "sci_etl_core.signals",
     "AsyncStateManager": "sci_etl_core.state.async_base",
+    "Forgetting": "sci_etl_core.state.async_base",
     "AsyncFileStateManager": "sci_etl_core.state.async_file_state",
     "AsyncSqliteStateManager": "sci_etl_core.state.sqlite_async",
 }
@@ -175,6 +176,6 @@ if TYPE_CHECKING:
     from sci_etl_core.processors.sinks import ScatterPlotConfig
     from sci_etl_core.processors.validation import RecordValidator, ValidationResult, Violation
     from sci_etl_core.signals import ShutdownSignal
-    from sci_etl_core.state.async_base import AsyncStateManager
+    from sci_etl_core.state.async_base import AsyncStateManager, Forgetting
     from sci_etl_core.state.async_file_state import AsyncFileStateManager
     from sci_etl_core.state.sqlite_async import AsyncSqliteStateManager
