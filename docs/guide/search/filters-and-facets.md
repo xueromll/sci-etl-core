@@ -34,7 +34,9 @@ facets = await text_store.facet_counts(["categories", "year"], query=parse_query
   sorted by count and then value, without zero counts. Each key's counts apply
   the query and every filter on *other* keys, so a count says how many results
   selecting that value would give, and the other values of a filtered key stay
-  visible. `query=None` counts across the whole index.
+  visible. `query=None` counts across the whole index. `AsyncSqliteFts5Store`
+  counts a rankable query from its matches, so the cost follows the number of
+  matches rather than the number of tags.
 - **Changing `facet_keys`.** The keys are fixed when a store is constructed
   and recorded in the file. To change them, construct the store with the new
   keys and `await text_store.rebuild_tags()`. Until then, a filter or facet on
@@ -82,3 +84,29 @@ for bucket, count in zip(buckets, counts):
 The counts come back as a tuple in the order of `ranges`, and ranges may share
 a key and overlap. `AsyncSqliteFts5Store` counts every range in one consistent
 read. A custom store inherits a version that calls `filter_ids` once per range.
+
+## Counting matches
+
+`count_matches` counts the records a query and filters select, the number of
+ids `filter_ids` would return, without returning them. The count is exact by
+default. `cap` stops counting at that many records, so a frequent word costs
+`cap` steps instead of one per match, and a result equal to `cap` means "at
+least that many":
+
+```python
+from sci_etl_core.search import parse_query
+
+query = parse_query("dwarf galaxy")
+exact = await text_store.count_matches(query, filters)
+capped = await text_store.count_matches(query, filters, cap=10_000)
+label = f"{capped:,}+" if capped == 10_000 else f"{capped:,}"
+```
+
+- **Any query.** Like `filter_ids`, `count_matches` accepts a pure negation,
+  and `query=None` counts every record that passes the filters. A `cap` below
+  1 raises `ValueError` before any I/O.
+- **Known candidates.** `filter_candidates(record_ids, filters)` returns the
+  ones among `record_ids` that are stored and pass the filters. The hybrid
+  searcher checks its semantic candidates this way instead of loading every
+  record that passes the filters.
+- **Custom stores** inherit versions of both that call `filter_ids`.

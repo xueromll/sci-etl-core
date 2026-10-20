@@ -79,9 +79,9 @@ pipeline = AsyncETLPipeline(
 ## In this section
 
 - [Query syntax](query-syntax.md) — the Boolean query language and its parser.
-- [Ranked search and filtering](ranked-search.md) — `search` versus `filter_ids`, and snippets.
+- [Ranked search and filtering](ranked-search.md) — `search` versus `filter_ids`, snippets, and ranking a pool with `rank` and `hydrate`.
 - [Hybrid search](hybrid-search.md) — fusing BM25 with embedding similarity.
-- [Filters and facets](filters-and-facets.md) — metadata and range filters, facet and range counts.
+- [Filters and facets](filters-and-facets.md) — metadata and range filters, and facet, range, and match counts.
 - [Text stores](text-stores.md) — the in-memory and SQLite FTS5 indexes.
 - [Backfilling from vector memory](backfill.md) — building the text index from stored chunks.
 - [Discovery graphs](discovery-graphs.md) — graphs of related papers.

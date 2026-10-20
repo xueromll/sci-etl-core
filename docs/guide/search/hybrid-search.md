@@ -41,3 +41,10 @@ runs one or both retrieval legs:
   semantic leg asks the vector memory for `candidate_pool × chunk_pool_factor`
   chunks (default factor 5). Raise the factor when long articles fill the top
   chunks and the pool comes back short.
+- **Work per search.** The work follows the candidate pool, not the corpus.
+  The lexical leg ranks the pool with `text_store.rank` and computes snippets
+  only for the fused hits shown, with `text_store.hydrate`. Filters are checked
+  on the semantic candidates alone, with `text_store.filter_candidates`. A hit
+  only the semantic leg found reads its title and metadata with
+  `text_store.get_headers`, never its text. The hits are the ones a single
+  `search` of the pool would give.

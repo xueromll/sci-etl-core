@@ -8,6 +8,11 @@
   and every SQLite failure, including a file that isn't a database, raises
   `SearchStoreError`. `weights=BM25Weights(title=10.0, abstract=4.0, body=1.0)`
   sets how much a match in each field counts; those are the defaults.
+- **Memory settings are opt-in.**
+  `tuning=SqliteTuning(cache_size=200 * 2**20, mmap_size=2 * 2**30)` gives the
+  store's connection a page cache and a memory map of those sizes, in bytes.
+  They speed up queries once the index outgrows SQLite's default cache of
+  about 2 MB, at the cost of memory. Without `tuning`, SQLite's defaults apply.
 - **FTS5 is required.** The store needs a Python whose SQLite was built with
   FTS5, and raises `SearchStoreError` when it is constructed otherwise.
   `fts5_available()` checks in advance; `InMemoryTextSearchStore` works

@@ -9,7 +9,9 @@ machinery, and no optional dependency.
 Render `FusedHit.snippets` with your own markup from their `highlights`, one
 line per field, and label a hit whose `lexical_rank` is `None` as a match by
 meaning. Build date or year histograms from `range_counts`, which leaves every
-bucket visible while one is selected.
+bucket visible while one is selected. Take the matched count from
+`count_matches`, and pass `cap` to show "10,000+" instead of counting every
+match of a frequent word.
 
 Keep parsing on the keystroke and make only retrieval asynchronous: debounce
 it, cancel a search when a newer one starts, and drop any result that arrives

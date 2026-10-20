@@ -45,3 +45,32 @@ also counts a word inside a part of the query that fails to match, which
 `passage_snippet(query, text)` builds a `Snippet` of any other text in the same
 way, highlighting every word of the query that isn't negated. The hybrid
 searcher uses it for the passages the semantic leg finds.
+
+## Ranking a pool
+
+`rank` takes the same arguments as `search` and returns the same hits in the
+same order with the same scores, but may leave their snippets, highlights,
+title, and metadata empty. `hydrate` fills them in for the hits you show, so a
+large pool is ranked without computing a snippet for every hit in it:
+
+```python
+from sci_etl_core.search import parse_query
+
+query = parse_query("dwarf galaxy")
+pool = await text_store.rank(query, limit=500)
+page = await text_store.hydrate(query, pool[:20])
+```
+
+- **Cost.** `AsyncSqliteFts5Store` ranks with `bm25()` alone and computes
+  snippets, and reads titles and metadata, only in `hydrate`, so ranking 500
+  hits costs little more than ranking 20. Its `search` works the same way
+  inside one read: it ranks first and computes snippets only for the hits it
+  returns. `AsyncHybridSearcher` ranks its candidate pool with `rank` and
+  hydrates only the hits it shows.
+- **Between the two calls.** `hydrate` reads the index as it is when called. A
+  hit whose record was deleted since `rank`, or no longer matches, comes back
+  as it was given, and a record indexed again meanwhile gets the snippets of
+  its new text.
+- **Custom stores** inherit a `rank` that calls `search` and a `hydrate` that
+  returns the hits unchanged, which is correct for any store; override both
+  together to rank without snippets.
