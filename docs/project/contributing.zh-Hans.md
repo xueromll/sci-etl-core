@@ -69,8 +69,8 @@ pytest --cov=sci_etl_core --cov-report=term-missing   # 覆盖率报告
   `AsyncMock` 或 `mocker` fixture。
 - **不访问真实网络，也不进行退避等待。** 模拟 HTTP、LLM 和嵌入客户端，并注入
   `sleep=AsyncMock()` 来跳过退避延迟。
-- **契约测试。** 每个公开 ABC 的实现在 `tests/contract/test_abc_conformance.py` 中都有一个
-  测试用例；每新增一个实现都要添加一个。
+- **契约测试。** 新的提取器、状态管理器、导出器或向量存储要在 `tests/contract/` 下运行它在
+  `sci_etl_core.testing` 中的测试套件。mypy 会检查每个实现的签名是否与其 ABC 一致。
 - **属性测试。** 把不变式（尤其是两个后端必须共享的不变式，例如内存和 SQLite 嵌入存储）放进
   `tests/test_properties.py` 中的 Hypothesis 测试。
 - **公开接口快照。** `tests/api/public_surface.txt` 记录了每个稳定的类、字段、方法和函数
@@ -268,7 +268,6 @@ docs(readme): document ETLPipeline event-loop behavior
 
 在新类所在子包的 `_EXPORTS` 映射和 `TYPE_CHECKING` 导入中注册它。新模块还需要在
 `docs/reference/` 下它所属的页面上添加条目。如果它是主要的面向用户的类，请以同样的方式把它
-加入 `sci_etl_core/__init__.py`。在 `tests/contract/test_abc_conformance.py` 中为它添加一个
-测试用例。
+加入 `sci_etl_core/__init__.py`。
 
 祝你编码愉快，感谢你的贡献！

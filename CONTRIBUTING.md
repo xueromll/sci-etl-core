@@ -84,9 +84,9 @@ pytest --cov=sci_etl_core --cov-report=term-missing   # coverage report
   isn't configured), with `AsyncMock` or the `mocker` fixture.
 - **No real network or backoff waits.** Mock HTTP, LLM, and embedding clients,
   and inject `sleep=AsyncMock()` to skip backoff delays.
-- **Contract tests.** Every public ABC implementation has a case in
-  `tests/contract/test_abc_conformance.py`; add one for each new
-  implementation.
+- **Contract tests.** A new extractor, state manager, exporter, or vector
+  store runs its `sci_etl_core.testing` suite under `tests/contract/`. mypy
+  checks that every implementation's signatures match its ABC.
 - **Property tests.** Put invariants — especially ones two backends must share,
   such as the in-memory and SQLite embedding stores — in Hypothesis tests in
   `tests/test_properties.py`.
@@ -320,7 +320,6 @@ under `tests/contract/`.
 
 Register the new class in its subpackage's `_EXPORTS` map and `TYPE_CHECKING`
 imports. A new module also needs an entry on its page under `docs/reference/`. If it's a primary user-facing class, add it to
-`sci_etl_core/__init__.py` the same way. Add a case for it to
-`tests/contract/test_abc_conformance.py`.
+`sci_etl_core/__init__.py` the same way.
 
 Happy hacking — and thank you for contributing!

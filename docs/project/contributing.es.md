@@ -93,9 +93,10 @@ pytest --cov=sci_etl_core --cov-report=term-missing   # informe de cobertura
   `AsyncMock` o el fixture `mocker`.
 - **Sin red real ni esperas exponenciales.** Simula los clientes HTTP, del LLM
   y de embeddings, e inyecta `sleep=AsyncMock()` para saltarte las esperas.
-- **Pruebas de contrato.** Cada implementación de una ABC pública tiene un caso
-  en `tests/contract/test_abc_conformance.py`; añade uno por cada
-  implementación nueva.
+- **Pruebas de contrato.** Un extractor, gestor de estado, exportador o
+  almacén vectorial nuevo ejecuta su batería de `sci_etl_core.testing` en
+  `tests/contract/`. mypy comprueba que las firmas de cada implementación
+  coincidan con su ABC.
 - **Pruebas de propiedades.** Pon los invariantes —sobre todo los que deben
   compartir dos backends, como los almacenes de embeddings en memoria y en
   SQLite— en pruebas de Hypothesis en `tests/test_properties.py`.
@@ -345,7 +346,6 @@ propias pruebas; uno nuevo incluido en la biblioteca la hereda en
 Registra la nueva clase en el mapa `_EXPORTS` y en las importaciones
 `TYPE_CHECKING` de su subpaquete. Un módulo nuevo necesita también una entrada
 en su página de `docs/reference/`. Si es una clase principal de cara a los
-usuarios, añádela del mismo modo a `sci_etl_core/__init__.py`. Añade un caso
-para ella en `tests/contract/test_abc_conformance.py`.
+usuarios, añádela del mismo modo a `sci_etl_core/__init__.py`.
 
 ¡Que disfrutes programando, y gracias por contribuir!
