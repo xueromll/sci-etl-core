@@ -72,9 +72,9 @@ pipeline = AsyncETLPipeline(
 ## 本节内容 {#in-this-section}
 
 - [查询语法](query-syntax.md)：布尔查询语言及其解析器。
-- [排序检索与过滤](ranked-search.md)：`search` 与 `filter_ids` 的区别，以及摘要片段。
+- [排序检索与过滤](ranked-search.md)：`search` 与 `filter_ids` 的区别、摘要片段，以及用 `rank` 和 `hydrate` 对候选池排序。
 - [混合检索](hybrid-search.md)：将 BM25 与嵌入相似度融合。
-- [过滤器与分面](filters-and-facets.md)：元数据过滤器和范围过滤器，分面计数和范围计数。
+- [过滤器与分面](filters-and-facets.md)：元数据过滤器和范围过滤器，以及分面计数、范围计数和匹配计数。
 - [文本存储](text-stores.md)：内存索引和 SQLite FTS5 索引。
 - [从向量记忆回填](backfill.md)：根据已存储的文本块构建文本索引。
 - [发现图](discovery-graphs.md)：相关论文图。

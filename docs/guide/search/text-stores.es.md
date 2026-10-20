@@ -9,6 +9,12 @@
   base de datos, lanza `SearchStoreError`.
   `weights=BM25Weights(title=10.0, abstract=4.0, body=1.0)` fija cuánto cuenta
   una coincidencia en cada campo; esos son los valores por defecto.
+- **Los ajustes de memoria son opcionales.**
+  `tuning=SqliteTuning(cache_size=200 * 2**20, mmap_size=2 * 2**30)` da a la
+  conexión del almacén una caché de páginas y un mapa de memoria (memory map)
+  de esos tamaños, en bytes. Aceleran las consultas cuando el índice supera la
+  caché por defecto de SQLite, de unos 2 MB, a costa de memoria. Sin
+  `tuning`, se aplican los valores por defecto de SQLite.
 - **FTS5 es obligatorio.** El almacén necesita un Python cuyo SQLite se haya
   compilado con FTS5, y lanza `SearchStoreError` al construirse en caso
   contrario. `fts5_available()` lo comprueba de antemano;

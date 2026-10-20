@@ -85,9 +85,9 @@ pipeline = AsyncETLPipeline(
 ## En esta sección {#in-this-section}
 
 - [Sintaxis de consultas](query-syntax.md): el lenguaje de consultas booleano y su analizador.
-- [Búsqueda por relevancia y filtrado](ranked-search.md): `search` frente a `filter_ids`, y los extractos.
+- [Búsqueda por relevancia y filtrado](ranked-search.md): `search` frente a `filter_ids`, los extractos y cómo ordenar un grupo con `rank` y `hydrate`.
 - [Búsqueda híbrida](hybrid-search.md): fusionar BM25 con la similitud de embeddings.
-- [Filtros y facetas](filters-and-facets.md): filtros de metadatos y de rango, recuentos de facetas y de rangos.
+- [Filtros y facetas](filters-and-facets.md): filtros de metadatos y de rango, y recuentos de facetas, de rangos y de coincidencias.
 - [Almacenes de texto](text-stores.md): los índices en memoria y SQLite FTS5.
 - [Relleno desde la memoria vectorial](backfill.md): construir el índice de texto a partir de los fragmentos guardados.
 - [Grafos de descubrimiento](discovery-graphs.md): grafos de artículos relacionados.

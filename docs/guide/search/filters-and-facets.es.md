@@ -38,7 +38,10 @@ facets = await text_store.facet_counts(["categories", "year"], query=parse_query
   nulos. Los recuentos de cada clave aplican la consulta y todos los filtros
   sobre *otras* claves, de modo que un recuento indica cuántos resultados daría
   seleccionar ese valor, y los demás valores de una clave filtrada siguen
-  visibles. `query=None` cuenta sobre todo el índice.
+  visibles. `query=None` cuenta sobre todo el índice. `AsyncSqliteFts5Store`
+  cuenta una consulta ordenable por relevancia a partir de sus coincidencias,
+  así que el coste depende del número de coincidencias y no del de
+  etiquetas.
 - **Cambiar `facet_keys`.** Las claves se fijan al construir un almacén y
   quedan registradas en el archivo. Para cambiarlas, construye el almacén con
   las claves nuevas y ejecuta `await text_store.rebuild_tags()`. Hasta
@@ -90,3 +93,31 @@ Los recuentos vuelven como una tupla en el orden de `ranges`, y los rangos
 pueden compartir clave y solaparse. `AsyncSqliteFts5Store` cuenta todos los
 rangos en una única lectura coherente. Un almacén personalizado hereda una
 versión que llama a `filter_ids` una vez por rango.
+
+## Contar coincidencias {#counting-matches}
+
+`count_matches` cuenta los registros que seleccionan una consulta y unos
+filtros, el número de identificadores que devolvería `filter_ids`, sin
+devolverlos. El recuento es exacto por defecto. `cap` detiene el recuento en
+ese número de registros, así que una palabra frecuente cuesta `cap` pasos en
+lugar de uno por coincidencia, y un resultado igual a `cap` significa "al
+menos esa cantidad":
+
+```python
+from sci_etl_core.search import parse_query
+
+query = parse_query("dwarf galaxy")
+exact = await text_store.count_matches(query, filters)
+capped = await text_store.count_matches(query, filters, cap=10_000)
+label = f"{capped:,}+" if capped == 10_000 else f"{capped:,}"
+```
+
+- **Cualquier consulta.** Igual que `filter_ids`, `count_matches` acepta una
+  negación pura, y `query=None` cuenta todos los registros que pasan los
+  filtros. Un `cap` menor que 1 lanza `ValueError` antes de cualquier E/S.
+- **Candidatos conocidos.** `filter_candidates(record_ids, filters)`
+  devuelve los de `record_ids` que están guardados y pasan los filtros. El
+  buscador híbrido comprueba así sus candidatos semánticos en lugar de cargar
+  todos los registros que pasan los filtros.
+- **Los almacenes personalizados** heredan versiones de ambos que llaman a
+  `filter_ids`.

@@ -51,3 +51,35 @@ la consulta que no coincide, lo cual documenta `InMemoryTextSearchStore`.
 cualquier otro texto, resaltando cada palabra de la consulta que no esté
 negada. El buscador híbrido lo usa para los pasajes que encuentra la rama
 semántica.
+
+## Ordenar un grupo por relevancia {#ranking-a-pool}
+
+`rank` recibe los mismos argumentos que `search` y devuelve los mismos
+resultados en el mismo orden con las mismas puntuaciones, pero puede dejar
+vacíos sus extractos, resaltados, título y metadatos. `hydrate` los rellena
+para los resultados que muestras, de modo que un grupo grande se ordena sin
+calcular un extracto para cada uno de sus resultados:
+
+```python
+from sci_etl_core.search import parse_query
+
+query = parse_query("dwarf galaxy")
+pool = await text_store.rank(query, limit=500)
+page = await text_store.hydrate(query, pool[:20])
+```
+
+- **Coste.** `AsyncSqliteFts5Store` ordena solo con `bm25()` y calcula los
+  extractos, y lee los títulos y los metadatos, únicamente en `hydrate`, así
+  que ordenar 500 resultados cuesta poco más que ordenar 20. Su `search`
+  funciona igual dentro de una sola lectura: primero ordena y calcula
+  extractos solo para los resultados que devuelve. `AsyncHybridSearcher`
+  ordena su grupo de candidatos con `rank` y completa con `hydrate` solo los
+  resultados que muestra.
+- **Entre las dos llamadas.** `hydrate` lee el índice tal como está cuando se
+  llama. Un resultado cuyo registro se eliminó después de `rank`, o que ya no
+  coincide, vuelve tal como se pasó, y un registro indexado de nuevo
+  entretanto recibe los extractos de su texto nuevo.
+- **Los almacenes personalizados** heredan un `rank` que llama a `search` y
+  un `hydrate` que devuelve los resultados sin cambios, lo cual es correcto
+  para cualquier almacén; sobrescribe ambos a la vez para ordenar sin
+  extractos.

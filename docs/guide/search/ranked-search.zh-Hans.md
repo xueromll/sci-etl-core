@@ -40,3 +40,27 @@ for hit in await text_store.search(parse_query("dwarf OR photometr*"), limit=10)
 
 `passage_snippet(query, text)` 以同样方式为任意其他文本构建 `Snippet`，高亮查询中每个
 未被否定的词。混合检索器用它来处理语义分支找到的段落。
+
+## 对候选池排序 {#ranking-a-pool}
+
+`rank` 接受与 `search` 相同的参数，并以相同的顺序、相同的分数返回相同的命中结果，但可能让
+它们的摘要片段、高亮、标题和元数据留空。`hydrate` 为你要展示的命中结果补全这些内容，因此
+对一个大的候选池排序时，无需为其中每个命中结果计算摘要片段：
+
+```python
+from sci_etl_core.search import parse_query
+
+query = parse_query("dwarf galaxy")
+pool = await text_store.rank(query, limit=500)
+page = await text_store.hydrate(query, pool[:20])
+```
+
+- **开销。** `AsyncSqliteFts5Store` 只用 `bm25()` 排序，仅在 `hydrate` 中计算摘要片段并
+  读取标题和元数据，因此对 500 个命中结果排序的开销只比对 20 个略多。它的 `search` 也在
+  一次读取内以同样方式工作：先排序，只为返回的命中结果计算摘要片段。`AsyncHybridSearcher`
+  用 `rank` 对其候选池排序，只对展示的命中结果调用 `hydrate`。
+- **两次调用之间。** `hydrate` 读取调用那一刻的索引。如果某个命中结果的记录在 `rank` 之后
+  被删除或不再匹配，该命中结果会按传入时的原样返回；在此期间重新索引的记录会得到其新文本
+  的摘要片段。
+- **自定义存储**会继承一个调用 `search` 的 `rank`，以及一个原样返回命中结果的 `hydrate`，
+  这对任何存储都是正确的；要在不计算摘要片段的情况下排序，请同时重写这两个方法。

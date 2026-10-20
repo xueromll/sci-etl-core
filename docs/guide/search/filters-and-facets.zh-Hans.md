@@ -28,7 +28,9 @@ facets = await text_store.facet_counts(["categories", "year"], query=parse_query
   发现图上。
 - **分面计数。** `facet_counts` 把每个键映射为 `(value, count)` 对，先按计数、再按值排序，
   不含计数为零的项。每个键的计数会应用查询以及作用于*其他*键的所有过滤器，因此计数表示选择
-  该值后会得到多少结果，且被过滤键的其他值仍然可见。`query=None` 对整个索引计数。
+  该值后会得到多少结果，且被过滤键的其他值仍然可见。`query=None` 对整个索引计数。对于可
+  排序的查询，`AsyncSqliteFts5Store` 根据其匹配项计数，因此开销取决于匹配数量，而不是
+  标签数量。
 - **修改 `facet_keys`。** 这些键在构造存储时确定，并记录在文件中。要修改它们，请用新的键
   构造存储，然后执行 `await text_store.rebuild_tags()`。在此之前，对尚未建立标签的键进行
   过滤或分面会抛出 `SearchStoreError`。
@@ -71,3 +73,24 @@ for bucket, count in zip(buckets, counts):
 计数按 `ranges` 的顺序以元组形式返回，各范围可以共用同一个键，也可以相互重叠。
 `AsyncSqliteFts5Store` 在一次一致的读取中统计所有范围。自定义存储会继承一个按范围逐个调用
 `filter_ids` 的实现。
+
+## 匹配计数 {#counting-matches}
+
+`count_matches` 统计查询和过滤器选中的记录数，即 `filter_ids` 会返回的 id 数量，但不返回
+这些 id。默认情况下计数是精确的。`cap` 会在计到该数量的记录时停止计数，因此一个高频词只需
+`cap` 步，而不是每个匹配一步；结果等于 `cap` 时表示“至少这么多”：
+
+```python
+from sci_etl_core.search import parse_query
+
+query = parse_query("dwarf galaxy")
+exact = await text_store.count_matches(query, filters)
+capped = await text_store.count_matches(query, filters, cap=10_000)
+label = f"{capped:,}+" if capped == 10_000 else f"{capped:,}"
+```
+
+- **任意查询。** 与 `filter_ids` 一样，`count_matches` 接受纯否定查询，`query=None` 会统计
+  通过过滤器的所有记录。小于 1 的 `cap` 会在任何 I/O 之前抛出 `ValueError`。
+- **已知候选。** `filter_candidates(record_ids, filters)` 返回 `record_ids` 中已存储且通过
+  过滤器的那些 id。混合检索器以这种方式检查其语义候选，而不是加载所有通过过滤器的记录。
+- **自定义存储**会继承这两个方法的实现，它们都调用 `filter_ids`。

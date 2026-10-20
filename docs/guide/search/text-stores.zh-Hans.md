@@ -6,6 +6,11 @@
   文本只存储一次，每次写入都是一个事务，任何 SQLite 故障（包括文件不是数据库的情况）都会
   抛出 `SearchStoreError`。`weights=BM25Weights(title=10.0, abstract=4.0, body=1.0)`
   设置各字段中匹配的权重；这些就是默认值。
+- **内存设置需显式启用。**
+  `tuning=SqliteTuning(cache_size=200 * 2**20, mmap_size=2 * 2**30)` 为该存储的连接
+  提供上述大小（以字节为单位）的页缓存和内存映射（memory map）。当索引超出 SQLite 约
+  2 MB 的默认缓存后，它们能加快查询，代价是占用内存。不传 `tuning` 时，使用 SQLite 的
+  默认值。
 - **需要 FTS5。** 该存储要求 Python 所带的 SQLite 在编译时启用了 FTS5，否则在构造时抛出
   `SearchStoreError`。`fts5_available()` 可以预先检查；`InMemoryTextSearchStore`
   在任何环境下都能使用。

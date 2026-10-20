@@ -47,3 +47,11 @@ ejecuta una o las dos ramas de recuperación:
   vectorial `candidate_pool × chunk_pool_factor` fragmentos (factor 5 por
   defecto). Aumenta el factor cuando los artículos largos llenan los primeros
   fragmentos y el grupo vuelve incompleto.
+- **Trabajo por búsqueda.** El trabajo depende del grupo de candidatos, no del
+  corpus. La rama léxica ordena el grupo con `text_store.rank` y calcula
+  extractos solo para los resultados fusionados que se muestran, con
+  `text_store.hydrate`. Los filtros se comprueban solo sobre los candidatos
+  semánticos, con `text_store.filter_candidates`. Un resultado que solo
+  encontró la rama semántica lee su título y sus metadatos con
+  `text_store.get_headers`, nunca su texto. Los resultados son los que daría
+  una sola llamada a `search` sobre el grupo.

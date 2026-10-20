@@ -11,7 +11,9 @@ Representa `FusedHit.snippets` con tu propio marcado a partir de sus
 `highlights`, una línea por campo, y etiqueta un resultado cuyo `lexical_rank`
 sea `None` como coincidencia por significado. Construye histogramas de fechas o
 años a partir de `range_counts`, que mantiene visibles todos los intervalos
-mientras uno está seleccionado.
+mientras uno está seleccionado. Toma el número de coincidencias de
+`count_matches` y pasa `cap` para mostrar "10,000+" en lugar de contar cada
+coincidencia de una palabra frecuente.
 
 Mantén el análisis de la consulta en cada pulsación de tecla y haz asíncrona
 solo la recuperación: aplica un retardo (debounce), cancela una búsqueda cuando
