@@ -46,6 +46,10 @@ _RANK = (
     "SELECT documents_fts.rowid, bm25(documents_fts, ?, ?, ?) AS score FROM documents_fts"
     " WHERE documents_fts MATCH ?{conditions} ORDER BY score LIMIT ?"
 )
+_RANK_TIED = (
+    "SELECT documents_fts.rowid FROM documents_fts"
+    " WHERE documents_fts MATCH ?{conditions} AND bm25(documents_fts, ?, ?, ?) = ?"
+)
 _RANK_BY_RECORD = (
     "SELECT documents_fts.rowid, d.record_id, bm25(documents_fts, ?, ?, ?) AS score"
     " FROM documents_fts JOIN documents d ON d.doc_id = documents_fts.rowid"
@@ -545,16 +549,20 @@ class AsyncSqliteFts5Store(AsyncTextSearchStore):
             _RANK_BY_RECORD.format(conditions=_restriction(joined_conditions)),
             [*weights, expression, *joined_parameters, limit],
         )
+        tied_sql = _RANK_TIED.format(conditions=_restriction(conditions))
 
         def rank(connection: sqlite3.Connection) -> _Ranked:
             scored: list[tuple[int, float]] = connection.execute(*by_score).fetchall()
-            if len(scored) > limit and scored[limit - 1][1] == scored[limit][1]:
-                return connection.execute(*by_record).fetchall()
             top = scored[:limit]
+            if len(scored) > limit and scored[limit - 1][1] == scored[limit][1]:
+                boundary = scored[limit - 1][1]
+                tied = connection.execute(tied_sql, [expression, *parameters, *weights, boundary]).fetchall()
+                top = [row for row in top if row[1] < boundary] + [(rowid, boundary) for (rowid,) in tied]
             names = _record_ids(connection, [rowid for rowid, _rank in top])
             if len(names) < len(top):
                 return connection.execute(*by_record).fetchall()
-            return sorted(((rowid, names[rowid], rank) for rowid, rank in top), key=lambda row: (row[2], row[1]))
+            ranked = sorted(((rowid, names[rowid], rank) for rowid, rank in top), key=lambda row: (row[2], row[1]))
+            return ranked[:limit]
 
         return rank
 
