@@ -1908,6 +1908,67 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sources
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sources">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#arxiv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        arXiv
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pubmed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PubMed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#semantic-scholar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Semantic Scholar
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openalex" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OpenAlex
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2782,6 +2843,67 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sources
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sources">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#arxiv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        arXiv
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pubmed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PubMed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#semantic-scholar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Semantic Scholar
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openalex" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OpenAlex
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2801,11 +2923,11 @@
 
 <h1 id="config-file">Config file<a class="headerlink" href="#config-file" title="Permanent link">&para;</a></h1>
 <p>A config holds the library's sections (<code>llm</code>, <code>http</code>, <code>full_text</code>, <code>pipeline</code>)
-and the CLI's own (<code>prompts</code>, <code>export</code>, <code>state</code>, <code>logging</code>). Every key of the
-library's sections is passed on to the run. Unknown keys are rejected,
-so a typo fails validation instead of being ignored. Relative paths resolve from
-the config file's folder, so a project behaves the same whichever directory it
-is run from.</p>
+and the CLI's own (<code>source</code>, <code>prompts</code>, <code>export</code>, <code>state</code>, <code>logging</code>). Every
+key of the library's sections is passed on to the run. Unknown keys are
+rejected, so a typo fails validation instead of being ignored. Relative paths
+resolve from the config file's folder, so a project behaves the same whichever
+directory it is run from.</p>
 <div class="highlight"><span class="filename">config.yaml</span><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">llm</span><span class="p">:</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">base_url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://api.openai.com/v1</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-4o-mini</span>
@@ -2832,24 +2954,27 @@ is run from.</p>
 <a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">  </span><span class="nt">newest_first</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
 <a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">  </span><span class="nt">max_attempts</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
 <a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>
-<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="nt">prompts</span><span class="p">:</span>
-<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">  </span><span class="nt">relevance</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prompts/relevance.txt</span>
-<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">  </span><span class="nt">extraction</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prompts/extraction.txt</span>
-<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="w">  </span><span class="nt">result_key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">planets</span>
-<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>
-<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="nt">export</span><span class="p">:</span>
-<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="w">  </span><span class="nt">destination</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">out/planets.csv</span>
-<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="w">  </span><span class="nt">key_column</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">planet_name</span>
-<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="w">  </span><span class="nt">value_columns</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">orbital_period_days</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">mass_jupiter</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">radius_jupiter</span><span class="p p-Indicator">]</span>
-<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>
-<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="nt">state</span><span class="p">:</span>
-<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="w">  </span><span class="nt">backend</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">file</span>
-<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a><span class="w">  </span><span class="nt">processed_ids</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">state/processed_ids.txt</span>
-<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a><span class="w">  </span><span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">state/metadata.json</span>
-<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>
-<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a><span class="nt">logging</span><span class="p">:</span>
-<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a><span class="w">  </span><span class="nt">file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">logs/run.log</span>
-<a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a><span class="w">  </span><span class="nt">level</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">INFO</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="nt">source</span><span class="p">:</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">  </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">arxiv</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="nt">prompts</span><span class="p">:</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="w">  </span><span class="nt">relevance</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prompts/relevance.txt</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="w">  </span><span class="nt">extraction</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prompts/extraction.txt</span>
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="w">  </span><span class="nt">result_key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">planets</span>
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="nt">export</span><span class="p">:</span>
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="w">  </span><span class="nt">destination</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">out/planets.csv</span>
+<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="w">  </span><span class="nt">key_column</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">planet_name</span>
+<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="w">  </span><span class="nt">value_columns</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">orbital_period_days</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">mass_jupiter</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">radius_jupiter</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>
+<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a><span class="nt">state</span><span class="p">:</span>
+<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a><span class="w">  </span><span class="nt">backend</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">file</span>
+<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a><span class="w">  </span><span class="nt">processed_ids</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">state/processed_ids.txt</span>
+<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a><span class="w">  </span><span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">state/metadata.json</span>
+<a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>
+<a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a><span class="nt">logging</span><span class="p">:</span>
+<a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a><span class="w">  </span><span class="nt">file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">logs/run.log</span>
+<a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a><span class="w">  </span><span class="nt">level</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">INFO</span>
 </code></pre></div>
 <h2 id="keys">Keys<a class="headerlink" href="#keys" title="Permanent link">&para;</a></h2>
 <table>
@@ -2894,32 +3019,32 @@ is run from.</p>
 <tr>
 <td><code>http.user_agent</code></td>
 <td><code>sci-etl-core/&lt;version&gt;</code></td>
-<td>Sent to arXiv. Include a contact address.</td>
+<td>Sent to the source. Include a contact address.</td>
 </tr>
 <tr>
 <td><code>http.timeout</code></td>
 <td><code>25</code></td>
-<td>Seconds allowed for each arXiv request.</td>
+<td>Seconds allowed for each request to the source.</td>
 </tr>
 <tr>
 <td><code>http.max_retries</code>, <code>http.backoff_factor</code></td>
 <td><code>3</code>, <code>2.0</code></td>
-<td>Attempts per arXiv request, waiting <code>backoff_factor ** attempt</code> seconds between them, or as long as arXiv's <code>Retry-After</code> header asks when that is longer (up to 60 seconds).</td>
+<td>Attempts per request to the source, waiting <code>backoff_factor ** attempt</code> seconds between them, or as long as its <code>Retry-After</code> header asks when that is longer (up to 60 seconds).</td>
 </tr>
 <tr>
 <td><code>full_text.max_concurrency</code></td>
 <td><code>4</code></td>
-<td>arXiv requests in flight at once, listing and full text together.</td>
+<td>Requests to the source in flight at once, listing and full text together.</td>
 </tr>
 <tr>
 <td><code>full_text.max_rate</code>, <code>full_text.time_period</code></td>
 <td>none, <code>1.0</code></td>
-<td>With <code>max_rate</code> set, at most <code>max_rate</code> arXiv requests start per <code>time_period</code> seconds, instead of the concurrency cap.</td>
+<td>With <code>max_rate</code> set, at most <code>max_rate</code> requests to the source start per <code>time_period</code> seconds, instead of the concurrency cap. PubMed, Semantic Scholar and OpenAlex publish rate limits; the starters set it.</td>
 </tr>
 <tr>
 <td><code>pipeline.search_query</code></td>
 <td>required</td>
-<td>An <a href="https://info.arxiv.org/help/api/user-manual.html#query_details">arXiv API query</a>.</td>
+<td>The query in the source's own syntax; see <a href="#sources">Sources</a>.</td>
 </tr>
 <tr>
 <td><code>pipeline.total_limit</code></td>
@@ -2934,7 +3059,7 @@ is run from.</p>
 <tr>
 <td><code>pipeline.search_delay</code></td>
 <td><code>3.0</code></td>
-<td>Seconds to wait before each listing request, as arXiv asks.</td>
+<td>Seconds to wait before each listing request, as arXiv asks; the other sources ignore it and rely on <code>full_text</code>.</td>
 </tr>
 <tr>
 <td><code>pipeline.sleep_between</code></td>
@@ -2949,12 +3074,22 @@ is run from.</p>
 <tr>
 <td><code>pipeline.newest_first</code></td>
 <td><code>false</code></td>
-<td>Look for new submissions at the head of the listing before continuing from the saved offset. See <a href="../commands/#running-pipelines">Commands</a>.</td>
+<td>Look for new submissions at the head of the listing before continuing from the saved offset. Needs a source that pages by offset, so <code>openalex</code> rejects it. See <a href="../commands/#running-pipelines">Commands</a>.</td>
 </tr>
 <tr>
 <td><code>pipeline.max_attempts</code></td>
 <td><code>3</code></td>
 <td>Runs a paper may fail in before it is skipped; <code>null</code> never skips one.</td>
+</tr>
+<tr>
+<td><code>source.kind</code></td>
+<td><code>arxiv</code></td>
+<td><code>arxiv</code>, <code>pubmed</code>, <code>semantic_scholar</code>, or <code>openalex</code>. The other <code>source</code> keys depend on it; see <a href="#sources">Sources</a>.</td>
+</tr>
+<tr>
+<td><code>source.api_key_env</code></td>
+<td><code>SOURCE_API_KEY</code></td>
+<td>Environment variable holding the source's API key, for the sources that accept one; <code>.env</code> beside the config is loaded first.</td>
 </tr>
 <tr>
 <td><code>prompts.relevance</code></td>
@@ -2979,7 +3114,7 @@ is run from.</p>
 <tr>
 <td><code>export.key_column</code></td>
 <td><code>name</code></td>
-<td>Field that names an entity; it gets the first column after <code>record_id</code>.</td>
+<td>Field that names an entity; it gets the first column after <code>record_id</code>, the paper's id in the source.</td>
 </tr>
 <tr>
 <td><code>export.value_columns</code></td>
@@ -2996,16 +3131,157 @@ is run from.</p>
 <td>none</td>
 <td><code>module:attribute</code> references to <code>RecordValidator</code>s; an entity any of them rejects is dropped and logged with every reason. See <a href="../plugins/">Plug-ins</a>.</td>
 </tr>
+<tr>
+<td><code>state.backend</code></td>
+<td><code>file</code></td>
+<td><code>file</code> uses <code>processed_ids</code> and <code>metadata</code>; <code>sqlite</code> uses <code>database</code>.</td>
+</tr>
+<tr>
+<td><code>logging.file</code>, <code>logging.level</code></td>
+<td><code>logs/run.log</code>, <code>INFO</code></td>
+<td>Log file for <code>run</code> (<code>null</code> for none) and the level: <code>DEBUG</code>, <code>INFO</code>, <code>WARNING</code>, or <code>ERROR</code>.</td>
+</tr>
 </tbody>
 </table>
 <p>The CSV has one row per extracted entity. Its columns are <code>record_id</code>, the
-arXiv id of the paper, then <code>key_column</code>, the value columns, and <code>extra</code>.
+paper's id in the source, then <code>key_column</code>, the value columns, and <code>extra</code>.
 Values are written as the model returned them, and nothing is merged: two
 papers that report the same object give two rows, so a disagreement between
 papers stays visible. Running a paper again replaces its rows. <code>record_id</code> and
-<code>extra</code> cannot be used as column names.
-| <code>state.backend</code> | <code>file</code> | <code>file</code> uses <code>processed_ids</code> and <code>metadata</code>; <code>sqlite</code> uses <code>database</code>. |
-| <code>logging.file</code>, <code>logging.level</code> | <code>logs/run.log</code>, <code>INFO</code> | Log file for <code>run</code> (<code>null</code> for none) and the level: <code>DEBUG</code>, <code>INFO</code>, <code>WARNING</code>, or <code>ERROR</code>. |</p>
+<code>extra</code> cannot be used as column names.</p>
+<h2 id="sources">Sources<a class="headerlink" href="#sources" title="Permanent link">&para;</a></h2>
+<p><code>source.kind</code> picks the literature source; without a <code>source</code> section a
+project searches arXiv, as before. Each kind accepts only its own keys, so a
+key of another source fails validation and the error names the source, such as
+<code>source.pubmed.year</code>. <code>pipeline.search_query</code> is written in the source's
+syntax. Every source takes its retries from <code>http</code> and its rate limiter from
+<code>full_text</code>, and falls back to the abstract when it has no full text for a
+paper. <code>sci-etl init --source &lt;kind&gt;</code> writes a starter for each.</p>
+<p>A source's API key is never written in the config: it is read from the
+variable <code>source.api_key_env</code> names, <code>SOURCE_API_KEY</code> by default, from the
+environment or the <code>.env</code> file beside the config, the same way <code>llm.api_key_env</code>
+works. No source requires a key; one raises PubMed's and Semantic Scholar's
+rate limits and is accepted by OpenAlex.</p>
+<h3 id="arxiv">arXiv<a class="headerlink" href="#arxiv" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">source</span><span class="p">:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">arxiv</span>
+</code></pre></div>
+<p>Pages by offset, so <code>newest_first</code>, <code>--rescan</code>, and <code>--start-index</code> all work.
+The query is an <a href="https://info.arxiv.org/help/api/user-manual.html#query_details">arXiv API query</a>,
+such as <code>cat:astro-ph.EP AND abs:"hot Jupiter"</code>. Full text comes from the
+LaTeX e-print, then the PDF. <code>record_id</code> is the arXiv id. Needs the
+<code>arxiv</code> and <code>pdf</code> extras of sci-etl-core. No other key.</p>
+<h3 id="pubmed">PubMed<a class="headerlink" href="#pubmed" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">source</span><span class="p">:</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pubmed</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">api_key_env</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SOURCE_API_KEY</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nt">tool</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sci-etl-project</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="nt">email</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">you@example.org</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="nt">sort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pub_date</span>
+</code></pre></div>
+<p>Pages by offset through NCBI's E-utilities, which serve the first 9,999
+results of a search. The query uses PubMed's search syntax, such as
+<code>metformin[Title/Abstract] AND "Diabetes Mellitus, Type 2"[MeSH Terms]</code>. Full
+text comes from PubMed Central as JATS XML for papers that have a PMC id.
+<code>record_id</code> is the PMID. Needs the <code>xml</code> extra.</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>source.tool</code>, <code>source.email</code></td>
+<td>none</td>
+<td>Identify your project to NCBI, as its usage policy asks.</td>
+</tr>
+<tr>
+<td><code>source.sort</code></td>
+<td><code>pub_date</code></td>
+<td>E-utilities sort order; <code>null</code> for relevance.</td>
+</tr>
+</tbody>
+</table>
+<p>NCBI allows 3 requests per second without a key and 10 with one; set
+<code>full_text.max_rate</code> accordingly.</p>
+<h3 id="semantic-scholar">Semantic Scholar<a class="headerlink" href="#semantic-scholar" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">source</span><span class="p">:</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">semantic_scholar</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">api_key_env</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SOURCE_API_KEY</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nt">year</span><span class="p">:</span><span class="w"> </span><span class="s">"2015-"</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nt">fields_of_study</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Medicine</span>
+</code></pre></div>
+<p>Pages by offset through the relevance search, which serves the first 1,000
+results, 100 per page. The query is plain keywords. Full text comes from the
+open-access PDF when there is one. <code>record_id</code> is the Semantic Scholar paper
+id. Needs the <code>pdf</code> extra.</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>source.year</code></td>
+<td>none</td>
+<td>Semantic Scholar's <code>year</code> filter, such as <code>2020-</code> or <code>2018-2022</code>.</td>
+</tr>
+<tr>
+<td><code>source.fields_of_study</code></td>
+<td>none</td>
+<td>Semantic Scholar's <code>fieldsOfStudy</code> filter, such as <code>Physics</code> or <code>Medicine,Biology</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Without a key, requests share the public rate limit; the starter allows one
+request per second.</p>
+<h3 id="openalex">OpenAlex<a class="headerlink" href="#openalex" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">source</span><span class="p">:</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">openalex</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nt">api_key_env</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SOURCE_API_KEY</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="nt">filter</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">type:article,from_publication_date:2015-01-01</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="nt">sort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">publication_date:desc</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span><span class="nt">mailto</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">you@example.org</span>
+</code></pre></div>
+<p>Pages by OpenAlex's opaque cursors, not by offset, so <code>pipeline.newest_first</code>
+and <code>--start-index</code> above 0 are refused; <code>--rescan</code> starts again from the
+first page. A finished listing starts again from its first page on the next
+run, skipping processed works by id. The query is OpenAlex's full-text
+<code>search</code>. Full text comes from the PDF of the best open-access location when
+there is one. <code>record_id</code> is the OpenAlex work id, such as <code>W2741809807</code>.
+Needs the <code>pdf</code> extra.</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>source.filter</code></td>
+<td>none</td>
+<td>An <a href="https://docs.openalex.org/api-entities/works/filter-works">OpenAlex filter</a>, such as <code>type:article,from_publication_date:2020-01-01</code>.</td>
+</tr>
+<tr>
+<td><code>source.sort</code></td>
+<td><code>publication_date:desc</code></td>
+<td>OpenAlex sort order; <code>null</code> for relevance.</td>
+</tr>
+<tr>
+<td><code>source.mailto</code></td>
+<td>none</td>
+<td>Joins OpenAlex's polite pool, which allows 10 requests per second.</td>
+</tr>
+</tbody>
+</table>
 
 
 

@@ -2809,10 +2809,16 @@
 <li><strong>Run it.</strong> <code>sci-etl run hot-jupiters/config.yaml</code> exports entities to
    <code>out/planets.csv</code> and records progress under <code>state/</code>. Run the same command
    again to continue; add <code>--rescan</code> to pick up papers submitted since.</li>
+<li><strong>Redo a paper.</strong> After changing a prompt, <code>sci-etl forget
+   hot-jupiters/config.yaml 2609.00001v1</code> hands that paper back, and the next
+   <code>run --rescan</code> processes it again.</li>
 </ol>
 <h2 id="adapting-it-to-your-subject">Adapting it to your subject<a class="headerlink" href="#adapting-it-to-your-subject" title="Permanent link">&para;</a></h2>
 <p>To use the CLI for another subject, change <code>pipeline.search_query</code>, both
-prompts, and the <code>export</code> columns in the <a href="../config-file/">config file</a>. The
+prompts, and the <code>export</code> columns in the <a href="../config-file/">config file</a>. To
+search PubMed, Semantic Scholar, or OpenAlex instead of arXiv, start from
+<code>sci-etl init --source pubmed</code> (or <code>semantic_scholar</code>, <code>openalex</code>), which
+writes a query in that source's syntax and a <code>source</code> section. The
 extraction prompt has to ask for JSON containing <code>result_key</code>, <code>key_column</code>,
 and every value column; <code>validate</code> checks this.</p>
 <p>Rules that don't fit in a config file, such as which values are physically

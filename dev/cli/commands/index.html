@@ -1862,6 +1862,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sources
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#running-pipelines" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1894,6 +1905,17 @@
   
     <nav class="md-nav" aria-label="sci-etl">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sci-etl-forget" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        forget
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#sci-etl-init" class="md-nav__link">
@@ -2858,6 +2880,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sources
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#running-pipelines" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2890,6 +2923,17 @@
   
     <nav class="md-nav" aria-label="sci-etl">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sci-etl-forget" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        forget
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#sci-etl-init" class="md-nav__link">
@@ -2992,26 +3036,26 @@
 <tbody>
 <tr>
 <td><code>sci-etl init [DIRECTORY]</code></td>
-<td>Creates a starter project. Refuses to overwrite existing files unless given <code>--force</code>.</td>
+<td>Creates a starter project for arXiv, or for <code>--source pubmed</code>, <code>semantic_scholar</code>, or <code>openalex</code>. Refuses to overwrite existing files unless given <code>--force</code>.</td>
 <td>none</td>
 <td>project files</td>
 </tr>
 <tr>
 <td><code>sci-etl validate CONFIG</code></td>
-<td>Checks the config, prompts, API key, and packages. <code>--online</code> adds one arXiv and one LLM request once the offline checks pass.</td>
+<td>Checks the config, prompts, API keys, and the packages the configured source needs. <code>--online</code> adds one listing request to the source and one LLM request once the offline checks pass.</td>
 <td>only with <code>--online</code></td>
 <td>nothing</td>
 </tr>
 <tr>
 <td><code>sci-etl search CONFIG</code></td>
-<td>Shows one page of arXiv results, each marked <code>new</code> or <code>processed</code>.</td>
-<td>arXiv</td>
+<td>Shows one page of the source's results, each marked <code>new</code> or <code>processed</code>.</td>
+<td>the source</td>
 <td>nothing</td>
 </tr>
 <tr>
 <td><code>sci-etl run CONFIG</code></td>
 <td>Runs the pipeline, resuming from saved state, and logs token usage at the end.</td>
-<td>arXiv and the LLM</td>
+<td>the source and the LLM</td>
 <td>export CSV, state, log</td>
 </tr>
 <tr>
@@ -3019,6 +3063,12 @@
 <td>Shows processed records, the saved offset, the last run time, and export rows.</td>
 <td>none</td>
 <td>nothing</td>
+</tr>
+<tr>
+<td><code>sci-etl forget CONFIG RECORD_ID...</code></td>
+<td>Clears the processed mark and failed attempts of each record, so the next <code>run --rescan</code> processes it again.</td>
+<td>none</td>
+<td>state</td>
 </tr>
 <tr>
 <td><code>sci-etl parse FILE</code></td>
@@ -3029,19 +3079,42 @@
 </tbody>
 </table>
 <p>Every command accepts <code>--help</code>. Logs and errors go to stderr; <code>search --json</code>,
-<code>status --json</code>, and <code>parse</code> print their results to stdout, so they can be
-piped.</p>
+<code>status --json</code>, <code>forget --json</code>, and <code>parse</code> print their results to stdout,
+so they can be piped.</p>
+<h2 id="sources">Sources<a class="headerlink" href="#sources" title="Permanent link">&para;</a></h2>
+<p><code>source.kind</code> in the <a href="../config-file/#sources">config file</a> picks arXiv, PubMed,
+Semantic Scholar, or OpenAlex; every command works the same way on each.
+<code>search</code> labels its id column by source: <code>arXiv id</code>, <code>PMID</code>, <code>S2 paper id</code>,
+or <code>OpenAlex work id</code>; <code>search --json</code> always calls it <code>record_id</code>, as the
+export CSV does. <code>validate</code> checks the sci-etl-core extras the source needs
+and names the missing one, such as <code>pip install "sci-etl-core[xml]"</code> for
+PubMed. <code>init --source pubmed</code> (or <code>semantic_scholar</code>, <code>openalex</code>) writes a
+starter that collects the arms of metformin trials, with a query in that
+source's syntax; the default starter searches arXiv for hot Jupiters.</p>
 <h2 id="running-pipelines">Running pipelines<a class="headerlink" href="#running-pipelines" title="Permanent link">&para;</a></h2>
 <p><strong>Stopping a run.</strong> Press Ctrl+C once: no new paper starts, the papers in
 flight finish and are saved, state is saved, and the command exits with 130.
 The next run continues with the rest. A second Ctrl+C exits immediately.</p>
-<p><strong>Resuming.</strong> A run starts at the listing offset saved by the previous one.
+<p><strong>Resuming.</strong> A run starts at the listing position saved by the previous one.
 arXiv lists the newest submissions first, so new papers push older ones to
 higher offsets. Set <code>pipeline.newest_first: true</code> to have every run look for
 new submissions at the head of the listing first and then continue from the
 saved offset. Or pass <code>--rescan</code> to start once at offset 0; processed papers
 are skipped by id, which costs listing requests but no LLM calls. <code>--rescan</code>
-and <code>--start-index</code> cannot be combined with <code>newest_first</code>.</p>
+and <code>--start-index</code> cannot be combined with <code>newest_first</code>. OpenAlex pages by
+opaque cursor rather than offset, so <code>newest_first</code> and <code>--start-index</code> above
+0 are refused with a usage error before any request; <code>--rescan</code> starts again
+from its first page.</p>
+<p><strong>Reprocessing papers.</strong> <code>sci-etl forget CONFIG RECORD_ID...</code> clears the
+processed mark and failed attempts of the record ids you name, for example after
+a prompt or model change, and reports each id as <code>forgotten</code> or <code>not tracked</code>.
+Run it between runs, because a run reads the processed ids when it starts. The
+saved offset is kept, so follow it with <code>run --rescan</code>, which starts at offset
+0 and skips every other processed paper by id; the LLM answers of a forgotten
+paper are still served from <code>llm.cache</code> unless you delete it or change the
+prompts. A forgotten paper's rows stay in the export CSV until it is processed
+again, which replaces them. With <code>pipeline.newest_first</code> set, turn it off for
+that one run, since a rescan cannot be combined with it.</p>
 <p><strong>Papers that keep failing.</strong> A paper that failed in <code>pipeline.max_attempts</code>
 runs (3 by default) is skipped and logged once per run. Set it to <code>null</code> to
 retry such papers forever.</p>
@@ -3049,7 +3122,7 @@ retry such papers forever.</p>
 default), so a paper retried after a crash or a rescan costs no tokens for the
 questions already answered. Answers the library rejects are not kept. Set
 <code>llm.cache: null</code> to turn the cache off.</p>
-<p><strong>Throttling.</strong> When arXiv or the LLM provider answers <code>429</code> with a
+<p><strong>Throttling.</strong> When the source or the LLM provider answers <code>429</code> with a
 <code>Retry-After</code> header, the request waits as long as it asks, up to 60 seconds,
 and each retry is logged.</p>
 <p><strong>Token usage.</strong> When a run finishes, aborts, or is interrupted, <code>run</code> logs how
@@ -3093,20 +3166,25 @@ provider's prices to add an estimated cost, in the currency of those prices:</p>
 </table>
 <p><strong>Subcommands</strong></p>
 <ul>
+<li><em><a href="#sci-etl-forget">forget</a></em>: Hand processed or failed records back to the next rescan.</li>
 <li><em><a href="#sci-etl-init">init</a></em>: Create a starter project.</li>
 <li><em><a href="#sci-etl-parse">parse</a></em>: Print the text extracted from a PDF, e-print or HTML file.</li>
 <li><em><a href="#sci-etl-run">run</a></em>: Run the pipeline for CONFIG, resuming from its saved state.</li>
-<li><em><a href="#sci-etl-search">search</a></em>: Preview arXiv results without calling the LLM.</li>
+<li><em><a href="#sci-etl-search">search</a></em>: Preview the source's results without calling the LLM.</li>
 <li><em><a href="#sci-etl-status">status</a></em>: Show processed records, saved offset and export rows.</li>
 <li><em><a href="#sci-etl-validate">validate</a></em>: Check CONFIG and its prompts without running the pipeline.</li>
 </ul>
-<h3 id="sci-etl-init">sci-etl init<a class="headerlink" href="#sci-etl-init" title="Permanent link">&para;</a></h3>
-<p>Create a starter project in DIRECTORY (default: the current folder).</p>
-<p>Writes config.yaml, prompts/relevance.txt, prompts/extraction.txt and
-.env.example. The example collects hot Jupiter measurements from arXiv;
-change the query, prompts and export columns for your own subject.</p>
+<h3 id="sci-etl-forget">sci-etl forget<a class="headerlink" href="#sci-etl-forget" title="Permanent link">&para;</a></h3>
+<p>Forget RECORD_IDs in CONFIG's state so the next rescan processes them again.</p>
+<p>Clears each record's processed mark and failed attempts, for example after
+a prompt or model change. The saved offset is kept, so follow it with
+<code>run --rescan</code>, which starts at offset 0 and skips every other processed
+record by id. A record's rows in the export CSV stay until it is processed
+again, which replaces them. Use it between runs: a run reads the processed
+ids when it starts. An id the state does not track is reported, not an
+error.</p>
 <p><strong>Usage:</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>sci-etl init [OPTIONS] [DIRECTORY]
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>sci-etl forget [OPTIONS] CONFIG RECORD_ID...
 </code></pre></div>
 <p><strong>Options:</strong></p>
 <table>
@@ -3119,6 +3197,47 @@ change the query, prompts and export columns for your own subject.</p>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>--json</code></td>
+<td>boolean</td>
+<td>Print JSON instead of a table.</td>
+<td><code>Sentinel.UNSET</code></td>
+</tr>
+<tr>
+<td><code>-h</code>, <code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>Sentinel.UNSET</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="sci-etl-init">sci-etl init<a class="headerlink" href="#sci-etl-init" title="Permanent link">&para;</a></h3>
+<p>Create a starter project in DIRECTORY (default: the current folder).</p>
+<p>Writes config.yaml, prompts/relevance.txt, prompts/extraction.txt and
+.env.example. The arXiv example collects hot Jupiter measurements; the
+PubMed, Semantic Scholar and OpenAlex examples collect the arms of
+metformin trials. Change the query, prompts and export columns for your
+own subject.</p>
+<p><strong>Usage:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>sci-etl init [OPTIONS] [DIRECTORY]
+</code></pre></div>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--source</code></td>
+<td>choice (<code>arxiv</code> &#x7C; <code>pubmed</code> &#x7C; <code>semantic_scholar</code> &#x7C; <code>openalex</code>)</td>
+<td>Literature source the starter searches.</td>
+<td><code>arxiv</code></td>
+</tr>
 <tr>
 <td><code>--force</code></td>
 <td>boolean</td>
@@ -3138,7 +3257,7 @@ change the query, prompts and export columns for your own subject.</p>
 <p>Accepts a PDF, an arXiv e-print (a tarball or gzipped TeX file) or an HTML
 page. Use it to check full-text quality without running a pipeline.</p>
 <p><strong>Usage:</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>sci-etl parse [OPTIONS] FILE
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>sci-etl parse [OPTIONS] FILE
 </code></pre></div>
 <p><strong>Options:</strong></p>
 <table>
@@ -3173,13 +3292,13 @@ page. Use it to check full-text quality without running a pipeline.</p>
 </table>
 <h3 id="sci-etl-run">sci-etl run<a class="headerlink" href="#sci-etl-run" title="Permanent link">&para;</a></h3>
 <p>Run the pipeline for CONFIG, resuming from its saved state.</p>
-<p>Searches arXiv, asks the LLM which papers are relevant, extracts entities
-from their full text, and writes them to the export CSV, one row per entity
-tagged with its paper's arXiv id. Press Ctrl+C
-once to let the papers in progress finish and save state; the next run
-continues with the rest. Press it again to stop at once.</p>
+<p>Searches the configured source, asks the LLM which papers are relevant,
+extracts entities from their full text, and writes them to the export CSV,
+one row per entity tagged with its paper's id. Press Ctrl+C once to let
+the papers in progress finish and save state; the next run continues with
+the rest. Press it again to stop at once.</p>
 <p><strong>Usage:</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>sci-etl run [OPTIONS] CONFIG
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>sci-etl run [OPTIONS] CONFIG
 </code></pre></div>
 <p><strong>Options:</strong></p>
 <table>
@@ -3237,11 +3356,13 @@ continues with the rest. Press it again to stop at once.</p>
 </tbody>
 </table>
 <h3 id="sci-etl-search">sci-etl search<a class="headerlink" href="#sci-etl-search" title="Permanent link">&para;</a></h3>
-<p>Show one page of arXiv results for CONFIG without calling the LLM.</p>
+<p>Show one page of the configured source's results for CONFIG without calling the LLM.</p>
 <p>Each entry is marked new or processed according to the saved state, so a
-query can be tuned before spending tokens. Nothing is written.</p>
+query can be tuned before spending tokens. The id column is labelled by
+source: arXiv id, PMID, S2 paper id, or OpenAlex work id. Nothing is
+written.</p>
 <p><strong>Usage:</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>sci-etl search [OPTIONS] CONFIG
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>sci-etl search [OPTIONS] CONFIG
 </code></pre></div>
 <p><strong>Options:</strong></p>
 <table>
@@ -3269,7 +3390,7 @@ query can be tuned before spending tokens. Nothing is written.</p>
 <tr>
 <td><code>--start-index</code></td>
 <td>integer range (<code>0</code> and above)</td>
-<td>Listing offset to start from.</td>
+<td>Listing offset to start from; only a source that pages by offset accepts one above 0.</td>
 <td><code>0</code></td>
 </tr>
 <tr>
@@ -3290,7 +3411,7 @@ query can be tuned before spending tokens. Nothing is written.</p>
 <p>Show CONFIG's progress: processed records, saved offset, last run and export rows.</p>
 <p>Reads state without creating it, so this is safe before the first run.</p>
 <p><strong>Usage:</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>sci-etl status [OPTIONS] CONFIG
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>sci-etl status [OPTIONS] CONFIG
 </code></pre></div>
 <p><strong>Options:</strong></p>
 <table>
@@ -3319,11 +3440,12 @@ query can be tuned before spending tokens. Nothing is written.</p>
 </table>
 <h3 id="sci-etl-validate">sci-etl validate<a class="headerlink" href="#sci-etl-validate" title="Permanent link">&para;</a></h3>
 <p>Check CONFIG and its prompts without running the pipeline.</p>
-<p>Exits 3 when a configuration check fails, 4 when a required package is
-missing, and 1 when an online check fails. Online checks run only after
-every offline check passes.</p>
+<p>The packages checked are the ones the configured source needs. Exits 3
+when a configuration check fails, 4 when a required package is missing,
+and 1 when an online check fails. Online checks run only after every
+offline check passes.</p>
 <p><strong>Usage:</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>sci-etl validate [OPTIONS] CONFIG
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>sci-etl validate [OPTIONS] CONFIG
 </code></pre></div>
 <p><strong>Options:</strong></p>
 <table>
@@ -3339,7 +3461,7 @@ every offline check passes.</p>
 <tr>
 <td><code>--online</code></td>
 <td>boolean</td>
-<td>Also send one arXiv listing request and one LLM request.</td>
+<td>Also send one listing request to the source and one LLM request.</td>
 <td><code>Sentinel.UNSET</code></td>
 </tr>
 <tr>

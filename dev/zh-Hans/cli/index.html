@@ -2764,9 +2764,10 @@
 <h1 id="sci-etl-cli">sci-etl CLI<a class="headerlink" href="#sci-etl-cli" title="Permanent link">&para;</a></h1>
 <p><code>sci-etl</code> runs <a href="https://xueromll.github.io/sci-etl-core/latest/">sci-etl-core</a>
 extraction pipelines from a single YAML file, with no wiring code. It searches
-arXiv, asks an LLM which papers are relevant, extracts structured entities from
-their full text, and writes them to a CSV, one row per entity tagged with the
-paper it came from. Runs resume where the last one stopped.</p>
+arXiv, PubMed, Semantic Scholar, or OpenAlex, asks an LLM which papers are
+relevant, extracts structured entities from their full text, and writes them
+to a CSV, one row per entity tagged with the paper it came from. Runs resume where the last one stopped, and <code>forget</code> hands
+chosen papers back for another pass.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>$ sci-etl init hot-jupiters
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>$ sci-etl validate hot-jupiters/config.yaml
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>$ sci-etl search hot-jupiters/config.yaml --limit 5
@@ -2778,7 +2779,8 @@ paper it came from. Runs resume where the last one stopped.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pip<span class="w"> </span>install<span class="w"> </span>sci-etl-cli
 </code></pre></div>
 <p>This installs the <code>sci-etl</code> command along with
-<code>sci-etl-core[config,async,arxiv,html,llm,pdf]</code>, <code>click</code>, and <code>rich</code>. <code>pipx install sci-etl-cli</code> keeps it in an environment of
+<code>sci-etl-core[config,async,arxiv,html,llm,pdf,xml]</code>, <code>click</code>, and <code>rich</code>, so
+every source works out of the box. <code>pipx install sci-etl-cli</code> keeps it in an environment of
 its own. <code>sci-etl --version</code> prints the CLI and library versions.</p>
 <h2 id="compatibility">Compatibility<a class="headerlink" href="#compatibility" title="Permanent link">&para;</a></h2>
 <p>Each CLI release is tested against a range of sci-etl-core releases, and pip
@@ -2805,7 +2807,7 @@ installs a matching one:</p>
 </tr>
 <tr>
 <td>0.4.x</td>
-<td>0.6</td>
+<td>0.7</td>
 </tr>
 </tbody>
 </table>
