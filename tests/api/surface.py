@@ -1,6 +1,6 @@
 """The stable public surface of sci-etl-core, rendered as text.
 
-``STABLE`` lists the stable tier of ``release-plan.md`` §7.2 by the module a
+``STABLE`` lists the names the library treats as stable by the module a
 caller imports each name from, plus every name a known consumer imports or
 subclasses (``consumer_surface.txt``). :func:`render_surface` writes one line
 per class, dataclass field list, method, property, function, and constant, so
